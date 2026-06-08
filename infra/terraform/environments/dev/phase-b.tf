@@ -50,7 +50,7 @@ module "cloud_run" {
     RATE_LIMIT_MAX_WRITES     = "60"
     RATE_LIMIT_WINDOW_MINUTES = "60"
     CORS_ORIGINS = jsonencode(concat(
-      ["http://localhost:5173", "http://localhost:3000"],
+      ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
       var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],
     ))
     }, var.firebase_admin_sa_configured ? {

@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -10,12 +10,15 @@ import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
+import { useToast } from "../components/ui/Toast";
 import { Stat, StatGrid } from "../components/ui/Stat";
+import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
 
 export function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { idToken } = useAuth();
+  const { toast } = useToast();
   const [data, setData] = useState<RestaurantDetailResponse | null>(null);
   const [attributes, setAttributes] = useState<AttributeEntry[]>([]);
   const [notes, setNotes] = useState<RestaurantNote[]>([]);
@@ -25,18 +28,30 @@ export function RestaurantDetailPage() {
   const [noteBusy, setNoteBusy] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadRestaurant = useCallback(() => {
     if (!id) return;
+    let cancelled = false;
     setLoading(true);
+    setError(null);
     Promise.all([api.getRestaurant(id), api.getAttributes(id), api.listNotes(id)])
       .then(([detail, attrs, notesRes]) => {
+        if (cancelled) return;
         setData(detail);
         setAttributes(Object.values(attrs.attributes));
         setNotes(notesRes.notes);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Load failed"))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Load failed");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
+
+  useRefreshOnNavigate(loadRestaurant, [id]);
 
   async function handleNoteSubmit(e: FormEvent) {
     e.preventDefault();
@@ -47,6 +62,7 @@ export function RestaurantDetailPage() {
       const created = await api.submitNote(id, noteText.trim(), idToken);
       setNotes((prev) => [created, ...prev]);
       setNoteText("");
+      toast("Note posted — thanks!", "success");
     } catch (err) {
       setNoteError(authErrorMessage(err));
     } finally {
@@ -172,7 +188,7 @@ export function RestaurantDetailPage() {
               />
             </label>
             {noteError && <p className="error">{noteError}</p>}
-            <Button type="submit" disabled={noteBusy}>
+            <Button type="submit" disabled={noteBusy || !noteText.trim()}>
               {noteBusy ? "Posting…" : "Post note"}
             </Button>
           </form>

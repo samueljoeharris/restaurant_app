@@ -10,7 +10,10 @@ import type {
   UserProfile,
 } from "../types";
 
-const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
+// In dev, Vite proxies /v1 → VITE_API_URL so any localhost port avoids CORS.
+const API_URL = import.meta.env.DEV
+  ? ""
+  : (import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "");
 
 export class ApiError extends Error {
   status: number;

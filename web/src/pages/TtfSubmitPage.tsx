@@ -6,7 +6,9 @@ import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { ChoiceChip, ChoiceChipGroup } from "../components/ui/ChoiceChip";
 import { Page } from "../components/ui/Page";
+import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/Toast";
 import type { RestaurantDetailResponse, TtfSubmission } from "../types";
 
@@ -18,11 +20,17 @@ const ITEM_TYPES: { value: TtfSubmission["item_type"]; label: string; emoji: str
   { value: "other", label: "Other", emoji: "🍽️" },
 ];
 
-const DAYPARTS: TtfSubmission["daypart"][] = [
-  "breakfast",
-  "lunch",
-  "dinner",
-  "late",
+const PORTIONS: { value: TtfSubmission["portion_size"]; label: string }[] = [
+  { value: "kid", label: "Kid" },
+  { value: "regular", label: "Regular" },
+  { value: "shareable", label: "Shareable" },
+];
+
+const DAYPARTS: { value: TtfSubmission["daypart"]; label: string }[] = [
+  { value: "breakfast", label: "Breakfast" },
+  { value: "lunch", label: "Lunch" },
+  { value: "dinner", label: "Dinner" },
+  { value: "late", label: "Late" },
 ];
 
 function currentDaypart(): TtfSubmission["daypart"] {
@@ -34,7 +42,7 @@ function currentDaypart(): TtfSubmission["daypart"] {
 }
 
 function formatTimer(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
   const min = Math.floor(totalSec / 60);
   const sec = totalSec % 60;
   return `${min}:${sec.toString().padStart(2, "0")}`;
@@ -74,12 +82,31 @@ export function TtfSubmitPage() {
   const timerMs =
     timerStart === null
       ? 0
-      : (timerStopped ?? timerNow) - timerStart;
+      : Math.max(0, (timerStopped ?? timerNow) - timerStart);
   const timerMinutes = Math.max(1, Math.ceil(timerMs / 60000));
+
+  function startTimer() {
+    const now = Date.now();
+    setTimerStart(now);
+    setTimerNow(now);
+    setTimerStopped(null);
+  }
+
+  function stopTimer() {
+    const now = Date.now();
+    setTimerStopped(now);
+    setTimerNow(now);
+  }
 
   const canSubmit =
     !busy &&
     (timerStopped !== null || (timerStart === null && elapsed >= 1));
+
+  const submitHint = timerRunning
+    ? "Stop the timer before submitting."
+    : !canSubmit && timerStart !== null
+      ? "Timer was reset — start again or enter minutes manually."
+      : null;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -113,6 +140,7 @@ export function TtfSubmitPage() {
   function resetTimer() {
     setTimerStart(null);
     setTimerStopped(null);
+    setTimerNow(Date.now());
   }
 
   if (!restaurant) {
@@ -143,7 +171,7 @@ export function TtfSubmitPage() {
             </div>
             <div className="timer-actions">
               {timerStart === null && (
-                <Button type="button" onClick={() => setTimerStart(Date.now())}>
+                <Button type="button" onClick={startTimer}>
                   Start timer
                 </Button>
               )}
@@ -151,7 +179,7 @@ export function TtfSubmitPage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => setTimerStopped(Date.now())}
+                  onClick={stopTimer}
                 >
                   Stop ({timerMinutes} min)
                 </Button>
@@ -177,67 +205,55 @@ export function TtfSubmitPage() {
             </label>
           )}
 
-          <fieldset className="stack">
+          <fieldset className="field-group">
             <legend>What arrived?</legend>
-            <div className="item-type-grid">
+            <ChoiceChipGroup columns={2}>
               {ITEM_TYPES.map((item) => (
-                <button
+                <ChoiceChip
                   key={item.value}
-                  type="button"
-                  className={[
-                    "item-type-btn",
-                    itemType === item.value ? "item-type-btn--active" : "",
-                  ].join(" ")}
+                  selected={itemType === item.value}
                   onClick={() => setItemType(item.value)}
                 >
                   {item.emoji} {item.label}
-                </button>
+                </ChoiceChip>
               ))}
-            </div>
+            </ChoiceChipGroup>
           </fieldset>
 
-          <label>
-            Quality
-            <div className="star-row" role="group" aria-label="Item quality">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  className={["star-btn", quality >= star ? "star-btn--on" : ""].join(" ")}
-                  onClick={() => setQuality(star)}
-                  aria-label={`${star} star${star === 1 ? "" : "s"}`}
+          <div className="field-group">
+            <span className="field-group__label">Quality</span>
+            <StarRating value={quality} onChange={setQuality} label="Item quality" />
+          </div>
+
+          <fieldset className="field-group">
+            <legend>Portion</legend>
+            <ChoiceChipGroup columns={3}>
+              {PORTIONS.map((opt) => (
+                <ChoiceChip
+                  key={opt.value}
+                  selected={portion === opt.value}
+                  onClick={() => setPortion(opt.value)}
                 >
-                  ★
-                </button>
+                  {opt.label}
+                </ChoiceChip>
               ))}
-            </div>
-          </label>
+            </ChoiceChipGroup>
+          </fieldset>
 
-          <label>
-            Portion
-            <select
-              value={portion}
-              onChange={(e) => setPortion(e.target.value as TtfSubmission["portion_size"])}
-            >
-              <option value="kid">Kid</option>
-              <option value="regular">Regular</option>
-              <option value="shareable">Shareable</option>
-            </select>
-          </label>
-
-          <label>
-            Daypart
-            <select
-              value={daypart}
-              onChange={(e) => setDaypart(e.target.value as TtfSubmission["daypart"])}
-            >
-              {DAYPARTS.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
+          <fieldset className="field-group">
+            <legend>Daypart</legend>
+            <ChoiceChipGroup columns={2}>
+              {DAYPARTS.map((opt) => (
+                <ChoiceChip
+                  key={opt.value}
+                  selected={daypart === opt.value}
+                  onClick={() => setDaypart(opt.value)}
+                >
+                  {opt.label}
+                </ChoiceChip>
               ))}
-            </select>
-          </label>
+            </ChoiceChipGroup>
+          </fieldset>
 
           <label>
             Kids in party
@@ -261,6 +277,7 @@ export function TtfSubmitPage() {
           </label>
 
           {error && <p className="error">{error}</p>}
+          {submitHint && <p className="field-hint field-hint--warn">{submitHint}</p>}
           <Button type="submit" fullWidth disabled={!canSubmit}>
             {busy ? "Submitting…" : "Submit observation"}
           </Button>

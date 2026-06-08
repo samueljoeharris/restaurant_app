@@ -106,13 +106,12 @@ def build_attribute_aggregates(conn: Connection, restaurant_id: UUID) -> dict:
             "min_sample_size": min_n,
         }
 
-        if sample_size < min_n:
+        if sample_size == 0:
             entry["status"] = "insufficient_data"
-            entry["message"] = "Be the first to rate"
+            entry["message"] = "No ratings yet"
             attributes[key] = entry
             continue
 
-        entry["status"] = "ok"
         mtype = metric["metric_type"]
         if mtype == "boolean":
             entry["aggregate"] = _aggregate_boolean(samples)
@@ -122,6 +121,12 @@ def build_attribute_aggregates(conn: Connection, restaurant_id: UUID) -> dict:
             entry["aggregate"] = _aggregate_enum(samples)
         else:
             entry["aggregate"] = {"value": samples[-1][0]}
+
+        if sample_size < min_n:
+            entry["status"] = "early"
+            entry["message"] = f"Early signal ({sample_size}/{min_n} parent ratings)"
+        else:
+            entry["status"] = "ok"
 
         attributes[key] = entry
 

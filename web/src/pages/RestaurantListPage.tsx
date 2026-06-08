@@ -1,25 +1,26 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 
 import { api } from "../api/client";
+import { RestaurantListCard } from "../components/RestaurantListCard";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
-import type { RestaurantSummary } from "../types";
+import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import type { RestaurantMapEntry } from "../types";
 
 export function RestaurantListPage() {
-  const [restaurants, setRestaurants] = useState<RestaurantSummary[]>([]);
+  const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  useRefreshOnNavigate(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
     api
-      .listRestaurants(query.trim() || undefined)
+      .listRestaurantsForMap()
       .then((data) => {
         if (!cancelled) setRestaurants(data);
       })
@@ -32,13 +33,27 @@ export function RestaurantListPage() {
     return () => {
       cancelled = true;
     };
-  }, [query]);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return restaurants;
+    return restaurants.filter((r) => r.name.toLowerCase().includes(q));
+  }, [restaurants, query]);
+
+  const withContributions = useMemo(
+    () =>
+      restaurants.filter(
+        (r) =>
+          r.ttf.sample_size > 0 ||
+          r.attribute_rating_count > 0 ||
+          r.note_count > 0,
+      ).length,
+    [restaurants],
+  );
 
   return (
-    <Page
-      title="Explore"
-      subtitle="Parent-rated restaurants in Dedham"
-    >
+    <Page title="Explore" subtitle="Parent-rated restaurants in Dedham">
       <div className="search-input">
         <input
           className="search"
@@ -50,30 +65,40 @@ export function RestaurantListPage() {
       </div>
 
       {!loading && !error && (
-        <Badge tone="brand">{restaurants.length} places</Badge>
+        <div className="explore-summary">
+          <Badge tone="brand">{filtered.length} places</Badge>
+          {withContributions > 0 && (
+            <span className="muted small">{withContributions} with parent data</span>
+          )}
+        </div>
       )}
 
       {loading && <SkeletonList count={6} />}
       {error && <p className="error">{error}</p>}
 
-      {!loading && !error && restaurants.length > 0 && (
+      {!loading && !error && filtered.length > 0 && (
         <ul className="list">
-          {restaurants.map((r) => (
+          {filtered.map((r) => (
             <li key={r.id}>
-              <Link to={`/restaurants/${r.id}`} className="restaurant-card">
-                <span className="restaurant-card__name">{r.name}</span>
-                <span className="restaurant-card__meta">{r.address}</span>
-              </Link>
+              <RestaurantListCard restaurant={r} />
             </li>
           ))}
         </ul>
       )}
 
-      {!loading && !error && restaurants.length === 0 && (
+      {!loading && !error && filtered.length === 0 && restaurants.length > 0 && (
         <EmptyState
           emoji="🔎"
           title="No matches"
-          description="Try a different search or check back after the next seed run."
+          description="Try a different search term."
+        />
+      )}
+
+      {!loading && !error && restaurants.length === 0 && (
+        <EmptyState
+          emoji="🔎"
+          title="No restaurants"
+          description="Check back after the next seed run."
         />
       )}
     </Page>

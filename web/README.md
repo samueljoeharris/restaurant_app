@@ -22,7 +22,9 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Open http://localhost:5173 (or the next free port if 5173 is busy).
+
+**Troubleshooting:** If the UI shows “Load failed” / console `Failed to fetch`, restart `npm run dev` after editing `.env.local`. In dev, API calls are proxied through Vite (`/v1` → `VITE_API_URL`) so any localhost port works without CORS. If you still hit CORS directly (e.g. old tab), use port **5173** or restart the dev server to pick up the proxy.
 
 ## Deploy to Cloud Run (dev)
 

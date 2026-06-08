@@ -24,6 +24,7 @@ import {
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
 import { ButtonLink } from "./ui/Button";
+import { Stat, StatGrid } from "./ui/Stat";
 
 const DEDHAM_CENTER = { lat: 42.2418, lng: -71.1662 };
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() ?? "";
@@ -174,26 +175,136 @@ function MapLegend() {
   );
 }
 
-function ContributionStats({ entry }: { entry: RestaurantMapEntry }) {
+function MapRestaurantSheet({
+  entry,
+  onClose,
+}: {
+  entry: RestaurantMapEntry;
+  onClose: () => void;
+}) {
+  const kind = mapPinKind(entry);
+  const tier = ttfTier(entry.ttf);
+  const hasTtf = entry.ttf.sample_size > 0;
+  const confirmedTtf = entry.ttf.sample_size >= 3;
+
   return (
-    <div className="map-sheet__contrib">
-      {entry.ttf.sample_size > 0 ? (
-        <span className="muted small">
-          TTF: {formatTtfMedian(entry.ttf)} · {entry.ttf.sample_size} visit
-          {entry.ttf.sample_size === 1 ? "" : "s"}
-          {entry.ttf.sample_size < 3 ? " (need 3 for tier)" : ""}
-        </span>
-      ) : (
-        <span className="muted small">No TTF visits yet</span>
-      )}
-      {entry.attribute_rating_count > 0 && (
-        <span className="muted small">★ {entry.attribute_rating_count} rating submission{entry.attribute_rating_count === 1 ? "" : "s"}</span>
-      )}
-      {entry.note_count > 0 && (
-        <span className="muted small">💬 {entry.note_count} parent note{entry.note_count === 1 ? "" : "s"}</span>
-      )}
-    </div>
+    <aside className="map-sheet" aria-label={`${entry.name} map details`}>
+      <div
+        className="map-sheet__accent"
+        style={{ background: mapPinFill(entry) }}
+        aria-hidden
+      />
+      <div className="map-sheet__scroll">
+        <div className="map-sheet__head">
+          <div className="map-sheet__intro">
+            <h2 className="map-sheet__title">{entry.name}</h2>
+            <p className="map-sheet__address">{entry.address}</p>
+            {entry.cuisine_tags.length > 0 && (
+              <div className="map-sheet__tags">
+                {entry.cuisine_tags.map((tag) => (
+                  <Badge key={tag} tone="neutral">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            className="map-sheet__close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        <section className="map-sheet__section">
+          <h3 className="map-sheet__section-title">Time to Fries</h3>
+          {hasTtf ? (
+            <>
+              <StatGrid>
+                <Stat
+                  label="Median"
+                  value={formatTtfMedian(entry.ttf)}
+                  highlight={confirmedTtf}
+                />
+                <Stat
+                  label="Quality"
+                  value={entry.ttf.avg_quality?.toFixed(1) ?? "—"}
+                />
+                <Stat
+                  label="Visits"
+                  value={entry.ttf.sample_size}
+                  hint={confirmedTtf ? undefined : "need 3 for tier"}
+                />
+              </StatGrid>
+              <p className="map-sheet__tier">
+                <span
+                  className="map-sheet__tier-dot"
+                  style={{
+                    background: confirmedTtf
+                      ? TTF_TIER_COLORS[tier]
+                      : TTF_TIER_COLORS[previewTtfTierFromEntry(entry)],
+                  }}
+                />
+                {confirmedTtf
+                  ? TTF_TIER_LABELS[tier]
+                  : `Early signal — ${entry.ttf.sample_size} visit${entry.ttf.sample_size === 1 ? "" : "s"} logged`}
+              </p>
+            </>
+          ) : (
+            <p className="map-sheet__empty">No fries timer yet — be the first parent to clock a visit.</p>
+          )}
+        </section>
+
+        <section className="map-sheet__section">
+          <h3 className="map-sheet__section-title">Parent contributions</h3>
+          <StatGrid>
+            <Stat
+              label="Ratings"
+              value={entry.attribute_rating_count}
+              hint={entry.attribute_rating_count === 0 ? "none yet" : "submissions"}
+            />
+            <Stat
+              label="Notes"
+              value={entry.note_count}
+              hint={entry.note_count === 0 ? "none yet" : "from parents"}
+            />
+            <Stat
+              label="Data"
+              value={
+                kind === "empty"
+                  ? "—"
+                  : kind === "confirmed_ttf"
+                    ? "TTF"
+                    : kind === "early_ttf"
+                      ? "Early"
+                      : kind === "ratings"
+                        ? "★"
+                        : "💬"
+              }
+              hint="primary signal"
+            />
+          </StatGrid>
+        </section>
+      </div>
+
+      <div className="map-sheet__actions">
+        <ButtonLink to={`/restaurants/${entry.id}`} fullWidth>
+          View full details
+        </ButtonLink>
+      </div>
+    </aside>
   );
+}
+
+function previewTtfTierFromEntry(entry: RestaurantMapEntry): TtfTier {
+  const median = entry.ttf.median_minutes;
+  if (median === null) return "unknown";
+  if (median <= 8) return "fast";
+  if (median <= 15) return "ok";
+  return "slow";
 }
 
 export function RestaurantMap({
@@ -259,43 +370,10 @@ export function RestaurantMap({
         <MapLegend />
 
         {selected && (
-          <div className="map-sheet">
-            <div className="map-sheet__head">
-              <div>
-                <h2 className="map-sheet__title">{selected.name}</h2>
-                <p className="muted small">{selected.address}</p>
-              </div>
-              <button
-                type="button"
-                className="map-sheet__close"
-                onClick={() => setSelectedId(null)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-            <div className="map-sheet__stats">
-              {selected.ttf.sample_size >= 3 ? (
-                <Badge
-                  tone={
-                    ttfTier(selected.ttf) === "fast"
-                      ? "success"
-                      : ttfTier(selected.ttf) === "slow"
-                        ? "warning"
-                        : "neutral"
-                  }
-                >
-                  {formatTtfMedian(selected.ttf)} median
-                </Badge>
-              ) : selected.ttf.sample_size > 0 ? (
-                <Badge tone="neutral">{formatTtfMedian(selected.ttf)} early</Badge>
-              ) : null}
-            </div>
-            <ContributionStats entry={selected} />
-            <ButtonLink to={`/restaurants/${selected.id}`} fullWidth>
-              View details
-            </ButtonLink>
-          </div>
+          <MapRestaurantSheet
+            entry={selected}
+            onClose={() => setSelectedId(null)}
+          />
         )}
       </div>
     </APIProvider>

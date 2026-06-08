@@ -1,7 +1,11 @@
 import type { MetricDefinition } from "../types";
-import { Button } from "./ui/Button";
+import { ChoiceChip, ChoiceChipGroup } from "./ui/ChoiceChip";
 
 type Value = boolean | number | string | undefined;
+
+function formatEnumLabel(value: string): string {
+  return value.replace(/_/g, " ");
+}
 
 export function AttributeInput({
   metric,
@@ -14,59 +18,54 @@ export function AttributeInput({
 }) {
   if (metric.input_widget === "toggle") {
     return (
-      <div className="attr-input-toggle">
-        <Button
-          type="button"
-          variant={value === true ? "primary" : "secondary"}
-          size="sm"
-          onClick={() => onChange(true)}
-        >
+      <ChoiceChipGroup columns={2}>
+        <ChoiceChip selected={value === true} onClick={() => onChange(true)}>
           Yes
-        </Button>
-        <Button
-          type="button"
-          variant={value === false ? "primary" : "secondary"}
-          size="sm"
-          onClick={() => onChange(false)}
-        >
+        </ChoiceChip>
+        <ChoiceChip selected={value === false} onClick={() => onChange(false)}>
           No
-        </Button>
-      </div>
+        </ChoiceChip>
+      </ChoiceChipGroup>
     );
   }
 
   if (metric.input_widget === "enum_select" && metric.enum_values) {
+    const selected = typeof value === "string" ? value : null;
     return (
-      <select
-        value={typeof value === "string" ? value : ""}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="" disabled>
-          Select…
-        </option>
+      <ChoiceChipGroup columns={2}>
         {metric.enum_values.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt.replace(/_/g, " ")}
-          </option>
+          <ChoiceChip
+            key={opt}
+            selected={selected === opt}
+            onClick={() => onChange(opt)}
+          >
+            {formatEnumLabel(opt)}
+          </ChoiceChip>
         ))}
-      </select>
+      </ChoiceChipGroup>
     );
   }
 
   const min = metric.min_value ?? 1;
   const max = metric.max_value ?? 5;
+  const unset = typeof value !== "number";
   const num = typeof value === "number" ? value : min;
 
   return (
-    <div className="slider-row">
+    <div className={`slider-field${unset ? " slider-field--unset" : " slider-field--set"}`}>
       <input
         type="range"
+        className="slider-field__input"
         min={min}
         max={max}
         value={num}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={num}
+        aria-label={metric.label}
       />
-      <span className="slider-row__value">{num}</span>
+      <span className="slider-field__value">{unset ? "Tap slider" : num}</span>
     </div>
   );
 }

@@ -76,7 +76,7 @@ export interface AttributeEntry {
   metric_type: string;
   sample_size: number;
   min_sample_size: number;
-  status: "ok" | "insufficient_data";
+  status: "ok" | "early" | "insufficient_data";
   message?: string;
   aggregate?: {
     value: boolean | number | string | null;
