@@ -95,8 +95,9 @@ Store the PAT only in your **global** Cursor config (never commit). Official Git
 | Problem | Fix |
 |---------|-----|
 | GitHub MCP red / disconnected | Docker running? `.env` exists with PAT? Path: `${workspaceFolder}/.env` |
-| gcloud MCP fails | Run `gcloud auth login` in terminal; ensure Node 20+ installed |
-| postgres MCP "no tools" | Expected until Phase 2 — `LOCAL_POSTGRES_URL` only works when Postgres container is up |
+| gcloud MCP red on Windows | Cursor doesn't load fnm shell PATH — wrappers in `.cursor/scripts/` fix this. Reload Cursor. |
+| gcloud MCP auth errors | Run `gcloud auth login` in terminal |
+| postgres MCP red | Run `docker compose up postgres` first; MCP needs DB URL as CLI arg (see `postgres-mcp.cmd`) |
 | Firebase shows 0 tools | Add Firebase block from `mcp.json.example` only after `firebase.json` exists in repo |
 
 ## Phase 0e — Firebase MCP (Phase 2)

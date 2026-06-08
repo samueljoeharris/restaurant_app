@@ -12,13 +12,12 @@
       ]
     },
     "gcloud": {
-      "command": "npx",
-      "args": ["-y", "@google-cloud/gcloud-mcp"]
+      "command": "${workspaceFolder}/.cursor/scripts/gcloud-mcp.cmd",
+      "args": []
     },
     "postgres": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres"],
-      "envFile": "${workspaceFolder}/.env"
+      "command": "${workspaceFolder}/.cursor/scripts/postgres-mcp.cmd",
+      "args": []
     },
     "firebase": {
       "command": "npx",
