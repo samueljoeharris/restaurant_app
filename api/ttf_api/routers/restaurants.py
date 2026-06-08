@@ -119,7 +119,9 @@ def list_restaurants_for_map() -> list[RestaurantMapEntry]:
             COALESCE(t.sample_size, 0)::int AS sample_size,
             t.median_minutes,
             t.avg_quality,
-            t.last_updated
+            t.last_updated,
+            COALESCE(n.note_count, 0)::int AS note_count,
+            COALESCE(a.attribute_rating_count, 0)::int AS attribute_rating_count
         FROM restaurants r
         LEFT JOIN LATERAL (
             SELECT
@@ -130,6 +132,16 @@ def list_restaurants_for_map() -> list[RestaurantMapEntry]:
             FROM ttf_observations
             WHERE restaurant_id = r.id
         ) t ON true
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*)::int AS note_count
+            FROM restaurant_notes
+            WHERE restaurant_id = r.id
+        ) n ON true
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*)::int AS attribute_rating_count
+            FROM restaurant_attribute_ratings
+            WHERE restaurant_id = r.id
+        ) a ON true
         WHERE r.pilot_city = %s
         ORDER BY r.name
     """
@@ -152,7 +164,14 @@ def list_restaurants_for_map() -> list[RestaurantMapEntry]:
                 else None,
                 last_updated=row["last_updated"],
             )
-        results.append(RestaurantMapEntry(**summary.model_dump(), ttf=ttf))
+        results.append(
+            RestaurantMapEntry(
+                **summary.model_dump(),
+                ttf=ttf,
+                note_count=row["note_count"],
+                attribute_rating_count=row["attribute_rating_count"],
+            )
+        )
     return results
 
 

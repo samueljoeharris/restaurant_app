@@ -62,7 +62,13 @@ export const api = {
   },
 
   listRestaurantsForMap: () =>
-    request<RestaurantMapEntry[]>("/v1/restaurants/map"),
+    request<RestaurantMapEntry[]>("/v1/restaurants/map").then((rows) =>
+      rows.map((r) => ({
+        ...r,
+        note_count: r.note_count ?? 0,
+        attribute_rating_count: r.attribute_rating_count ?? 0,
+      })),
+    ),
 
   getRestaurant: (id: string) =>
     request<RestaurantDetailResponse>(`/v1/restaurants/${id}`),

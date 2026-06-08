@@ -8,9 +8,15 @@ import {
 } from "@vis.gl/react-google-maps";
 
 import {
+  mapPinFill,
+  mapPinHasBadges,
+  mapPinKind,
+  mapPinLabel,
+  mapPinTooltip,
+} from "../lib/mapPin";
+import {
   formatTtfMedian,
   ttfTier,
-  ttfTierColor,
   TTF_TIER_COLORS,
   TTF_TIER_LABELS,
   type TtfTier,
@@ -73,31 +79,72 @@ function MapPin({
   selected: boolean;
   onSelect: () => void;
 }) {
-  const color = ttfTierColor(restaurant.ttf);
-  const scale = selected ? 1.25 : 1;
+  const kind = mapPinKind(restaurant);
+  const fill = mapPinFill(restaurant);
+  const label = mapPinLabel(restaurant);
+  const tooltip = mapPinTooltip(restaurant);
+  const showBadges = mapPinHasBadges(restaurant);
 
   return (
     <AdvancedMarker
       position={{ lat: restaurant.lat, lng: restaurant.lng }}
       onClick={onSelect}
-      title={restaurant.name}
+      title={tooltip}
     >
       <div
-        className="map-pin"
-        style={{
-          background: color,
-          transform: `scale(${scale})`,
-          boxShadow: selected ? `0 0 0 3px ${color}55` : undefined,
-        }}
-      />
+        className={[
+          "map-pin-wrap",
+          selected ? "map-pin-wrap--selected" : "",
+          `map-pin-wrap--${kind}`,
+        ].join(" ")}
+        aria-label={tooltip.replace(/\n/g, ". ")}
+      >
+        <div className="map-pin-tooltip" role="tooltip">
+          {tooltip.split("\n").map((line, i) => (
+            <span key={i}>
+              {line}
+              {i < tooltip.split("\n").length - 1 && <br />}
+            </span>
+          ))}
+        </div>
+        <div className="map-pin-stack">
+          {label && (
+            <span className="map-pin-label" style={{ borderColor: fill }}>
+              {label}
+            </span>
+          )}
+          <div
+            className="map-pin"
+            style={{
+              background: fill,
+              boxShadow: selected ? `0 0 0 3px ${fill}66` : undefined,
+            }}
+          />
+          {showBadges && (
+            <div className="map-pin-badges">
+              {restaurant.attribute_rating_count > 0 && kind !== "ratings" && (
+                <span className="map-pin-badge" title="Parent ratings">
+                  ★
+                </span>
+              )}
+              {restaurant.note_count > 0 && kind !== "notes" && (
+                <span className="map-pin-badge" title="Parent notes">
+                  💬
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </AdvancedMarker>
   );
 }
 
 function MapLegend() {
-  const tiers: TtfTier[] = ["fast", "ok", "slow", "unknown"];
+  const tiers: TtfTier[] = ["fast", "ok", "slow"];
   return (
-    <div className="map-legend" aria-label="TTF pin legend">
+    <div className="map-legend" aria-label="Map pin legend">
+      <span className="map-legend__heading">TTF tier</span>
       {tiers.map((tier) => (
         <span key={tier} className="map-legend__item">
           <span
@@ -107,6 +154,44 @@ function MapLegend() {
           {TTF_TIER_LABELS[tier]}
         </span>
       ))}
+      <span className="map-legend__item">
+        <span className="map-legend__dot map-legend__dot--dashed" />
+        1–2 visits
+      </span>
+      <span className="map-legend__item">
+        <span className="map-legend__dot" style={{ background: "#7c6fe0" }} />
+        Ratings
+      </span>
+      <span className="map-legend__item">
+        <span className="map-legend__dot" style={{ background: "#4a90d9" }} />
+        Notes
+      </span>
+      <span className="map-legend__item">
+        <span className="map-legend__dot" style={{ background: TTF_TIER_COLORS.unknown }} />
+        No data
+      </span>
+    </div>
+  );
+}
+
+function ContributionStats({ entry }: { entry: RestaurantMapEntry }) {
+  return (
+    <div className="map-sheet__contrib">
+      {entry.ttf.sample_size > 0 ? (
+        <span className="muted small">
+          TTF: {formatTtfMedian(entry.ttf)} · {entry.ttf.sample_size} visit
+          {entry.ttf.sample_size === 1 ? "" : "s"}
+          {entry.ttf.sample_size < 3 ? " (need 3 for tier)" : ""}
+        </span>
+      ) : (
+        <span className="muted small">No TTF visits yet</span>
+      )}
+      {entry.attribute_rating_count > 0 && (
+        <span className="muted small">★ {entry.attribute_rating_count} rating submission{entry.attribute_rating_count === 1 ? "" : "s"}</span>
+      )}
+      {entry.note_count > 0 && (
+        <span className="muted small">💬 {entry.note_count} parent note{entry.note_count === 1 ? "" : "s"}</span>
+      )}
     </div>
   );
 }
@@ -190,11 +275,23 @@ export function RestaurantMap({
               </button>
             </div>
             <div className="map-sheet__stats">
-              <Badge tone={ttfTier(selected.ttf) === "fast" ? "success" : ttfTier(selected.ttf) === "slow" ? "warning" : "neutral"}>
-                {formatTtfMedian(selected.ttf)}
-              </Badge>
-              <span className="muted small">{selected.ttf.sample_size} visits</span>
+              {selected.ttf.sample_size >= 3 ? (
+                <Badge
+                  tone={
+                    ttfTier(selected.ttf) === "fast"
+                      ? "success"
+                      : ttfTier(selected.ttf) === "slow"
+                        ? "warning"
+                        : "neutral"
+                  }
+                >
+                  {formatTtfMedian(selected.ttf)} median
+                </Badge>
+              ) : selected.ttf.sample_size > 0 ? (
+                <Badge tone="neutral">{formatTtfMedian(selected.ttf)} early</Badge>
+              ) : null}
             </div>
+            <ContributionStats entry={selected} />
             <ButtonLink to={`/restaurants/${selected.id}`} fullWidth>
               View details
             </ButtonLink>

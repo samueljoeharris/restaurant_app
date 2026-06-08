@@ -49,6 +49,8 @@ class TtfAggregate(BaseModel):
 
 class RestaurantMapEntry(RestaurantSummary):
     ttf: TtfAggregate
+    note_count: int = 0
+    attribute_rating_count: int = 0
 
 
 class RestaurantDetailResponse(BaseModel):

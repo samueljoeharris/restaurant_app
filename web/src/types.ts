@@ -10,6 +10,8 @@ export interface RestaurantSummary {
 
 export interface RestaurantMapEntry extends RestaurantSummary {
   ttf: TtfAggregate;
+  note_count: number;
+  attribute_rating_count: number;
 }
 
 export interface TtfAggregate {
