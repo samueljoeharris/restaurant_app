@@ -32,7 +32,7 @@ From GCP **APIs & Services → Credentials** (Web client) after Google provider 
 
 ## MFA (authenticator app)
 
-Terraform (`modules/firebase-auth`) sets MFA to **ENABLED** (opt-in, not mandatory).
+Terraform (`modules/firebase-auth`) sets MFA to **ENABLED** (opt-in, not mandatory). **Requires a successful Terraform apply** — if you see `auth/operation-not-allowed` for TOTP, Identity Platform MFA is not enabled in GCP yet (apply failed or pending).
 
 **Enroll:** Sign in → **Account** (nav) → **Set up authenticator** → scan QR → enter 6-digit code.
 

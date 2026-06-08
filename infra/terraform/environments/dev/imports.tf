@@ -15,3 +15,8 @@ import {
   to = module.firebase_web[0].google_firebase_project.project
   id = "projects/ttf-restaurant-dev"
 }
+
+import {
+  to = module.firebase_auth[0].google_identity_platform_config.auth
+  id = "projects/ttf-restaurant-dev"
+}
