@@ -1,0 +1,23 @@
+variable "project_id" {
+  type = string
+}
+
+variable "api_runtime_sa_id" {
+  type    = string
+  default = "ttf-api-runtime"
+}
+
+variable "github_deploy_sa_id" {
+  type    = string
+  default = "ttf-github-deploy"
+}
+
+variable "uploads_bucket_name" {
+  type = string
+}
+
+variable "enable_cloud_sql" {
+  type        = bool
+  description = "Grant Cloud SQL client role to API runtime SA (Phase B)"
+  default     = false
+}

@@ -1,0 +1,23 @@
+# Copy to terraform.tfvars (gitignored) and adjust values.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+
+project_id          = "ttf-restaurant-dev"
+region              = "us-central1"
+uploads_bucket_name = "ttf-uploads-dev" # append project number if name taken
+
+# --- Phase A (default) — foundation only, no monthly compute cost ---
+enable_cloud_sql = false
+enable_cloud_run = false
+
+# --- Phase B — uncomment when API is ready to deploy to Cloud Run ---
+# enable_cloud_sql = true
+# enable_cloud_run = true
+# api_image = "us-central1-docker.pkg.dev/ttf-restaurant-dev/ttf-containers/ttf-api:latest"
+# cloud_sql_tier = "db-f1-micro"
+
+# Optional budget alert — requires billing account ID from:
+#   gcloud billing accounts list
+# enable_billing_budget = true
+# billing_account_id    = "XXXXXX-XXXXXX-XXXXXX"
+# budget_amount_usd     = 50

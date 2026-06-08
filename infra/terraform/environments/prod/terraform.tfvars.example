@@ -1,0 +1,8 @@
+# Prod environment — scaffold when pilot city launches.
+# Duplicate environments/dev/ and adjust for ttf-restaurant-prod.
+
+project_id          = "ttf-restaurant-prod"
+region              = "us-central1"
+uploads_bucket_name = "ttf-uploads-prod"
+cloud_sql_tier      = "db-f1-micro"
+deletion_protection = true

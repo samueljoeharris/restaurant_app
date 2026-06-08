@@ -12,7 +12,6 @@ service-account*.json
 .terraform/
 *.tfstate
 *.tfstate.*
-.terraform.lock.hcl
 **/terraform.tfvars
 !**/terraform.tfvars.example
 

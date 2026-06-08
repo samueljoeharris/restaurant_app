@@ -39,15 +39,37 @@ gcloud auth login
 gcloud auth application-default login
 ```
 
-## Phase 0c — Environment Variables (Windows)
+## Phase 0c — Secrets via `.env` (recommended on Windows)
 
-Set these as **user environment variables** (Settings → System → Environment Variables). Never commit values to git.
+**Do not use Windows system environment variables** unless you prefer a global setup. This project uses a **gitignored `.env` file** at the repo root — simpler on Windows and works reliably with Docker.
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your values:
 
 | Variable | Value | When needed |
 |----------|-------|-------------|
 | `GITHUB_PERSONAL_ACCESS_TOKEN` | Your fine-grained PAT | Phase 0 — GitHub MCP |
-| `LOCAL_POSTGRES_URL` | `postgresql://ttf_app:ttf_local@localhost:5432/ttf` | Phase 2 — after `docker compose up` |
-| `TTF_GCP_PROJECT_DEV` | `ttf-restaurant-dev` | Phase 0e — after GCP project created |
+| `POSTGRES_CONNECTION_STRING` | `postgresql://ttf_app:ttf_local@localhost:5432/ttf` | Phase 2 — postgres MCP |
+| `TTF_GCP_PROJECT_DEV` | `ttf-restaurant-dev` | Optional reference for gcloud |
+
+### How secrets reach each MCP
+
+| MCP | Mechanism |
+|-----|-----------|
+| **github** | Docker `--env-file .env` — token passed directly into container |
+| **postgres** | Cursor `envFile` — loads `.env` for npx server |
+| **gcloud** | No token in `.env` — uses `gcloud auth login` credentials on your machine |
+
+### Alternative: Windows user env vars
+
+If you prefer machine-wide secrets, set `GITHUB_PERSONAL_ACCESS_TOKEN` in Windows Environment Variables and change `mcp.json` to use `${env:GITHUB_PERSONAL_ACCESS_TOKEN}` instead of `--env-file`. The `.env` approach is recommended for this repo.
+
+### Alternative: global `~/.cursor/mcp.json`
+
+Store the PAT only in your **global** Cursor config (never commit). Official GitHub docs show putting the token directly in `~/.cursor/mcp.json`. Use that if you want GitHub MCP in all projects — this repo uses **project-scoped** `.cursor/mcp.json` + `.env` instead.
 
 ### Creating the GitHub PAT
 
@@ -55,8 +77,8 @@ Set these as **user environment variables** (Settings → System → Environment
 2. Create fine-grained token named **`ttf-cursor-mcp`**
 3. Repository access: **Only** `samueljoeharris/restaurant_app`
 4. Permissions: Contents (read), Issues (read/write), Pull requests (read/write), Actions (read), Metadata (read)
-5. Copy token → set as `GITHUB_PERSONAL_ACCESS_TOKEN` in Windows env vars
-6. Restart Cursor so it picks up the new variable
+5. Copy token → paste into `.env` as `GITHUB_PERSONAL_ACCESS_TOKEN=...`
+6. Restart Cursor (or Reload Window) so MCP reloads
 
 ## Phase 0d — Enable MCP in Cursor
 
@@ -72,7 +94,7 @@ Set these as **user environment variables** (Settings → System → Environment
 
 | Problem | Fix |
 |---------|-----|
-| GitHub MCP red / disconnected | Docker running? PAT set? Restart Cursor after setting env var |
+| GitHub MCP red / disconnected | Docker running? `.env` exists with PAT? Path: `${workspaceFolder}/.env` |
 | gcloud MCP fails | Run `gcloud auth login` in terminal; ensure Node 20+ installed |
 | postgres MCP "no tools" | Expected until Phase 2 — `LOCAL_POSTGRES_URL` only works when Postgres container is up |
 | Firebase shows 0 tools | Add Firebase block from `mcp.json.example` only after `firebase.json` exists in repo |
@@ -97,7 +119,7 @@ After GCP project `ttf-restaurant-dev` exists, add remote HTTP server per [Cloud
 ## Security Rules
 
 - **Never** commit PATs, API keys, or `.env` files
-- Use `${env:VAR}` in committed `mcp.json` — tokens live in OS environment only
+- Tokens live in **`.env` only** (gitignored) — `mcp.json` references the file, never the secret value
 - GitHub PAT: scope to `restaurant_app` repo only
 - gcloud MCP inherits your `gcloud auth` permissions — use a dev account
 - `.gitignore` excludes `.env`, `*.pem`, `*.p8`, Terraform state files

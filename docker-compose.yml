@@ -1,0 +1,28 @@
+services:
+  terraform:
+    image: hashicorp/terraform:1.9
+    working_dir: /infra
+    volumes:
+      - ./infra/terraform:/infra
+      # Mount gcloud ADC so Terraform can authenticate (Windows + Docker Desktop)
+      - ${USERPROFILE}/AppData/Roaming/gcloud:/root/.config/gcloud:ro
+    entrypoint: ["terraform"]
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ttf
+      POSTGRES_USER: ttf_app
+      POSTGRES_PASSWORD: ttf_local
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ttf_app -d ttf"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:

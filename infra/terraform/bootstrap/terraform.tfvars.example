@@ -1,0 +1,4 @@
+project_id             = "ttf-restaurant-dev"
+region                 = "us-central1"
+state_bucket_name      = "ttf-tfstate-dev"
+terraform_admin_email  = "samueljoeharris@gmail.com"

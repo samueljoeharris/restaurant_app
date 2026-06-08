@@ -25,8 +25,7 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 - [ ] Install [Node.js 20+](https://nodejs.org)
 - [ ] Install [gcloud CLI](https://cloud.google.com/sdk/docs/install) → `gcloud auth login`
 - [ ] Install [gh CLI](https://cli.github.com) (optional)
-- [ ] Create fine-grained PAT `ttf-cursor-mcp` scoped to `restaurant_app`
-- [ ] Set Windows env var `GITHUB_PERSONAL_ACCESS_TOKEN`
+- [ ] `cp .env.example .env` and add `GITHUB_PERSONAL_ACCESS_TOKEN` (see [MCP_SETUP.md](MCP_SETUP.md))
 - [ ] Restart Cursor → verify green MCP dots (github, gcloud)
 - [ ] Test: ask agent to list GitHub issues or run `gcloud projects list`
 
@@ -41,11 +40,10 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
   - https://console.cloud.google.com → activate trial
   - Create project ID: **`ttf-restaurant-dev`**
   - Display name: **TTF Restaurant (Dev)**
-  - Set env var `TTF_GCP_PROJECT_DEV=ttf-restaurant-dev`
+  - Add `TTF_GCP_PROJECT_DEV=ttf-restaurant-dev` to `.env` (optional)
   - Budget alerts at **$25** and **$50** (names: `ttf-dev-budget`)
-  - Enable APIs: Cloud Run, Cloud SQL Admin, Secret Manager
   - Firebase → "Add Firebase to Google Cloud project"
-  - Create Maps API key named **`ttf-maps-dev`**
+  - Create Maps API key named **`ttf-maps-dev`** (APIs enabled by Terraform)
 
 ---
 
@@ -65,29 +63,40 @@ No Mac required for Phases 0–2 backend work. Rent a cloud Mac when ready for X
 
 ## Phase 2 — Backend + Infra (Windows + Docker + Terraform)
 
-- [ ] Verify Docker Desktop (WSL2)
-- [ ] Bootstrap GCS bucket **`ttf-tfstate-dev`** (one-time manual)
-- [ ] Scaffold `infra/terraform/` (dev environment + modules)
-- [ ] `docker compose run terraform apply` — Cloud SQL, Cloud Run, Storage, IAM
-- [ ] Scaffold `api/` with `Dockerfile` + root `docker-compose.yml`
-- [ ] `docker compose up` — API at `http://localhost:8080`
-- [ ] Set `LOCAL_POSTGRES_URL=postgresql://ttf_app:ttf_local@localhost:5432/ttf`
-- [ ] Add Firebase Auth emulator container
-- [ ] Write `api/openapi.yaml`
-- [ ] GitHub Actions: `api.yml` + `terraform.yml` (path-filtered)
-- [ ] Add Firebase MCP to `.cursor/mcp.json` (see MCP_SETUP.md)
+Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 
-### Expected resource names after Terraform apply
+- [ ] GCP project `ttf-restaurant-dev` + billing (no org/folders OK)
+- [ ] `gcloud config set project ttf-restaurant-dev && gcloud auth application-default login`
+- [ ] **Bootstrap** state bucket:
+  ```bash
+  cd infra/terraform/bootstrap && cp terraform.tfvars.example terraform.tfvars
+  docker compose run --rm terraform -chdir=bootstrap init
+  docker compose run --rm terraform -chdir=bootstrap apply
+  cp ../environments/dev/backend.tf.example ../environments/dev/backend.tf
+  ```
+- [ ] **Deploy dev**:
+  ```bash
+  cd infra/terraform/environments/dev && cp terraform.tfvars.example terraform.tfvars
+  docker compose run --rm terraform -chdir=environments/dev init
+  docker compose run --rm terraform -chdir=environments/dev apply
+  ```
+- [ ] Firebase + Maps key (console) — see infra README
+- [ ] Scaffold `api/` + push image to Artifact Registry `ttf-api`
+- [ ] `docker compose up postgres` — local DB; set `POSTGRES_CONNECTION_STRING` in `.env`
+- [ ] Write `api/openapi.yaml`
+- [ ] GitHub secret `GCP_SA_KEY` for `.github/workflows/terraform.yml`
+
+### Phase A resources (default apply)
 
 | Resource | Name |
 |----------|------|
-| Cloud Run | `ttf-api` |
-| Cloud SQL | `ttf-db` |
-| Postgres DB | `ttf` |
 | Artifact Registry | `ttf-containers` |
 | GCS bucket | `ttf-uploads-dev` |
-| API runtime SA | `ttf-api-runtime@ttf-restaurant-dev.iam` |
-| CI deploy SA | `ttf-github-deploy@ttf-restaurant-dev.iam` |
+| Secret | `ttf-maps-api-key` |
+| API runtime SA | `ttf-api-runtime@...` |
+| CI deploy SA | `ttf-github-deploy@...` |
+
+Phase B (`enable_cloud_sql`, `enable_cloud_run`) adds `ttf-db`, `ttf-api` — see `phase-b.tf`.
 
 ---
 
@@ -132,6 +141,7 @@ No Mac required for Phases 0–2 backend work. Rent a cloud Mac when ready for X
 
 | Doc | Purpose |
 |-----|---------|
+| [AGENTS.md](../AGENTS.md) | Guidance for AI coding agents |
 | [DESIGN.md](DESIGN.md) | Full product + technical design |
 | [MCP_SETUP.md](MCP_SETUP.md) | Cursor MCP server configuration |
 | [README.md](../README.md) | Project overview |

@@ -2,7 +2,8 @@
 
 **Working name:** TTF — *Time to Fries* (product codename; final brand TBD)  
 **Status:** Design phase  
-**MVP scope:** Single metro area pilot; native iOS (Swift/SwiftUI); GCP backend
+**MVP scope:** Single metro area pilot; native iOS (Swift/SwiftUI); GCP backend  
+**Agents:** See [AGENTS.md](../AGENTS.md) for AI coding agent guidance
 
 ---
 

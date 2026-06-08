@@ -1,0 +1,9 @@
+# Rename to backend.tf after running bootstrap (infra/terraform/bootstrap).
+# Bucket name must match bootstrap output.
+
+terraform {
+  backend "gcs" {
+    bucket = "ttf-tfstate-dev"
+    prefix = "dev"
+  }
+}

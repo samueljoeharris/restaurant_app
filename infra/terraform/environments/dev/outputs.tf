@@ -1,0 +1,43 @@
+output "phase" {
+  value = var.enable_cloud_sql || var.enable_cloud_run ? "B" : "A"
+}
+
+output "project_id" {
+  value = var.project_id
+}
+
+output "uploads_bucket" {
+  value = module.storage.bucket_name
+}
+
+output "artifact_registry_url" {
+  value = module.artifact_registry.repository_url
+}
+
+output "api_runtime_service_account" {
+  value = module.iam.api_runtime_email
+}
+
+output "github_deploy_service_account" {
+  value = module.iam.github_deploy_email
+}
+
+output "api_image_target" {
+  description = "Push API image here when ready (Phase B)"
+  value       = "${module.artifact_registry.repository_url}/ttf-api"
+}
+
+output "cloud_run_url" {
+  description = "Phase B only"
+  value       = var.enable_cloud_run ? module.cloud_run[0].service_uri : null
+}
+
+output "cloud_sql_connection_name" {
+  description = "Phase B only"
+  value       = var.enable_cloud_sql ? module.cloud_sql[0].connection_name : null
+}
+
+output "cloud_sql_public_ip" {
+  description = "Phase B only"
+  value       = var.enable_cloud_sql ? module.cloud_sql[0].public_ip : null
+}

@@ -1,0 +1,103 @@
+locals {
+  # Phase A — foundation only (no monthly compute cost)
+  phase_a_apis = [
+    "secretmanager.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "storage.googleapis.com",
+    "iam.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    # Maps Platform — API key value still added manually to Secret Manager
+    "geocoding-backend.googleapis.com",
+    "places.googleapis.com",
+  ]
+
+  # Phase B — enable when deploying API + Cloud SQL (see phase-b.tf)
+  phase_b_apis = [
+    "run.googleapis.com",
+    "sqladmin.googleapis.com",
+    "servicenetworking.googleapis.com",
+  ]
+
+  required_apis = var.enable_cloud_sql || var.enable_cloud_run ? concat(local.phase_a_apis, local.phase_b_apis) : local.phase_a_apis
+
+  secret_ids = var.enable_cloud_sql ? ["ttf-db-url", "ttf-maps-api-key"] : ["ttf-maps-api-key"]
+
+  database_url = var.enable_cloud_sql ? format(
+    "postgresql://%s:%s@/%s?host=/cloudsql/%s",
+    module.cloud_sql[0].database_user,
+    module.cloud_sql[0].database_password,
+    module.cloud_sql[0].database_name,
+    module.cloud_sql[0].connection_name,
+  ) : null
+}
+
+module "project_services" {
+  source = "../../modules/project-services"
+
+  project_id = var.project_id
+  services   = local.required_apis
+}
+
+module "artifact_registry" {
+  source = "../../modules/artifact-registry"
+
+  project_id = var.project_id
+  region     = var.region
+
+  depends_on = [module.project_services]
+}
+
+module "storage" {
+  source = "../../modules/storage"
+
+  project_id  = var.project_id
+  region      = var.region
+  bucket_name = var.uploads_bucket_name
+
+  depends_on = [module.project_services]
+}
+
+module "secrets" {
+  source = "../../modules/secrets"
+
+  project_id = var.project_id
+  secret_ids = local.secret_ids
+
+  depends_on = [module.project_services]
+}
+
+module "iam" {
+  source = "../../modules/iam"
+
+  project_id          = var.project_id
+  uploads_bucket_name = module.storage.bucket_name
+  enable_cloud_sql      = var.enable_cloud_sql
+
+  depends_on = [module.storage]
+}
+
+resource "google_billing_budget" "dev" {
+  count = var.enable_billing_budget && var.billing_account_id != "" ? 1 : 0
+
+  billing_account = var.billing_account_id
+  display_name    = "ttf-dev-budget"
+
+  budget_filter {
+    projects = ["projects/${var.project_id}"]
+  }
+
+  amount {
+    specified_amount {
+      currency_code = "USD"
+      units         = tostring(var.budget_amount_usd)
+    }
+  }
+
+  threshold_rules {
+    threshold_percent = 0.5
+  }
+
+  threshold_rules {
+    threshold_percent = 1.0
+  }
+}
