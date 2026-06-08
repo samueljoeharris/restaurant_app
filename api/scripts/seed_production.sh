@@ -48,28 +48,16 @@ start_proxy
 
 echo "==> Building local DATABASE_URL from Secret Manager (ttf-db-url)"
 export PROJECT_ID PROXY_PORT
-export DATABASE_URL
-DATABASE_URL="$(
-  python - <<'PY'
-import os
-import re
-import subprocess
-import sys
 
-project = os.environ["PROJECT_ID"]
-raw = subprocess.check_output(
-    ["gcloud", "secrets", "versions", "access", "latest",
-     "--secret=ttf-db-url", f"--project={project}"],
-    text=True,
-).strip()
-m = re.match(r"postgresql://([^:]+):([^@]+)@/([^?]+)", raw)
-if not m:
-    sys.exit("Could not parse ttf-db-url secret")
-user, password, db = m.groups()
-port = os.environ.get("PROXY_PORT", "5432")
-print(f"postgresql://{user}:{password}@127.0.0.1:{port}/{db}")
-PY
-)"
+RAW_DB_URL="$(gcloud secrets versions access latest --secret=ttf-db-url --project="$PROJECT_ID")"
+DB_USER="$(printf '%s' "$RAW_DB_URL" | sed -n 's#postgresql://\([^:]*\):.*#\1#p')"
+DB_PASS="$(printf '%s' "$RAW_DB_URL" | sed -n 's#postgresql://[^:]*:\([^@]*\)@/.*#\1#p')"
+DB_NAME="$(printf '%s' "$RAW_DB_URL" | sed -n 's#postgresql://[^/]*/\([^?]*\).*#\1#p')"
+if [[ -z "$DB_USER" || -z "$DB_PASS" || -z "$DB_NAME" ]]; then
+  echo "Could not parse ttf-db-url secret"
+  exit 1
+fi
+export DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@127.0.0.1:${PROXY_PORT}/${DB_NAME}"
 
 export MAPS_API_KEY
 MAPS_API_KEY="$(gcloud secrets versions access latest --secret=ttf-maps-api-key --project="$PROJECT_ID")"
