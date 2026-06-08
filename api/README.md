@@ -19,6 +19,8 @@ docker compose up --build api
 | GET | `/v1/restaurants/{id}` | ✅ |
 | GET | `/v1/metrics` | ✅ (12 seed metrics) |
 | GET | `/v1/restaurants/{id}/ttf` | ✅ |
+| GET | `/v1/restaurants/{id}/attributes` | ✅ (aggregates w/ min sample) |
+| POST | `/v1/restaurants/{id}/attributes` | ✅ |
 | POST | write endpoints | ✅ Firebase JWT (dev mode below) |
 | GET | `/v1/me` | ✅ Authenticated profile |
 
@@ -52,7 +54,11 @@ Re-running the script upserts by `google_place_id` (safe to run again).
 
 ## Firebase Auth
 
+Full guide: [docs/FIREBASE_AUTH.md](../docs/FIREBASE_AUTH.md)
+
 Write endpoints require `Authorization: Bearer <token>`.
+
+`GET /v1/auth/config` — public client config (project ID, emulator flags).
 
 ### Local dev (`AUTH_DEV_MODE=true`)
 

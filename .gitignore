@@ -8,6 +8,7 @@
 credentials.json
 service-account*.json
 firebase-sa.json
+.firebase/
 
 # Terraform
 .terraform/

@@ -198,7 +198,7 @@ RestaurantAttributeRating {
   id: UUID
   restaurant_id: UUID
   metric_key: string
-  user_id: UUID
+  firebase_uid: string           // from Firebase Auth JWT
   value: JSON                    // type-dependent
   observed_at: timestamp
   visit_context: optional string
@@ -215,22 +215,21 @@ See [Section 5](#5-ttf-metric--detailed-spec).
 RestaurantNote {
   id: UUID
   restaurant_id: UUID
-  user_id: UUID
+  firebase_uid: string
   text: string
   tags: string[]                 // optional structured tags
   created_at: timestamp
 }
 ```
 
-#### User
+#### User (Firebase Auth — not stored in Postgres)
 
 ```
-User {
-  id: UUID
-  firebase_uid: string
-  display_name: string
-  created_at: timestamp
-  contribution_count: int        // lightweight reputation v1
+UserProfile {
+  firebase_uid: string           // JWT `uid`
+  display_name: string         // JWT `name`
+  email: string                // JWT `email`
+  contribution_count: int        // computed from contributions
 }
 ```
 
@@ -256,7 +255,7 @@ User {
 TTFObservation {
   id: UUID
   restaurant_id: UUID
-  user_id: UUID
+  firebase_uid: string
   ordered_at: timestamp          // when order placed
   served_at: timestamp           // when food arrived
   elapsed_minutes: int           // computed: served_at - ordered_at

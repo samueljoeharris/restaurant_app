@@ -53,9 +53,9 @@ class RestaurantDetailResponse(BaseModel):
 
 
 class UserProfile(BaseModel):
-    id: UUID
     firebase_uid: str
-    display_name: str | None
+    display_name: str | None = None
+    email: str | None = None
     contribution_count: int
 
 

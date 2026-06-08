@@ -1,4 +1,4 @@
-"""Firebase Auth JWT verification and user resolution."""
+"""Firebase Auth JWT verification — identity from Firebase only, no local user store."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
-from uuid import UUID
 
 import firebase_admin
 from fastapi import Depends, HTTPException, status
@@ -15,7 +14,6 @@ from firebase_admin import auth as firebase_auth
 from firebase_admin import credentials
 
 from ttf_api.config import settings
-from ttf_api.db import get_conn
 
 _bearer = HTTPBearer(auto_error=False)
 _firebase_initialized = False
@@ -23,9 +21,13 @@ _firebase_initialized = False
 
 @dataclass(frozen=True)
 class AuthUser:
-    id: UUID
     firebase_uid: str
     display_name: str | None
+    email: str | None
+
+
+def _using_emulator() -> bool:
+    return bool(settings.firebase_auth_emulator_host)
 
 
 def _init_firebase() -> None:
@@ -38,49 +40,75 @@ def _init_firebase() -> None:
 
     options = {"projectId": settings.firebase_project_id}
 
-    if settings.firebase_service_account_path:
+    if _using_emulator():
+        try:
+            firebase_admin.get_app()
+        except ValueError:
+            firebase_admin.initialize_app(options=options)
+    elif settings.firebase_service_account_path:
         path = Path(settings.firebase_service_account_path)
         if not path.is_file():
             raise RuntimeError(f"Firebase service account not found: {path}")
         cred = credentials.Certificate(str(path))
+        try:
+            firebase_admin.get_app()
+        except ValueError:
+            firebase_admin.initialize_app(cred, options)
     else:
         cred = credentials.ApplicationDefault()
-
-    try:
-        firebase_admin.get_app()
-    except ValueError:
-        firebase_admin.initialize_app(cred, options)
+        try:
+            firebase_admin.get_app()
+        except ValueError:
+            firebase_admin.initialize_app(cred, options)
 
     _firebase_initialized = True
+
+
+def _validate_claims(claims: dict) -> None:
+    uid = claims.get("uid") or claims.get("sub")
+    if not uid:
+        raise HTTPException(status_code=401, detail="Token missing uid")
+
+    if _using_emulator():
+        return
+
+    aud = claims.get("aud")
+    if aud and aud != settings.firebase_project_id:
+        raise HTTPException(status_code=401, detail="Token audience does not match project")
+
+    iss = claims.get("iss", "")
+    expected_iss = f"https://securetoken.google.com/{settings.firebase_project_id}"
+    if iss and iss != expected_iss:
+        raise HTTPException(status_code=401, detail="Token issuer does not match project")
 
 
 def _verify_firebase_token(token: str) -> dict:
     _init_firebase()
     try:
-        return firebase_auth.verify_id_token(token, check_revoked=False)
+        claims = firebase_auth.verify_id_token(
+            token,
+            check_revoked=not _using_emulator(),
+        )
+    except firebase_auth.ExpiredIdTokenError as exc:
+        raise HTTPException(status_code=401, detail="Firebase token expired") from exc
+    except firebase_auth.InvalidIdTokenError as exc:
+        raise HTTPException(status_code=401, detail="Invalid Firebase token") from exc
     except Exception as exc:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired Firebase token",
+            status_code=401,
+            detail="Firebase token verification failed",
         ) from exc
 
+    _validate_claims(claims)
+    return claims
 
-def _upsert_user(firebase_uid: str, display_name: str | None) -> AuthUser:
-    with get_conn() as conn:
-        row = conn.execute(
-            """
-            INSERT INTO users (firebase_uid, display_name)
-            VALUES (%s, %s)
-            ON CONFLICT (firebase_uid) DO UPDATE
-            SET display_name = COALESCE(EXCLUDED.display_name, users.display_name)
-            RETURNING id, firebase_uid, display_name
-            """,
-            (firebase_uid, display_name),
-        ).fetchone()
+
+def _user_from_claims(claims: dict) -> AuthUser:
+    uid = claims.get("uid") or claims.get("sub")
     return AuthUser(
-        id=row["id"],
-        firebase_uid=row["firebase_uid"],
-        display_name=row["display_name"],
+        firebase_uid=uid,
+        display_name=claims.get("name"),
+        email=claims.get("email"),
     )
 
 
@@ -89,14 +117,9 @@ def resolve_user_from_token(token: str) -> AuthUser:
         uid = token.removeprefix("dev:")
         if not uid:
             raise HTTPException(status_code=401, detail="Invalid dev token")
-        return _upsert_user(uid, "Dev User")
+        return AuthUser(firebase_uid=uid, display_name="Dev User", email=None)
 
-    claims = _verify_firebase_token(token)
-    uid = claims.get("uid") or claims.get("sub")
-    if not uid:
-        raise HTTPException(status_code=401, detail="Token missing uid")
-    name = claims.get("name") or claims.get("email")
-    return _upsert_user(uid, name)
+    return _user_from_claims(_verify_firebase_token(token))
 
 
 async def get_current_user(
@@ -106,6 +129,7 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authorization Bearer token required",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     return resolve_user_from_token(creds.credentials)
 

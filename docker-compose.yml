@@ -24,6 +24,14 @@ services:
       timeout: 5s
       retries: 5
 
+  firebase-emulator:
+    build:
+      context: .
+      dockerfile: firebase/Dockerfile
+    ports:
+      - "9099:9099"
+      - "4000:4000"
+
   api:
     build: ./api
     ports:
@@ -35,10 +43,14 @@ services:
       PILOT_CITY: dedham-ma
       PILOT_DISPLAY_NAME: Dedham, Massachusetts
       FIREBASE_PROJECT_ID: ttf-restaurant-dev
+      FIREBASE_AUTH_EMULATOR_HOST: firebase-emulator:9099
       AUTH_DEV_MODE: "true"
+      CORS_ORIGINS: '["http://localhost:5173","http://localhost:3000"]'
     depends_on:
       postgres:
         condition: service_healthy
+      firebase-emulator:
+        condition: service_started
 
 volumes:
   postgres-data:

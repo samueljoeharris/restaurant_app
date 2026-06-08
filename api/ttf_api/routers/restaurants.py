@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from psycopg.types.json import Jsonb
 
+from ttf_api.aggregates import build_attribute_aggregates
 from ttf_api.auth import AuthUser, get_current_user
 from ttf_api.config import settings
 from ttf_api.db import get_conn
@@ -80,13 +81,6 @@ def _ensure_restaurant(conn, restaurant_id: UUID) -> dict:
     return row
 
 
-def _bump_contribution(conn, user_id: UUID) -> None:
-    conn.execute(
-        "UPDATE users SET contribution_count = contribution_count + 1 WHERE id = %s",
-        (user_id,),
-    )
-
-
 @router.get("", response_model=list[RestaurantSummary])
 def list_restaurants(
     q: str | None = Query(None, description="Name search"),
@@ -147,7 +141,6 @@ def create_restaurant(
                 settings.pilot_city,
             ),
         ).fetchone()
-        _bump_contribution(conn, user.id)
     return _row_to_detail(row)
 
 
@@ -171,7 +164,7 @@ def submit_ttf(
         row = conn.execute(
             """
             INSERT INTO ttf_observations (
-                restaurant_id, user_id, ordered_at, served_at, elapsed_minutes,
+                restaurant_id, firebase_uid, ordered_at, served_at, elapsed_minutes,
                 item_type, item_quality, portion_size, daypart, party_size_kids,
                 wait_context, photo_url
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -179,7 +172,7 @@ def submit_ttf(
             """,
             (
                 restaurant_id,
-                user.id,
+                user.firebase_uid,
                 ordered_at,
                 served_at,
                 body.elapsed_minutes,
@@ -192,7 +185,6 @@ def submit_ttf(
                 body.photo_url,
             ),
         ).fetchone()
-        _bump_contribution(conn, user.id)
     return TtfSubmissionResponse(**row)
 
 
@@ -225,19 +217,18 @@ def submit_attributes(
         row = conn.execute(
             """
             INSERT INTO restaurant_attribute_ratings (
-                restaurant_id, metric_key, user_id, value, visit_context
+                restaurant_id, metric_key, firebase_uid, value, visit_context
             ) VALUES (%s, %s, %s, %s, %s)
             RETURNING id, metric_key
             """,
             (
                 restaurant_id,
                 body.metric_key,
-                user.id,
+                user.firebase_uid,
                 Jsonb(body.value),
                 body.visit_context,
             ),
         ).fetchone()
-        _bump_contribution(conn, user.id)
     return AttributeSubmissionResponse(**row)
 
 
@@ -245,7 +236,7 @@ def submit_attributes(
 def get_attributes(restaurant_id: UUID) -> dict:
     with get_conn() as conn:
         _ensure_restaurant(conn, restaurant_id)
-    return {"attributes": {}, "message": "Aggregates coming soon"}
+        return build_attribute_aggregates(conn, restaurant_id)
 
 
 @router.post(
@@ -262,13 +253,12 @@ def submit_note(
         _ensure_restaurant(conn, restaurant_id)
         row = conn.execute(
             """
-            INSERT INTO restaurant_notes (restaurant_id, user_id, text, tags)
+            INSERT INTO restaurant_notes (restaurant_id, firebase_uid, text, tags)
             VALUES (%s, %s, %s, %s)
             RETURNING id, text, tags, created_at
             """,
-            (restaurant_id, user.id, body.text, body.tags),
+            (restaurant_id, user.firebase_uid, body.text, body.tags),
         ).fetchone()
-        _bump_contribution(conn, user.id)
     return NoteSubmissionResponse(
         id=row["id"],
         text=row["text"],

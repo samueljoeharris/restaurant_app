@@ -1,3 +1,7 @@
+import json
+from typing import Any
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,7 +16,19 @@ class Settings(BaseSettings):
     firebase_service_account_path: str = ""
     firebase_auth_emulator_host: str = ""
     auth_dev_mode: bool = False
+    cors_origins: list[str] = []
     port: int = 8080
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: Any) -> list[str]:
+        if value is None or value == "":
+            return []
+        if isinstance(value, list):
+            return value
+        if isinstance(value, str):
+            return json.loads(value)
+        return []
 
 
 settings = Settings()

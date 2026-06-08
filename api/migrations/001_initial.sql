@@ -1,12 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    firebase_uid TEXT UNIQUE NOT NULL,
-    display_name TEXT,
-    contribution_count INT NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+-- Identity lives in Firebase Auth; contributions store firebase_uid only.
 
 CREATE TABLE restaurants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -41,18 +35,19 @@ CREATE TABLE restaurant_attribute_ratings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     restaurant_id UUID NOT NULL REFERENCES restaurants (id) ON DELETE CASCADE,
     metric_key TEXT NOT NULL REFERENCES metric_definitions (key),
-    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    firebase_uid TEXT NOT NULL,
     value JSONB NOT NULL,
     observed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     visit_context TEXT
 );
 
 CREATE INDEX attribute_ratings_restaurant_idx ON restaurant_attribute_ratings (restaurant_id);
+CREATE INDEX attribute_ratings_firebase_uid_idx ON restaurant_attribute_ratings (firebase_uid);
 
 CREATE TABLE ttf_observations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     restaurant_id UUID NOT NULL REFERENCES restaurants (id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    firebase_uid TEXT NOT NULL,
     ordered_at TIMESTAMPTZ NOT NULL,
     served_at TIMESTAMPTZ NOT NULL,
     elapsed_minutes INT NOT NULL,
@@ -67,11 +62,12 @@ CREATE TABLE ttf_observations (
 );
 
 CREATE INDEX ttf_observations_restaurant_idx ON ttf_observations (restaurant_id);
+CREATE INDEX ttf_observations_firebase_uid_idx ON ttf_observations (firebase_uid);
 
 CREATE TABLE restaurant_notes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     restaurant_id UUID NOT NULL REFERENCES restaurants (id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    firebase_uid TEXT NOT NULL,
     text TEXT NOT NULL,
     tags TEXT[] NOT NULL DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
