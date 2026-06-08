@@ -51,3 +51,13 @@ output "cloud_sql_public_ip" {
   description = "Phase B only"
   value       = var.enable_cloud_sql ? module.cloud_sql[0].public_ip : null
 }
+
+output "firebase_web_env" {
+  description = "Copy into web/.env.local (VITE_FIREBASE_*)"
+  value       = var.enable_firebase_web ? module.firebase_web[0].web_env : null
+}
+
+output "firebase_web_app_id" {
+  description = "Firebase Web app ID"
+  value       = var.enable_firebase_web ? module.firebase_web[0].app_id : null
+}

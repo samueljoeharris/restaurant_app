@@ -82,3 +82,14 @@ variable "labels" {
     managed_by  = "terraform"
   }
 }
+
+variable "enable_firebase_web" {
+  type        = bool
+  description = "Provision Firebase project binding + Web app for browser SDK (web/)"
+  default     = true
+}
+
+variable "firebase_web_app_display_name" {
+  type    = string
+  default = "TTF Web"
+}

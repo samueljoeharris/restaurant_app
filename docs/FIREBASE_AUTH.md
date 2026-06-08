@@ -42,6 +42,16 @@ Manual setup (if starting fresh):
    - **Apple** — enable when iOS app exists (requires Apple Developer)
 3. **Settings** → Authorized domains — ensure `localhost` is listed (for web pilot)
 
+### Web app (browser SDK)
+
+Terraform module `infra/terraform/modules/firebase-web` creates `google_firebase_web_app` and exposes SDK config:
+
+```bash
+docker compose run --rm terraform -chdir=environments/dev output -json firebase_web_env
+```
+
+Copy into `web/.env.local` as `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`.
+
 ### Service account (production API)
 
 1. Project **Settings** → **Service accounts**

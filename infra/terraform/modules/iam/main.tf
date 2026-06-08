@@ -31,6 +31,8 @@ locals {
     "roles/compute.networkAdmin",
     # Deploy Cloud Run services that run as ttf-api-runtime (actAs)
     "roles/iam.serviceAccountUser",
+    # Firebase Web app + project management
+    "roles/firebase.admin",
   ]
 }
 

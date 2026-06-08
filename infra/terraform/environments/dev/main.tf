@@ -8,6 +8,9 @@ locals {
     "iamcredentials.googleapis.com",
     "sts.googleapis.com",
     "cloudresourcemanager.googleapis.com",
+    # Firebase Web SDK + Auth (browser sign-in)
+    "firebase.googleapis.com",
+    "identitytoolkit.googleapis.com",
     # Maps Platform — API key value still added manually to Secret Manager
     "geocoding-backend.googleapis.com",
     "places.googleapis.com",

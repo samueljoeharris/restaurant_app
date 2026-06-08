@@ -37,7 +37,9 @@ api_image = "us-central1-docker.pkg.dev/ttf-restaurant-dev/ttf-containers/ttf-ap
 
 Defined in [`environments/dev/phase-b.tf`](environments/dev/phase-b.tf).
 
-**Not in Terraform (console):** Firebase linking, Apple Sign-In, Maps API key **creation** (value stored via `gcloud secrets versions add`).
+**Terraform (`modules/firebase-web`):** Firebase project binding + Web app for `web/` SDK config (`terraform output firebase_web_env`). Email/Password provider may still be toggled in Console if not yet codified.
+
+**Not in Terraform (console):** Apple Sign-In, Maps API key **creation** (value stored via `gcloud secrets versions add`).
 
 ## Prerequisites
 
@@ -65,6 +67,7 @@ infra/terraform/
     ├── storage/
     ├── secrets/
     ├── iam/
+    ├── firebase-web/
     └── cloud-run/
 ```
 

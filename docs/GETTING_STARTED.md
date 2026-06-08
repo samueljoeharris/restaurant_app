@@ -46,7 +46,7 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 
 Pilot the product in a browser while Apple Developer is pending.
 
-- [ ] Register Firebase **Web app** in Console → copy SDK config to `web/.env.local`
+- [ ] `terraform output firebase_web_env` → copy `VITE_FIREBASE_*` to `web/.env.local` (or Console Web app if TF not applied)
 - [ ] `cd web && npm install && npm run dev` — http://localhost:5173
 - [ ] Sign in (Email/Password) → browse restaurants → submit TTF
 - [ ] Point `VITE_API_URL` at Cloud Run (default in `.env.example`) or local API
