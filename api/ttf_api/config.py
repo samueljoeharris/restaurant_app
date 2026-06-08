@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://ttf_app:ttf_local@postgres:5432/ttf"
     pilot_city: str = "dedham-ma"
     pilot_display_name: str = "Dedham, Massachusetts"
+    maps_api_key: str = ""
     port: int = 8080
 
 

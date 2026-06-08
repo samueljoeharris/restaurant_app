@@ -28,6 +28,8 @@ services:
     build: ./api
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://ttf_app:ttf_local@postgres:5432/ttf
       PILOT_CITY: dedham-ma

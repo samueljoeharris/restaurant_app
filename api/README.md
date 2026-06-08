@@ -31,6 +31,24 @@ curl http://localhost:8080/v1/metrics
 curl http://localhost:8080/v1/restaurants
 ```
 
+## Seed Dedham restaurants (Places API)
+
+Requires `MAPS_API_KEY` in repo-root `.env` (same key as `ttf-maps-dev`).
+
+```bash
+docker compose run --rm api python scripts/seed_dedham.py
+curl http://localhost:8080/v1/restaurants
+```
+
+Or pass from Secret Manager (one-off):
+
+```bash
+export MAPS_API_KEY=$(gcloud secrets versions access latest --secret=ttf-maps-api-key --project=ttf-restaurant-dev)
+docker compose run --rm -e MAPS_API_KEY api python scripts/seed_dedham.py
+```
+
+Re-running the script upserts by `google_place_id` (safe to run again).
+
 ## Config (env)
 
 | Variable | Default |

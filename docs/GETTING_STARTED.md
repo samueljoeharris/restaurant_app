@@ -84,7 +84,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [x] Scaffold `api/` (FastAPI + migrations + OpenAPI)
 - [x] `docker compose up postgres` — local DB
 - [ ] `docker compose up api` — verify `/health` and `/v1/metrics`
-- [ ] Seed Dedham restaurants (Places API script — later)
+- [x] Seed Dedham restaurants: `docker compose run --rm api python scripts/seed_dedham.py`
 - [ ] Push image to Artifact Registry `ttf-api` (Phase B)
 - [ ] _(Later)_ GitHub secret `GCP_SA_KEY` + enable `.github/workflows/terraform.yml` CI (local `terraform apply` for now)
 
