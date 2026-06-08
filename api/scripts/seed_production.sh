@@ -12,7 +12,8 @@ set -euo pipefail
 
 PROJECT_ID="${TTF_GCP_PROJECT_DEV:-ttf-restaurant-dev}"
 INSTANCE="${PROJECT_ID}:us-central1:ttf-db"
-PROXY_PORT="${CLOUD_SQL_PROXY_PORT:-5432}"
+# Default 5433 avoids conflict with local docker compose postgres on 5432
+PROXY_PORT="${CLOUD_SQL_PROXY_PORT:-5433}"
 PROXY_PID=""
 PROXY_CONTAINER="ttf-cloud-sql-proxy"
 
