@@ -42,6 +42,16 @@ output "cloud_run_url" {
   value       = var.enable_cloud_run ? module.cloud_run[0].service_uri : null
 }
 
+output "cloud_run_web_url" {
+  description = "Web POC on Cloud Run"
+  value       = var.enable_web_cloud_run ? module.cloud_run_web[0].service_uri : null
+}
+
+output "web_image_target" {
+  description = "Push web image here (web.yml)"
+  value       = "${module.artifact_registry.repository_url}/ttf-web"
+}
+
 output "cloud_sql_connection_name" {
   description = "Phase B only"
   value       = var.enable_cloud_sql ? module.cloud_sql[0].connection_name : null

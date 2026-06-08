@@ -53,6 +53,23 @@ variable "api_image" {
   default     = "us-docker.pkg.dev/cloudrun/container/hello"
 }
 
+variable "enable_web_cloud_run" {
+  type        = bool
+  description = "Deploy static web POC (ttf-web) on Cloud Run. Requires enable_cloud_run."
+  default     = true
+
+  validation {
+    condition     = !var.enable_web_cloud_run || var.enable_cloud_run
+    error_message = "enable_web_cloud_run requires enable_cloud_run = true."
+  }
+}
+
+variable "web_image" {
+  type        = string
+  description = "Cloud Run container image URI for ttf-web"
+  default     = "us-docker.pkg.dev/cloudrun/container/hello"
+}
+
 variable "cloud_sql_tier" {
   type    = string
   default = "db-f1-micro"

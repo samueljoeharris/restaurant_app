@@ -3,11 +3,16 @@ module "firebase_auth" {
   source = "../../modules/firebase-auth"
 
   project_id = var.project_id
-  authorized_domains = [
-    "localhost",
-    "${var.project_id}.firebaseapp.com",
-    "${var.project_id}.web.app",
-  ]
+  authorized_domains = concat(
+    [
+      "localhost",
+      "${var.project_id}.firebaseapp.com",
+      "${var.project_id}.web.app",
+    ],
+    var.enable_web_cloud_run ? [
+      replace(module.cloud_run_web[0].service_uri, "https://", ""),
+    ] : [],
+  )
 
   enable_google_sign_in = var.enable_google_sign_in
   google_oauth_client_id = var.google_oauth_client_id

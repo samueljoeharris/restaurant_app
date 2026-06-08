@@ -24,6 +24,18 @@ npm run dev
 
 Open http://localhost:5173
 
+## Deploy to Cloud Run (dev)
+
+Terraform provisions `ttf-web` (see `infra/terraform/environments/dev/web.tf`). CI builds the Vite app with Firebase + API URLs baked in and deploys via `.github/workflows/web.yml`.
+
+1. Merge to `main` so **Terraform** applies `enable_web_cloud_run` (updates API CORS + Firebase authorized domains).
+2. Run the **Web** workflow (or push `web/` changes).
+3. Open the URL from:
+
+```bash
+docker compose run --rm terraform -chdir=environments/dev output -raw cloud_run_web_url
+```
+
 ## Local API instead of Cloud Run
 
 ```bash

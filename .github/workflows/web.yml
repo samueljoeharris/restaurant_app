@@ -1,0 +1,121 @@
+name: Web
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/web.yml"
+
+env:
+  PROJECT_ID: ttf-restaurant-dev
+  REGION: us-central1
+  AR_REPO: ttf-containers
+  IMAGE_NAME: ttf-web
+  CLOUD_RUN_SERVICE: ttf-web
+  API_SERVICE: ttf-api
+
+concurrency:
+  group: web-dev-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-push-deploy:
+    name: Build, push, deploy (dev)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Login to Artifact Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Resolve Vite build env
+        id: env
+        run: |
+          API_URL="$(gcloud run services describe "${{ env.API_SERVICE }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --format='value(status.url)')"
+          if [[ -z "$API_URL" ]]; then
+            echo "::error::API Cloud Run service not found"
+            exit 1
+          fi
+
+          TOKEN="$(gcloud auth print-access-token)"
+          APPS_JSON="$(curl -sf \
+            -H "Authorization: Bearer ${TOKEN}" \
+            "https://firebase.googleapis.com/v1beta1/projects/${{ env.PROJECT_ID }}/webApps")"
+          APP_ID="$(printf '%s' "$APPS_JSON" | python3 -c "
+          import json, sys
+          apps = json.load(sys.stdin).get('apps', [])
+          if not apps:
+              sys.exit('no Firebase web apps')
+          print(apps[0]['appId'])
+          ")"
+
+          curl -sf \
+            -H "Authorization: Bearer ${TOKEN}" \
+            "https://firebase.googleapis.com/v1beta1/projects/${{ env.PROJECT_ID }}/webApps/${APP_ID}/config" \
+            -o /tmp/firebase-config.json
+
+          python3 <<PY
+          import json, os
+          cfg = json.load(open("/tmp/firebase-config.json"))
+          api_url = """${API_URL}"""
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"api_url={api_url}\n")
+              out.write(f"firebase_api_key={cfg['apiKey']}\n")
+              out.write(f"firebase_auth_domain={cfg['authDomain']}\n")
+              out.write(f"firebase_project_id={cfg['projectId']}\n")
+          PY
+
+      - name: Build image
+        run: |
+          IMAGE_BASE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}"
+          docker build \
+            --build-arg VITE_API_URL="${{ steps.env.outputs.api_url }}" \
+            --build-arg VITE_FIREBASE_API_KEY="${{ steps.env.outputs.firebase_api_key }}" \
+            --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ steps.env.outputs.firebase_auth_domain }}" \
+            --build-arg VITE_FIREBASE_PROJECT_ID="${{ steps.env.outputs.firebase_project_id }}" \
+            -t "${IMAGE_BASE}:${{ github.sha }}" \
+            -t "${IMAGE_BASE}:latest" \
+            ./web
+          echo "IMAGE_URI=${IMAGE_BASE}:${{ github.sha }}" >> "$GITHUB_ENV"
+
+      - name: Push image
+        run: |
+          IMAGE_BASE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}"
+          docker push "${IMAGE_BASE}:${{ github.sha }}"
+          docker push "${IMAGE_BASE}:latest"
+
+      - name: Deploy to Cloud Run
+        run: |
+          if ! gcloud run services describe "${{ env.CLOUD_RUN_SERVICE }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --format="value(name)" 2>/dev/null; then
+            echo "Cloud Run service not found — image pushed only."
+            echo "Run Terraform apply (enable_web_cloud_run) first, then re-run this workflow."
+            exit 0
+          fi
+          gcloud run services update "${{ env.CLOUD_RUN_SERVICE }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --image="${IMAGE_URI}"

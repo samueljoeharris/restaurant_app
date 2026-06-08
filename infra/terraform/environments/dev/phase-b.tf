@@ -34,17 +34,23 @@ module "cloud_run" {
   cloud_sql_connection_name = module.cloud_sql[0].connection_name
   database_url_secret_id    = "ttf-db-url"
   container_env = {
-    PILOT_CITY           = "dedham-ma"
-    PILOT_DISPLAY_NAME   = "Dedham, Massachusetts"
-    FIREBASE_PROJECT_ID  = var.project_id
-    AUTH_DEV_MODE        = "false"
-    CORS_ORIGINS         = jsonencode(["http://localhost:5173", "http://localhost:3000"])
+    PILOT_CITY          = "dedham-ma"
+    PILOT_DISPLAY_NAME  = "Dedham, Massachusetts"
+    FIREBASE_PROJECT_ID = var.project_id
+    AUTH_DEV_MODE       = "false"
+    CORS_ORIGINS = jsonencode(concat(
+      ["http://localhost:5173", "http://localhost:3000"],
+      var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],
+    ))
   }
 
-  depends_on = [
-    module.iam,
-    module.cloud_sql,
-    google_secret_manager_secret_version.db_url,
-    google_artifact_registry_repository_iam_member.api_runtime_reader,
-  ]
+  depends_on = concat(
+    [
+      module.iam,
+      module.cloud_sql,
+      google_secret_manager_secret_version.db_url,
+      google_artifact_registry_repository_iam_member.api_runtime_reader,
+    ],
+    var.enable_web_cloud_run ? [module.cloud_run_web[0]] : [],
+  )
 }
