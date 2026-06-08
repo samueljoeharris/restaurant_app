@@ -57,7 +57,9 @@ if [[ -z "$DB_USER" || -z "$DB_PASS" || -z "$DB_NAME" ]]; then
   echo "Could not parse ttf-db-url secret"
   exit 1
 fi
-export DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@127.0.0.1:${PROXY_PORT}/${DB_NAME}"
+# Containers reach the host proxy via host.docker.internal (Docker Desktop / Linux)
+DB_HOST="${DOCKER_DB_HOST:-host.docker.internal}"
+export DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${PROXY_PORT}/${DB_NAME}"
 
 export MAPS_API_KEY
 MAPS_API_KEY="$(gcloud secrets versions access latest --secret=ttf-maps-api-key --project="$PROJECT_ID")"
