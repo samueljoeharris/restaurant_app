@@ -19,7 +19,8 @@ output "api_runtime_service_account" {
 }
 
 output "github_deploy_service_account" {
-  value = module.iam.github_deploy_email
+  description = "Set as GitHub repository variable GCP_DEPLOY_SERVICE_ACCOUNT"
+  value       = module.iam.github_deploy_email
 }
 
 output "github_terraform_service_account" {

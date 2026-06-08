@@ -2,7 +2,7 @@
 
 Actionable checklist for building the TTF (Time to Fries) restaurant app from zero. For full product and technical detail, see [DESIGN.md](DESIGN.md).
 
-**Your setup:** Windows, Docker, GitHub, no Mac, no Apple Developer account yet, first-time iOS.
+**Your setup:** Windows, Docker, GitHub, Apple Developer enrolled, first-time iOS.
 
 **Pilot city:** Dedham, Massachusetts (`dedham-ma`)
 
@@ -15,35 +15,30 @@ Actionable checklist for building the TTF (Time to Fries) restaurant app from ze
 - [x] Monorepo: `restaurant_app`
 - [x] Remote: `git@github.com:samueljoeharris/restaurant_app.git`
 - [x] First commit (docs + MCP template)
-- [ ] `git push -u origin main`
+- [x] `git push` — synced with `origin/main`
 
 ### MCP Setup
 
 See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 
-- [ ] Docker Desktop running (WSL2 backend)
-- [ ] Install [Node.js 20+](https://nodejs.org)
-- [ ] Install [gcloud CLI](https://cloud.google.com/sdk/docs/install) → `gcloud auth login`
+- [x] Docker Desktop running (WSL2 backend)
+- [x] Install [Node.js 20+](https://nodejs.org)
+- [x] Install [gcloud CLI](https://cloud.google.com/sdk/docs/install) → `gcloud auth login`
 - [ ] Install [gh CLI](https://cli.github.com) (optional)
-- [ ] `cp .env.example .env` and add `GITHUB_PERSONAL_ACCESS_TOKEN` (see [MCP_SETUP.md](MCP_SETUP.md))
-- [ ] Restart Cursor → verify green MCP dots (github, gcloud)
-- [ ] Test: ask agent to list GitHub issues or run `gcloud projects list`
+- [x] `cp .env.example .env` and add `GITHUB_PERSONAL_ACCESS_TOKEN` (see [MCP_SETUP.md](MCP_SETUP.md))
+- [x] Restart Cursor → verify green MCP dots (github, gcloud)
+- [x] Test: ask agent to list GitHub issues or run `gcloud projects list`
 
 ### Accounts (start in parallel — approvals take time)
 
-- [ ] Read [DESIGN.md](DESIGN.md)
-- [ ] **Apple Developer Program** ($99/year)
-  - https://developer.apple.com/programs/enroll/
-  - Enroll as **individual** with legal name exactly as on ID
-  - Allow 2–7+ weeks for approval
-- [ ] **GCP free trial**
-  - https://console.cloud.google.com → activate trial
-  - Create project ID: **`ttf-restaurant-dev`**
+- [x] Read [DESIGN.md](DESIGN.md)
+- [x] **Apple Developer Program** ($99/year) — enrolled (personal)
+- [x] **GCP free trial / project**
+  - Project ID: **`ttf-restaurant-dev`**
   - Display name: **TTF Restaurant (Dev)**
-  - Add `TTF_GCP_PROJECT_DEV=ttf-restaurant-dev` to `.env` (optional)
   - Budget alerts at **$25** and **$50** (names: `ttf-dev-budget`)
-  - Firebase → "Add Firebase to Google Cloud project"
-  - Create Maps API key named **`ttf-maps-dev`** (APIs enabled by Terraform)
+  - Firebase linked to GCP project
+  - Maps API key in Secret Manager (`ttf-maps-api-key`)
 
 ---
 
@@ -65,31 +60,19 @@ No Mac required for Phases 0–2 backend work. Rent a cloud Mac when ready for X
 
 Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 
-- [ ] GCP project `ttf-restaurant-dev` + billing (no org/folders OK)
-- [ ] `gcloud config set project ttf-restaurant-dev && gcloud auth application-default login`
-- [ ] **Bootstrap** state bucket:
-  ```bash
-  cd infra/terraform/bootstrap && cp terraform.tfvars.example terraform.tfvars
-  docker compose run --rm terraform -chdir=bootstrap init
-  docker compose run --rm terraform -chdir=bootstrap apply
-  cp ../environments/dev/backend.tf.example ../environments/dev/backend.tf
-  ```
-- [ ] **Deploy dev**:
-  ```bash
-  cd infra/terraform/environments/dev && cp terraform.tfvars.example terraform.tfvars
-  docker compose run --rm terraform -chdir=environments/dev init
-  docker compose run --rm terraform -chdir=environments/dev apply
-  ```
-- [ ] Firebase + Maps key (console) — see infra README
+- [x] GCP project `ttf-restaurant-dev` + billing
+- [x] `gcloud config set project ttf-restaurant-dev && gcloud auth application-default login`
+- [x] **Bootstrap** state bucket `ttf-tfstate-dev`
+- [x] **Deploy dev** Phase A (Artifact Registry, GCS, secrets, IAM, WIF)
+- [x] Firebase + Maps key — see infra README
 - [x] Scaffold `api/` (FastAPI + migrations + OpenAPI)
-- [x] `docker compose up postgres` — local DB
-- [ ] `docker compose up api` — verify `/health` and `/v1/metrics`
+- [x] `docker compose up api` — verify `/health` and `/v1/metrics`
 - [x] Seed Dedham restaurants: `docker compose run --rm api python scripts/seed_dedham.py`
 - [ ] Push image to Artifact Registry `ttf-api` (Phase B)
 - [x] Firebase Auth on API — see [FIREBASE_AUTH.md](FIREBASE_AUTH.md)
-- [ ] Enable Email/Password (or Google) in Firebase Console
-- [ ] Test real JWT: `docker compose up firebase-emulator api` + `scripts/get_emulator_token.py`
-- [ ] Terraform CI (WIF): `docker compose run --rm terraform -chdir=environments/dev apply` then `bash infra/terraform/scripts/setup-github-wif-vars.sh`
+- [x] Enable Email/Password in Firebase (`ttf-restaurant-dev`)
+- [ ] Test real JWT against **production** Firebase (see below)
+- [x] Terraform CI (WIF): repo variables set; [run #4](https://github.com/samueljoeharris/restaurant_app/actions/runs/27148358713) green
 - [ ] (Optional) GitHub environment `dev` with approval gate for apply on `main`
 
 ### Phase A resources (default apply)
@@ -100,9 +83,25 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 | GCS bucket | `ttf-uploads-dev` |
 | Secret | `ttf-maps-api-key` |
 | API runtime SA | `ttf-api-runtime@...` |
+| CI Terraform SA | `ttf-github-terraform@...` |
 | CI deploy SA | `ttf-github-deploy@...` |
 
 Phase B (`enable_cloud_sql`, `enable_cloud_run`) adds `ttf-db`, `ttf-api` — see `phase-b.tf`.
+
+### Verify production Firebase Email/Password
+
+After enabling in Console (or via API), create a test user and get an ID token:
+
+1. [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/users) → **Add user** (email + password)
+2. Download `firebase-sa.json` (Project settings → Service accounts) for real JWT verify locally
+3. Or use Firebase JS SDK / REST to sign in and call `GET /v1/me` with the token
+
+Local emulator flow (no Console user needed):
+
+```bash
+docker compose up firebase-emulator api postgres
+docker compose run --rm api python scripts/get_emulator_token.py --email pilot@ttf.test --password pilotpass123
+```
 
 ---
 
@@ -121,7 +120,7 @@ Phase B (`enable_cloud_sql`, `enable_cloud_run`) adds `ttf-db`, `ttf-api` — se
 
 ## Phase 4 — Pilot Launch
 
-- [ ] Seed restaurants for pilot metro area
+- [x] Seed restaurants for pilot metro area (Dedham — 119 venues)
 - [ ] Invite beta testers via TestFlight
 - [ ] Gather TTF observations from real visits
 - [ ] Iterate on aggregates and UX
@@ -149,7 +148,9 @@ Phase B (`enable_cloud_sql`, `enable_cloud_run`) adds `ttf-db`, `ttf-api` — se
 |-----|---------|
 | [AGENTS.md](../AGENTS.md) | Guidance for AI coding agents |
 | [DESIGN.md](DESIGN.md) | Full product + technical design |
+| [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | Firebase Auth + emulator |
 | [MCP_SETUP.md](MCP_SETUP.md) | Cursor MCP server configuration |
+| [infra/terraform/README.md](../infra/terraform/README.md) | Terraform + WIF CI |
 | [README.md](../README.md) | Project overview |
 
 ---

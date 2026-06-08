@@ -6,6 +6,10 @@ output "github_deploy_email" {
   value = google_service_account.github_deploy.email
 }
 
+output "github_deploy_sa_name" {
+  value = google_service_account.github_deploy.name
+}
+
 output "github_terraform_email" {
   value = google_service_account.github_terraform.email
 }

@@ -7,9 +7,9 @@ variable "github_repository" {
   description = "GitHub repo allowed to impersonate the Terraform SA (owner/repo)"
 }
 
-variable "terraform_service_account_id" {
-  type        = string
-  description = "google_service_account.name for the Terraform CI service account"
+variable "wif_service_account_ids" {
+  type        = list(string)
+  description = "google_service_account.name values GitHub Actions may impersonate via WIF"
 }
 
 variable "pool_id" {

@@ -143,6 +143,18 @@ Uses [GCP WIF for deployment pipelines](https://cloud.google.com/iam/docs/worklo
 
 WIF trusts only `samueljoeharris/restaurant_app` (see `github_repository` in `ci.tfvars`).
 
+Repository variables (Actions → Variables):
+
+| Variable | Service account |
+|----------|-----------------|
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | from `terraform output github_workload_identity_provider` |
+| `GCP_TERRAFORM_SERVICE_ACCOUNT` | `ttf-github-terraform@...` |
+| `GCP_DEPLOY_SERVICE_ACCOUNT` | `ttf-github-deploy@...` |
+
+### API deploy (`.github/workflows/api.yml`)
+
+On push to `main` (`api/**`): build image → Artifact Registry → `gcloud run services update` (when Phase B service exists). Terraform creates Cloud SQL + Cloud Run; **api.yml owns image updates** (`lifecycle.ignore_changes` on image).
+
 ## Day-to-day commands (from repo root)
 
 ```bash

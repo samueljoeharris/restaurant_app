@@ -74,8 +74,19 @@ module "iam" {
   project_id          = var.project_id
   uploads_bucket_name = module.storage.bucket_name
   enable_cloud_sql    = var.enable_cloud_sql
+  enable_cloud_run    = var.enable_cloud_run
 
   depends_on = [module.storage]
+}
+
+resource "google_artifact_registry_repository_iam_member" "api_runtime_reader" {
+  count = var.enable_cloud_run ? 1 : 0
+
+  project    = var.project_id
+  location   = var.region
+  repository = module.artifact_registry.repository_id
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${module.iam.api_runtime_email}"
 }
 
 resource "google_storage_bucket_iam_member" "github_terraform_state" {
@@ -87,9 +98,12 @@ resource "google_storage_bucket_iam_member" "github_terraform_state" {
 module "github_workload_identity" {
   source = "../../modules/github-workload-identity"
 
-  project_id                   = var.project_id
-  github_repository            = var.github_repository
-  terraform_service_account_id = module.iam.github_terraform_sa_name
+  project_id         = var.project_id
+  github_repository  = var.github_repository
+  wif_service_account_ids = [
+    module.iam.github_terraform_sa_name,
+    module.iam.github_deploy_sa_name,
+  ]
 
   depends_on = [module.iam, module.project_services]
 }

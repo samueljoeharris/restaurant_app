@@ -40,7 +40,21 @@ resource "google_cloud_run_v2_service" "api" {
           }
         }
       }
+
+      dynamic "env" {
+        for_each = var.container_env
+        content {
+          name  = env.key
+          value = env.value
+        }
+      }
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].containers[0].image,
+    ]
   }
 }
 

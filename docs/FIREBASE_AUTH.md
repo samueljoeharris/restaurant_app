@@ -26,12 +26,21 @@ Identity lives entirely in **Firebase Auth**. Postgres stores `firebase_uid` on 
 
 Project: **`ttf-restaurant-dev`**
 
+**Status:** Email/Password enabled; authorized domains include `localhost`, `ttf-restaurant-dev.firebaseapp.com`, `ttf-restaurant-dev.web.app`.
+
+Console links:
+- [Authentication providers](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers)
+- [Users](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/users)
+- [Authorized domains](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/settings)
+
+Manual setup (if starting fresh):
+
 1. [Firebase Console](https://console.firebase.google.com) → **Authentication** → **Get started**
 2. Enable sign-in providers:
    - **Email/Password** — easiest for web pilot testing
    - **Google** — optional
    - **Apple** — enable when iOS app exists (requires Apple Developer)
-3. **Settings** → Authorized domains — add `localhost` (default)
+3. **Settings** → Authorized domains — ensure `localhost` is listed (for web pilot)
 
 ### Service account (production API)
 

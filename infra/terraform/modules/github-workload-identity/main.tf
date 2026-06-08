@@ -32,8 +32,10 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   }
 }
 
-resource "google_service_account_iam_member" "terraform_wif" {
-  service_account_id = var.terraform_service_account_id
+resource "google_service_account_iam_member" "github_wif" {
+  for_each = toset(var.wif_service_account_ids)
+
+  service_account_id = each.value
   role               = "roles/iam.workloadIdentityUser"
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
 }

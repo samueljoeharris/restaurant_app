@@ -8,10 +8,12 @@ cd "$(git rev-parse --show-toplevel)"
 
 echo "==> Reading Terraform outputs from dev environment"
 PROVIDER=$(docker compose run --rm terraform -chdir=environments/dev output -raw github_workload_identity_provider)
-SA_EMAIL=$(docker compose run --rm terraform -chdir=environments/dev output -raw github_terraform_service_account)
+TF_SA=$(docker compose run --rm terraform -chdir=environments/dev output -raw github_terraform_service_account)
+DEPLOY_SA=$(docker compose run --rm terraform -chdir=environments/dev output -raw github_deploy_service_account)
 
 echo "GCP_WORKLOAD_IDENTITY_PROVIDER=$PROVIDER"
-echo "GCP_TERRAFORM_SERVICE_ACCOUNT=$SA_EMAIL"
+echo "GCP_TERRAFORM_SERVICE_ACCOUNT=$TF_SA"
+echo "GCP_DEPLOY_SERVICE_ACCOUNT=$DEPLOY_SA"
 
 set_github_var() {
   local name="$1"
@@ -26,13 +28,15 @@ set_github_var() {
 }
 
 if set_github_var "GCP_WORKLOAD_IDENTITY_PROVIDER" "$PROVIDER" \
-  && set_github_var "GCP_TERRAFORM_SERVICE_ACCOUNT" "$SA_EMAIL"; then
+  && set_github_var "GCP_TERRAFORM_SERVICE_ACCOUNT" "$TF_SA" \
+  && set_github_var "GCP_DEPLOY_SERVICE_ACCOUNT" "$DEPLOY_SA"; then
   echo "Done. GitHub repository variables set on $REPO"
 else
   echo ""
   echo "Set these manually: GitHub → $REPO → Settings → Secrets and variables → Variables"
   echo "  GCP_WORKLOAD_IDENTITY_PROVIDER = $PROVIDER"
-  echo "  GCP_TERRAFORM_SERVICE_ACCOUNT  = $SA_EMAIL"
+  echo "  GCP_TERRAFORM_SERVICE_ACCOUNT  = $TF_SA"
+  echo "  GCP_DEPLOY_SERVICE_ACCOUNT     = $DEPLOY_SA"
 fi
 
 echo ""

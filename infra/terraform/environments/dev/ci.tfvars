@@ -5,6 +5,10 @@ project_id                   = "ttf-restaurant-dev"
 region                       = "us-central1"
 uploads_bucket_name          = "ttf-uploads-dev"
 terraform_state_bucket_name  = "ttf-tfstate-dev"
-enable_cloud_sql             = false
-enable_cloud_run             = false
 github_repository            = "samueljoeharris/restaurant_app"
+
+# Phase B — Cloud SQL + Cloud Run (~$7-10/mo). Image updates via .github/workflows/api.yml.
+enable_cloud_sql = true
+enable_cloud_run = true
+api_image        = "us-docker.pkg.dev/cloudrun/container/hello"
+cloud_sql_tier   = "db-f1-micro"

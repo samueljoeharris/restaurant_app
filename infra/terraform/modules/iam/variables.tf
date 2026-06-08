@@ -26,3 +26,9 @@ variable "enable_cloud_sql" {
   description = "Grant Cloud SQL client role to API runtime SA (Phase B)"
   default     = false
 }
+
+variable "enable_cloud_run" {
+  type        = bool
+  description = "Grant Firebase Auth admin to API runtime SA (Phase B)"
+  default     = false
+}

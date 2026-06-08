@@ -13,7 +13,7 @@ variable "service_name" {
 
 variable "image" {
   type        = string
-  description = "Container image URI (placeholder until API image is pushed)"
+  description = "Initial container image URI (updates via api.yml after first deploy)"
 }
 
 variable "service_account_email" {
@@ -28,6 +28,12 @@ variable "cloud_sql_connection_name" {
 variable "database_url_secret_id" {
   type        = string
   description = "Secret Manager secret ID for DATABASE_URL"
+}
+
+variable "container_env" {
+  type        = map(string)
+  description = "Plain env vars for the API container"
+  default     = {}
 }
 
 variable "invoker_members" {
