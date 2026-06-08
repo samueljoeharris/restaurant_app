@@ -44,10 +44,10 @@ variable "invoker_members" {
 
 variable "file_secret_mounts" {
   type = list(object({
-    volume_name  = string
-    secret_name  = string
-    mount_path   = string
-    file_name    = string
+    volume_name = string
+    secret_name = string
+    mount_path  = string
+    file_name   = string
   }))
   description = "Mount Secret Manager payloads as files in the API container"
   default     = []

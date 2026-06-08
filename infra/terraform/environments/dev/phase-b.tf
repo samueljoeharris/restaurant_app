@@ -53,7 +53,7 @@ module "cloud_run" {
       ["http://localhost:5173", "http://localhost:3000"],
       var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],
     ))
-  }, var.firebase_admin_sa_configured ? {
+    }, var.firebase_admin_sa_configured ? {
     FIREBASE_SERVICE_ACCOUNT_PATH = "/secrets/firebase-admin/firebase-sa.json"
   } : {})
 

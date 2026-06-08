@@ -118,8 +118,8 @@ resource "google_storage_bucket_iam_member" "github_terraform_state" {
 module "github_workload_identity" {
   source = "../../modules/github-workload-identity"
 
-  project_id         = var.project_id
-  github_repository  = var.github_repository
+  project_id        = var.project_id
+  github_repository = var.github_repository
   wif_service_account_ids = [
     module.iam.github_terraform_sa_name,
     module.iam.github_deploy_sa_name,

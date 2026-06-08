@@ -21,8 +21,8 @@ output "project_id" {
 output "web_env" {
   description = "Values for web/.env.local (Vite)"
   value = {
-    VITE_FIREBASE_API_KEY       = data.google_firebase_web_app_config.web.api_key
-    VITE_FIREBASE_AUTH_DOMAIN   = data.google_firebase_web_app_config.web.auth_domain
-    VITE_FIREBASE_PROJECT_ID    = data.google_firebase_web_app_config.web.project
+    VITE_FIREBASE_API_KEY     = data.google_firebase_web_app_config.web.api_key
+    VITE_FIREBASE_AUTH_DOMAIN = data.google_firebase_web_app_config.web.auth_domain
+    VITE_FIREBASE_PROJECT_ID  = data.google_firebase_web_app_config.web.project
   }
 }
