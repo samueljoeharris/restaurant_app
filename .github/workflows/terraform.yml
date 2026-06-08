@@ -52,11 +52,15 @@ jobs:
         run: terraform plan -input=false -no-color -var-file=ci.tfvars -out=tfplan
         id: plan
 
+      - name: Stage plan artifact
+        run: cp tfplan "$RUNNER_TEMP/tfplan"
+
       - name: Upload plan artifact
         uses: actions/upload-artifact@v7
         with:
           name: terraform-plan-dev
-          path: infra/terraform/environments/dev/tfplan
+          path: ${{ runner.temp }}/tfplan
+          if-no-files-found: error
           retention-days: 5
 
   apply:
@@ -94,6 +98,13 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: terraform-plan-dev
+          path: infra/terraform/environments/dev
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false -no-color tfplan
+        run: |
+          if [[ ! -f tfplan ]]; then
+            echo "::error::tfplan missing in $(pwd)"
+            find "$GITHUB_WORKSPACE" -name tfplan -type f || true
+            exit 1
+          fi
+          terraform apply -auto-approve -input=false -no-color tfplan
