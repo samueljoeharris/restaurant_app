@@ -1,0 +1,45 @@
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
+import { AuthProvider } from "./auth/AuthContext";
+import { Layout } from "./components/Layout";
+import { LoginPage } from "./pages/LoginPage";
+import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
+import { RestaurantListPage } from "./pages/RestaurantListPage";
+import { TtfSubmitPage } from "./pages/TtfSubmitPage";
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/restaurants"
+            element={
+              <Layout>
+                <RestaurantListPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/restaurants/:id"
+            element={
+              <Layout>
+                <RestaurantDetailPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/restaurants/:id/submit"
+            element={
+              <Layout>
+                <TtfSubmitPage />
+              </Layout>
+            }
+          />
+          <Route path="/" element={<Navigate to="/restaurants" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}

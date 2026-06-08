@@ -42,6 +42,19 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 
 ---
 
+## Phase 2.5 — Web POC (Windows, no Mac)
+
+Pilot the product in a browser while Apple Developer is pending.
+
+- [ ] Register Firebase **Web app** in Console → copy SDK config to `web/.env.local`
+- [ ] `cd web && npm install && npm run dev` — http://localhost:5173
+- [ ] Sign in (Email/Password) → browse restaurants → submit TTF
+- [ ] Point `VITE_API_URL` at Cloud Run (default in `.env.example`) or local API
+
+See [`web/README.md`](../web/README.md).
+
+---
+
 ## Phase 1 — Learn iOS (cloud Mac, ~1–2 weeks)
 
 No Mac required for Phases 0–2 backend work. Rent a cloud Mac when ready for Xcode.

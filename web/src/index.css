@@ -1,0 +1,191 @@
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #f6f4f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: #0b57d0;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.shell {
+  min-height: 100vh;
+}
+
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid #e4dfd6;
+}
+
+.brand {
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-right: auto;
+}
+
+.page {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.page.narrow {
+  max-width: 28rem;
+}
+
+.page-header {
+  margin-bottom: 1rem;
+}
+
+.muted {
+  color: #5c5c5c;
+}
+
+.center {
+  text-align: center;
+  padding: 3rem;
+}
+
+.error {
+  color: #b3261e;
+}
+
+.card {
+  display: grid;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid #e4dfd6;
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+input,
+select,
+textarea,
+button,
+.button {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #cfc7bc;
+  border-radius: 6px;
+}
+
+button,
+.button {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #c45d1e;
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button.secondary,
+button.secondary {
+  background: #fff;
+  color: #1a1a1a;
+  border: 1px solid #cfc7bc;
+}
+
+.linkish {
+  background: none;
+  border: none;
+  color: #0b57d0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.search {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.list-item {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #e4dfd6;
+  border-radius: 8px;
+  color: inherit;
+}
+
+.list-item:hover {
+  border-color: #c45d1e;
+  text-decoration: none;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.stats {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.stats li {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tags {
+  font-size: 0.9rem;
+  color: #5c5c5c;
+}
+
+.timer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
