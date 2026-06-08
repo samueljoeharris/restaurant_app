@@ -86,6 +86,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [ ] `docker compose up api` — verify `/health` and `/v1/metrics`
 - [x] Seed Dedham restaurants: `docker compose run --rm api python scripts/seed_dedham.py`
 - [ ] Push image to Artifact Registry `ttf-api` (Phase B)
+- [x] Firebase Auth on API (`AUTH_DEV_MODE` locally; real JWT via `firebase-sa.json` for prod)
 - [ ] _(Later)_ GitHub secret `GCP_SA_KEY` + enable `.github/workflows/terraform.yml` CI (local `terraform apply` for now)
 
 ### Phase A resources (default apply)

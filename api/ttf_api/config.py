@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     pilot_city: str = "dedham-ma"
     pilot_display_name: str = "Dedham, Massachusetts"
     maps_api_key: str = ""
+    firebase_project_id: str = "ttf-restaurant-dev"
+    firebase_service_account_path: str = ""
+    firebase_auth_emulator_host: str = ""
+    auth_dev_mode: bool = False
     port: int = 8080
 
 

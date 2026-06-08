@@ -34,6 +34,8 @@ services:
       DATABASE_URL: postgresql://ttf_app:ttf_local@postgres:5432/ttf
       PILOT_CITY: dedham-ma
       PILOT_DISPLAY_NAME: Dedham, Massachusetts
+      FIREBASE_PROJECT_ID: ttf-restaurant-dev
+      AUTH_DEV_MODE: "true"
     depends_on:
       postgres:
         condition: service_healthy

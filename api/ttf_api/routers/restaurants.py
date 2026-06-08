@@ -1,14 +1,25 @@
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from psycopg.types.json import Jsonb
 
+from ttf_api.auth import AuthUser, get_current_user
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.schemas import (
+    AttributeSubmissionRequest,
+    AttributeSubmissionResponse,
+    CreateRestaurantRequest,
+    NoteSubmissionRequest,
+    NoteSubmissionResponse,
     RestaurantDetail,
     RestaurantDetailResponse,
     RestaurantSummary,
     TtfAggregate,
+    TtfSubmissionRequest,
+    TtfSubmissionResponse,
 )
 
 router = APIRouter(prefix="/v1/restaurants", tags=["restaurants"])
@@ -59,6 +70,23 @@ def _fetch_ttf_aggregate(conn, restaurant_id: UUID) -> TtfAggregate:
     )
 
 
+def _ensure_restaurant(conn, restaurant_id: UUID) -> dict:
+    row = conn.execute(
+        "SELECT * FROM restaurants WHERE id = %s AND pilot_city = %s",
+        (restaurant_id, settings.pilot_city),
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Restaurant not found")
+    return row
+
+
+def _bump_contribution(conn, user_id: UUID) -> None:
+    conn.execute(
+        "UPDATE users SET contribution_count = contribution_count + 1 WHERE id = %s",
+        (user_id,),
+    )
+
+
 @router.get("", response_model=list[RestaurantSummary])
 def list_restaurants(
     q: str | None = Query(None, description="Name search"),
@@ -89,76 +117,170 @@ def list_restaurants(
 @router.get("/{restaurant_id}", response_model=RestaurantDetailResponse)
 def get_restaurant(restaurant_id: UUID) -> RestaurantDetailResponse:
     with get_conn() as conn:
-        row = conn.execute(
-            """
-            SELECT *
-            FROM restaurants
-            WHERE id = %s AND pilot_city = %s
-            """,
-            (restaurant_id, settings.pilot_city),
-        ).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Restaurant not found")
+        row = _ensure_restaurant(conn, restaurant_id)
         ttf = _fetch_ttf_aggregate(conn, restaurant_id)
     return RestaurantDetailResponse(restaurant=_row_to_detail(row), ttf=ttf)
 
 
-@router.post("", status_code=501)
-def create_restaurant() -> None:
-    raise HTTPException(
-        status_code=501,
-        detail="Firebase Auth required — implement in Phase 3",
+@router.post("", response_model=RestaurantDetail, status_code=status.HTTP_201_CREATED)
+def create_restaurant(
+    body: CreateRestaurantRequest,
+    user: Annotated[AuthUser, Depends(get_current_user)],
+) -> RestaurantDetail:
+    with get_conn() as conn:
+        row = conn.execute(
+            """
+            INSERT INTO restaurants (
+                name, address, lat, lng, google_place_id, google_maps_url,
+                cuisine_tags, pilot_city
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+            """,
+            (
+                body.name,
+                body.address,
+                body.lat,
+                body.lng,
+                body.google_place_id,
+                body.google_maps_url,
+                body.cuisine_tags,
+                settings.pilot_city,
+            ),
+        ).fetchone()
+        _bump_contribution(conn, user.id)
+    return _row_to_detail(row)
+
+
+@router.post(
+    "/{restaurant_id}/ttf",
+    response_model=TtfSubmissionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def submit_ttf(
+    restaurant_id: UUID,
+    body: TtfSubmissionRequest,
+    user: Annotated[AuthUser, Depends(get_current_user)],
+) -> TtfSubmissionResponse:
+    served_at = body.served_at or datetime.now(timezone.utc)
+    ordered_at = body.ordered_at or (
+        served_at - timedelta(minutes=body.elapsed_minutes or 0)
     )
 
+    with get_conn() as conn:
+        _ensure_restaurant(conn, restaurant_id)
+        row = conn.execute(
+            """
+            INSERT INTO ttf_observations (
+                restaurant_id, user_id, ordered_at, served_at, elapsed_minutes,
+                item_type, item_quality, portion_size, daypart, party_size_kids,
+                wait_context, photo_url
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, elapsed_minutes, item_type, item_quality
+            """,
+            (
+                restaurant_id,
+                user.id,
+                ordered_at,
+                served_at,
+                body.elapsed_minutes,
+                body.item_type,
+                body.item_quality,
+                body.portion_size,
+                body.daypart,
+                body.party_size_kids,
+                body.wait_context,
+                body.photo_url,
+            ),
+        ).fetchone()
+        _bump_contribution(conn, user.id)
+    return TtfSubmissionResponse(**row)
 
-@router.post("/{restaurant_id}/ttf", status_code=501)
-def submit_ttf(restaurant_id: UUID) -> None:
-    raise HTTPException(status_code=501, detail="Firebase Auth required — implement in Phase 3")
 
-
-@router.get("/{restaurant_id}/ttf")
+@router.get("/{restaurant_id}/ttf", response_model=TtfAggregate)
 def get_ttf(restaurant_id: UUID) -> TtfAggregate:
     with get_conn() as conn:
-        exists = conn.execute(
-            "SELECT 1 FROM restaurants WHERE id = %s AND pilot_city = %s",
-            (restaurant_id, settings.pilot_city),
-        ).fetchone()
-        if not exists:
-            raise HTTPException(status_code=404, detail="Restaurant not found")
+        _ensure_restaurant(conn, restaurant_id)
         return _fetch_ttf_aggregate(conn, restaurant_id)
 
 
-@router.post("/{restaurant_id}/attributes", status_code=501)
-def submit_attributes(restaurant_id: UUID) -> None:
-    raise HTTPException(status_code=501, detail="Firebase Auth required — implement in Phase 3")
+@router.post(
+    "/{restaurant_id}/attributes",
+    response_model=AttributeSubmissionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def submit_attributes(
+    restaurant_id: UUID,
+    body: AttributeSubmissionRequest,
+    user: Annotated[AuthUser, Depends(get_current_user)],
+) -> AttributeSubmissionResponse:
+    with get_conn() as conn:
+        _ensure_restaurant(conn, restaurant_id)
+        metric = conn.execute(
+            "SELECT key FROM metric_definitions WHERE key = %s",
+            (body.metric_key,),
+        ).fetchone()
+        if not metric:
+            raise HTTPException(status_code=400, detail=f"Unknown metric_key: {body.metric_key}")
+
+        row = conn.execute(
+            """
+            INSERT INTO restaurant_attribute_ratings (
+                restaurant_id, metric_key, user_id, value, visit_context
+            ) VALUES (%s, %s, %s, %s, %s)
+            RETURNING id, metric_key
+            """,
+            (
+                restaurant_id,
+                body.metric_key,
+                user.id,
+                Jsonb(body.value),
+                body.visit_context,
+            ),
+        ).fetchone()
+        _bump_contribution(conn, user.id)
+    return AttributeSubmissionResponse(**row)
 
 
 @router.get("/{restaurant_id}/attributes")
 def get_attributes(restaurant_id: UUID) -> dict:
     with get_conn() as conn:
-        exists = conn.execute(
-            "SELECT 1 FROM restaurants WHERE id = %s AND pilot_city = %s",
-            (restaurant_id, settings.pilot_city),
-        ).fetchone()
-        if not exists:
-            raise HTTPException(status_code=404, detail="Restaurant not found")
+        _ensure_restaurant(conn, restaurant_id)
     return {"attributes": {}, "message": "Aggregates coming soon"}
 
 
-@router.post("/{restaurant_id}/notes", status_code=501)
-def submit_note(restaurant_id: UUID) -> None:
-    raise HTTPException(status_code=501, detail="Firebase Auth required — implement in Phase 3")
+@router.post(
+    "/{restaurant_id}/notes",
+    response_model=NoteSubmissionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def submit_note(
+    restaurant_id: UUID,
+    body: NoteSubmissionRequest,
+    user: Annotated[AuthUser, Depends(get_current_user)],
+) -> NoteSubmissionResponse:
+    with get_conn() as conn:
+        _ensure_restaurant(conn, restaurant_id)
+        row = conn.execute(
+            """
+            INSERT INTO restaurant_notes (restaurant_id, user_id, text, tags)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id, text, tags, created_at
+            """,
+            (restaurant_id, user.id, body.text, body.tags),
+        ).fetchone()
+        _bump_contribution(conn, user.id)
+    return NoteSubmissionResponse(
+        id=row["id"],
+        text=row["text"],
+        tags=row["tags"] or [],
+        created_at=row["created_at"],
+    )
 
 
 @router.get("/{restaurant_id}/notes")
 def list_notes(restaurant_id: UUID) -> dict:
     with get_conn() as conn:
-        exists = conn.execute(
-            "SELECT 1 FROM restaurants WHERE id = %s AND pilot_city = %s",
-            (restaurant_id, settings.pilot_city),
-        ).fetchone()
-        if not exists:
-            raise HTTPException(status_code=404, detail="Restaurant not found")
+        _ensure_restaurant(conn, restaurant_id)
         rows = conn.execute(
             """
             SELECT id, text, tags, created_at

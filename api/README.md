@@ -19,7 +19,8 @@ docker compose up --build api
 | GET | `/v1/restaurants/{id}` | ✅ |
 | GET | `/v1/metrics` | ✅ (12 seed metrics) |
 | GET | `/v1/restaurants/{id}/ttf` | ✅ |
-| POST | write endpoints | 501 until Firebase Auth |
+| POST | write endpoints | ✅ Firebase JWT (dev mode below) |
+| GET | `/v1/me` | ✅ Authenticated profile |
 
 Interactive docs: http://localhost:8080/docs
 
@@ -49,6 +50,31 @@ docker compose run --rm -e MAPS_API_KEY api python scripts/seed_dedham.py
 
 Re-running the script upserts by `google_place_id` (safe to run again).
 
+## Firebase Auth
+
+Write endpoints require `Authorization: Bearer <token>`.
+
+### Local dev (`AUTH_DEV_MODE=true`)
+
+Use a dev token — no Firebase setup required:
+
+```bash
+# Any stable uid; creates/loads user in Postgres
+curl -H "Authorization: Bearer dev:pilot-tester-1" http://localhost:8080/v1/me
+
+curl -X POST http://localhost:8080/v1/restaurants/{id}/ttf \
+  -H "Authorization: Bearer dev:pilot-tester-1" \
+  -H "Content-Type: application/json" \
+  -d '{"elapsed_minutes": 8, "item_type": "fries", "item_quality": 5, "portion_size": "kid", "daypart": "lunch"}'
+```
+
+### Production / real Apple Sign-In tokens
+
+1. Firebase Console → Project Settings → Service accounts → **Generate new private key**
+2. Save as `firebase-sa.json` (gitignored) at repo root
+3. Set `AUTH_DEV_MODE=false` and `FIREBASE_SERVICE_ACCOUNT_PATH=firebase-sa.json`
+4. iOS app sends Firebase ID token from Apple Sign-In
+
 ## Config (env)
 
 | Variable | Default |
@@ -56,6 +82,9 @@ Re-running the script upserts by `google_place_id` (safe to run again).
 | `DATABASE_URL` | `postgresql://ttf_app:ttf_local@postgres:5432/ttf` |
 | `PILOT_CITY` | `dedham-ma` |
 | `PILOT_DISPLAY_NAME` | `Dedham, Massachusetts` |
+| `FIREBASE_PROJECT_ID` | `ttf-restaurant-dev` |
+| `AUTH_DEV_MODE` | `true` locally; `false` in Cloud Run |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to service account JSON (prod) |
 
 Migrations run automatically on API startup (`api/migrations/*.sql`).
 

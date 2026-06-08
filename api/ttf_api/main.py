@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from ttf_api.db import run_migrations
-from ttf_api.routers import health, metrics, restaurants
+from ttf_api.routers import health, metrics, restaurants, users
 
 
 @asynccontextmanager
@@ -20,5 +20,6 @@ app = FastAPI(
 )
 
 app.include_router(health.router)
+app.include_router(users.router)
 app.include_router(restaurants.router)
 app.include_router(metrics.router)

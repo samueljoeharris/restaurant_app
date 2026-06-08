@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class HealthResponse(BaseModel):
@@ -49,3 +50,81 @@ class TtfAggregate(BaseModel):
 class RestaurantDetailResponse(BaseModel):
     restaurant: RestaurantDetail
     ttf: TtfAggregate = Field(default_factory=TtfAggregate)
+
+
+class UserProfile(BaseModel):
+    id: UUID
+    firebase_uid: str
+    display_name: str | None
+    contribution_count: int
+
+
+class CreateRestaurantRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    address: str = Field(min_length=1, max_length=500)
+    lat: float
+    lng: float
+    google_place_id: str | None = None
+    google_maps_url: str | None = None
+    cuisine_tags: list[str] = Field(default_factory=list)
+
+
+class TtfSubmissionRequest(BaseModel):
+    ordered_at: datetime | None = None
+    served_at: datetime | None = None
+    elapsed_minutes: int | None = Field(None, ge=1, le=180)
+    item_type: Literal["fries", "apple_slices", "bread", "kids_meal", "other"]
+    item_quality: int = Field(ge=1, le=5)
+    portion_size: Literal["kid", "regular", "shareable"]
+    daypart: Literal["breakfast", "lunch", "dinner", "late"]
+    party_size_kids: int = Field(default=1, ge=1, le=12)
+    wait_context: str | None = Field(None, max_length=500)
+    photo_url: str | None = None
+
+    @model_validator(mode="after")
+    def resolve_elapsed_minutes(self) -> "TtfSubmissionRequest":
+        if self.elapsed_minutes is not None:
+            return self
+        if self.ordered_at and self.served_at:
+            minutes = int((self.served_at - self.ordered_at).total_seconds() / 60)
+            if minutes < 1:
+                raise ValueError("served_at must be after ordered_at")
+            object.__setattr__(self, "elapsed_minutes", minutes)
+            return self
+        raise ValueError("Provide elapsed_minutes or both ordered_at and served_at")
+
+
+class TtfSubmissionResponse(BaseModel):
+    id: UUID
+    elapsed_minutes: int
+    item_type: str
+    item_quality: int
+
+
+class AttributeSubmissionRequest(BaseModel):
+    metric_key: str
+    value: Any
+    visit_context: str | None = Field(None, max_length=500)
+
+
+class AttributeSubmissionResponse(BaseModel):
+    id: UUID
+    metric_key: str
+
+
+class NoteSubmissionRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=2000)
+    tags: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def limit_tags(self) -> "NoteSubmissionRequest":
+        if len(self.tags) > 10:
+            raise ValueError("At most 10 tags allowed")
+        return self
+
+
+class NoteSubmissionResponse(BaseModel):
+    id: UUID
+    text: str
+    tags: list[str]
+    created_at: datetime
