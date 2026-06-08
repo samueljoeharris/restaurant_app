@@ -16,6 +16,7 @@ INSTANCE="${PROJECT_ID}:us-central1:ttf-db"
 PROXY_PORT="${CLOUD_SQL_PROXY_PORT:-5433}"
 PROXY_PID=""
 PROXY_CONTAINER="ttf-cloud-sql-proxy"
+COMPOSE_NETWORK="${COMPOSE_NETWORK:-restaurant_app_default}"
 
 cleanup() {
   if [[ -n "$PROXY_PID" ]] && kill -0 "$PROXY_PID" 2>/dev/null; then
@@ -32,15 +33,25 @@ start_proxy() {
     cloud-sql-proxy "$INSTANCE" --port "$PROXY_PORT" &
     PROXY_PID=$!
   else
-    echo "==> Starting Cloud SQL proxy container on 127.0.0.1:${PROXY_PORT}"
+    echo "==> Starting Cloud SQL proxy on Docker network ${COMPOSE_NETWORK}"
     GCLOUD_CONFIG="${APPDATA:-$HOME/.config}/gcloud"
+    ADC_FILE="${GCLOUD_CONFIG}/application_default_credentials.json"
+    if [[ ! -f "$ADC_FILE" ]]; then
+      echo "ADC not found at ${ADC_FILE}. Run: gcloud auth application-default login"
+      exit 1
+    fi
     docker rm -f "$PROXY_CONTAINER" &>/dev/null || true
-    docker run -d --name "$PROXY_CONTAINER" \
-      -p "127.0.0.1:${PROXY_PORT}:5432" \
-      -v "${GCLOUD_CONFIG}:/root/.config/gcloud:ro" \
+    # MSYS_NO_PATHCONV: Git Bash on Windows must not rewrite /adc.json to a host path
+    MSYS_NO_PATHCONV=1 docker run -d --name "$PROXY_CONTAINER" \
+      --network "$COMPOSE_NETWORK" \
+      -v "${ADC_FILE}:/adc.json:ro" \
       gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1 \
-      --address 0.0.0.0 --port 5432 \
+      --credentials-file=/adc.json \
+      --address 0.0.0.0 \
+      --port 5432 \
       "$INSTANCE"
+    DB_HOST="$PROXY_CONTAINER"
+    PROXY_PORT=5432
   fi
   sleep 4
 }
@@ -58,17 +69,18 @@ if [[ -z "$DB_USER" || -z "$DB_PASS" || -z "$DB_NAME" ]]; then
   echo "Could not parse ttf-db-url secret"
   exit 1
 fi
-# Containers reach the host proxy via host.docker.internal (Docker Desktop / Linux)
-DB_HOST="${DOCKER_DB_HOST:-host.docker.internal}"
+DB_HOST="${DB_HOST:-${DOCKER_DB_HOST:-host.docker.internal}}"
 export DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${PROXY_PORT}/${DB_NAME}"
 
 export MAPS_API_KEY
 MAPS_API_KEY="$(gcloud secrets versions access latest --secret=ttf-maps-api-key --project="$PROJECT_ID")"
 
 echo "==> Running seed_dedham.py against Cloud SQL"
-docker compose run --rm \
+API_IMAGE="${API_IMAGE:-restaurant_app-api:latest}"
+docker run --rm --network "$COMPOSE_NETWORK" \
   -e "DATABASE_URL=${DATABASE_URL}" \
   -e "MAPS_API_KEY=${MAPS_API_KEY}" \
-  api python scripts/seed_dedham.py
+  "$API_IMAGE" \
+  python scripts/seed_dedham.py
 
 echo "==> Done. Verify: curl https://ttf-api-6ac5e3cakq-uc.a.run.app/v1/restaurants | head"
