@@ -24,11 +24,11 @@ locals {
     "roles/secretmanager.admin",
     "roles/artifactregistry.admin",
     "roles/iam.serviceAccountAdmin",
+    "roles/iam.workloadIdentityPoolAdmin",
     "roles/resourcemanager.projectIamAdmin",
     "roles/cloudsql.admin",
     "roles/run.admin",
     "roles/compute.networkAdmin",
-    "roles/billing.costsManager",
   ]
 }
 

@@ -89,7 +89,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [x] Firebase Auth on API — see [FIREBASE_AUTH.md](FIREBASE_AUTH.md)
 - [ ] Enable Email/Password (or Google) in Firebase Console
 - [ ] Test real JWT: `docker compose up firebase-emulator api` + `scripts/get_emulator_token.py`
-- [ ] Terraform CI: run `bash infra/terraform/scripts/setup-github-terraform-ci.sh` → sets `GCP_SA_KEY` secret
+- [ ] Terraform CI (WIF): `docker compose run --rm terraform -chdir=environments/dev apply` then `bash infra/terraform/scripts/setup-github-wif-vars.sh`
 - [ ] (Optional) GitHub environment `dev` with approval gate for apply on `main`
 
 ### Phase A resources (default apply)

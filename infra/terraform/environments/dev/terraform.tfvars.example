@@ -5,6 +5,7 @@
 project_id          = "ttf-restaurant-dev"
 region              = "us-central1"
 uploads_bucket_name = "ttf-uploads-dev" # append project number if name taken
+github_repository   = "samueljoeharris/restaurant_app"
 
 # --- Phase A (default) — foundation only, no monthly compute cost ---
 enable_cloud_sql = false

@@ -119,25 +119,29 @@ Workflow: [`.github/workflows/terraform.yml`](../../.github/workflows/terraform.
 | PR touching `infra/**` | `terraform plan` with committed [`ci.tfvars`](environments/dev/ci.tfvars) |
 | Push to `main` | `terraform apply` (GitHub environment: `dev`) |
 
-### One-time setup
+### One-time setup (Workload Identity Federation — no SA keys)
 
-1. Apply dev stack locally so `ttf-github-terraform@...` exists:
+Uses [GCP WIF for deployment pipelines](https://cloud.google.com/iam/docs/workload-identity-federation-with-deployment-pipelines). GitHub Actions exchanges an OIDC token for short-lived credentials; no `GCP_SA_KEY` JSON in secrets.
+
+1. Apply dev stack locally (creates `ttf-github-terraform` SA + WIF pool):
 
    ```bash
    docker compose run --rm terraform -chdir=environments/dev apply
    ```
 
-2. Create SA key and store in GitHub Secrets:
+2. Set GitHub **repository variables** from Terraform outputs:
 
    ```bash
-   bash infra/terraform/scripts/setup-github-terraform-ci.sh
+   bash infra/terraform/scripts/setup-github-wif-vars.sh
    ```
 
-   Requires `gh auth login` or `GITHUB_PERSONAL_ACCESS_TOKEN` with `repo` + `admin:repo_hook` (secrets scope).
+   Or manually under **Settings → Secrets and variables → Variables**:
+   - `GCP_WORKLOAD_IDENTITY_PROVIDER` — from `terraform output github_workload_identity_provider`
+   - `GCP_TERRAFORM_SERVICE_ACCOUNT` — from `terraform output github_terraform_service_account`
 
-3. (Optional) GitHub → **Settings → Environments → New environment** → name `dev` → add required reviewers for apply approval.
+3. (Optional) GitHub → **Settings → Environments → New environment** → name `dev` → required reviewers for apply on `main`.
 
-Secrets and `terraform.tfvars` stay out of git; CI uses non-secret `ci.tfvars` only.
+WIF trusts only `samueljoeharris/restaurant_app` (see `github_repository` in `ci.tfvars`).
 
 ## Day-to-day commands (from repo root)
 

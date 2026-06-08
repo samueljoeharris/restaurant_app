@@ -3,7 +3,6 @@
 set -euo pipefail
 
 REPO="${GITHUB_REPOSITORY:-samueljoeharris/restaurant_app}"
-TF_DIR="${TF_DIR:-infra/terraform/environments/dev}"
 
 cd "$(git rev-parse --show-toplevel)"
 
