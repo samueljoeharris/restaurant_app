@@ -42,3 +42,9 @@ variable "sign_up_quota_per_day" {
   description = "Max new sign-ups per day (Identity Platform quota)"
   default     = 200
 }
+
+variable "sign_up_quota_start_time" {
+  type        = string
+  description = "RFC3339 anchor for sign-up quota window (required by Identity Platform API)"
+  default     = "2024-01-01T00:00:00Z"
+}

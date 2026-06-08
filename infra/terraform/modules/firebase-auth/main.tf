@@ -23,6 +23,7 @@ resource "google_identity_platform_config" "auth" {
     sign_up_quota_config {
       quota          = var.sign_up_quota_per_day
       quota_duration = "86400s"
+      start_time     = var.sign_up_quota_start_time
     }
   }
 
