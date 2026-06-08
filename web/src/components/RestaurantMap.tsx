@@ -125,6 +125,10 @@ export function RestaurantMap({
   const [selectedId, setSelectedId] = useState<string | null>(focusId);
   const selected = restaurants.find((r) => r.id === selectedId) ?? null;
 
+  useEffect(() => {
+    if (focusId) setSelectedId(focusId);
+  }, [focusId]);
+
   if (!MAPS_KEY) {
     return (
       <div className="map-fallback">
