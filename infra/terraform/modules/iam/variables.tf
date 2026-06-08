@@ -12,6 +12,11 @@ variable "github_deploy_sa_id" {
   default = "ttf-github-deploy"
 }
 
+variable "github_terraform_sa_id" {
+  type    = string
+  default = "ttf-github-terraform"
+}
+
 variable "uploads_bucket_name" {
   type = string
 }

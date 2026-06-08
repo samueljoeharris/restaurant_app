@@ -22,6 +22,15 @@ output "github_deploy_service_account" {
   value = module.iam.github_deploy_email
 }
 
+output "github_terraform_service_account" {
+  value = module.iam.github_terraform_email
+}
+
+output "github_workload_identity_provider" {
+  description = "Set as GitHub repository variable GCP_WORKLOAD_IDENTITY_PROVIDER"
+  value       = module.github_workload_identity.workload_identity_provider
+}
+
 output "api_image_target" {
   description = "Push API image here when ready (Phase B)"
   value       = "${module.artifact_registry.repository_url}/ttf-api"

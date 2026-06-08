@@ -5,6 +5,8 @@ locals {
     "artifactregistry.googleapis.com",
     "storage.googleapis.com",
     "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "sts.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     # Maps Platform — API key value still added manually to Secret Manager
     "geocoding-backend.googleapis.com",
@@ -71,9 +73,25 @@ module "iam" {
 
   project_id          = var.project_id
   uploads_bucket_name = module.storage.bucket_name
-  enable_cloud_sql      = var.enable_cloud_sql
+  enable_cloud_sql    = var.enable_cloud_sql
 
   depends_on = [module.storage]
+}
+
+resource "google_storage_bucket_iam_member" "github_terraform_state" {
+  bucket = var.terraform_state_bucket_name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${module.iam.github_terraform_email}"
+}
+
+module "github_workload_identity" {
+  source = "../../modules/github-workload-identity"
+
+  project_id                   = var.project_id
+  github_repository            = var.github_repository
+  terraform_service_account_id = module.iam.github_terraform_sa_name
+
+  depends_on = [module.iam, module.project_services]
 }
 
 resource "google_billing_budget" "dev" {

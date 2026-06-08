@@ -110,9 +110,34 @@ docker compose run --rm terraform -chdir=environments/dev output
 
 Key outputs: `cloud_run_url`, `artifact_registry_url`, `api_image_target`.
 
-## CI (disabled for now)
+## CI (GitHub Actions)
 
-Apply is **local only** via Docker + your `gcloud` ADC. `.github/workflows/terraform.yml` is scaffolded but disabled (`if: false`) until `GCP_SA_KEY` is added to GitHub Secrets.
+Workflow: [`.github/workflows/terraform.yml`](../../.github/workflows/terraform.yml)
+
+| Event | Job |
+|-------|-----|
+| PR touching `infra/**` | `terraform plan` with committed [`ci.tfvars`](environments/dev/ci.tfvars) |
+| Push to `main` | `terraform apply` (GitHub environment: `dev`) |
+
+### One-time setup
+
+1. Apply dev stack locally so `ttf-github-terraform@...` exists:
+
+   ```bash
+   docker compose run --rm terraform -chdir=environments/dev apply
+   ```
+
+2. Create SA key and store in GitHub Secrets:
+
+   ```bash
+   bash infra/terraform/scripts/setup-github-terraform-ci.sh
+   ```
+
+   Requires `gh auth login` or `GITHUB_PERSONAL_ACCESS_TOKEN` with `repo` + `admin:repo_hook` (secrets scope).
+
+3. (Optional) GitHub → **Settings → Environments → New environment** → name `dev` → add required reviewers for apply approval.
+
+Secrets and `terraform.tfvars` stay out of git; CI uses non-secret `ci.tfvars` only.
 
 ## Day-to-day commands (from repo root)
 

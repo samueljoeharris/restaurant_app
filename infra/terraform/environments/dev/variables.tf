@@ -18,6 +18,18 @@ variable "uploads_bucket_name" {
   description = "Globally unique GCS bucket for TTF photo uploads"
 }
 
+variable "terraform_state_bucket_name" {
+  type        = string
+  description = "GCS bucket for Terraform remote state (from bootstrap output)"
+  default     = "ttf-tfstate-dev"
+}
+
+variable "github_repository" {
+  type        = string
+  description = "GitHub repo allowed for Workload Identity Federation (owner/repo)"
+  default     = "samueljoeharris/restaurant_app"
+}
+
 variable "enable_cloud_sql" {
   type        = bool
   description = "Phase B: provision Cloud SQL (~$7-10/mo). Keep false until API deploy."
