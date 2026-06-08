@@ -84,7 +84,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [ ] Scaffold `api/` + push image to Artifact Registry `ttf-api`
 - [ ] `docker compose up postgres` — local DB; set `POSTGRES_CONNECTION_STRING` in `.env`
 - [ ] Write `api/openapi.yaml`
-- [ ] GitHub secret `GCP_SA_KEY` for `.github/workflows/terraform.yml`
+- [ ] _(Later)_ GitHub secret `GCP_SA_KEY` + enable `.github/workflows/terraform.yml` CI (local `terraform apply` for now)
 
 ### Phase A resources (default apply)
 

@@ -110,6 +110,10 @@ docker compose run --rm terraform -chdir=environments/dev output
 
 Key outputs: `cloud_run_url`, `artifact_registry_url`, `api_image_target`.
 
+## CI (disabled for now)
+
+Apply is **local only** via Docker + your `gcloud` ADC. `.github/workflows/terraform.yml` is scaffolded but disabled (`if: false`) until `GCP_SA_KEY` is added to GitHub Secrets.
+
 ## Day-to-day commands (from repo root)
 
 ```bash
