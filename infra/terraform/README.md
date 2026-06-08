@@ -184,15 +184,32 @@ docker compose run --rm terraform -chdir=environments/dev destroy
 
 3. `terraform apply` again
 
-## Maps API key
+## Maps API keys
 
-Terraform enables **Geocoding API** and **Places API**, and creates secret container `ttf-maps-api-key`.
+Two keys — do not reuse the server key in the browser.
 
-Create the key in **APIs & Services → Credentials** (name: `ttf-maps-dev`), restrict to those APIs, then store the value:
+| Key | Terraform | Secret | APIs | Use |
+|-----|-----------|--------|------|-----|
+| **Server** (`ttf-maps-dev`) | Secret container only | `ttf-maps-api-key` | Geocoding + Places | `seed_dedham.py`, API server |
+| **Web** (`ttf-maps-web-dev`) | `google_apikeys_key` in `maps-web.tf` | `ttf-maps-web-api-key` | Maps JavaScript API | `VITE_GOOGLE_MAPS_API_KEY` in web build |
+
+Terraform enables **Geocoding**, **Places**, **Maps JavaScript** (`maps-backend.googleapis.com`), and **API Keys** (`apikeys.googleapis.com`).
+
+**Server key** (manual, one-time): create in **APIs & Services → Credentials**, restrict to Geocoding + Places, then:
 
 ```bash
-echo -n "YOUR_MAPS_KEY" | gcloud secrets versions add ttf-maps-api-key --data-file=-
+echo -n "YOUR_SERVER_MAPS_KEY" | gcloud secrets versions add ttf-maps-api-key --data-file=-
 ```
+
+**Web key** (Terraform): with `enable_web_cloud_run = true`, `terraform apply` creates the browser key (referrers: `localhost:5173` + `ttf-web` Cloud Run URL), writes `key_string` to `ttf-maps-web-api-key`, and grants the deploy SA read access for `web.yml`.
+
+Local dev after apply:
+
+```bash
+gcloud secrets versions access latest --secret=ttf-maps-web-api-key --project=ttf-restaurant-dev
+```
+
+Add to `web/.env.local` as `VITE_GOOGLE_MAPS_API_KEY=...`.
 
 ## Cost notes
 

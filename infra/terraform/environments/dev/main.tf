@@ -12,9 +12,11 @@ locals {
     "firebase.googleapis.com",
     "identitytoolkit.googleapis.com",
     "recaptchaenterprise.googleapis.com",
-    # Maps Platform — API key value still added manually to Secret Manager
+    # Maps Platform — server key (Places/Geocoding) value in ttf-maps-api-key; web key via maps-web.tf
     "geocoding-backend.googleapis.com",
     "places.googleapis.com",
+    "maps-backend.googleapis.com",
+    "apikeys.googleapis.com",
   ]
 
   # Phase B — enable when deploying API + Cloud SQL (see phase-b.tf)
@@ -29,6 +31,7 @@ locals {
   secret_ids = concat(
     var.enable_cloud_sql ? ["ttf-db-url"] : [],
     ["ttf-maps-api-key"],
+    var.enable_web_cloud_run ? ["ttf-maps-web-api-key"] : [],
     var.enable_firebase_web ? ["ttf-firebase-web-env", "ttf-recaptcha-site-key"] : [],
     var.enable_cloud_run ? ["ttf-firebase-admin-sa"] : [],
   )

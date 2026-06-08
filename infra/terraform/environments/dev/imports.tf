@@ -22,6 +22,21 @@ import {
 }
 
 import {
+  to = module.secrets.google_secret_manager_secret.secrets["ttf-maps-web-api-key"]
+  id = "projects/ttf-restaurant-dev/secrets/ttf-maps-web-api-key"
+}
+
+import {
+  to = google_apikeys_key.maps_web[0]
+  id = "projects/ttf-restaurant-dev/locations/global/keys/5c2e45bb-2e45-4804-85c3-2154bebcbdcd"
+}
+
+import {
+  to = google_secret_manager_secret_version.maps_web_api_key[0]
+  id = "projects/ttf-restaurant-dev/secrets/ttf-maps-web-api-key/versions/1"
+}
+
+import {
   to = module.firebase_web[0].google_firebase_project.project
   id = "projects/ttf-restaurant-dev"
 }
