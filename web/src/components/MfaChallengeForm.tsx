@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 
 import { useAuth, authErrorMessage } from "../auth/AuthContext";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
 
 export function MfaChallengeForm() {
   const { completeMfa, cancelMfa } = useAuth();
@@ -23,33 +25,31 @@ export function MfaChallengeForm() {
   }
 
   return (
-    <form className="card mfa-card" onSubmit={handleSubmit}>
-      <h2>Two-factor authentication</h2>
-      <p className="muted">
-        Open your authenticator app and enter the 6-digit code.
-      </p>
-      <label>
-        Code
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          pattern="[0-9]{6}"
-          maxLength={6}
-          value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-          required
-        />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <div className="row">
-        <button type="submit" disabled={busy || code.length < 6}>
-          {busy ? "…" : "Verify"}
-        </button>
-        <button type="button" className="linkish" onClick={() => cancelMfa()}>
-          Cancel
-        </button>
-      </div>
-    </form>
+    <Card title="Two-factor authentication" subtitle="Enter your 6-digit code">
+      <form className="stack" onSubmit={handleSubmit}>
+        <label>
+          Code
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            required
+          />
+        </label>
+        {error && <p className="error">{error}</p>}
+        <div className="row">
+          <Button type="submit" disabled={busy || code.length < 6}>
+            {busy ? "…" : "Verify"}
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => cancelMfa()}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }

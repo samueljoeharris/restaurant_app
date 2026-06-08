@@ -8,6 +8,10 @@ export interface RestaurantSummary {
   pilot_city: string;
 }
 
+export interface RestaurantMapEntry extends RestaurantSummary {
+  ttf: TtfAggregate;
+}
+
 export interface TtfAggregate {
   sample_size: number;
   median_minutes: number | null;
@@ -49,4 +53,40 @@ export interface TtfSubmission {
   daypart: "breakfast" | "lunch" | "dinner" | "late";
   party_size_kids: number;
   wait_context?: string;
+}
+
+export interface MetricDefinition {
+  key: string;
+  label: string;
+  metric_type: string;
+  category: string;
+  input_widget: string;
+  min_sample_size: number;
+  enum_values: string[] | null;
+  min_value: number | null;
+  max_value: number | null;
+}
+
+export interface AttributeEntry {
+  key: string;
+  label: string;
+  category: string;
+  metric_type: string;
+  sample_size: number;
+  min_sample_size: number;
+  status: "ok" | "insufficient_data";
+  message?: string;
+  aggregate?: {
+    value: boolean | number | string | null;
+    confidence?: number;
+    true_pct?: number;
+    distribution?: Record<string, number>;
+  };
+}
+
+export interface RestaurantNote {
+  id: string;
+  text: string;
+  tags: string[];
+  created_at: string;
 }

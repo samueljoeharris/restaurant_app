@@ -1,0 +1,35 @@
+import type { TtfAggregate } from "../types";
+
+export type TtfTier = "fast" | "ok" | "slow" | "unknown";
+
+export const TTF_TIER_COLORS: Record<TtfTier, string> = {
+  fast: "#2d8f4e",
+  ok: "#d4a017",
+  slow: "#c0392b",
+  unknown: "#9ca3af",
+};
+
+export const TTF_TIER_LABELS: Record<TtfTier, string> = {
+  fast: "Fast (≤8 min)",
+  ok: "OK (9–15 min)",
+  slow: "Slow (>15 min)",
+  unknown: "Not enough data",
+};
+
+export function ttfTier(ttf: TtfAggregate): TtfTier {
+  if (ttf.sample_size < 3) return "unknown";
+  const median = ttf.median_minutes;
+  if (median === null) return "unknown";
+  if (median <= 8) return "fast";
+  if (median <= 15) return "ok";
+  return "slow";
+}
+
+export function ttfTierColor(ttf: TtfAggregate): string {
+  return TTF_TIER_COLORS[ttfTier(ttf)];
+}
+
+export function formatTtfMedian(ttf: TtfAggregate): string {
+  if (ttf.sample_size === 0 || ttf.median_minutes === null) return "—";
+  return `${Math.round(ttf.median_minutes)} min`;
+}

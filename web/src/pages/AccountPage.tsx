@@ -4,6 +4,11 @@ import type { FormEvent as FormEventType } from "react";
 import { useAuth, authErrorMessage } from "../auth/AuthContext";
 import type { TotpEnrollment } from "../auth/mfa";
 import { api } from "../api/client";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { Page } from "../components/ui/Page";
+import { Stat, StatGrid } from "../components/ui/Stat";
+import { useToast } from "../components/ui/Toast";
 
 export function AccountPage() {
   const {
@@ -13,7 +18,9 @@ export function AccountPage() {
     beginTotpEnrollment,
     confirmTotpEnrollment,
     refreshUser,
+    logout,
   } = useAuth();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<{
     contribution_count: number;
   } | null>(null);
@@ -21,7 +28,6 @@ export function AccountPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!idToken) return;
@@ -34,7 +40,6 @@ export function AccountPage() {
 
   async function handleStartMfa() {
     setError(null);
-    setMessage(null);
     setBusy(true);
     try {
       const next = await beginTotpEnrollment();
@@ -55,7 +60,7 @@ export function AccountPage() {
       await confirmTotpEnrollment(enrollment, code.trim());
       setEnrollment(null);
       setCode("");
-      setMessage("Authenticator app linked. MFA is on for this account.");
+      toast("Authenticator linked — MFA is on.", "success");
       await refreshUser();
     } catch (err) {
       setError(authErrorMessage(err));
@@ -65,29 +70,33 @@ export function AccountPage() {
   }
 
   return (
-    <main className="page narrow">
-      <h1>Account</h1>
-      <section className="card">
-        <h2>Profile</h2>
+    <Page title="You" subtitle={user.email ?? "Your TTF account"}>
+      <Card title="Profile">
         <p>
-          <strong>{user.email ?? user.displayName ?? "Signed in"}</strong>
+          <strong>{user.displayName ?? user.email ?? "Signed in"}</strong>
         </p>
-        <p className="muted">Providers: {providers || "password"}</p>
+        <p className="muted small">Sign-in: {providers || "password"}</p>
         {profile && (
-          <p className="muted">Contributions: {profile.contribution_count}</p>
+          <StatGrid>
+            <Stat
+              label="Contributions"
+              value={profile.contribution_count}
+              highlight
+            />
+          </StatGrid>
         )}
-      </section>
+        <Button variant="ghost" onClick={() => logout()}>
+          Sign out
+        </Button>
+      </Card>
 
-      <section className="card">
-        <h2>Security</h2>
+      <Card title="Security" subtitle="Protect your account">
         {hasTotpMfa ? (
-          <p className="success">
-            Two-factor authentication is enabled (authenticator app).
-          </p>
+          <p className="success">Two-factor authentication is on.</p>
         ) : enrollment ? (
-          <form onSubmit={handleConfirmMfa}>
-            <p className="muted">
-              Scan this QR code with Google Authenticator, 1Password, or Authy.
+          <form className="stack" onSubmit={handleConfirmMfa}>
+            <p className="muted small">
+              Scan with Google Authenticator, 1Password, or Authy.
             </p>
             <img
               className="qr"
@@ -97,7 +106,7 @@ export function AccountPage() {
               height={180}
             />
             <p className="muted small">
-              Or enter key manually: <code>{enrollment.secret.secretKey}</code>
+              Manual key: <code>{enrollment.secret.secretKey}</code>
             </p>
             <label>
               6-digit code
@@ -111,29 +120,22 @@ export function AccountPage() {
               />
             </label>
             {error && <p className="error">{error}</p>}
-            <button type="submit" disabled={busy || code.length < 6}>
+            <Button type="submit" disabled={busy || code.length < 6}>
               {busy ? "…" : "Confirm authenticator"}
-            </button>
+            </Button>
           </form>
         ) : (
           <>
-            <p className="muted">
-              Add an authenticator app for an extra sign-in step (recommended
-              for accounts with Google or email).
+            <p className="muted small">
+              Add an authenticator app for an extra sign-in step.
             </p>
             {error && <p className="error">{error}</p>}
-            <button
-              type="button"
-              className="button"
-              onClick={handleStartMfa}
-              disabled={busy}
-            >
+            <Button onClick={handleStartMfa} disabled={busy}>
               {busy ? "…" : "Set up authenticator"}
-            </button>
+            </Button>
           </>
         )}
-        {message && <p className="success">{message}</p>}
-      </section>
-    </main>
+      </Card>
+    </Page>
   );
 }

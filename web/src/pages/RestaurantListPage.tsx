@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
+import { Badge } from "../components/ui/Badge";
+import { EmptyState } from "../components/ui/EmptyState";
+import { Page } from "../components/ui/Page";
+import { SkeletonList } from "../components/ui/Skeleton";
 import type { RestaurantSummary } from "../types";
 
 export function RestaurantListPage() {
@@ -31,34 +35,47 @@ export function RestaurantListPage() {
   }, [query]);
 
   return (
-    <main className="page">
-      <header className="page-header">
-        <div>
-          <h1>Restaurants</h1>
-          <p className="muted">Dedham, Massachusetts pilot</p>
-        </div>
-      </header>
-      <input
-        className="search"
-        placeholder="Search by name…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      {loading && <p className="muted">Loading…</p>}
-      {error && <p className="error">{error}</p>}
-      <ul className="list">
-        {restaurants.map((r) => (
-          <li key={r.id}>
-            <Link to={`/restaurants/${r.id}`} className="list-item">
-              <strong>{r.name}</strong>
-              <span className="muted">{r.address}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {!loading && !error && restaurants.length === 0 && (
-        <p className="muted">No restaurants found.</p>
+    <Page
+      title="Explore"
+      subtitle="Parent-rated restaurants in Dedham"
+    >
+      <div className="search-input">
+        <input
+          className="search"
+          placeholder="Search by name…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Search restaurants"
+        />
+      </div>
+
+      {!loading && !error && (
+        <Badge tone="brand">{restaurants.length} places</Badge>
       )}
-    </main>
+
+      {loading && <SkeletonList count={6} />}
+      {error && <p className="error">{error}</p>}
+
+      {!loading && !error && restaurants.length > 0 && (
+        <ul className="list">
+          {restaurants.map((r) => (
+            <li key={r.id}>
+              <Link to={`/restaurants/${r.id}`} className="restaurant-card">
+                <span className="restaurant-card__name">{r.name}</span>
+                <span className="restaurant-card__meta">{r.address}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {!loading && !error && restaurants.length === 0 && (
+        <EmptyState
+          emoji="🔎"
+          title="No matches"
+          description="Try a different search or check back after the next seed run."
+        />
+      )}
+    </Page>
   );
 }

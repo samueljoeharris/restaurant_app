@@ -1,15 +1,29 @@
 import type { ReactNode } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
+import { BottomNav } from "./BottomNav";
+import { Skeleton } from "./ui/Skeleton";
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  const hideNav = location.pathname.includes("/submit");
+  const isMap = location.pathname === "/map";
 
   if (loading) {
     return (
-      <div className="shell">
-        <p className="muted center">Loading…</p>
+      <div className="shell shell--no-nav">
+        <div className="shell__header">
+          <div className="shell__brand">
+            <span className="shell__brand-mark">🍟</span>
+            TTF
+          </div>
+        </div>
+        <div className="shell__main page stack">
+          <Skeleton className="ui-skeleton--title" />
+          <Skeleton className="ui-skeleton--line" />
+        </div>
       </div>
     );
   }
@@ -19,19 +33,16 @@ export function Layout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="shell">
-      <nav className="topnav">
-        <Link to="/restaurants" className="brand">
+    <div className={`shell${hideNav ? " shell--no-nav" : ""}${isMap ? " shell--map" : ""}`}>
+      <header className="shell__header">
+        <Link to="/restaurants" className="shell__brand">
+          <span className="shell__brand-mark">🍟</span>
           TTF
         </Link>
-        <Link to="/account" className="muted nav-account">
-          {user.email ?? "Account"}
-        </Link>
-        <button type="button" className="linkish" onClick={() => logout()}>
-          Sign out
-        </button>
-      </nav>
-      {children}
+        <span className="shell__tagline">Dedham pilot</span>
+      </header>
+      <div className={`shell__main${isMap ? " shell__main--flush" : ""}`}>{children}</div>
+      {!hideNav && <BottomNav />}
     </div>
   );
 }

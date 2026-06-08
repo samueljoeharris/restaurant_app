@@ -18,6 +18,7 @@ from ttf_api.schemas import (
     NoteSubmissionResponse,
     RestaurantDetail,
     RestaurantDetailResponse,
+    RestaurantMapEntry,
     RestaurantSummary,
     TtfAggregate,
     TtfSubmissionRequest,
@@ -107,6 +108,52 @@ def list_restaurants(
     with get_conn() as conn:
         rows = conn.execute(sql, params).fetchall()
     return [_row_to_summary(row) for row in rows]
+
+
+@router.get("/map", response_model=list[RestaurantMapEntry])
+def list_restaurants_for_map() -> list[RestaurantMapEntry]:
+    pilot = settings.pilot_city
+    sql = """
+        SELECT
+            r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
+            COALESCE(t.sample_size, 0)::int AS sample_size,
+            t.median_minutes,
+            t.avg_quality,
+            t.last_updated
+        FROM restaurants r
+        LEFT JOIN LATERAL (
+            SELECT
+                COUNT(*)::int AS sample_size,
+                PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY elapsed_minutes) AS median_minutes,
+                AVG(item_quality)::float AS avg_quality,
+                MAX(created_at) AS last_updated
+            FROM ttf_observations
+            WHERE restaurant_id = r.id
+        ) t ON true
+        WHERE r.pilot_city = %s
+        ORDER BY r.name
+    """
+    with get_conn() as conn:
+        rows = conn.execute(sql, (pilot,)).fetchall()
+
+    results: list[RestaurantMapEntry] = []
+    for row in rows:
+        summary = _row_to_summary(row)
+        if row["sample_size"] == 0:
+            ttf = TtfAggregate()
+        else:
+            ttf = TtfAggregate(
+                sample_size=row["sample_size"],
+                median_minutes=float(row["median_minutes"])
+                if row["median_minutes"] is not None
+                else None,
+                avg_quality=float(row["avg_quality"])
+                if row["avg_quality"] is not None
+                else None,
+                last_updated=row["last_updated"],
+            )
+        results.append(RestaurantMapEntry(**summary.model_dump(), ttf=ttf))
+    return results
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantDetailResponse)

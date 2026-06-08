@@ -4,6 +4,8 @@ import { Navigate } from "react-router-dom";
 
 import { useAuth, authErrorMessage } from "../auth/AuthContext";
 import { MfaChallengeForm } from "../components/MfaChallengeForm";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
 
 export function LoginPage() {
   const { user, mfaResolver, signIn, signUp, signInWithGoogle } = useAuth();
@@ -46,71 +48,76 @@ export function LoginPage() {
 
   if (mfaResolver) {
     return (
-      <main className="page narrow">
-        <h1>Time to Fries</h1>
-        <MfaChallengeForm />
-      </main>
+      <div className="auth-page">
+        <main className="page page--narrow page-enter">
+          <div className="auth-hero">
+            <div className="auth-hero__mark">🍟</div>
+            <h1 className="auth-hero__title">Verify it&apos;s you</h1>
+          </div>
+          <MfaChallengeForm />
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className="page narrow">
-      <h1>Time to Fries</h1>
-      <p className="muted">Dedham pilot — sign in to submit observations.</p>
-
-      <div className="card auth-card">
-        <button
-          type="button"
-          className="button secondary google-btn"
-          onClick={handleGoogle}
-          disabled={busy}
-        >
-          Continue with Google
-        </button>
-
-        <div className="divider">
-          <span>or email</span>
+    <div className="auth-page">
+      <main className="page page--narrow page-enter">
+        <div className="auth-hero">
+          <div className="auth-hero__mark">🍟</div>
+          <h1 className="auth-hero__title">Time to Fries</h1>
+          <p className="muted">Dedham pilot — rate kid-food speed with other parents.</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <label>
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              autoComplete={
-                mode === "signin" ? "current-password" : "new-password"
-              }
-            />
-          </label>
-          {error && <p className="error">{error}</p>}
-          <button type="submit" disabled={busy}>
-            {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
-          </button>
-          <button
-            type="button"
-            className="linkish"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          >
-            {mode === "signin"
-              ? "Need an account? Sign up"
-              : "Have an account? Sign in"}
-          </button>
-        </form>
-      </div>
-    </main>
+        <Card>
+          <Button variant="secondary" fullWidth onClick={handleGoogle} disabled={busy}>
+            Continue with Google
+          </Button>
+
+          <div className="divider">
+            <span>or email</span>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <label>
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete={
+                  mode === "signin" ? "current-password" : "new-password"
+                }
+              />
+            </label>
+            {error && <p className="error">{error}</p>}
+            <Button type="submit" fullWidth disabled={busy}>
+              {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
+            </Button>
+            <button
+              type="button"
+              className="linkish"
+              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            >
+              {mode === "signin"
+                ? "Need an account? Sign up"
+                : "Have an account? Sign in"}
+            </button>
+          </form>
+        </Card>
+      </main>
+    </div>
   );
 }

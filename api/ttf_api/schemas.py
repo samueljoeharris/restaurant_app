@@ -47,6 +47,10 @@ class TtfAggregate(BaseModel):
     last_updated: datetime | None = None
 
 
+class RestaurantMapEntry(RestaurantSummary):
+    ttf: TtfAggregate
+
+
 class RestaurantDetailResponse(BaseModel):
     restaurant: RestaurantDetail
     ttf: TtfAggregate = Field(default_factory=TtfAggregate)

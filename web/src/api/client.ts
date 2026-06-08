@@ -1,6 +1,10 @@
 import { getAppCheckToken } from "../appCheck";
 import type {
+  AttributeEntry,
+  MetricDefinition,
   RestaurantDetailResponse,
+  RestaurantMapEntry,
+  RestaurantNote,
   RestaurantSummary,
   TtfSubmission,
   UserProfile,
@@ -57,6 +61,9 @@ export const api = {
     return request<RestaurantSummary[]>(`/v1/restaurants${params}`);
   },
 
+  listRestaurantsForMap: () =>
+    request<RestaurantMapEntry[]>("/v1/restaurants/map"),
+
   getRestaurant: (id: string) =>
     request<RestaurantDetailResponse>(`/v1/restaurants/${id}`),
 
@@ -67,5 +74,32 @@ export const api = {
     request(`/v1/restaurants/${id}/ttf`, {
       method: "POST",
       body: JSON.stringify(body),
+    }, token),
+
+  listMetrics: () => request<MetricDefinition[]>("/v1/metrics"),
+
+  getAttributes: (id: string) =>
+    request<{ attributes: Record<string, AttributeEntry> }>(
+      `/v1/restaurants/${id}/attributes`,
+    ),
+
+  submitAttribute: (
+    id: string,
+    metricKey: string,
+    value: boolean | number | string,
+    token: string,
+  ) =>
+    request(`/v1/restaurants/${id}/attributes`, {
+      method: "POST",
+      body: JSON.stringify({ metric_key: metricKey, value }),
+    }, token),
+
+  listNotes: (id: string) =>
+    request<{ notes: RestaurantNote[] }>(`/v1/restaurants/${id}/notes`),
+
+  submitNote: (id: string, text: string, token: string, tags: string[] = []) =>
+    request<RestaurantNote>(`/v1/restaurants/${id}/notes`, {
+      method: "POST",
+      body: JSON.stringify({ text, tags }),
     }, token),
 };
