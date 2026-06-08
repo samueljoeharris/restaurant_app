@@ -79,6 +79,14 @@ module "iam" {
   depends_on = [module.storage]
 }
 
+resource "google_artifact_registry_repository_iam_member" "github_deploy_writer" {
+  project    = var.project_id
+  location   = var.region
+  repository = module.artifact_registry.repository_id
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:${module.iam.github_deploy_email}"
+}
+
 resource "google_artifact_registry_repository_iam_member" "api_runtime_reader" {
   count = var.enable_cloud_run ? 1 : 0
 

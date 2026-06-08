@@ -68,11 +68,14 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [x] Scaffold `api/` (FastAPI + migrations + OpenAPI)
 - [x] `docker compose up api` — verify `/health` and `/v1/metrics`
 - [x] Seed Dedham restaurants: `docker compose run --rm api python scripts/seed_dedham.py`
-- [ ] Push image to Artifact Registry `ttf-api` (Phase B)
+- [ ] Phase B enabled in `ci.tfvars` — Terraform CI provisions Cloud SQL + Cloud Run
+- [ ] GitHub variable `GCP_DEPLOY_SERVICE_ACCOUNT` = `ttf-github-deploy@ttf-restaurant-dev.iam.gserviceaccount.com`
+- [ ] API CI (`.github/workflows/api.yml`) — build, push, deploy on `api/**` pushes
 - [x] Firebase Auth on API — see [FIREBASE_AUTH.md](FIREBASE_AUTH.md)
 - [x] Enable Email/Password in Firebase (`ttf-restaurant-dev`)
 - [ ] Test real JWT against **production** Firebase (see below)
-- [x] Terraform CI (WIF): repo variables set; [run #4](https://github.com/samueljoeharris/restaurant_app/actions/runs/27148358713) green
+- [x] Terraform CI (WIF): [run #4](https://github.com/samueljoeharris/restaurant_app/actions/runs/27148358713) green
+- [ ] Set `GCP_DEPLOY_SERVICE_ACCOUNT` repo variable + run API workflow after Phase B apply
 - [ ] (Optional) GitHub environment `dev` with approval gate for apply on `main`
 
 ### Phase A resources (default apply)
