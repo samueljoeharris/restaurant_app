@@ -1,0 +1,222 @@
+openapi: 3.1.0
+info:
+  title: TTF Restaurant API
+  description: |
+    Time to Fries (TTF) — social restaurant ratings for parents and caregivers.
+    Pilot metro: Dedham, Massachusetts (`pilot_city=dedham-ma`).
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local Docker Compose
+
+tags:
+  - name: health
+  - name: restaurants
+  - name: metrics
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: API is running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /v1/restaurants:
+    get:
+      tags: [restaurants]
+      summary: List restaurants in pilot city
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Name search
+        - name: cuisine
+          in: query
+          schema: { type: string }
+          description: Filter by cuisine tag
+      responses:
+        "200":
+          description: Restaurant list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RestaurantSummary"
+    post:
+      tags: [restaurants]
+      summary: Add restaurant (authenticated)
+      security: [{ firebase: [] }]
+      responses:
+        "501":
+          description: Not implemented — Firebase Auth required
+
+  /v1/restaurants/{id}:
+    get:
+      tags: [restaurants]
+      summary: Restaurant detail with TTF aggregates
+      parameters:
+        - $ref: "#/components/parameters/RestaurantId"
+      responses:
+        "200":
+          description: Restaurant detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantDetailResponse"
+        "404":
+          description: Not found
+
+  /v1/restaurants/{id}/ttf:
+    get:
+      tags: [restaurants]
+      summary: Aggregated TTF stats
+      parameters:
+        - $ref: "#/components/parameters/RestaurantId"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TtfAggregate"
+    post:
+      tags: [restaurants]
+      summary: Submit TTF observation (authenticated)
+      security: [{ firebase: [] }]
+      parameters:
+        - $ref: "#/components/parameters/RestaurantId"
+      responses:
+        "501":
+          description: Not implemented — Firebase Auth required
+
+  /v1/restaurants/{id}/attributes:
+    get:
+      tags: [restaurants]
+      summary: Aggregated attribute ratings
+      parameters:
+        - $ref: "#/components/parameters/RestaurantId"
+      responses:
+        "200":
+          description: Attribute aggregates (stub)
+    post:
+      tags: [restaurants]
+      summary: Submit attribute rating (authenticated)
+      security: [{ firebase: [] }]
+      parameters:
+        - $ref: "#/components/parameters/RestaurantId"
+      responses:
+        "501":
+          description: Not implemented — Firebase Auth required
+
+  /v1/restaurants/{id}/notes:
+    get:
+      tags: [restaurants]
+      summary: List restaurant notes
+      parameters:
+        - $ref: "#/components/parameters/RestaurantId"
+      responses:
+        "200":
+          description: Notes list
+    post:
+      tags: [restaurants]
+      summary: Add note (authenticated)
+      security: [{ firebase: [] }]
+      parameters:
+        - $ref: "#/components/parameters/RestaurantId"
+      responses:
+        "501":
+          description: Not implemented — Firebase Auth required
+
+  /v1/metrics:
+    get:
+      tags: [metrics]
+      summary: List MetricDefinition seed schema
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MetricDefinition"
+
+components:
+  securitySchemes:
+    firebase:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Firebase Auth JWT (Apple Sign-In) — Phase 3
+
+  parameters:
+    RestaurantId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, pilot_city, pilot_display_name]
+      properties:
+        status: { type: string, example: ok }
+        pilot_city: { type: string, example: dedham-ma }
+        pilot_display_name: { type: string, example: "Dedham, Massachusetts" }
+
+    RestaurantSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+        cuisine_tags: { type: array, items: { type: string } }
+        pilot_city: { type: string }
+
+    RestaurantDetail:
+      allOf:
+        - $ref: "#/components/schemas/RestaurantSummary"
+        - type: object
+          properties:
+            google_place_id: { type: string, nullable: true }
+            google_maps_url: { type: string, nullable: true }
+            created_at: { type: string, format: date-time }
+            updated_at: { type: string, format: date-time }
+
+    TtfAggregate:
+      type: object
+      properties:
+        sample_size: { type: integer }
+        median_minutes: { type: number, nullable: true }
+        avg_quality: { type: number, nullable: true }
+        last_updated: { type: string, format: date-time, nullable: true }
+
+    RestaurantDetailResponse:
+      type: object
+      properties:
+        restaurant: { $ref: "#/components/schemas/RestaurantDetail" }
+        ttf: { $ref: "#/components/schemas/TtfAggregate" }
+
+    MetricDefinition:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        metric_type: { type: string, enum: [boolean, enum, numeric, duration] }
+        category: { type: string }
+        input_widget: { type: string }
+        min_sample_size: { type: integer }
+        enum_values: { type: array, items: { type: string }, nullable: true }
+        min_value: { type: integer, nullable: true }
+        max_value: { type: integer, nullable: true }

@@ -7,7 +7,7 @@ Guidance for AI coding agents working in this repository.
 **TTF (Time to Fries)** — social restaurant rating app for parents and caregivers dining with children.
 
 - **Flagship metric:** TTF = time from order to kid-friendly starter on the table, plus item type and quality (1–5)
-- **Status:** Design phase; pilot city TBD; single-metro MVP
+- **Status:** Phase 2 API scaffold; pilot city Dedham, MA (`dedham-ma`); single-metro MVP
 - **Repo:** Monorepo `samueljoeharris/restaurant_app` — do not split unless explicitly requested
 
 Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.

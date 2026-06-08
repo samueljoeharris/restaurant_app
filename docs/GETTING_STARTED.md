@@ -4,7 +4,7 @@ Actionable checklist for building the TTF (Time to Fries) restaurant app from ze
 
 **Your setup:** Windows, Docker, GitHub, no Mac, no Apple Developer account yet, first-time iOS.
 
-**Pilot city:** TBD
+**Pilot city:** Dedham, Massachusetts (`dedham-ma`)
 
 ---
 
@@ -81,9 +81,11 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
   docker compose run --rm terraform -chdir=environments/dev apply
   ```
 - [ ] Firebase + Maps key (console) — see infra README
-- [ ] Scaffold `api/` + push image to Artifact Registry `ttf-api`
-- [ ] `docker compose up postgres` — local DB; set `POSTGRES_CONNECTION_STRING` in `.env`
-- [ ] Write `api/openapi.yaml`
+- [x] Scaffold `api/` (FastAPI + migrations + OpenAPI)
+- [x] `docker compose up postgres` — local DB
+- [ ] `docker compose up api` — verify `/health` and `/v1/metrics`
+- [ ] Seed Dedham restaurants (Places API script — later)
+- [ ] Push image to Artifact Registry `ttf-api` (Phase B)
 - [ ] _(Later)_ GitHub secret `GCP_SA_KEY` + enable `.github/workflows/terraform.yml` CI (local `terraform apply` for now)
 
 ### Phase A resources (default apply)

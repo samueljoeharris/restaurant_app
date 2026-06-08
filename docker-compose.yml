@@ -24,5 +24,17 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build: ./api
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql://ttf_app:ttf_local@postgres:5432/ttf
+      PILOT_CITY: dedham-ma
+      PILOT_DISPLAY_NAME: Dedham, Massachusetts
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres-data:
