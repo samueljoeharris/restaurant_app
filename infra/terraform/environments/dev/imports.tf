@@ -17,6 +17,11 @@ import {
 }
 
 import {
+  to = module.secrets.google_secret_manager_secret.secrets["ttf-firebase-admin-sa"]
+  id = "projects/ttf-restaurant-dev/secrets/ttf-firebase-admin-sa"
+}
+
+import {
   to = module.firebase_web[0].google_firebase_project.project
   id = "projects/ttf-restaurant-dev"
 }

@@ -14,7 +14,7 @@ enable_web_cloud_run = true
 api_image            = "us-docker.pkg.dev/cloudrun/container/hello"
 web_image            = "us-docker.pkg.dev/cloudrun/container/hello"
 cloud_sql_tier       = "db-f1-micro"
-firebase_mfa_state   = "DISABLED"
-# App Check: create a score-based reCAPTCHA Enterprise key, add allowed domains
-# (localhost, ttf-web Cloud Run host), then set site key here or in terraform.tfvars.
+firebase_mfa_state           = "DISABLED"
+firebase_admin_sa_configured = true
+# App Check: set site key after creating reCAPTCHA Enterprise key (public; safe in ci.tfvars).
 # app_check_recaptcha_site_key = "6L..."
