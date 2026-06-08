@@ -89,7 +89,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [ ] Test real JWT against **production** Firebase (see below)
 - [x] Terraform CI (WIF): [run #4](https://github.com/samueljoeharris/restaurant_app/actions/runs/27148358713) green
 - [x] Set `GCP_DEPLOY_SERVICE_ACCOUNT` repo variable + run API workflow after Phase B apply
-- [ ] Seed **production** Cloud SQL: `./api/scripts/seed_production.sh` (see `api/scripts/seed_production.sh`)
+- [x] Seed **production** Cloud SQL: `./api/scripts/seed_production.sh` (115 Dedham venues)
 - [ ] (Optional) GitHub environment `dev` with approval gate for apply on `main`
 
 ### Phase A resources (default apply)
