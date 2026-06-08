@@ -93,3 +93,28 @@ variable "firebase_web_app_display_name" {
   type    = string
   default = "TTF Web"
 }
+
+variable "enable_google_sign_in" {
+  type        = bool
+  description = "Sign in with Google (requires OAuth client in tfvars or Console)"
+  default     = true
+}
+
+variable "google_oauth_client_id" {
+  type        = string
+  description = "OAuth 2.0 Web client ID for Google sign-in (optional in ci.tfvars)"
+  default     = ""
+}
+
+variable "google_oauth_client_secret" {
+  type        = string
+  description = "OAuth client secret for Google sign-in"
+  default     = ""
+  sensitive   = true
+}
+
+variable "firebase_mfa_state" {
+  type        = string
+  description = "Firebase MFA: DISABLED | ENABLED (opt-in) | MANDATORY"
+  default     = "ENABLED"
+}
