@@ -153,7 +153,7 @@ Terraform stores the key in `ttf-recaptcha-site-key`, wires Firebase App Check, 
 
 **3. Identity Platform (Terraform)**
 
-`infra/terraform/modules/firebase-auth`: request logging, daily sign-up quota (200), MFA default `DISABLED`.
+`infra/terraform/modules/firebase-auth`: request logging, MFA default `DISABLED`. (Sign-up quota can be set in Firebase Console if needed — API requires a rolling `start_time`.)
 
 Write endpoints require Firebase ID token + (when enabled) `X-Firebase-AppCheck` + rate limit.
 
