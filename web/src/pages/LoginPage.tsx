@@ -2,10 +2,11 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 
-import { useAuth } from "../auth/AuthContext";
+import { useAuth, authErrorMessage } from "../auth/AuthContext";
+import { MfaChallengeForm } from "../components/MfaChallengeForm";
 
 export function LoginPage() {
-  const { user, signIn, signUp } = useAuth();
+  const { user, mfaResolver, signIn, signUp, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -25,50 +26,91 @@ export function LoginPage() {
         await signUp(email, password);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Auth failed");
+      setError(authErrorMessage(err));
     } finally {
       setBusy(false);
     }
+  }
+
+  async function handleGoogle() {
+    setError(null);
+    setBusy(true);
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError(authErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (mfaResolver) {
+    return (
+      <main className="page narrow">
+        <h1>Time to Fries</h1>
+        <MfaChallengeForm />
+      </main>
+    );
   }
 
   return (
     <main className="page narrow">
       <h1>Time to Fries</h1>
       <p className="muted">Dedham pilot — sign in to submit observations.</p>
-      <form className="card" onSubmit={handleSubmit}>
-        <label>
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-          />
-        </label>
-        {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={busy}>
-          {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
-        </button>
+
+      <div className="card auth-card">
         <button
           type="button"
-          className="linkish"
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+          className="button secondary google-btn"
+          onClick={handleGoogle}
+          disabled={busy}
         >
-          {mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in"}
+          Continue with Google
         </button>
-      </form>
+
+        <div className="divider">
+          <span>or email</span>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <label>
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              autoComplete={
+                mode === "signin" ? "current-password" : "new-password"
+              }
+            />
+          </label>
+          {error && <p className="error">{error}</p>}
+          <button type="submit" disabled={busy}>
+            {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
+          </button>
+          <button
+            type="button"
+            className="linkish"
+            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+          >
+            {mode === "signin"
+              ? "Need an account? Sign up"
+              : "Have an account? Sign in"}
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

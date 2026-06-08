@@ -123,7 +123,15 @@ Cloud Run runtime SA can also use Workload Identity; service account JSON is sim
 
 ---
 
-## 5. Client integration (later)
+## 5. Google sign-in + MFA (web)
+
+See **[AUTH.md](AUTH.md)** for enabling Google, enrolling TOTP MFA, and the `/account` security page.
+
+Terraform: `infra/terraform/modules/firebase-auth` (Identity Platform config + optional Google OAuth vars).
+
+---
+
+## 6. Client integration
 
 ### Web (Firebase JS SDK)
 

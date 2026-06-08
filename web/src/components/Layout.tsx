@@ -24,7 +24,9 @@ export function Layout({ children }: { children: ReactNode }) {
         <Link to="/restaurants" className="brand">
           TTF
         </Link>
-        <span className="muted">{user.email}</span>
+        <Link to="/account" className="muted nav-account">
+          {user.email ?? "Account"}
+        </Link>
         <button type="button" className="linkish" onClick={() => logout()}>
           Sign out
         </button>

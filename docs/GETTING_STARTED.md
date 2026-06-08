@@ -42,6 +42,16 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 
 ---
 
+## Auth (web)
+
+- [ ] Enable **Google** sign-in in [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) (if not using Terraform OAuth vars)
+- [ ] Test **Continue with Google** and email sign-up on `/login`
+- [ ] Optional: **Account → Set up authenticator** for MFA
+
+Guide: [AUTH.md](AUTH.md)
+
+---
+
 ## Phase 2.5 — Web POC (Windows, no Mac)
 
 Pilot the product in a browser while Apple Developer is pending.

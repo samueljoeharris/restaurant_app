@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
 import { Layout } from "./components/Layout";
+import { AccountPage } from "./pages/AccountPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { RestaurantListPage } from "./pages/RestaurantListPage";
@@ -26,6 +27,14 @@ export default function App() {
             element={
               <Layout>
                 <RestaurantDetailPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <Layout>
+                <AccountPage />
               </Layout>
             }
           />
