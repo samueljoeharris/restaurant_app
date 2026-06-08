@@ -14,9 +14,10 @@ locals {
 resource "google_apikeys_key" "maps_web" {
   count = var.enable_web_cloud_run ? 1 : 0
 
-  provider     = google-beta
-  project      = var.project_id
-  name         = "ttf-maps-web-dev"
+  provider = google-beta
+  project  = var.project_id
+  # Immutable key id from GCP (imported in 6f9e786); do not change or Terraform replaces the key.
+  name         = "5c2e45bb-2e45-4804-85c3-2154bebcbdcd"
   display_name = "TTF Maps Web (browser)"
 
   restrictions {
