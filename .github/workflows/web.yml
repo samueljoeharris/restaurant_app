@@ -69,16 +69,25 @@ jobs:
             exit 1
           fi
 
-          export API_URL FIREBASE_JSON
+          RECAPTCHA_SITE_KEY=""
+          if RECAPTCHA_JSON="$(gcloud secrets versions access latest \
+            --secret=ttf-recaptcha-site-key \
+            --project="${{ env.PROJECT_ID }}" 2>/dev/null)"; then
+            RECAPTCHA_SITE_KEY="$RECAPTCHA_JSON"
+          fi
+
+          export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY
           python3 <<'PY'
           import json, os
           cfg = json.loads(os.environ["FIREBASE_JSON"])
           api_url = os.environ["API_URL"]
+          recaptcha = os.environ.get("RECAPTCHA_SITE_KEY", "").strip()
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"api_url={api_url}\n")
               out.write(f"firebase_api_key={cfg['VITE_FIREBASE_API_KEY']}\n")
               out.write(f"firebase_auth_domain={cfg['VITE_FIREBASE_AUTH_DOMAIN']}\n")
               out.write(f"firebase_project_id={cfg['VITE_FIREBASE_PROJECT_ID']}\n")
+              out.write(f"recaptcha_site_key={recaptcha}\n")
           PY
 
       - name: Build image
@@ -89,6 +98,7 @@ jobs:
             --build-arg VITE_FIREBASE_API_KEY="${{ steps.env.outputs.firebase_api_key }}" \
             --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ steps.env.outputs.firebase_auth_domain }}" \
             --build-arg VITE_FIREBASE_PROJECT_ID="${{ steps.env.outputs.firebase_project_id }}" \
+            --build-arg VITE_APP_CHECK_RECAPTCHA_SITE_KEY="${{ steps.env.outputs.recaptcha_site_key }}" \
             -t "${IMAGE_BASE}:${{ github.sha }}" \
             -t "${IMAGE_BASE}:latest" \
             ./web

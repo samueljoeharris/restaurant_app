@@ -90,6 +90,9 @@ curl -X POST http://localhost:8080/v1/restaurants/{id}/ttf \
 | `PILOT_DISPLAY_NAME` | `Dedham, Massachusetts` |
 | `FIREBASE_PROJECT_ID` | `ttf-restaurant-dev` |
 | `AUTH_DEV_MODE` | `true` locally; `false` in Cloud Run |
+| `APP_CHECK_ENFORCE` | `false` locally; `true` when reCAPTCHA configured |
+| `RATE_LIMIT_MAX_WRITES` | Max writes per user per window (default `60`) |
+| `RATE_LIMIT_WINDOW_MINUTES` | Rate limit window (default `60`) |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to service account JSON (prod) |
 
 Migrations run automatically on API startup (`api/migrations/*.sql`).

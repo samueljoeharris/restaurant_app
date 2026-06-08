@@ -29,10 +29,16 @@ variable "google_oauth_client_secret" {
 variable "mfa_state" {
   type        = string
   description = "DISABLED, ENABLED (optional MFA), or MANDATORY"
-  default     = "ENABLED"
+  default     = "DISABLED"
 
   validation {
     condition     = contains(["DISABLED", "ENABLED", "MANDATORY"], var.mfa_state)
     error_message = "mfa_state must be DISABLED, ENABLED, or MANDATORY."
   }
+}
+
+variable "sign_up_quota_per_day" {
+  type        = number
+  description = "Max new sign-ups per day (Identity Platform quota)"
+  default     = 200
 }

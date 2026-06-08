@@ -11,6 +11,7 @@ locals {
     # Firebase Web SDK + Auth (browser sign-in)
     "firebase.googleapis.com",
     "identitytoolkit.googleapis.com",
+    "recaptchaenterprise.googleapis.com",
     # Maps Platform — API key value still added manually to Secret Manager
     "geocoding-backend.googleapis.com",
     "places.googleapis.com",
@@ -28,7 +29,8 @@ locals {
   secret_ids = concat(
     var.enable_cloud_sql ? ["ttf-db-url"] : [],
     ["ttf-maps-api-key"],
-    var.enable_firebase_web ? ["ttf-firebase-web-env"] : [],
+    var.enable_firebase_web ? ["ttf-firebase-web-env", "ttf-recaptcha-site-key"] : [],
+    var.enable_cloud_run ? ["ttf-firebase-admin-sa"] : [],
   )
 
   database_url = var.enable_cloud_sql ? format(

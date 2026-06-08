@@ -13,6 +13,19 @@ resource "google_identity_platform_config" "auth" {
 
   authorized_domains = var.authorized_domains
 
+  monitoring {
+    request_logging {
+      enabled = true
+    }
+  }
+
+  quota {
+    sign_up_quota_config {
+      quota          = var.sign_up_quota_per_day
+      quota_duration = "86400s"
+    }
+  }
+
   sign_in {
     allow_duplicate_emails = false
 

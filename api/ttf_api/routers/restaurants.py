@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from psycopg.types.json import Jsonb
 
 from ttf_api.aggregates import build_attribute_aggregates
-from ttf_api.auth import AuthUser, get_current_user
+from ttf_api.auth import AuthUser
+from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.schemas import (
@@ -119,7 +120,7 @@ def get_restaurant(restaurant_id: UUID) -> RestaurantDetailResponse:
 @router.post("", response_model=RestaurantDetail, status_code=status.HTTP_201_CREATED)
 def create_restaurant(
     body: CreateRestaurantRequest,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> RestaurantDetail:
     with get_conn() as conn:
         row = conn.execute(
@@ -152,7 +153,7 @@ def create_restaurant(
 def submit_ttf(
     restaurant_id: UUID,
     body: TtfSubmissionRequest,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> TtfSubmissionResponse:
     served_at = body.served_at or datetime.now(timezone.utc)
     ordered_at = body.ordered_at or (
@@ -203,7 +204,7 @@ def get_ttf(restaurant_id: UUID) -> TtfAggregate:
 def submit_attributes(
     restaurant_id: UUID,
     body: AttributeSubmissionRequest,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> AttributeSubmissionResponse:
     with get_conn() as conn:
         _ensure_restaurant(conn, restaurant_id)
@@ -247,7 +248,7 @@ def get_attributes(restaurant_id: UUID) -> dict:
 def submit_note(
     restaurant_id: UUID,
     body: NoteSubmissionRequest,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> NoteSubmissionResponse:
     with get_conn() as conn:
         _ensure_restaurant(conn, restaurant_id)

@@ -133,5 +133,17 @@ variable "google_oauth_client_secret" {
 variable "firebase_mfa_state" {
   type        = string
   description = "Firebase MFA: DISABLED | ENABLED (opt-in) | MANDATORY"
-  default     = "ENABLED"
+  default     = "DISABLED"
+}
+
+variable "app_check_recaptcha_site_key" {
+  type        = string
+  description = "reCAPTCHA Enterprise site key for Firebase App Check (web). Leave empty to skip App Check until configured."
+  default     = ""
+}
+
+variable "firebase_admin_sa_configured" {
+  type        = bool
+  description = "Set true after api/scripts/upload_firebase_admin_sa.sh uploads ttf-firebase-admin-sa"
+  default     = false
 }

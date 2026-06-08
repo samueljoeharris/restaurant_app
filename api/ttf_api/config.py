@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     auth_dev_mode: bool = False
     cors_origins: list[str] = []
     port: int = 8080
+    app_check_enforce: bool = False
+    rate_limit_max_writes: int = 60
+    rate_limit_window_minutes: int = 60
 
     @field_validator("cors_origins", mode="before")
     @classmethod

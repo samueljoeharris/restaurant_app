@@ -33,16 +33,29 @@ module "cloud_run" {
   service_account_email     = module.iam.api_runtime_email
   cloud_sql_connection_name = module.cloud_sql[0].connection_name
   database_url_secret_id    = "ttf-db-url"
-  container_env = {
-    PILOT_CITY          = "dedham-ma"
-    PILOT_DISPLAY_NAME  = "Dedham, Massachusetts"
-    FIREBASE_PROJECT_ID = var.project_id
-    AUTH_DEV_MODE       = "false"
+  file_secret_mounts = var.firebase_admin_sa_configured ? [
+    {
+      volume_name = "firebase-admin-sa"
+      secret_name = module.secrets.secret_resource_names["ttf-firebase-admin-sa"]
+      mount_path  = "/secrets/firebase-admin"
+      file_name   = "firebase-sa.json"
+    },
+  ] : []
+  container_env = merge({
+    PILOT_CITY                = "dedham-ma"
+    PILOT_DISPLAY_NAME        = "Dedham, Massachusetts"
+    FIREBASE_PROJECT_ID       = var.project_id
+    AUTH_DEV_MODE             = "false"
+    APP_CHECK_ENFORCE         = var.app_check_recaptcha_site_key != "" ? "true" : "false"
+    RATE_LIMIT_MAX_WRITES     = "60"
+    RATE_LIMIT_WINDOW_MINUTES = "60"
     CORS_ORIGINS = jsonencode(concat(
       ["http://localhost:5173", "http://localhost:3000"],
       var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],
     ))
-  }
+  }, var.firebase_admin_sa_configured ? {
+    FIREBASE_SERVICE_ACCOUNT_PATH = "/secrets/firebase-admin/firebase-sa.json"
+  } : {})
 
   depends_on = [
     module.iam,

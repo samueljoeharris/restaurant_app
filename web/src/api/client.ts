@@ -1,3 +1,4 @@
+import { getAppCheckToken } from "../appCheck";
 import type {
   RestaurantDetailResponse,
   RestaurantSummary,
@@ -24,6 +25,10 @@ async function request<T>(
   const headers = new Headers(options.headers);
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
+    const appCheckToken = await getAppCheckToken();
+    if (appCheckToken) {
+      headers.set("X-Firebase-AppCheck", appCheckToken);
+    }
   }
   if (options.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");

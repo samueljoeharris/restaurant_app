@@ -19,6 +19,20 @@ resource "google_cloud_run_v2_service" "api" {
       }
     }
 
+    dynamic "volumes" {
+      for_each = var.file_secret_mounts
+      content {
+        name = volumes.value.volume_name
+        secret {
+          secret = volumes.value.secret_name
+          items {
+            version = "latest"
+            path    = volumes.value.file_name
+          }
+        }
+      }
+    }
+
     containers {
       image = var.image
 
@@ -29,6 +43,14 @@ resource "google_cloud_run_v2_service" "api" {
       volume_mounts {
         name       = "cloudsql"
         mount_path = "/cloudsql"
+      }
+
+      dynamic "volume_mounts" {
+        for_each = var.file_secret_mounts
+        content {
+          name       = volume_mounts.value.volume_name
+          mount_path = volume_mounts.value.mount_path
+        }
       }
 
       env {

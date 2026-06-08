@@ -117,9 +117,45 @@ No Firebase required. **Disable in production** (`AUTH_DEV_MODE=false`).
 |---------|--------|
 | `AUTH_DEV_MODE` | `false` |
 | `FIREBASE_PROJECT_ID` | `ttf-restaurant-dev` |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | `/secrets/firebase-sa.json` (mount from Secret Manager) |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | `/secrets/firebase-admin/firebase-sa.json` (when secret mounted) |
+| `APP_CHECK_ENFORCE` | `true` when reCAPTCHA site key is configured |
+| `RATE_LIMIT_MAX_WRITES` | `60` per `RATE_LIMIT_WINDOW_MINUTES` (`60`) |
 
-Cloud Run runtime SA can also use Workload Identity; service account JSON is simplest for v1.
+### Tier 1 hardening setup
+
+**1. Firebase Admin SA in Secret Manager**
+
+```bash
+# Download key: Firebase Console → Project settings → Service accounts → Generate new private key
+./api/scripts/upload_firebase_admin_sa.sh firebase-sa.json
+```
+
+Then in `infra/terraform/environments/dev/terraform.tfvars` (gitignored):
+
+```
+firebase_admin_sa_configured = true
+```
+
+Terraform apply mounts the secret on `ttf-api` and sets `FIREBASE_SERVICE_ACCOUNT_PATH`.
+
+**2. App Check (reCAPTCHA Enterprise)**
+
+1. [reCAPTCHA Enterprise](https://console.cloud.google.com/security/recaptcha) → Create key → **Website** → Score-based
+2. Allowed domains: `localhost`, your `ttf-web` Cloud Run host (no `https://`)
+3. [Firebase App Check](https://console.firebase.google.com/project/ttf-restaurant-dev/appcheck) → register web app with that site key
+4. Set in `terraform.tfvars`:
+
+```
+app_check_recaptcha_site_key = "6L..."
+```
+
+Terraform stores the key in `ttf-recaptcha-site-key`, wires Firebase App Check, enables API enforcement, and bakes the key into web CI builds.
+
+**3. Identity Platform (Terraform)**
+
+`infra/terraform/modules/firebase-auth`: request logging, daily sign-up quota (200), MFA default `DISABLED`.
+
+Write endpoints require Firebase ID token + (when enabled) `X-Firebase-AppCheck` + rate limit.
 
 ---
 
