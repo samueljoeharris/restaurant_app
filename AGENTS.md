@@ -22,7 +22,7 @@ Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.
 | Auth | Firebase Auth + Apple Sign-In |
 | Infra | Terraform — `infra/terraform/` |
 | Local dev | Docker Compose (Windows host) |
-| CI/CD | GitHub Actions with path filters |
+| CI/CD | GitHub Actions — **CI** gate on every push; deploy workflows path-filtered ([docs/CI.md](docs/CI.md)) |
 
 ## Repository layout
 

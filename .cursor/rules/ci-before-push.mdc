@@ -1,0 +1,17 @@
+---
+description: Run local CI checks before git push; ensure GitHub CI workflow stays green
+alwaysApply: true
+---
+
+# CI before push
+
+Before `git push` to `main`:
+
+1. Run `./scripts/ci-check.sh` (or `--all` if unsure what changed).
+2. If the user has not run `./scripts/setup-githooks.sh`, suggest it once — installs a **pre-push hook** that runs the same checks automatically.
+3. After pushing, confirm the **CI** workflow (`.github/workflows/ci.yml`) is green on GitHub Actions before claiming deploy is done.
+4. Deploy workflows (`api.yml`, `web.yml`, `terraform.yml`) are **path-filtered** — if you change `api/` but only push web files in a later commit, remind the user to run **workflow_dispatch** on API or include `api/` in the push.
+5. Cross-stack changes: `web/src/api/client.ts` + new API routes require **both** API and web deploy workflows to succeed.
+6. Never use `git push --no-verify` unless the user explicitly asks to skip hooks.
+
+Local check mirrors CI: web `npm run build`, API `compileall` + `docker build`, Terraform `fmt -check` + `validate`.

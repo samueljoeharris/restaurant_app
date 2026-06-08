@@ -1,0 +1,76 @@
+name: CI
+
+# Required status check for main — build/validate only (deploy stays in api/web/terraform workflows).
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-build:
+    name: Web build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install and build
+        env:
+          VITE_API_URL: https://ci.example.com
+          VITE_FIREBASE_API_KEY: ci-dummy
+          VITE_FIREBASE_AUTH_DOMAIN: ci.example.com
+          VITE_FIREBASE_PROJECT_ID: ci-project
+          VITE_GOOGLE_MAPS_API_KEY: ""
+        run: |
+          npm ci
+          npm run build
+
+  api-build:
+    name: API build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Python compile check
+        run: python -m compileall -q api/ttf_api
+
+      - name: Docker build
+        run: docker build ./api
+
+  terraform-validate:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform/environments/dev
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.9.0
+
+      - name: Format check
+        run: terraform fmt -check -recursive ../../..
+
+      - name: Init and validate
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
