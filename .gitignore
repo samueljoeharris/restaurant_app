@@ -1,0 +1,53 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.p8
+*.key
+credentials.json
+service-account*.json
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+**/terraform.tfvars
+!**/terraform.tfvars.example
+
+# Docker
+.docker/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+.npm/
+
+# iOS / Xcode (phase 3)
+ios/**/DerivedData/
+ios/**/*.xcuserstate
+ios/**/xcuserdata/
+*.ipa
+*.dSYM.zip
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local Postgres data
+postgres-data/
