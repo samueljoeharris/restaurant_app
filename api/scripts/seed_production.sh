@@ -14,24 +14,37 @@ PROJECT_ID="${TTF_GCP_PROJECT_DEV:-ttf-restaurant-dev}"
 INSTANCE="${PROJECT_ID}:us-central1:ttf-db"
 PROXY_PORT="${CLOUD_SQL_PROXY_PORT:-5432}"
 PROXY_PID=""
+PROXY_CONTAINER="ttf-cloud-sql-proxy"
 
 cleanup() {
   if [[ -n "$PROXY_PID" ]] && kill -0 "$PROXY_PID" 2>/dev/null; then
     kill "$PROXY_PID"
     wait "$PROXY_PID" 2>/dev/null || true
   fi
+  docker rm -f "$PROXY_CONTAINER" &>/dev/null || true
 }
 trap cleanup EXIT
 
-if ! command -v cloud-sql-proxy &>/dev/null; then
-  echo "cloud-sql-proxy not found. Install: https://cloud.google.com/sql/docs/postgres/sql-proxy"
-  exit 1
-fi
+start_proxy() {
+  if command -v cloud-sql-proxy &>/dev/null; then
+    echo "==> Starting cloud-sql-proxy on 127.0.0.1:${PROXY_PORT}"
+    cloud-sql-proxy "$INSTANCE" --port "$PROXY_PORT" &
+    PROXY_PID=$!
+  else
+    echo "==> Starting Cloud SQL proxy container on 127.0.0.1:${PROXY_PORT}"
+    GCLOUD_CONFIG="${APPDATA:-$HOME/.config}/gcloud"
+    docker rm -f "$PROXY_CONTAINER" &>/dev/null || true
+    docker run -d --name "$PROXY_CONTAINER" \
+      -p "127.0.0.1:${PROXY_PORT}:5432" \
+      -v "${GCLOUD_CONFIG}:/root/.config/gcloud:ro" \
+      gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1 \
+      --address 0.0.0.0 --port 5432 \
+      "$INSTANCE"
+  fi
+  sleep 4
+}
 
-echo "==> Starting Cloud SQL Auth Proxy on 127.0.0.1:${PROXY_PORT}"
-cloud-sql-proxy "$INSTANCE" --port "$PROXY_PORT" &
-PROXY_PID=$!
-sleep 3
+start_proxy
 
 echo "==> Building local DATABASE_URL from Secret Manager (ttf-db-url)"
 export PROJECT_ID PROXY_PORT
