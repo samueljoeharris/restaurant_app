@@ -49,6 +49,8 @@ jobs:
       - name: Resolve Vite build env
         id: env
         run: |
+          set -euo pipefail
+
           API_URL="$(gcloud run services describe "${{ env.API_SERVICE }}" \
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
@@ -58,32 +60,25 @@ jobs:
             exit 1
           fi
 
-          TOKEN="$(gcloud auth print-access-token)"
-          APPS_JSON="$(curl -sf \
-            -H "Authorization: Bearer ${TOKEN}" \
-            "https://firebase.googleapis.com/v1beta1/projects/${{ env.PROJECT_ID }}/webApps")"
-          APP_ID="$(printf '%s' "$APPS_JSON" | python3 -c "
-          import json, sys
-          apps = json.load(sys.stdin).get('apps', [])
-          if not apps:
-              sys.exit('no Firebase web apps')
-          print(apps[0]['appId'])
-          ")"
+          if ! FIREBASE_JSON="$(gcloud secrets versions access latest \
+            --secret=ttf-firebase-web-env \
+            --project="${{ env.PROJECT_ID }}" 2>&1)"; then
+            echo "::error::Could not read Secret Manager secret ttf-firebase-web-env"
+            echo "$FIREBASE_JSON"
+            echo "Run the Terraform workflow on main first (creates the secret and deploy IAM)."
+            exit 1
+          fi
 
-          curl -sf \
-            -H "Authorization: Bearer ${TOKEN}" \
-            "https://firebase.googleapis.com/v1beta1/projects/${{ env.PROJECT_ID }}/webApps/${APP_ID}/config" \
-            -o /tmp/firebase-config.json
-
-          python3 <<PY
+          export API_URL FIREBASE_JSON
+          python3 <<'PY'
           import json, os
-          cfg = json.load(open("/tmp/firebase-config.json"))
-          api_url = """${API_URL}"""
+          cfg = json.loads(os.environ["FIREBASE_JSON"])
+          api_url = os.environ["API_URL"]
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"api_url={api_url}\n")
-              out.write(f"firebase_api_key={cfg['apiKey']}\n")
-              out.write(f"firebase_auth_domain={cfg['authDomain']}\n")
-              out.write(f"firebase_project_id={cfg['projectId']}\n")
+              out.write(f"firebase_api_key={cfg['VITE_FIREBASE_API_KEY']}\n")
+              out.write(f"firebase_auth_domain={cfg['VITE_FIREBASE_AUTH_DOMAIN']}\n")
+              out.write(f"firebase_project_id={cfg['VITE_FIREBASE_PROJECT_ID']}\n")
           PY
 
       - name: Build image

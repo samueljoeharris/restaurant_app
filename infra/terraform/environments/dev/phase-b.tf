@@ -44,13 +44,10 @@ module "cloud_run" {
     ))
   }
 
-  depends_on = concat(
-    [
-      module.iam,
-      module.cloud_sql,
-      google_secret_manager_secret_version.db_url,
-      google_artifact_registry_repository_iam_member.api_runtime_reader,
-    ],
-    var.enable_web_cloud_run ? [module.cloud_run_web[0]] : [],
-  )
+  depends_on = [
+    module.iam,
+    module.cloud_sql,
+    google_secret_manager_secret_version.db_url,
+    google_artifact_registry_repository_iam_member.api_runtime_reader,
+  ]
 }

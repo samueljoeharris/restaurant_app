@@ -84,12 +84,6 @@ resource "google_project_iam_member" "github_deploy_ar_writer" {
   member  = "serviceAccount:${google_service_account.github_deploy.email}"
 }
 
-resource "google_project_iam_member" "github_deploy_firebase_viewer" {
-  project = var.project_id
-  role    = "roles/firebase.viewer"
-  member  = "serviceAccount:${google_service_account.github_deploy.email}"
-}
-
 resource "google_project_iam_member" "github_deploy_sa_user" {
   project = var.project_id
   role    = "roles/iam.serviceAccountUser"

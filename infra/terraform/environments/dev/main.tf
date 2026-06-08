@@ -25,7 +25,11 @@ locals {
 
   required_apis = var.enable_cloud_sql || var.enable_cloud_run ? concat(local.phase_a_apis, local.phase_b_apis) : local.phase_a_apis
 
-  secret_ids = var.enable_cloud_sql ? ["ttf-db-url", "ttf-maps-api-key"] : ["ttf-maps-api-key"]
+  secret_ids = concat(
+    var.enable_cloud_sql ? ["ttf-db-url"] : [],
+    ["ttf-maps-api-key"],
+    var.enable_firebase_web ? ["ttf-firebase-web-env"] : [],
+  )
 
   database_url = var.enable_cloud_sql ? format(
     "postgresql://%s:%s@/%s?host=/cloudsql/%s",
