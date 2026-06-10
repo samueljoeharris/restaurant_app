@@ -23,7 +23,7 @@ if ! printf '%s' "$command" | grep -qE '(^|[;&|]\s*)git push'; then
   allow
 fi
 
-if printf '%s' "$command" | grep -qE '--no-verify|-n\b'; then
+if printf '%s' "$command" | grep -qE '(--no-verify|-n\b)'; then
   deny \
     "CI bypass blocked. Run ./scripts/ci-check.sh first, then push without --no-verify." \
     "Do not use git push --no-verify. Run ./scripts/ci-check.sh and push normally."
@@ -35,7 +35,7 @@ if [[ "${SKIP_CI:-}" == "1" ]]; then
   allow
 fi
 
-if ! "$ROOT/scripts/ci-check.sh"; then
+if ! "$ROOT/scripts/ci-check.sh" >&2; then
   deny \
     "Local CI checks failed. Fix errors above, or run ./scripts/ci-check.sh manually." \
     "ci-check.sh failed. Fix build errors before pushing."
