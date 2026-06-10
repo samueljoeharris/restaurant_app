@@ -2,7 +2,7 @@
 
 Actionable checklist for building the TTF (Time to Fries) restaurant app from zero. For full product and technical detail, see [DESIGN.md](DESIGN.md).
 
-**Your setup:** Windows, Docker, GitHub, Apple Developer enrolled, first-time iOS.
+**Your setup:** Mac (Apple Silicon), Docker, GitHub, Apple Developer enrolled, Xcode.
 
 **Pilot city:** Dedham, Massachusetts (`dedham-ma`)
 
@@ -21,10 +21,10 @@ Actionable checklist for building the TTF (Time to Fries) restaurant app from ze
 
 See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 
-- [x] Docker Desktop running (WSL2 backend)
-- [x] Install [Node.js 20+](https://nodejs.org)
+- [x] Docker Desktop running
+- [x] Install [Node.js 20+](https://nodejs.org) (or `brew install node@20`)
 - [x] Install [gcloud CLI](https://cloud.google.com/sdk/docs/install) → `gcloud auth login`
-- [ ] Install [gh CLI](https://cli.github.com) (optional)
+- [x] Install [gh CLI](https://cli.github.com) (optional)
 - [x] `cp .env.example .env` and add `GITHUB_PERSONAL_ACCESS_TOKEN` (see [MCP_SETUP.md](MCP_SETUP.md))
 - [x] Restart Cursor → verify green MCP dots (github, gcloud)
 - [x] Test: ask agent to list GitHub issues or run `gcloud projects list`
@@ -52,9 +52,9 @@ Guide: [AUTH.md](AUTH.md)
 
 ---
 
-## Phase 2.5 — Web POC (Windows, no Mac)
+## Phase 2.5 — Web POC
 
-Pilot the product in a browser while Apple Developer is pending.
+Pilot the product in a browser while building the native iOS app.
 
 - [ ] `terraform output firebase_web_env` → copy `VITE_FIREBASE_*` to `web/.env.local` (or Console Web app if TF not applied)
 - [ ] `cd web && npm install && npm run dev` — http://localhost:5173
@@ -65,13 +65,12 @@ See [`web/README.md`](../web/README.md).
 
 ---
 
-## Phase 1 — Learn iOS (cloud Mac, ~1–2 weeks)
+## Phase 1 — Learn iOS (local Mac)
 
-No Mac required for Phases 0–2 backend work. Rent a cloud Mac when ready for Xcode.
+Xcode runs natively on your Mac — no cloud Mac rental needed.
 
-- [ ] Rent cloud Mac ([MacinCloud](https://www.macincloud.com/), [MacStadium](https://www.macstadium.com/), etc.)
-- [ ] Install Xcode from Mac App Store
-- [ ] Complete [100 Days of SwiftUI](https://www.hackingwithswift.com/100/swiftui) — days 1–14 minimum
+- [ ] Install **Xcode** from Mac App Store → `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
+- [ ] Complete [100 Days of SwiftUI](https://www.hackingwithswift.com/100/swiftui) — days 1–14 minimum (optional refresher)
 - [ ] Create Xcode project at `ios/TTF/`
   - Bundle ID: `com.samueljoeharris.ttf`
   - Display name: `TTF`
@@ -79,7 +78,7 @@ No Mac required for Phases 0–2 backend work. Rent a cloud Mac when ready for X
 
 ---
 
-## Phase 2 — Backend + Infra (Windows + Docker + Terraform)
+## Phase 2 — Backend + Infra (Docker + Terraform)
 
 Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 
@@ -132,7 +131,7 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 
 ---
 
-## Phase 3 — iOS MVP (cloud Mac + GitHub CI)
+## Phase 3 — iOS MVP (local Mac + GitHub CI)
 
 - [ ] MapKit restaurant list for pilot city
 - [ ] Restaurant detail with TTF aggregates + Google link-out
@@ -162,7 +161,7 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 | Apple Developer Program | $99/year |
 | GCP free trial | $0 (90 days, $300 credit) |
 | GCP after trial | ~$30–50/mo |
-| Cloud Mac bursts (~5 days/mo) | ~$100–150 |
+| Cloud Mac bursts (~5 days/mo) | $0 (local Xcode) |
 | Google Maps | Likely within $200/mo free credit |
 | GitHub | Free |
 | **Total** | **~$400–600** |

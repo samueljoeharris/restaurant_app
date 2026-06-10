@@ -12,11 +12,7 @@
       ]
     },
     "gcloud": {
-      "command": "${workspaceFolder}/.cursor/scripts/gcloud-mcp.cmd",
-      "args": []
-    },
-    "postgres": {
-      "command": "${workspaceFolder}/.cursor/scripts/postgres-mcp.cmd",
+      "command": "${workspaceFolder}/.cursor/scripts/gcloud-mcp.sh",
       "args": []
     }
   }

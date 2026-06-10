@@ -6,7 +6,7 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 
 ## Status
 
-**Design phase** — pilot city TBD, native iOS MVP targeting a single metro area.
+**Phase 2 complete** — API + web POC deployed; Phase 3 iOS next. Pilot city: Dedham, MA.
 
 ## Stack
 
@@ -17,7 +17,7 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 | Database | Cloud SQL PostgreSQL |
 | Auth | Firebase Auth (Apple Sign-In) |
 | Infra | Terraform on GCP |
-| Local dev | Docker Compose on Windows |
+| Local dev | Docker Compose (Mac or Windows) |
 | CI/CD | GitHub Actions (path-filtered) |
 
 ## Documentation
@@ -28,6 +28,7 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 | [docs/DESIGN.md](docs/DESIGN.md) | Product vision, data model, TTF spec, architecture, naming conventions |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased onboarding checklist |
 | [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP setup (GitHub, GCP, Postgres) |
+| [docs/CI.md](docs/CI.md) | Local Docker checks and GitHub Actions (dev) |
 | [infra/terraform/README.md](infra/terraform/README.md) | Terraform bootstrap and deploy |
 
 ## Repository

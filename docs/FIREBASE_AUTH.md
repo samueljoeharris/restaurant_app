@@ -64,15 +64,21 @@ Copy into `web/.env.local` as `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAI
 
 ---
 
-## 2. Local — Auth Emulator (recommended)
+## 2. Local — Auth Emulator (optional)
 
-Start emulator + API:
+Use the **`emulator` profile** when you want emulator JWTs instead of production Firebase:
 
 ```bash
-docker compose up firebase-emulator api postgres
+docker compose --profile emulator up firebase-emulator api postgres
 ```
 
-API uses `FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099` (set in `docker-compose.yml`).
+Set in `.env`:
+
+```
+FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+```
+
+**Default (no profile):** API verifies **production** Firebase tokens — matches `web/.env.local` sign-in. Mounts `firebase-sa.json` from repo root (download via `scripts/start-local.sh` or Secret Manager).
 
 Emulator UI: http://localhost:4000
 

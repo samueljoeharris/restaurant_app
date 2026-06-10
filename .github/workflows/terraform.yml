@@ -108,3 +108,22 @@ jobs:
             exit 1
           fi
           terraform apply -auto-approve -input=false -no-color tfplan
+
+  redeploy-dev:
+    name: Redeploy dev services
+    needs: apply
+    if: needs.apply.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Trigger API and Web deploys
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for workflow in api.yml web.yml; do
+            echo "Dispatching ${workflow} on main (post-terraform apply)..."
+            gh workflow run "$workflow" --ref main
+          done

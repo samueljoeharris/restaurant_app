@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Local CI parity checks — run before push: ./scripts/ci-check.sh
+# Local CI parity checks (Docker-first) — run before push: ./scripts/ci-check.sh
 # Installed automatically via: ./scripts/setup-githooks.sh
 set -euo pipefail
 
@@ -16,6 +16,15 @@ RUN_API=false
 RUN_INFRA=false
 MODE="smart"
 
+# Dummy Vite env for web Docker builds (same as GitHub CI).
+VITE_CI_ARGS=(
+  --build-arg "VITE_API_URL=${VITE_API_URL:-https://ci.example.com}"
+  --build-arg "VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY:-ci-dummy}"
+  --build-arg "VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN:-ci.example.com}"
+  --build-arg "VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID:-ci-project}"
+  --build-arg "VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY:-}"
+)
+
 usage() {
   cat <<'EOF'
 Usage: ./scripts/ci-check.sh [--all | --pre-push]
@@ -24,7 +33,20 @@ Usage: ./scripts/ci-check.sh [--all | --pre-push]
   --pre-push  Infer changed files from refs passed on stdin (git pre-push hook)
 
 Default (smart): run checks only for paths changed vs upstream/main (or last commit).
+
+Requires Docker (and Docker Compose for Terraform checks).
 EOF
+}
+
+require_docker() {
+  command -v docker >/dev/null 2>&1 || {
+    echo "::error:: docker not found — install Docker Desktop and retry" >&2
+    exit 1
+  }
+  docker info >/dev/null 2>&1 || {
+    echo "::error:: Docker daemon is not running" >&2
+    exit 1
+  }
 }
 
 while [[ $# -gt 0 ]]; do
@@ -83,9 +105,11 @@ if [[ "$MODE" != "all" ]]; then
   if echo "$changed" | grep -qE '^web/'; then RUN_WEB=true; fi
   if echo "$changed" | grep -qE '^api/'; then RUN_API=true; fi
   if echo "$changed" | grep -qE '^infra/terraform/'; then RUN_INFRA=true; fi
-  if echo "$changed" | grep -qE '^\.github/workflows/(ci|web|api|terraform)\.yml'; then
+  if echo "$changed" | grep -qE '^\.github/workflows/ci\.yml'; then
     RUN_WEB=true
     RUN_API=true
+  fi
+  if echo "$changed" | grep -qE '^\.github/workflows/terraform\.yml'; then
     RUN_INFRA=true
   fi
 fi
@@ -114,44 +138,28 @@ if [[ "$MODE" != "all" ]]; then
   warn_cross_stack "$(collect_changed_files)"
 fi
 
-echo "=== TTF ci-check ($MODE) ==="
+require_docker
+
+echo "=== TTF ci-check ($MODE, Docker) ==="
 
 if $RUN_WEB; then
-  echo "→ web: npm ci + build"
-  command -v npm >/dev/null 2>&1 || fail "npm not found"
-  (
-    cd web
-    npm ci
-    VITE_API_URL="${VITE_API_URL:-https://example.com}" \
-    VITE_FIREBASE_API_KEY="${VITE_FIREBASE_API_KEY:-ci-dummy}" \
-    VITE_FIREBASE_AUTH_DOMAIN="${VITE_FIREBASE_AUTH_DOMAIN:-ci.example.com}" \
-    VITE_FIREBASE_PROJECT_ID="${VITE_FIREBASE_PROJECT_ID:-ci-project}" \
-    VITE_GOOGLE_MAPS_API_KEY="${VITE_GOOGLE_MAPS_API_KEY:-}" \
-    npm run build
-  )
+  echo "→ web: docker build (web/Dockerfile)"
+  docker build "${VITE_CI_ARGS[@]}" -t ttf-web-ci ./web
   echo "✓ web build"
 fi
 
 if $RUN_API; then
-  echo "→ api: python compile + docker build"
-  command -v python >/dev/null 2>&1 || command -v python3 >/dev/null 2>&1 || fail "python not found"
-  PY=python
-  command -v python3 >/dev/null 2>&1 && PY=python3
-  $PY -m compileall -q api/ttf_api
-  command -v docker >/dev/null 2>&1 || fail "docker not found (required for API image build)"
-  docker build -q ./api >/dev/null
+  echo "→ api: docker build + compileall (api/Dockerfile)"
+  docker build -t ttf-api-ci ./api
+  docker run --rm ttf-api-ci python -m compileall -q ttf_api
   echo "✓ api build"
 fi
 
 if $RUN_INFRA; then
-  echo "→ infra: terraform fmt + validate"
-  command -v terraform >/dev/null 2>&1 || fail "terraform not found (install 1.9+ or skip with no infra/ changes)"
-  terraform fmt -check -recursive infra/terraform
-  (
-    cd infra/terraform/environments/dev
-    terraform init -backend=false -input=false >/dev/null
-    terraform validate
-  )
+  echo "→ infra: docker compose terraform fmt + validate"
+  docker compose run --rm --no-TTY terraform fmt -check -recursive .
+  docker compose run --rm --no-TTY terraform -chdir=environments/dev init -backend=false -input=false >/dev/null
+  docker compose run --rm --no-TTY terraform -chdir=environments/dev validate
   echo "✓ terraform validate"
 fi
 

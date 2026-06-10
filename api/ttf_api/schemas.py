@@ -63,6 +63,7 @@ class UserProfile(BaseModel):
     display_name: str | None = None
     email: str | None = None
     contribution_count: int
+    role: str | None = None
 
 
 class CreateRestaurantRequest(BaseModel):
@@ -134,3 +135,92 @@ class NoteSubmissionResponse(BaseModel):
     text: str
     tags: list[str]
     created_at: datetime
+
+
+# --- Admin ---
+
+
+class AdminOverviewStats(BaseModel):
+    pilot_city: str
+    pilot_display_name: str
+    restaurant_count: int
+    restaurants_with_ttf: int
+    restaurants_with_any_data: int
+    ttf_observation_count: int
+    attribute_rating_count: int
+    note_count: int
+    contributor_count: int
+    ttf_last_7_days: int
+    attribute_ratings_last_7_days: int
+    notes_last_7_days: int
+    median_ttf_minutes: float | None = None
+    avg_ttf_quality: float | None = None
+
+
+class AdminContributorRow(BaseModel):
+    firebase_uid: str
+    email: str | None = None
+    display_name: str | None = None
+    disabled: bool | None = None
+    ttf_count: int
+    attribute_count: int
+    note_count: int
+    total_contributions: int
+    last_active_at: datetime | None = None
+
+
+class AdminContributorsResponse(BaseModel):
+    items: list[AdminContributorRow]
+    total: int
+    limit: int
+    offset: int
+
+
+class AdminRestaurantRow(BaseModel):
+    id: UUID
+    name: str
+    address: str
+    cuisine_tags: list[str]
+    ttf_sample_size: int
+    ttf_median_minutes: float | None = None
+    ttf_avg_quality: float | None = None
+    attribute_rating_count: int
+    note_count: int
+    updated_at: datetime
+
+
+class AdminRestaurantsResponse(BaseModel):
+    items: list[AdminRestaurantRow]
+    total: int
+    limit: int
+    offset: int
+
+
+class AdminObservationRow(BaseModel):
+    id: UUID
+    restaurant_id: UUID
+    restaurant_name: str
+    firebase_uid: str
+    elapsed_minutes: int
+    item_type: str
+    item_quality: int
+    daypart: str
+    created_at: datetime
+
+
+class AdminObservationsResponse(BaseModel):
+    items: list[AdminObservationRow]
+    total: int
+    limit: int
+    offset: int
+
+
+class AdminActivityDay(BaseModel):
+    day: str
+    ttf_count: int
+    attribute_count: int
+    note_count: int
+
+
+class AdminActivityResponse(BaseModel):
+    days: list[AdminActivityDay]

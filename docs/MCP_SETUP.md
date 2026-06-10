@@ -8,7 +8,7 @@ Configure Model Context Protocol (MCP) servers so Cursor can interact with GitHu
 |------------|-----------|---------|
 | **github** | Docker stdio | PRs, issues, Actions, repo management |
 | **gcloud** | npx stdio | GCP/Terraform commands via natural language |
-| **postgres** | npx stdio | Query local Docker Postgres during API dev |
+| **postgres** | npx stdio | Optional — query local Docker Postgres during **API** dev only |
 | **firebase** | npx stdio | Auth/project config — add in Phase 2 when `firebase.json` exists |
 | **Cloud SQL** | HTTP remote | Add in Phase 2 after GCP project exists |
 
@@ -27,8 +27,8 @@ Install before enabling MCP servers:
 
 | Tool | Why | Install |
 |------|-----|---------|
-| **Docker Desktop** | GitHub MCP runs in container | Already installed — keep WSL2 backend enabled |
-| **Node.js 20+** | npx MCP servers (gcloud, postgres) | https://nodejs.org |
+| **Docker Desktop** | GitHub MCP runs in container | Mac or Windows — keep it running |
+| **Node.js 20+** | npx MCP servers (gcloud, postgres) | `brew install node@20` or https://nodejs.org |
 | **gcloud CLI** | gcloud MCP + Terraform deploy | https://cloud.google.com/sdk/docs/install |
 | **gh CLI** | Optional terminal GitHub access | https://cli.github.com |
 
@@ -39,9 +39,9 @@ gcloud auth login
 gcloud auth application-default login
 ```
 
-## Phase 0c — Secrets via `.env` (recommended on Windows)
+## Phase 0c — Secrets via `.env`
 
-**Do not use Windows system environment variables** unless you prefer a global setup. This project uses a **gitignored `.env` file** at the repo root — simpler on Windows and works reliably with Docker.
+**Do not use system environment variables** unless you prefer a global setup. This project uses a **gitignored `.env` file** at the repo root.
 
 ```bash
 cp .env.example .env
@@ -62,6 +62,22 @@ Edit `.env` and set your values:
 | **github** | Docker `--env-file .env` — token passed directly into container |
 | **postgres** | Cursor `envFile` — loads `.env` for npx server |
 | **gcloud** | No token in `.env` — uses `gcloud auth login` credentials on your machine |
+
+### MCP scripts (Mac vs Windows)
+
+| Platform | gcloud / postgres MCP |
+|----------|----------------------|
+| **Mac / Linux** | `.cursor/scripts/gcloud-mcp.sh` (default in `mcp.json`) |
+| **Windows** | Swap `mcp.json` gcloud command to `gcloud-mcp.cmd` (fnm PATH workaround) |
+| **postgres (optional)** | Add block from `postgres-mcp.sh` when running `docker compose up postgres` for API work |
+
+After installing gcloud on Mac:
+
+```bash
+gcloud auth login
+gcloud auth application-default login
+gcloud config set project ttf-restaurant-dev
+```
 
 ### Alternative: Windows user env vars
 
@@ -85,7 +101,7 @@ Store the PAT only in your **global** Cursor config (never commit). Official Git
 1. Verify [`.cursor/mcp.json`](../.cursor/mcp.json) exists (committed; uses `${env:VAR}` only)
 2. Ensure Docker Desktop is running (for GitHub MCP)
 3. Restart Cursor (or Reload Window: `Ctrl+Shift+P` → "Reload Window")
-4. Open **Settings → Tools & MCP** — look for green dots next to `github`, `gcloud`, `postgres`
+4. Open **Settings → Tools & MCP** — look for green dots next to `github` and `gcloud`
 5. Test:
    - Ask agent: "List open issues on restaurant_app"
    - Ask agent: "Run gcloud projects list"
@@ -95,9 +111,11 @@ Store the PAT only in your **global** Cursor config (never commit). Official Git
 | Problem | Fix |
 |---------|-----|
 | GitHub MCP red / disconnected | Docker running? `.env` exists with PAT? Path: `${workspaceFolder}/.env` |
-| gcloud MCP red on Windows | Cursor doesn't load fnm shell PATH — wrappers in `.cursor/scripts/` fix this. Reload Cursor. |
+| gcloud MCP red on Mac | Node in PATH? Run `which npx`. Reload Cursor after `brew install node@20`. |
+| gcloud MCP red on Windows | Cursor doesn't load fnm shell PATH — use `.cmd` wrappers in `mcp.json`. Reload Cursor. |
 | gcloud MCP auth errors | Run `gcloud auth login` in terminal |
-| postgres MCP red | Run `docker compose up postgres` first; MCP needs DB URL as CLI arg (see `postgres-mcp.cmd`) |
+| postgres MCP red | Optional server — only enable when `docker compose up postgres` is running for API dev |
+| Terraform compose auth fails | Mac: `gcloud auth application-default login`. Windows: set `GCLOUD_CONFIG_PATH` in `.env` |
 | Firebase shows 0 tools | Add Firebase block from `mcp.json.example` only after `firebase.json` exists in repo |
 
 ## Phase 0e — Firebase MCP (Phase 2)

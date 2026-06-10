@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { FormEvent as FormEventType } from "react";
 
+import { Link } from "react-router-dom";
+
 import { useAuth, authErrorMessage } from "../auth/AuthContext";
 import type { TotpEnrollment } from "../auth/mfa";
 import { api } from "../api/client";
@@ -14,7 +16,9 @@ export function AccountPage() {
   const {
     user,
     idToken,
+    isAdmin,
     hasTotpMfa,
+    refreshClaims,
     beginTotpEnrollment,
     confirmTotpEnrollment,
     refreshUser,
@@ -23,6 +27,7 @@ export function AccountPage() {
   const { toast } = useToast();
   const [profile, setProfile] = useState<{
     contribution_count: number;
+    role?: string | null;
   } | null>(null);
   const [enrollment, setEnrollment] = useState<TotpEnrollment | null>(null);
   const [code, setCode] = useState("");
@@ -76,6 +81,22 @@ export function AccountPage() {
           <strong>{user.displayName ?? user.email ?? "Signed in"}</strong>
         </p>
         <p className="muted small">Sign-in: {providers || "password"}</p>
+        {(isAdmin || profile?.role === "admin") ? (
+          <p className="success small">
+            Admin access · <Link to="/admin">Open dashboard</Link>
+          </p>
+        ) : (
+          <p className="muted small">
+            Just granted admin?{" "}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => refreshClaims().catch(() => {})}
+            >
+              Refresh permissions
+            </button>
+          </p>
+        )}
         {profile && (
           <StatGrid>
             <Stat

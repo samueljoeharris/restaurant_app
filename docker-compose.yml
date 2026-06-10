@@ -4,8 +4,8 @@ services:
     working_dir: /infra
     volumes:
       - ./infra/terraform:/infra
-      # Mount gcloud ADC so Terraform can authenticate (Windows + Docker Desktop)
-      - ${USERPROFILE}/AppData/Roaming/gcloud:/root/.config/gcloud:ro
+      # Mount gcloud ADC for Terraform (Mac/Linux default; override GCLOUD_CONFIG_PATH on Windows)
+      - ${GCLOUD_CONFIG_PATH:-${HOME}/.config/gcloud}:/root/.config/gcloud:ro
     entrypoint: ["terraform"]
 
   postgres:
@@ -25,6 +25,7 @@ services:
       retries: 5
 
   firebase-emulator:
+    profiles: ["emulator"]
     build:
       context: .
       dockerfile: firebase/Dockerfile
@@ -38,19 +39,20 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    volumes:
+      - ./firebase-sa.json:/secrets/firebase-admin/firebase-sa.json:ro
     environment:
       DATABASE_URL: postgresql://ttf_app:ttf_local@postgres:5432/ttf
       PILOT_CITY: dedham-ma
       PILOT_DISPLAY_NAME: Dedham, Massachusetts
       FIREBASE_PROJECT_ID: ttf-restaurant-dev
-      FIREBASE_AUTH_EMULATOR_HOST: firebase-emulator:9099
+      FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-admin/firebase-sa.json
       AUTH_DEV_MODE: "true"
+      APP_CHECK_ENFORCE: "false"
       CORS_ORIGINS: '["http://localhost:5173","http://localhost:5174","http://localhost:3000"]'
     depends_on:
       postgres:
         condition: service_healthy
-      firebase-emulator:
-        condition: service_started
 
 volumes:
   postgres-data:

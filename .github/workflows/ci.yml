@@ -1,6 +1,7 @@
 name: CI
 
-# Required status check for main — build/validate only (deploy stays in api/web/terraform workflows).
+# Required status check for main — Docker build/validate only (deploy: api/web/terraform workflows).
+# Path-filtered: web/api jobs run only when their paths change. Infra validation lives in terraform.yml.
 on:
   pull_request:
     branches: [main]
@@ -12,65 +13,72 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  web-build:
-    name: Web build
+  changes:
+    name: Detect changes
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      api: ${{ steps.filter.outputs.api }}
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
+          filters: |
+            web:
+              - 'web/**'
+              - '.github/workflows/ci.yml'
+            api:
+              - 'api/**'
+              - '.github/workflows/ci.yml'
 
-      - name: Install and build
-        env:
-          VITE_API_URL: https://ci.example.com
-          VITE_FIREBASE_API_KEY: ci-dummy
-          VITE_FIREBASE_AUTH_DOMAIN: ci.example.com
-          VITE_FIREBASE_PROJECT_ID: ci-project
-          VITE_GOOGLE_MAPS_API_KEY: ""
+  web-build:
+    name: Web build
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Docker build (matches Cloud Run image)
         run: |
-          npm ci
-          npm run build
+          docker build \
+            --build-arg VITE_API_URL=https://ci.example.com \
+            --build-arg VITE_FIREBASE_API_KEY=ci-dummy \
+            --build-arg VITE_FIREBASE_AUTH_DOMAIN=ci.example.com \
+            --build-arg VITE_FIREBASE_PROJECT_ID=ci-project \
+            --build-arg VITE_GOOGLE_MAPS_API_KEY="" \
+            -t ttf-web-ci \
+            ./web
 
   api-build:
     name: API build
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Python compile check
-        run: python -m compileall -q api/ttf_api
-
-      - name: Docker build
-        run: docker build ./api
-
-  terraform-validate:
-    name: Terraform validate
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: infra/terraform/environments/dev
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: 1.9.0
-
-      - name: Format check
-        run: terraform fmt -check -recursive ../../..
-
-      - name: Init and validate
+      - name: Docker build and compile (matches Cloud Run image)
         run: |
-          terraform init -backend=false -input=false
-          terraform validate
+          docker build -t ttf-api-ci ./api
+          docker run --rm ttf-api-ci python -m compileall -q ttf_api
+
+  ci-ok:
+    name: CI
+    needs: [changes, web-build, api-build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify build jobs
+        run: |
+          if [[ "${{ needs.web-build.result }}" == "failure" ]]; then
+            echo "::error::Web Docker build failed"
+            exit 1
+          fi
+          if [[ "${{ needs.api-build.result }}" == "failure" ]]; then
+            echo "::error::API Docker build failed"
+            exit 1
+          fi
+          echo "CI passed (web=${{ needs.changes.outputs.web }}, api=${{ needs.changes.outputs.api }})"

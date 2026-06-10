@@ -33,6 +33,8 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   idToken: string | null;
+  role: string | null;
+  isAdmin: boolean;
   mfaResolver: MultiFactorResolver | null;
   hasTotpMfa: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -47,6 +49,7 @@ interface AuthContextValue {
   ) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  refreshClaims: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -62,17 +65,22 @@ async function afterCredential(authError: unknown): Promise<void> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [idToken, setIdToken] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(
     null,
   );
 
-  const syncUser = useCallback(async (next: User | null) => {
+  const syncUser = useCallback(async (next: User | null, forceRefresh = false) => {
     setUser(next);
     if (next) {
-      setIdToken(await next.getIdToken());
+      const tokenResult = await next.getIdTokenResult(forceRefresh);
+      setIdToken(tokenResult.token);
+      const claimRole = tokenResult.claims.role;
+      setRole(typeof claimRole === "string" ? claimRole : null);
     } else {
       setIdToken(null);
+      setRole(null);
     }
   }, []);
 
@@ -101,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       idToken,
+      role,
+      isAdmin: role === "admin",
       mfaResolver,
       hasTotpMfa: user ? userHasTotpMfa(user) : false,
       signIn: async (email, password) => {
@@ -154,11 +164,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshUser: async () => {
         if (auth.currentUser) {
           await auth.currentUser.reload();
-          await syncUser(auth.currentUser);
+          await syncUser(auth.currentUser, true);
+        }
+      },
+      refreshClaims: async () => {
+        if (auth.currentUser) {
+          await syncUser(auth.currentUser, true);
         }
       },
     }),
-    [user, loading, idToken, mfaResolver, syncUser],
+    [user, loading, idToken, role, mfaResolver, syncUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

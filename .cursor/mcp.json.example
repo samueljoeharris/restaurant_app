@@ -12,13 +12,11 @@
       ]
     },
     "gcloud": {
-      "command": "${workspaceFolder}/.cursor/scripts/gcloud-mcp.cmd",
+      "command": "${workspaceFolder}/.cursor/scripts/gcloud-mcp.sh",
       "args": []
-    },
-    "postgres": {
-      "command": "${workspaceFolder}/.cursor/scripts/postgres-mcp.cmd",
-      "args": []
-    },
+    }
+  }
+}
     "firebase": {
       "command": "npx",
       "args": ["-y", "firebase-tools@latest", "mcp", "--dir", "${workspaceFolder}"]

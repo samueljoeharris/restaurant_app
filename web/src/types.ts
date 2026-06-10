@@ -45,6 +45,75 @@ export interface UserProfile {
   display_name: string | null;
   email: string | null;
   contribution_count: number;
+  role?: string | null;
+}
+
+export interface AdminOverviewStats {
+  pilot_city: string;
+  pilot_display_name: string;
+  restaurant_count: number;
+  restaurants_with_ttf: number;
+  restaurants_with_any_data: number;
+  ttf_observation_count: number;
+  attribute_rating_count: number;
+  note_count: number;
+  contributor_count: number;
+  ttf_last_7_days: number;
+  attribute_ratings_last_7_days: number;
+  notes_last_7_days: number;
+  median_ttf_minutes: number | null;
+  avg_ttf_quality: number | null;
+}
+
+export interface AdminActivityDay {
+  day: string;
+  ttf_count: number;
+  attribute_count: number;
+  note_count: number;
+}
+
+export interface AdminContributorRow {
+  firebase_uid: string;
+  email: string | null;
+  display_name: string | null;
+  disabled: boolean | null;
+  ttf_count: number;
+  attribute_count: number;
+  note_count: number;
+  total_contributions: number;
+  last_active_at: string | null;
+}
+
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface AdminRestaurantRow {
+  id: string;
+  name: string;
+  address: string;
+  cuisine_tags: string[];
+  ttf_sample_size: number;
+  ttf_median_minutes: number | null;
+  ttf_avg_quality: number | null;
+  attribute_rating_count: number;
+  note_count: number;
+  updated_at: string;
+}
+
+export interface AdminObservationRow {
+  id: string;
+  restaurant_id: string;
+  restaurant_name: string;
+  firebase_uid: string;
+  elapsed_minutes: number;
+  item_type: string;
+  item_quality: number;
+  daypart: string;
+  created_at: string;
 }
 
 export interface TtfSubmission {

@@ -1,7 +1,13 @@
 import { getAppCheckToken } from "../appCheck";
 import type {
+  AdminActivityDay,
+  AdminContributorRow,
+  AdminObservationRow,
+  AdminOverviewStats,
+  AdminRestaurantRow,
   AttributeEntry,
   MetricDefinition,
+  Paginated,
   RestaurantDetailResponse,
   RestaurantMapEntry,
   RestaurantNote,
@@ -111,4 +117,40 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ text, tags }),
     }, token),
+
+  adminStats: (token: string) =>
+    request<AdminOverviewStats>("/v1/admin/stats", {}, token),
+
+  adminActivity: (token: string, days = 14) =>
+    request<{ days: AdminActivityDay[] }>(
+      `/v1/admin/activity?days=${days}`,
+      {},
+      token,
+    ),
+
+  adminUsers: (token: string, limit = 50, offset = 0) =>
+    request<Paginated<AdminContributorRow>>(
+      `/v1/admin/users?limit=${limit}&offset=${offset}`,
+      {},
+      token,
+    ),
+
+  adminRestaurants: (token: string, opts: { q?: string; limit?: number; offset?: number } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.q) params.set("q", opts.q);
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    return request<Paginated<AdminRestaurantRow>>(
+      `/v1/admin/restaurants?${params}`,
+      {},
+      token,
+    );
+  },
+
+  adminObservations: (token: string, limit = 50, offset = 0) =>
+    request<Paginated<AdminObservationRow>>(
+      `/v1/admin/observations?limit=${limit}&offset=${offset}`,
+      {},
+      token,
+    ),
 };

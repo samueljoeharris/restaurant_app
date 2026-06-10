@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     firebase_service_account_path: str = ""
     firebase_auth_emulator_host: str = ""
     auth_dev_mode: bool = False
+    auth_dev_admin_uids: str = ""
     cors_origins: list[str] = []
     port: int = 8080
     app_check_enforce: bool = False

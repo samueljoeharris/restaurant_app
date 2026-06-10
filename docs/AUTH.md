@@ -51,3 +51,18 @@ Uses production Firebase (`web/.env.local`) by default. Emulator optional — se
 ## API
 
 All write endpoints require `Authorization: Bearer <firebase_id_token>`. Token refresh is handled by the Firebase JS SDK; `AuthContext` refreshes on auth state changes.
+
+## Admin access
+
+Admin UI lives at `/admin` (overview, restaurants, contributors, TTF log). The API enforces `role: admin` from Firebase **custom claims** on `/v1/admin/*`.
+
+**Grant yourself admin (one-time):**
+
+```bash
+# Download firebase-sa.json from Firebase Console → Service accounts
+python api/scripts/set_admin_claim.py --email you@example.com
+```
+
+Sign out and back in (or call `refreshClaims()` in the app) so the JWT picks up the claim.
+
+**Local API without Firebase SA:** set `AUTH_DEV_ADMIN_UIDS=<your-uid>` in `.env` and use `Bearer dev:<uid>` — or run against Cloud SQL with production Firebase tokens after granting the claim.

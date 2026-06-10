@@ -10,7 +10,8 @@ chmod +x scripts/ci-check.sh .githooks/pre-push
 git config core.hooksPath .githooks
 
 echo "Installed pre-push hook → .githooks/pre-push"
-echo "Runs: ./scripts/ci-check.sh --pre-push (web/api/terraform checks for changed paths)"
+echo "Runs: ./scripts/ci-check.sh --pre-push (Docker checks for changed paths)"
 echo ""
-echo "Bypass once: git push --no-verify"
+echo "Cursor hook: .cursor/hooks.json (same checks for agent git push)"
+echo "Bypass once: SKIP_CI=1 git push"
 echo "Run manually: ./scripts/ci-check.sh --all"

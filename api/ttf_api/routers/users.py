@@ -32,4 +32,5 @@ def get_me(user: Annotated[AuthUser, Depends(get_current_user)]) -> UserProfile:
         display_name=user.display_name,
         email=user.email,
         contribution_count=count,
+        role=user.role,
     )

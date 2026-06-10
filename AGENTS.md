@@ -21,7 +21,7 @@ Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.
 | Database | PostgreSQL (Cloud SQL prod, Docker local) |
 | Auth | Firebase Auth + Apple Sign-In |
 | Infra | Terraform — `infra/terraform/` |
-| Local dev | Docker Compose (Windows host) |
+| Local dev | Docker Compose (Mac or Windows host) |
 | CI/CD | GitHub Actions — **CI** gate on every push; deploy workflows path-filtered ([docs/CI.md](docs/CI.md)) |
 
 ## Repository layout
@@ -55,17 +55,17 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 
 ## Development constraints
 
-### Docker-first backend (Windows)
+### Docker-first backend
 
-- Run API, Postgres, and Terraform **in Docker** — avoid native Windows installs of Postgres, Python runtimes, or Terraform
+- Run API, Postgres, and Terraform **in Docker** — same workflow on Mac and Windows
 - Same `api/Dockerfile` for local Compose and Cloud Run
 - Local Postgres URL: `postgresql://ttf_app:ttf_local@localhost:5432/ttf` (`LOCAL_POSTGRES_URL`)
+- Terraform compose mounts gcloud ADC from `~/.config/gcloud` (Mac/Linux); set `GCLOUD_CONFIG_PATH` on Windows
 
-### iOS (no local Mac)
+### iOS (local Mac)
 
-- Xcode builds **cannot** run on Windows — only on cloud Mac or GitHub Actions macOS runners
-- Edit Swift source on Windows; build/test via CI or rented Mac
-- TestFlight requires paid Apple Developer Program ($99/year)
+- Xcode builds and simulators run on your Mac
+- TestFlight via GitHub Actions macOS runners + Apple Developer Program
 
 ### Infrastructure
 
