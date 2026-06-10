@@ -116,3 +116,41 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 ## Commits
 
 Only create git commits when the user explicitly asks.
+
+## Cursor Cloud specific instructions
+
+### Docker daemon
+
+Cloud VMs do not run Docker Desktop. Start `dockerd` before `docker compose` or `./scripts/ci-check.sh` (use `fuse-overlayfs` storage driver and `iptables-legacy` on nested VMs). Ensure `/var/run/docker.sock` is writable.
+
+### Local full-stack (no cloud Firebase secrets)
+
+Use the Firebase Auth emulator so web sign-in works without `firebase-sa.json` or real `VITE_FIREBASE_API_KEY`:
+
+```bash
+cp .env.example .env
+cp web/.env.example web/.env.local
+# In .env: FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+# In web/.env.local: VITE_API_URL=http://localhost:8080, VITE_USE_AUTH_EMULATOR=true,
+#   VITE_FIREBASE_API_KEY=fake-api-key-for-emulator (any value)
+echo '{}' > firebase-sa.json   # compose bind-mount; not used when emulator is enabled
+
+docker compose --profile emulator up --build -d postgres api firebase-emulator
+cd web && npm run dev   # http://localhost:5173
+```
+
+Test user (emulator): `pilot@ttf.test` / `pilotpass123`. Emulator UI: http://localhost:4000.
+
+API-only smoke test (no web): `docker compose up -d postgres api` then `curl http://localhost:8080/health`. Dev tokens (`AUTH_DEV_MODE=true`): `Authorization: Bearer dev:<uid>`.
+
+### Lint, test, CI
+
+| Check | Command |
+|-------|---------|
+| Web ESLint | `cd web && npm run lint` (may report pre-existing react-hooks warnings) |
+| CI parity | `./scripts/ci-check.sh --all` (requires Docker; builds web + API images, Terraform validate) |
+| API unit tests | None in repo yet |
+
+### Seed data
+
+`docker compose run --rm api python scripts/seed_dedham.py` needs `MAPS_API_KEY` in `.env`. Without it, create a test restaurant via `POST /v1/restaurants` with a dev token.
