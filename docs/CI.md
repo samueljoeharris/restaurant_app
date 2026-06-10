@@ -48,41 +48,27 @@ Deploy workflows are **path-filtered**. A green **CI** workflow does not mean Cl
 
 ## Branch protection (recommended)
 
-`main` is not protected yet. When you add a rule in **Settings → Branches** (or **Rules → Rulesets**), required checks must match **exact job names** from Actions. GitHub shows them as **`Workflow name / Job name`**.
+When you add a rule in **Settings → Branches** (or **Rules → Rulesets**) for `main`, required checks must match **exact job names** from Actions. GitHub shows them as **`Workflow name / Job name`**.
 
-### What GitHub shows today (`main` — current `ci.yml`)
+### Required check on `main` (current)
 
-Require these three checks (they run on every PR/push):
-
-| Status check in UI | Workflow job |
-|--------------------|--------------|
-| **CI / Web build** | `web-build` |
-| **CI / API build** | `api-build` |
-| **CI / Terraform validate** | `terraform-validate` |
-
-Terraform **plan/apply** is a separate workflow — optional extra check for infra PRs:
-
-| Status check in UI | When it runs |
-|--------------------|--------------|
-| **Terraform / Terraform Plan (dev)** | PR/push touching `infra/**` |
-
-There is **no** `CI / CI` check on `main` yet — that name only exists in the updated local `ci.yml` (not merged).
-
-### After merging the path-filtered `ci.yml` update
-
-Replace the three CI checks above with one summary check:
+After the path-filtered CI update, require **one** summary check:
 
 | Status check in UI | Purpose |
 |--------------------|---------|
 | **CI / CI** | Always runs; passes when path-filtered web/api builds succeed or are skipped |
 
-Remove **CI / Terraform validate** from required checks — Terraform fmt/validate moves to **terraform.yml** only.
+Do **not** require **CI / Web build** or **CI / API build** individually — they are skipped when those paths did not change. **CI / Terraform validate** no longer exists (Terraform is validated in **terraform.yml** only).
 
-Optional path-specific jobs (only appear when those paths change): **CI / Web build**, **CI / API build** — do not require these individually if **CI / CI** is required.
+Optional for infra PRs:
+
+| Status check in UI | When it runs |
+|--------------------|--------------|
+| **Terraform / Terraform Plan (dev)** | PR/push touching `infra/**` |
 
 ### Rulesets UI tip
 
-In **Rules → Rulesets**, search the check picker for `CI` or `Terraform`. Names must match Actions exactly (including capitalization). If a check never ran on a PR, it may not appear until that workflow has run once on the branch.
+Search the check picker for `CI` or `Terraform`. If **CI / CI** does not appear, merge one PR first so the workflow has run on `main`.
 
 ## When deploys do not run
 

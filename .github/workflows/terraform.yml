@@ -125,5 +125,5 @@ jobs:
           set -euo pipefail
           for workflow in api.yml web.yml; do
             echo "Dispatching ${workflow} on main (post-terraform apply)..."
-            gh workflow run "$workflow" --ref main
+            gh workflow run "$workflow" --repo "${{ github.repository }}" --ref main
           done
