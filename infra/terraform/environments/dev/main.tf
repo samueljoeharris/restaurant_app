@@ -43,6 +43,7 @@ locals {
     ["ttf-maps-api-key"],
     var.enable_web_cloud_run ? ["ttf-maps-web-api-key"] : [],
     var.enable_firebase_web ? ["ttf-firebase-web-env", "ttf-recaptcha-site-key"] : [],
+    var.enable_firebase_web && var.enable_google_sign_in ? ["ttf-google-oauth"] : [],
     var.enable_cloud_run ? ["ttf-firebase-admin-sa"] : [],
     var.enable_custom_domains ? ["ttf-api-public-url", "ttf-web-public-url"] : [],
     var.enable_custom_domains && var.enable_admin_cloud_run ? ["ttf-admin-public-url"] : [],

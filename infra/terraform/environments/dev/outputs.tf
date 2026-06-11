@@ -114,6 +114,11 @@ output "iap_oauth_configured" {
   sensitive   = false
 }
 
+output "google_oauth_configured" {
+  description = "Whether Google sign-in OAuth credentials are loaded (ttf-google-oauth secret or TF_VAR bootstrap)"
+  value       = local.google_oauth_enabled && local.google_oauth_client_id_effective != ""
+}
+
 output "public_urls" {
   description = "Canonical HTTPS origins after DNS cutover"
   value = var.enable_custom_domains ? {
