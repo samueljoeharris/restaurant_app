@@ -19,6 +19,12 @@ const filterLabels: Record<RestaurantFilter, string> = {
   "needs-data": "Needs scouting",
 };
 
+const filterSummaries: Record<Exclude<RestaurantFilter, "all">, string> = {
+  "fast-starters": "Places with starter-speed observations of 10 minutes or less.",
+  "parent-data": "Restaurants with at least one parent observation, rating, or note.",
+  "needs-data": "Restaurants still waiting for a first parent contribution.",
+};
+
 function getFilter(value: string | null): RestaurantFilter {
   if (value === "fast-starters" || value === "parent-data" || value === "needs-data") {
     return value;
@@ -105,6 +111,13 @@ export function RestaurantListPage() {
     [restaurants],
   );
 
+  const summaryText = useMemo(() => {
+    if (activeFilter !== "all") return filterSummaries[activeFilter];
+    const trimmedQuery = query.trim();
+    if (trimmedQuery) return `Matching "${trimmedQuery}"`;
+    return `${formatPlaceCount(withContributions)} with parent data`;
+  }, [activeFilter, query, withContributions]);
+
   return (
     <Page
       title={activeFilter === "all" ? "Explore" : filterLabels[activeFilter]}
@@ -144,12 +157,7 @@ export function RestaurantListPage() {
       {!loading && !error && (
         <div className="explore-summary">
           <Badge tone="brand">{formatPlaceCount(filtered.length)}</Badge>
-          {activeFilter !== "all" && (
-            <span className="muted small">{filterLabels[activeFilter].toLowerCase()} filter</span>
-          )}
-          {withContributions > 0 && (
-            <span className="muted small">{withContributions} with parent data</span>
-          )}
+          <span className="muted small">{summaryText}</span>
         </div>
       )}
 
