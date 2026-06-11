@@ -33,6 +33,10 @@ function hasFastStarterData(restaurant: RestaurantMapEntry) {
   );
 }
 
+function formatPlaceCount(count: number) {
+  return `${count} ${count === 1 ? "place" : "places"}`;
+}
+
 export function HomePage() {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
@@ -78,14 +82,14 @@ export function HomePage() {
       description: "Prioritize places where parents have logged fast fries, bread, or other kid-safe starts.",
       icon: "⏱️",
       to: "/restaurants?filter=fast-starters",
-      metric: loading ? undefined : `${counts.fastStarter} places`,
+      metric: loading ? undefined : formatPlaceCount(counts.fastStarter),
     },
     {
       title: "Browse parent-rated spots",
       description: "See restaurants with TTF observations, notes, or family-friendly attribute ratings.",
       icon: "⭐",
       to: "/restaurants?filter=parent-data",
-      metric: loading ? undefined : `${counts.withParentData} places`,
+      metric: loading ? undefined : formatPlaceCount(counts.withParentData),
     },
     {
       title: "Open the Dedham map",

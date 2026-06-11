@@ -50,6 +50,10 @@ function restaurantFilterUrl(filter: RestaurantFilter, query: string) {
   return qs ? `/restaurants?${qs}` : "/restaurants";
 }
 
+function formatPlaceCount(count: number) {
+  return `${count} ${count === 1 ? "place" : "places"}`;
+}
+
 export function RestaurantListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeFilter = getFilter(searchParams.get("filter"));
@@ -139,7 +143,7 @@ export function RestaurantListPage() {
 
       {!loading && !error && (
         <div className="explore-summary">
-          <Badge tone="brand">{filtered.length} places</Badge>
+          <Badge tone="brand">{formatPlaceCount(filtered.length)}</Badge>
           {activeFilter !== "all" && (
             <span className="muted small">{filterLabels[activeFilter].toLowerCase()} filter</span>
           )}
