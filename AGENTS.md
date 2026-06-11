@@ -91,6 +91,14 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 5. Use path-filtered CI awareness: `api/**`, `web/**`, `infra/**`, and future `ios/**` trigger separate workflows
 6. MCP servers available: GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
 
+## Pull requests
+
+When opening a PR (e.g. Cloud Agent or feature branch):
+
+- **Open ready for review** — do not create draft PRs unless the user explicitly asks for a draft
+- Use a clear title and body; note deploy impact (`api/`, `web/`, `infra/`) when relevant
+- CI does not run on PRs in this repo — merge or push to `main` to trigger workflows ([docs/CI.md](docs/CI.md))
+
 ## Data model essentials
 
 Three metric layers:
