@@ -9,7 +9,16 @@ import { Button, ButtonAnchor } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 
 export function LoginPage() {
-  const { user, isAdmin, mfaResolver, signIn, signUp, signInWithGoogle } = useAuth();
+  const {
+    user,
+    isAdmin,
+    mfaResolver,
+    redirectError,
+    clearRedirectError,
+    signIn,
+    signUp,
+    signInWithGoogle,
+  } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -42,12 +51,12 @@ export function LoginPage() {
 
   async function handleGoogle() {
     setError(null);
+    clearRedirectError();
     setBusy(true);
     try {
       await signInWithGoogle();
     } catch (err) {
       setError(authErrorMessage(err));
-    } finally {
       setBusy(false);
     }
   }
@@ -122,7 +131,9 @@ export function LoginPage() {
                 }
               />
             </label>
-            {error && <p className="error">{error}</p>}
+            {(error || redirectError) && (
+              <p className="error">{error ?? redirectError}</p>
+            )}
             <Button type="submit" fullWidth disabled={busy}>
               {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
             </Button>

@@ -20,7 +20,6 @@ import {
 import type { ReactNode } from "react";
 
 import { auth } from "../firebase";
-import { isAdminSite } from "../buildTarget";
 import { authErrorMessage } from "./errors";
 import {
   completeTotpSignIn,
@@ -46,6 +45,8 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  redirectError: string | null;
+  clearRedirectError: () => void;
   completeMfa: (code: string) => Promise<void>;
   cancelMfa: () => void;
   beginTotpEnrollment: () => Promise<TotpEnrollment>;
@@ -86,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   const [reauthMfaResolver, setReauthMfaResolver] =
     useState<MultiFactorResolver | null>(null);
+  const [redirectError, setRedirectError] = useState<string | null>(null);
 
   const syncUser = useCallback(async (next: User | null, forceRefresh = false) => {
     setUser(next);
@@ -104,11 +106,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getRedirectResult(auth)
       .then(async (result) => {
         if (result?.user) {
+          setRedirectError(null);
           await syncUser(result.user);
         }
       })
       .catch((err) => {
+        const resolver = getTotpResolver(auth, err);
+        if (resolver) {
+          setRedirectError(null);
+          setMfaResolver(resolver);
+          return;
+        }
         console.error("Firebase redirect sign-in failed", err);
+        setRedirectError(authErrorMessage(err));
       });
   }, [syncUser]);
 
@@ -160,20 +170,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       },
       signInWithGoogle: async () => {
+        setRedirectError(null);
         await runSignIn(async () => {
           const provider = new GoogleAuthProvider();
           provider.setCustomParameters({ prompt: "select_account" });
           try {
-            if (isAdminSite) {
-              await signInWithRedirect(auth, provider);
+            if (import.meta.env.VITE_USE_AUTH_EMULATOR === "true") {
+              await signInWithPopup(auth, provider);
               return;
             }
-            await signInWithPopup(auth, provider);
+            await signInWithRedirect(auth, provider);
           } catch (err) {
             await afterCredential(err);
           }
         });
       },
+      redirectError,
+      clearRedirectError: () => setRedirectError(null),
       completeMfa: async (code) => {
         if (!mfaResolver) throw new Error("No MFA challenge in progress");
         const hint = totpHint(mfaResolver);
@@ -234,7 +247,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [user, loading, idToken, role, mfaResolver, reauthMfaResolver, syncUser],
+    [user, loading, idToken, role, mfaResolver, reauthMfaResolver, redirectError, syncUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

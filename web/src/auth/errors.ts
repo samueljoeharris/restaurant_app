@@ -10,6 +10,9 @@ const MESSAGES: Record<string, string> = {
   "auth/weak-password": "Use a password with at least 6 characters.",
   "auth/popup-closed-by-user": "Sign-in popup was closed before completing.",
   "auth/popup-blocked": "Allow popups for this site to sign in with Google.",
+  "auth/redirect-cancelled-by-user": "Google sign-in was cancelled.",
+  "auth/unauthorized-domain":
+    "This site is not authorized for Firebase sign-in. Add the hostname to Firebase authorized domains.",
   "auth/account-exists-with-different-credential":
     "An account already exists with the same email using a different sign-in method.",
   "auth/multi-factor-auth-required": "Enter your authenticator code to finish signing in.",

@@ -17,9 +17,60 @@ Google sign-in for **`app.dev`** is managed in [Firebase Authentication](https:/
 
 1. Enable **Google** provider, set support email, Save.
 2. Firebase auto-creates the **Web client (auto created by Google Service)** in GCP Credentials.
-3. Ensure that Web client includes origins/redirects for `app.dev.littlescout.app` (see [AUTH.md](AUTH.md) origins list if sign-in fails).
+3. Complete the console checklist below (origins, branding, authorized domains).
 
 > **Not the same client as admin IAP.** `admin.dev` uses a separate IAP OAuth client (`IAP-ttf-dev-admin-backend`) wired by Terraform for the operator login wall only.
+
+### Google OAuth console checklist (required for app.dev)
+
+The web app uses **`signInWithRedirect`** in production. After Google sign-in, the browser returns to the same page (`/login`) and Firebase completes the session. If redirect fails or branding looks wrong, fix these in GCP / Firebase Console:
+
+#### 1. Firebase authorized domains
+
+[Authentication → Settings → Authorized domains](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/settings)
+
+- `app.dev.littlescout.app`
+- `admin.dev.littlescout.app`
+- `localhost` (local dev)
+
+Terraform adds the custom hostnames when `enable_custom_domains = true`; verify they appear here.
+
+#### 2. OAuth Web client — origins and redirect URIs
+
+[GCP → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials?project=ttf-restaurant-dev) → **Web client (auto created by Google Service)**
+
+**Authorized JavaScript origins:**
+
+- `https://app.dev.littlescout.app`
+- `https://admin.dev.littlescout.app`
+- `http://localhost:5173` (local Vite)
+
+**Authorized redirect URIs:**
+
+- `https://ttf-restaurant-dev.firebaseapp.com/__/auth/handler`
+
+(`authDomain` stays `ttf-restaurant-dev.firebaseapp.com` in the Firebase Web SDK — that is normal. The page origin must still be in authorized domains.)
+
+#### 3. OAuth consent screen branding (“firebase app” → Little Scout)
+
+[GCP → APIs & Services → OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent?project=ttf-restaurant-dev)
+
+- **App name:** `Little Scout` (not the default Firebase project label)
+- **User support email:** your operator email
+- **App logo:** optional but recommended
+- **Application home page:** `https://app.dev.littlescout.app`
+
+Also set **Firebase → Project settings → General → Public-facing name** to `Little Scout`.
+
+Users may still briefly see `ttf-restaurant-dev.firebaseapp.com` in the URL during the Firebase auth handler hop. To show `app.dev` (or `auth.littlescout.app`) instead, configure a [Firebase custom auth domain](https://firebase.google.com/docs/auth/web/custom-domain) — optional, not required for sign-in to work.
+
+#### 4. Verify
+
+1. Open `https://app.dev.littlescout.app/login` in a normal (non-incognito) window.
+2. **Continue with Google** → Google account picker should say **Little Scout** (after consent screen update).
+3. After choosing an account, you should land back on `/login` briefly, then redirect to `/restaurants`.
+
+If you see `auth/unauthorized-domain`, add the hostname to Firebase authorized domains. If Google shows `redirect_uri_mismatch`, check the Web client redirect URI above.
 
 ## Admin IAP (Terraform)
 
