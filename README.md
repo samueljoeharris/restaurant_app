@@ -25,6 +25,7 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 | Doc | Description |
 |-----|-------------|
 | [AGENTS.md](AGENTS.md) | Guidance for AI coding agents |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component map, runtime topology, auth/data flows, and CI/CD |
 | [docs/DESIGN.md](docs/DESIGN.md) | Product vision, data model, TTF spec, architecture, naming conventions |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased onboarding checklist |
 | [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP setup (GitHub, GCP, Postgres) |
