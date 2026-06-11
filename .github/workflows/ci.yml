@@ -1,10 +1,7 @@
 name: CI
 
-# Required status check for main — Docker build/validate only (deploy: api/web/terraform workflows).
-# Path-filtered: web/api jobs run only when their paths change. Infra validation lives in terraform.yml.
+# Solo dev: push to main only (no PR workflow). Path-filtered web/api Docker builds.
 on:
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
 

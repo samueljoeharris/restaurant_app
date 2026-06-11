@@ -59,3 +59,31 @@ locals {
     "",
   )
 }
+
+# IAP → Cloud Run: provision service agent + grant run.invoker on ttf-admin-web.
+# https://cloud.google.com/iap/docs/enabling-cloud-run
+data "google_project" "current" {
+  project_id = var.project_id
+}
+
+resource "google_project_service_identity" "iap" {
+  count    = local.iap_oauth_enabled ? 1 : 0
+  provider = google-beta
+  project  = var.project_id
+  service  = "iap.googleapis.com"
+}
+
+resource "google_cloud_run_v2_service_iam_member" "admin_iap_invoker" {
+  count = local.iap_oauth_enabled ? 1 : 0
+
+  project  = var.project_id
+  location = var.region
+  name     = module.cloud_run_admin[0].service_name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-iap.iam.gserviceaccount.com"
+
+  depends_on = [
+    google_project_service_identity.iap,
+    module.cloud_run_admin,
+  ]
+}

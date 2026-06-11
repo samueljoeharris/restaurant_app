@@ -54,6 +54,7 @@ module "serverless_lb" {
     module.project_services,
     module.cloud_run,
     module.cloud_run_web,
+    module.cloud_run_admin,
   ]
 }
 

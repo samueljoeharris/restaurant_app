@@ -119,8 +119,8 @@ Workflow: [`.github/workflows/terraform.yml`](../../.github/workflows/terraform.
 
 | Event | Job |
 |-------|-----|
-| PR touching `infra/**` | `terraform plan` with committed [`ci.tfvars`](environments/dev/ci.tfvars) |
-| Push to `main` | `terraform apply` (GitHub environment: `dev`) |
+| Push to `main` (`infra/**`) | `terraform plan` + `terraform apply` with committed [`ci.tfvars`](environments/dev/ci.tfvars) |
+| workflow_dispatch (apply=true) | Plan + apply on demand |
 
 ### One-time setup (Workload Identity Federation — no SA keys)
 

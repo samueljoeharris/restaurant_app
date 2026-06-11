@@ -32,14 +32,11 @@ enable_cloud_run = false
 # iap_admin_members       = ["user:you@gmail.com"]
 
 # --- Secrets (gitignored terraform.tfvars OR GitHub Environment dev secrets) ---
-# Never commit real values. See docs/AUTH.md and docs/LITTLESCOUT_DOMAIN.md.
+# Never commit real values. See docs/LITTLESCOUT_DOMAIN.md (IAP) and docs/AUTH.md (Firebase sign-in).
 #
-# IAP OAuth (admin.dev load balancer — NOT the same client as Google sign-in):
+# IAP OAuth (admin.dev load balancer only):
 #   GitHub: IAP_OAUTH_CLIENT_ID, IAP_OAUTH_CLIENT_SECRET
 # iap_oauth_client_id     = "....apps.googleusercontent.com"
 # iap_oauth_client_secret = "GOCSPX-...."
 #
-# Google sign-in OAuth (Firebase / Identity Platform Web client):
-#   GitHub: GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET
-# google_oauth_client_id     = "....apps.googleusercontent.com"
-# google_oauth_client_secret = "GOCSPX-...."
+# Google sign-in is managed in Firebase Console — not Terraform tfvars.

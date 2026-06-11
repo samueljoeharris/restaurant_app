@@ -11,58 +11,26 @@ Little Scout uses **Firebase Auth** only (no local users table). The web app and
 | Apple | Later (needs Apple Developer) |
 | SMS MFA | Later (TOTP preferred for web POC) |
 
-## Enable Google (Terraform — recommended)
+## Enable Google (Firebase Console)
 
-Google sign-in is managed by Terraform (`modules/firebase-auth` + `google-oauth.tf`). Non-secret flags live in committed `ci.tfvars`; **credentials never go in git**.
+Google sign-in for **`app.dev`** is managed in [Firebase Authentication](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) — not Terraform (`enable_google_sign_in = false` in `ci.tfvars`).
 
-### 1. Create OAuth Web client (one-time)
+1. Enable **Google** provider, set support email, Save.
+2. Firebase auto-creates the **Web client (auto created by Google Service)** in GCP Credentials.
+3. Ensure that Web client includes origins/redirects for `app.dev.littlescout.app` (see [AUTH.md](AUTH.md) origins list if sign-in fails).
 
-GCP [APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials?project=ttf-restaurant-dev) → **Create credentials → OAuth client ID → Web application**.
+> **Not the same client as admin IAP.** `admin.dev` uses a separate IAP OAuth client (`IAP-ttf-dev-admin-backend`) wired by Terraform for the operator login wall only.
 
-Authorized JavaScript origins (add as you deploy):
+## Admin IAP (Terraform)
 
-- `http://localhost:5173`
-- `https://app.dev.littlescout.app`
-- `https://ttf-restaurant-dev.firebaseapp.com`
-
-Authorized redirect URIs:
-
-- `https://ttf-restaurant-dev.firebaseapp.com/__/auth/handler`
-- `https://app.dev.littlescout.app/__/auth/handler`
-
-Copy **Client ID** and **Client secret**.
-
-> **Not the same client as IAP.** Admin IAP uses a separate OAuth client from [Security → IAP](https://console.cloud.google.com/security/iap). Keep two credential pairs.
-
-### 2. Provide secrets (pick one)
-
-**CI (recommended):** Repo **Settings → Environments → dev → Secrets**
+Operator access to **`admin.dev`** uses **Identity-Aware Proxy** on the load balancer (Google account login, separate from Firebase app sign-in). GitHub Environment `dev` secrets:
 
 | Secret | Purpose |
 |--------|---------|
-| `GOOGLE_OAUTH_CLIENT_ID` | Firebase Google sign-in |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | Firebase Google sign-in |
-| `IAP_OAUTH_CLIENT_ID` | admin.dev IAP wall |
-| `IAP_OAUTH_CLIENT_SECRET` | admin.dev IAP wall |
+| `IAP_OAUTH_CLIENT_ID` | admin.dev IAP |
+| `IAP_OAUTH_CLIENT_SECRET` | admin.dev IAP |
 
-Merge infra changes → **Actions → Terraform** runs plan/apply. Terraform stores values in Secret Manager (`ttf-google-oauth`, `ttf-iap-oauth`) and configures Identity Platform / the load balancer.
-
-**Local apply:** gitignored `infra/terraform/environments/dev/terraform.tfvars`:
-
-```hcl
-google_oauth_client_id     = "....apps.googleusercontent.com"
-google_oauth_client_secret = "GOCSPX-...."
-```
-
-Then `terraform apply -var-file=ci.tfvars -var-file=terraform.tfvars`.
-
-### 3. Verify
-
-Sign in at `https://app.dev.littlescout.app/login` → **Continue with Google**.
-
-**Console-only fallback:** Enable Google in [Firebase Authentication](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) if you are not passing Terraform OAuth vars yet. Prefer Terraform so config stays in code.
-
-If apply fails with `CONFIGURATION_EXISTS`, Google was enabled in Console first. CI runs `scripts/terraform-import-google-idp.sh` before plan; locally run the same script once, then re-apply.
+Terraform also provisions the IAP service agent and grants `roles/run.invoker` on `ttf-admin-web` (required for IAP → Cloud Run).
 
 ## MFA (authenticator app)
 
