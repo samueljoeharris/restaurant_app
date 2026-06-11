@@ -22,3 +22,13 @@ enable_cloud_run = false
 # enable_billing_budget = true
 # billing_account_id    = "XXXXXX-XXXXXX-XXXXXX"
 # budget_amount_usd     = 50
+
+# --- littlescout.app (see docs/LITTLESCOUT_DOMAIN.md) ---
+# dns_base_domain        = "littlescout.app"
+# dns_environment        = "dev"
+# enable_custom_domains  = true
+# enable_admin_cloud_run = true
+# enable_admin_iap       = true
+# iap_oauth_client_id     = "....apps.googleusercontent.com"
+# iap_oauth_client_secret = "..."
+# iap_admin_members       = ["user:you@gmail.com"]

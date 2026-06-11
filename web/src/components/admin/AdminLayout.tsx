@@ -3,6 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 
 import { useAuth } from "../../auth/AuthContext";
 
+const PUBLIC_APP_URL =
+  import.meta.env.VITE_PUBLIC_APP_URL || "https://app.dev.littlescout.app";
+
 const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin", label: "Overview", end: true },
   { to: "/admin/restaurants", label: "Restaurants" },
@@ -42,9 +45,9 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         </nav>
         <div className="admin-sidebar__footer">
           <p className="admin-sidebar__user">{user?.email ?? "Admin"}</p>
-          <Link to="/restaurants" className="admin-sidebar__back">
-            ← Pilot app
-          </Link>
+          <a href={PUBLIC_APP_URL} className="admin-sidebar__back">
+            ← Public app
+          </a>
           <button type="button" className="admin-sidebar__logout" onClick={() => logout()}>
             Sign out
           </button>

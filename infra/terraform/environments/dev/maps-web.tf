@@ -2,13 +2,14 @@
 # Server Places/Geocoding key remains separate in ttf-maps-api-key.
 
 locals {
-  maps_web_referrers = concat(
+  maps_web_referrers = compact(concat(
     [
       "http://localhost:5173/*",
       "http://127.0.0.1:5173/*",
     ],
     var.enable_web_cloud_run ? ["${module.cloud_run_web[0].service_uri}/*"] : [],
-  )
+    var.enable_custom_domains && local.web_fqdn != "" ? ["https://${local.web_fqdn}/*"] : [],
+  ))
 }
 
 resource "google_apikeys_key" "maps_web" {

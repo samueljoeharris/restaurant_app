@@ -54,7 +54,7 @@ All write endpoints require `Authorization: Bearer <firebase_id_token>`. Token r
 
 ## Admin access
 
-Admin UI lives at `/admin` (overview, restaurants, contributors, observation log). The API enforces `role: admin` from Firebase **custom claims** on `/v1/admin/*`.
+Admin UI is deployed separately at **`https://admin.dev.littlescout.app`** (`ttf-admin-web`). Routes: `/admin` overview, restaurants, contributors, observation log. The API enforces `role: admin` from Firebase **custom claims** on `/v1/admin/*`. See [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md).
 
 **Grant yourself admin (one-time):**
 
