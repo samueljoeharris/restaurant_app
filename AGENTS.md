@@ -7,7 +7,7 @@ Guidance for AI coding agents working in this repository.
 **Little Scout** — social restaurant rating app for parents and caregivers dining with children. Internal codename and GCP prefix: **TTF**.
 
 - **Flagship metric:** TTF = time from order to kid-friendly starter on the table, plus item type and quality (1–5)
-- **Status:** Phase 2 API scaffold; pilot city Dedham, MA (`dedham-ma`); single-metro MVP
+- **Status:** Phase 2 complete (API + web pilot + admin + Terraform + dev custom domains); Phase 3 iOS next; pilot city Dedham, MA (`dedham-ma`); single-metro MVP
 - **Repo:** Monorepo `samueljoeharris/restaurant_app` — do not split unless explicitly requested
 
 Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.
@@ -17,6 +17,7 @@ Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.
 | Layer | Technology |
 |-------|------------|
 | iOS | SwiftUI, MapKit, MVVM — `ios/TTF/` |
+| Web pilot / admin | Vite, React, Cloud Run — `web/` |
 | API | Cloud Run, REST + OpenAPI — `api/` |
 | Database | PostgreSQL (Cloud SQL prod, Docker local) |
 | Auth | Firebase Auth + Apple Sign-In |
@@ -32,8 +33,11 @@ restaurant_app/
 ├── docs/              # DESIGN, GETTING_STARTED, MCP_SETUP
 ├── .cursor/mcp.json   # MCP config (env vars only, no secrets)
 ├── api/               # Phase 2
+├── web/               # Phase 2.5 web pilot + admin build
+├── firebase/          # Firebase emulator config/data
 ├── infra/terraform/   # Phase 2
 ├── ios/TTF/           # Phase 3
+├── scripts/           # Local CI and helper scripts
 └── .github/workflows/ # Phase 2+
 ```
 
@@ -84,7 +88,7 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 2. Prefer minimal, focused diffs — match existing conventions in surrounding code
 3. Cross-cutting changes (API schema + iOS model + migration) belong in one commit/ push to `main` in this monorepo
 4. **Solo dev CI:** push directly to `main` — workflows do not run on pull requests ([docs/CI.md](docs/CI.md))
-5. Use path-filtered CI awareness: `api/**`, `infra/**`, `ios/**` trigger separate workflows
+5. Use path-filtered CI awareness: `api/**`, `web/**`, `infra/**`, and future `ios/**` trigger separate workflows
 6. MCP servers available: GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
 
 ## Data model essentials
@@ -101,7 +105,8 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 
 ## What not to build in v1
 
-- Android or web client
+- Native Android client
+- Production web marketplace beyond the current browser pilot/admin surfaces
 - Reservations, payments, menu scraping
 - Over-engineered abstractions or premature optimization
 - Tests that only assert obvious behavior (unless requested)
@@ -112,6 +117,10 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 |-----|--------------|
 | [docs/DESIGN.md](docs/DESIGN.md) | Architecture, data model, API sketch, Terraform scope |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased checklist, account setup |
+| [docs/README.md](docs/README.md) | Documentation index and reading order |
+| [docs/CI.md](docs/CI.md) | Local checks and GitHub Actions behavior |
+| [docs/AUTH.md](docs/AUTH.md) | Google sign-in, MFA, and admin IAP |
+| [docs/LITTLESCOUT_DOMAIN.md](docs/LITTLESCOUT_DOMAIN.md) | `littlescout.app` DNS and deploy runbook |
 | [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP configuration |
 
 ## Commits

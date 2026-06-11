@@ -59,7 +59,7 @@ Requires Docker Desktop running.
 | **Terraform** | Push to `main` (`infra/**`) or workflow_dispatch | Plan + apply dev GCP |
 | **API** | Push to `main` (`api/**`) or workflow_dispatch | Deploy `ttf-api` |
 | **Web** | Push to `main` (`web/**`) or workflow_dispatch | Deploy `ttf-web` |
-| **Admin Web** | Push to `main` (`admin-web/**`) or workflow_dispatch | Deploy `ttf-admin-web` |
+| **Admin Web** | Push to `main` (`web/**`) or workflow_dispatch | Deploy `ttf-admin-web` |
 
 Deploy workflows are **path-filtered**. A green **CI** workflow does not mean Cloud Run was updated — check deploy workflows when you changed runtime code.
 

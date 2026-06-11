@@ -26,7 +26,7 @@ Identity lives entirely in **Firebase Auth**. Postgres stores `firebase_uid` on 
 
 Project: **`ttf-restaurant-dev`**
 
-**Status:** Email/Password enabled; authorized domains include `localhost`, `ttf-restaurant-dev.firebaseapp.com`, `ttf-restaurant-dev.web.app`.
+**Status:** Email/Password enabled; authorized domains include `localhost`, `ttf-restaurant-dev.firebaseapp.com`, `ttf-restaurant-dev.web.app`, and the dev custom domains from Terraform.
 
 Console links:
 - [Authentication providers](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers)
@@ -40,7 +40,7 @@ Manual setup (if starting fresh):
    - **Email/Password** — easiest for web pilot testing
    - **Google** — optional
    - **Apple** — enable when iOS app exists (requires Apple Developer)
-3. **Settings** → Authorized domains — ensure `localhost` is listed (for web pilot)
+3. **Settings** → Authorized domains — ensure `localhost`, `app.dev.littlescout.app`, and `admin.dev.littlescout.app` are listed for the web pilot/admin surfaces
 
 ### Web app (browser SDK)
 
@@ -147,7 +147,7 @@ Terraform apply mounts the secret on `ttf-api` and sets `FIREBASE_SERVICE_ACCOUN
 **2. App Check (reCAPTCHA Enterprise)**
 
 1. [reCAPTCHA Enterprise](https://console.cloud.google.com/security/recaptcha) → Create key → **Website** → Score-based
-2. Allowed domains: `localhost`, your `ttf-web` Cloud Run host (no `https://`)
+2. Allowed domains: `localhost`, `app.dev.littlescout.app`, and your `ttf-web` Cloud Run host if you still use the direct `run.app` URL (no `https://`)
 3. [Firebase App Check](https://console.firebase.google.com/project/ttf-restaurant-dev/appcheck) → register web app with that site key
 4. Set in `terraform.tfvars`:
 
@@ -159,7 +159,7 @@ Terraform stores the key in `ttf-recaptcha-site-key`, wires Firebase App Check, 
 
 **3. Identity Platform (Terraform)**
 
-`infra/terraform/modules/firebase-auth`: request logging, MFA default `DISABLED`. (Sign-up quota can be set in Firebase Console if needed — API requires a rolling `start_time`.)
+`infra/terraform/modules/firebase-auth`: request logging, MFA state from `firebase_mfa_state` (`ENABLED` in committed dev CI vars). Sign-up quota can be set in Firebase Console if needed — API requires a rolling `start_time`.
 
 Write endpoints require Firebase ID token + (when enabled) `X-Firebase-AppCheck` + rate limit.
 

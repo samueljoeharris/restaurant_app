@@ -1,8 +1,8 @@
 # Little Scout — Product & Technical Design
 
 **Public brand:** Little Scout · **Internal codename / GCP prefix:** `ttf` (legacy: Time to Fries)  
-**Status:** Phase 2 — API scaffold  
-**MVP scope:** Dedham, Massachusetts pilot; native iOS (Swift/SwiftUI); GCP backend  
+**Status:** Phase 2 complete — API, web pilot, admin surface, Terraform, and dev custom domains are in place; Phase 3 iOS next
+**MVP scope:** Dedham, Massachusetts pilot; native iOS (Swift/SwiftUI); GCP backend; browser pilot for early validation
 **Agents:** See [AGENTS.md](../AGENTS.md) for AI coding agent guidance
 
 ---
@@ -109,7 +109,8 @@ Little Scout is a social restaurant rating app focused on **parents dining with 
 
 ### Non-Goals (v1)
 
-- Android or web client
+- Native Android client
+- Production web marketplace beyond the browser pilot/admin surfaces already in this repo
 - Reservations or payments
 - Full menu scraping
 - Restaurant partnerships or monetization
@@ -408,7 +409,7 @@ One container image runs locally and on Cloud Run.
 
 ```mermaid
 flowchart TB
-    subgraph windows [Windows + Docker Desktop]
+    subgraph host [Mac / Windows / Cursor Cloud with Docker]
         Compose[docker compose up]
         subgraph containers [Local Containers]
             API[api container]
@@ -446,18 +447,18 @@ docker compose run api test
 docker compose run terraform plan
 ```
 
-**Cross-machine testing:** iOS simulator on cloud Mac → `http://host.docker.internal:8080` or deployed Cloud Run URL.
+**Cross-machine testing:** iOS simulator on local Mac or CI runner → `http://host.docker.internal:8080` for local API, or the deployed custom API URL.
 
-### Windows + No-Mac Workflow
+### iOS Build Workflow
 
 | Task | Where |
 |------|-------|
-| Backend dev | Windows + Docker Compose |
-| API / Terraform / docs | Cursor on Windows |
-| iOS source editing | Cursor on Windows |
-| iOS build / simulator | Cloud Mac rental or GitHub Actions |
+| Backend dev | Docker Compose on Mac, Windows, or Cursor Cloud |
+| API / Terraform / docs | Cursor or local editor |
+| iOS source editing | Cursor or Xcode |
+| iOS build / simulator | Local Mac with Xcode or GitHub Actions macOS runner |
 | Device testing | TestFlight |
-| Signing setup | One-time on cloud Mac; CI thereafter |
+| Signing setup | Local Mac / Apple Developer assets; CI thereafter |
 
 ---
 
@@ -514,8 +515,8 @@ docker compose run terraform apply
 
 ### CI/CD — `.github/workflows/terraform.yml`
 
-- **PR:** `terraform plan` on `infra/**` changes
-- **Merge to main:** `terraform apply` for `dev`
+- **Push to main:** `terraform plan` + `terraform apply` for `dev` on `infra/**` changes
+- **Manual dispatch:** plan/apply on demand
 - **Prod:** manual approval gate
 - State locking via GCS backend (`ttf-tfstate-dev`)
 
@@ -547,8 +548,11 @@ restaurant_app/
 ├── docs/              # Design, onboarding, MCP setup
 ├── docker-compose.yml
 ├── api/               # Cloud Run service (Phase 2)
+├── web/               # Web pilot and admin build (Phase 2.5)
+├── firebase/          # Firebase emulator config/data
 ├── infra/terraform/   # IaC (Phase 2)
 ├── ios/TTF/           # Xcode project (Phase 3)
+├── scripts/           # Local CI and helper scripts
 └── .github/workflows/ # Path-filtered CI
 ```
 
@@ -557,8 +561,10 @@ restaurant_app/
 | Workflow | Triggers on |
 |----------|-------------|
 | `api.yml` | `api/**`, `docker-compose.yml` |
+| `web.yml` | `web/**` |
+| `admin-web.yml` | `web/**` |
 | `terraform.yml` | `infra/**` |
-| `ios.yml` | `ios/**` |
+| iOS workflow | Planned for `ios/**` when Phase 3 CI is added |
 
 ### When to Split
 
@@ -607,15 +613,15 @@ See [GETTING_STARTED.md](GETTING_STARTED.md) for the actionable checklist. Summa
 
 **Billing safeguards:** Cloud Run scale-to-zero; smallest Cloud SQL tier; no manual "Upgrade to paid" until ready; secrets in Secret Manager only.
 
-### Mac / iOS Development (No Mac Today)
+### Mac / iOS Development
 
 | Option | Cost | Use for |
 |--------|------|---------|
-| Cloud Mac rental | ~$50–100/mo or ~$20/day | Xcode, simulator, cert setup |
+| Local Mac + Xcode | Existing hardware | Xcode, simulator, cert setup |
 | GitHub Actions macOS | ~200 free build min/mo | TestFlight CI |
-| Mac mini M4 (future) | ~$599+ | Daily Xcode |
+| Cloud Mac rental | Optional | Short-term fallback if local Mac is unavailable |
 
-**Workflow:** Code on Windows → cloud Mac for simulator → GitHub Actions for TestFlight.
+**Workflow:** Code locally or in Cursor → build/test in Xcode on a Mac → GitHub Actions for TestFlight.
 
 ### iOS Learning Path
 
@@ -636,7 +642,7 @@ See [MCP_SETUP.md](MCP_SETUP.md) for GitHub, gcloud, and postgres MCP configurat
 | Apple Developer | $99/year |
 | GCP (trial) | $0 first 90 days |
 | GCP (after trial) | ~$30–50/mo |
-| Cloud Mac bursts | ~$100–150 |
+| Mac hardware | Existing local Mac assumed |
 | Maps Platform | Within $200/mo free credit |
 | GitHub | Free |
 | **Total** | **~$400–600** |
@@ -700,9 +706,10 @@ All write endpoints require Firebase Auth JWT (Apple Sign-In). Read endpoints pu
 | User accounts (Apple Sign-In) | Yes | — |
 | Photo on TTF submission | Optional | — |
 | Moderation / flagging | Basic | Advanced |
-| Android / Web | — | Phase 2+ |
-| Push notifications | — | Phase 2 |
-| Custom API domain | — | Phase 3+ |
+| Browser web pilot | Yes | Production web experience optional later |
+| Native Android | — | Later |
+| Push notifications | — | Later |
+| Custom API domain | Dev (`api.dev.littlescout.app`) | Prod domain later |
 | Restaurant partnerships | — | TBD |
 
 ---
@@ -712,21 +719,20 @@ All write endpoints require Firebase Auth JWT (Apple Sign-In). Read endpoints pu
 ```mermaid
 flowchart TD
     P0[Phase 0: Docs + MCP + Accounts] --> P1[Phase 1: Terraform + API via Docker]
-    P0 --> P2[Phase 2: Learn SwiftUI on cloud Mac]
-    P1 --> P3[Phase 3: iOS app connects to API]
-    P2 --> P3
+    P1 --> P2[Phase 2: API + Web Pilot + Admin + Dev Domains]
+    P2 --> P3[Phase 3: iOS app connects to API]
     P3 --> P4[Phase 4: TestFlight beta in pilot city]
 ```
 
-| Phase | Windows? | Blockers |
-|-------|----------|----------|
-| 0 — Design docs + MCP | Yes | None |
-| 0 — Apple enrollment | Yes (web) | Approval may take weeks |
-| 0 — GCP setup | Yes (~15 min) | Credit card for verification |
-| 1 — Terraform + API | Yes (Docker) | GCS state bucket bootstrapped |
-| 2 — Learn SwiftUI | No (cloud Mac) | ~$20/day rental |
-| 3 — iOS MVP | Partial | Xcode project, signing certs |
-| 4 — TestFlight | Yes (GitHub Actions) | Paid Apple Developer Program |
+| Phase | Host | Blockers |
+|-------|------|----------|
+| 0 — Design docs + MCP | Any | None |
+| 0 — Apple enrollment | Web | Apple Developer approval |
+| 0 — GCP setup | Web / local CLI | Billing verification |
+| 1 — Terraform + API | Docker | GCS state bucket bootstrapped |
+| 2 — API + web pilot + admin + dev domains | Docker + GitHub Actions | Terraform apply, Firebase/Auth config |
+| 3 — iOS MVP | Local Mac / macOS CI | Xcode project, signing certs |
+| 4 — TestFlight | GitHub Actions + App Store Connect | Paid Apple Developer Program |
 
 **Key insight:** Backend-first via Docker. Seed pilot-city data before touching Xcode.
 
@@ -736,7 +742,7 @@ flowchart TD
 
 ### Open Questions
 
-- **Pilot city:** TBD — design supports single-metro filter
+- **Pilot city:** Dedham, MA for MVP; design supports expanding beyond one metro later
 - **Moderation policy:** How to handle spam or bad-faith TTF submissions?
 - **Verification:** Honor system vs check-in (GPS proximity)?
 - **Monetization:** None planned for MVP
@@ -749,8 +755,8 @@ flowchart TD
 - Restaurant owner claims / verified info
 - Expansion beyond pilot city
 - Advanced moderation and reputation system
-- Custom domains (`api.ttf.app`)
+- Production custom domains on `littlescout.app`
 
 ---
 
-*Last updated: design phase — first commit.*
+*Last updated: Phase 2 docs cleanup.*

@@ -2,9 +2,15 @@
 
 Actionable checklist for building the **Little Scout** restaurant app from zero. Internal codename and GCP prefix: **TTF**. For full product and technical detail, see [DESIGN.md](DESIGN.md).
 
-**Your setup:** Mac (Apple Silicon), Docker, GitHub, Apple Developer enrolled, Xcode.
+**Current status:** Phase 2 is complete (API + web pilot + admin + Terraform + dev custom domains). Phase 3 iOS is next.
+
+**Your setup:** Docker, GitHub, GCP/Firebase access, and Apple Developer enrollment. Xcode is only required for Phase 3 iOS work.
 
 **Pilot city:** Dedham, Massachusetts (`dedham-ma`)
+
+**Live dev surfaces:** web `https://app.dev.littlescout.app`, API `https://api.dev.littlescout.app`, admin `https://admin.dev.littlescout.app` (IAP-protected).
+
+**Docs map:** start with [docs/README.md](README.md) when you need the full documentation index.
 
 ---
 
@@ -42,7 +48,7 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 
 ---
 
-## Auth (web)
+## Auth (web/admin)
 
 - [ ] Enable **Google** sign-in in [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) (if not using Terraform OAuth vars)
 - [ ] Test **Continue with Google** and email sign-up on `/login`
@@ -52,14 +58,14 @@ Guide: [AUTH.md](AUTH.md)
 
 ---
 
-## Phase 2.5 — Web POC
+## Phase 2.5 — Web POC + Admin
 
 Pilot the product in a browser while building the native iOS app.
 
 - [ ] `terraform output firebase_web_env` → copy `VITE_FIREBASE_*` to `web/.env.local` (or Console Web app if TF not applied)
 - [ ] `cd web && npm install && npm run dev` — http://localhost:5173
 - [ ] Sign in (Email/Password) → browse restaurants → submit TTF
-- [ ] Point `VITE_API_URL` at Cloud Run (default in `.env.example`) or local API
+- [ ] Point `VITE_API_URL` at `https://api.dev.littlescout.app` or local API
 
 See [`web/README.md`](../web/README.md).
 
@@ -96,7 +102,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [x] Firebase Auth on API — see [FIREBASE_AUTH.md](FIREBASE_AUTH.md)
 - [x] Enable Email/Password in Firebase (`ttf-restaurant-dev`)
 - [ ] Test real JWT against **production** Firebase (see below)
-- [x] Terraform CI (WIF): [run #4](https://github.com/samueljoeharris/restaurant_app/actions/runs/27148358713) green
+- [x] Terraform CI (WIF): green on `main`
 - [x] Set `GCP_DEPLOY_SERVICE_ACCOUNT` repo variable + run API workflow after Phase B apply
 - [x] Seed **production** Cloud SQL: `./api/scripts/seed_production.sh` (115 Dedham venues)
 - [ ] (Optional) GitHub environment `dev` with approval gate for apply on `main`
@@ -139,14 +145,14 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 - [ ] Shared attribute rating UI
 - [ ] Apple Sign-In via Firebase Auth
 - [ ] Point API base URL at Cloud Run or `host.docker.internal:8080`
-- [ ] GitHub Actions `ios.yml` → TestFlight
+- [ ] Add GitHub Actions iOS workflow → TestFlight
 - [ ] TestFlight group: `ttf-pilot-testers`
 
 ---
 
 ## Phase 4 — Pilot Launch
 
-- [x] Seed restaurants for pilot metro area (Dedham — 119 venues)
+- [x] Seed restaurants for pilot metro area (Dedham — 115+ venues; exact count may change as Google Places results are refreshed)
 - [ ] Invite beta testers via TestFlight
 - [ ] Gather TTF observations from real visits
 - [ ] Iterate on aggregates and UX
@@ -161,7 +167,7 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 | Apple Developer Program | $99/year |
 | GCP free trial | $0 (90 days, $300 credit) |
 | GCP after trial | ~$30–50/mo |
-| Cloud Mac bursts (~5 days/mo) | $0 (local Xcode) |
+| Mac development environment | $0 (local Xcode assumed) |
 | Google Maps | Likely within $200/mo free credit |
 | GitHub | Free |
 | **Total** | **~$400–600** |
@@ -173,9 +179,15 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 | Doc | Purpose |
 |-----|---------|
 | [AGENTS.md](../AGENTS.md) | Guidance for AI coding agents |
+| [docs/README.md](README.md) | Documentation index and reading order |
 | [DESIGN.md](DESIGN.md) | Full product + technical design |
+| [AUTH.md](AUTH.md) | Google sign-in, MFA, and admin IAP |
 | [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | Firebase Auth + emulator |
+| [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) | `littlescout.app` DNS, TLS, and deployment runbook |
 | [MCP_SETUP.md](MCP_SETUP.md) | Cursor MCP server configuration |
+| [CI.md](CI.md) | Local checks and GitHub Actions |
+| [api/README.md](../api/README.md) | API local runbook |
+| [web/README.md](../web/README.md) | Web pilot local runbook |
 | [infra/terraform/README.md](../infra/terraform/README.md) | Terraform + WIF CI |
 | [README.md](../README.md) | Project overview |
 
