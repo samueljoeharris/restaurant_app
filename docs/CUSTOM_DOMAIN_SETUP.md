@@ -1,10 +1,12 @@
 # Custom Domain Setup — Investigation & Plan
 
 **Status:** Investigation / planning (not implemented)  
-**Environment:** `ttf-restaurant-dev` (GCP + Firebase)  
+**Environment:** `ttf-restaurant-dev` (GCP + Firebase) — dev hostnames first; prod mirrors later  
 **Last reviewed:** 2026-06-10
 
-This document inventories how TTF is hosted today, what must change when you attach a purchased domain, and a phased plan to do it safely. Replace `<DOMAIN>` with your real domain (e.g. `timeto fries.com` → use the registrable apex like `example.com`).
+This document inventories how TTF is hosted today, what must change when you attach a purchased domain, and a phased plan to do it safely. Replace `<DOMAIN>` with your real domain (e.g. `example.com`).
+
+**Architecture direction (updated):** Segment by **environment** (`dev` vs prod DNS), deploy **admin as its own site** (separate Cloud Run service + hostname), and back separation with a **VPC** (private database, controlled ingress, IAP at the edge for admin). DNS alone does not isolate workloads — the VPC and ingress model below does.
 
 ---
 
@@ -12,17 +14,18 @@ This document inventories how TTF is hosted today, what must change when you att
 
 1. [Goals](#1-goals)
 2. [Current State](#2-current-state)
-3. [Recommended DNS Layout](#3-recommended-dns-layout)
-4. [Admin Site (`/admin`)](#4-admin-site-admin)
-5. [Touchpoints Matrix](#5-touchpoints-matrix)
-6. [DNS & TLS](#6-dns--tls)
-7. [Terraform Changes (Proposed)](#7-terraform-changes-proposed)
-8. [Console & CI Changes](#8-console--ci-changes)
-9. [Implementation Phases](#9-implementation-phases)
-10. [Verification Checklist](#10-verification-checklist)
-11. [Decisions Needed](#11-decisions-needed)
-12. [Risks & Rollback](#12-risks--rollback)
-13. [Related Docs](#13-related-docs)
+3. [Target Architecture — Segmented](#3-target-architecture--segmented)
+4. [Admin as a Separate Site](#4-admin-as-a-separate-site)
+5. [VPC & Network Segmentation](#5-vpc--network-segmentation)
+6. [Touchpoints Matrix](#6-touchpoints-matrix)
+7. [DNS & TLS](#7-dns--tls)
+8. [Terraform Changes (Proposed)](#8-terraform-changes-proposed)
+9. [Console & CI Changes](#9-console--ci-changes)
+10. [Implementation Phases](#10-implementation-phases)
+11. [Verification Checklist](#11-verification-checklist)
+12. [Decisions Needed](#12-decisions-needed)
+13. [Risks & Rollback](#13-risks--rollback)
+14. [Related Docs](#14-related-docs)
 
 ---
 
@@ -30,18 +33,20 @@ This document inventories how TTF is hosted today, what must change when you att
 
 | Goal | Notes |
 |------|-------|
-| Public web app on a branded URL | Map custom hostname → Cloud Run `ttf-web` |
-| API reachable on a stable hostname | Map `api.<DOMAIN>` → Cloud Run `ttf-api` (optional for browser; required for iOS/TestFlight) |
-| Firebase Auth continues to work | Authorized domains, OAuth redirects, App Check |
-| Admin dashboard remains usable | Today: `/admin` path on the same web origin |
-| Infrastructure as code | Prefer Terraform over one-off console clicks |
-| Keep dev `*.run.app` URLs working during cutover | Parallel operation until DNS propagates |
+| **Environment-separated DNS** | `*.dev.<DOMAIN>` for `ttf-restaurant-dev`; later `app.<DOMAIN>` / `api.<DOMAIN>` for prod |
+| Public web on branded URL | `app.dev.<DOMAIN>` → Cloud Run `ttf-web` |
+| Public API on stable hostname | `api.dev.<DOMAIN>` → Cloud Run `ttf-api` (browser + iOS) |
+| **Admin on its own site** | `admin.dev.<DOMAIN>` → separate Cloud Run `ttf-admin-web` (not `/admin` on public app) |
+| **VPC-backed isolation** | Private Cloud SQL, VPC connector, split ingress; IAP + optional Cloud Armor on admin |
+| Firebase Auth per environment | Separate authorized domains / projects for dev vs prod |
+| Infrastructure as code | Terraform modules for VPC, LB, Cloud Run ingress — not console-only |
+| Safe cutover | Keep `*.run.app` until custom hostnames are verified |
 
 **Non-goals for this pass**
 
 - Firebase Hosting migration (web already runs on Cloud Run + nginx)
 - Custom Firebase Auth handler domain (`auth.<DOMAIN>`) — optional later
-- Production GCP project (`ttf-restaurant-prod`) — plan here targets dev/pilot; prod mirrors the same pattern
+- Shared VPC across an GCP Organization (no org today — per-project VPC is enough)
 
 ---
 
@@ -85,362 +90,475 @@ Custom web hostnames must be added to `allowed_referrers`.
 
 When `app_check_recaptcha_site_key` is set, the reCAPTCHA key’s **allowed domains** must include every web origin (Console step today; see [FIREBASE_AUTH.md](FIREBASE_AUTH.md)).
 
-### Admin UI
+### Admin UI (today — to be split)
 
-Not a separate service. React routes under `/admin` in the same SPA (`web/src/App.tsx`), gated by Firebase custom claim `role=admin` (`web/src/components/admin/AdminRoute.tsx`, API `/v1/admin/*`).
+React routes under `/admin` live in the **same** SPA as the public app (`web/src/App.tsx`). Auth is Firebase `role=admin` in the browser; API enforces the same on `/v1/admin/*`. This is convenient for a POC but **does not** give network or blast-radius separation.
+
+### Networking (today — no VPC isolation)
+
+| Component | Current setting | Implication |
+|-----------|-----------------|-------------|
+| Cloud Run `ttf-web`, `ttf-api` | `ingress = INGRESS_TRAFFIC_ALL` | Public internet can reach services directly |
+| Cloud SQL | `ipv4_enabled = true`, no private IP | DB reachable on public IP (auth still required) |
+| VPC | **Not provisioned** | No private service mesh; `servicenetworking.googleapis.com` is enabled but unused |
+| Load balancer / IAP / Armor | **None** | No edge policy per hostname |
+
+**DNS segmentation without VPC** only changes URLs — all services still share one project network posture. For the separation you want, plan VPC + ingress **with** dev/prod DNS.
 
 ---
 
-## 3. Recommended DNS Layout
+## 3. Target Architecture — Segmented
 
-Use **subdomains** for Cloud Run mappings. Apex (`<DOMAIN>`) is possible but needs extra plumbing (global HTTPS load balancer or registrar redirect); subdomains are simpler on Cloud Run.
+### Why not only `/admin` on the public app?
 
-| Hostname | Points to | Purpose |
-|----------|-----------|---------|
-| `app.<DOMAIN>` **or** `www.<DOMAIN>` | `ttf-web` | Public web pilot |
-| `api.<DOMAIN>` | `ttf-api` | REST API (iOS, future clients, explicit API URL) |
-| `<DOMAIN>` (apex) | Redirect → `app.<DOMAIN>` | Marketing / bookmark-friendly (optional) |
+The first draft recommended a `/admin` **path** because it is the fastest POC path (one build, one Cloud Run service, one domain mapping). That is a **delivery** tradeoff, not a security architecture.
 
-**Suggested default:** `app.<DOMAIN>` for the web app, `api.<DOMAIN>` for the API.
+| Concern | `/admin` on `app.*` | Separate `admin.*` site |
+|---------|---------------------|-------------------------|
+| Blast radius | Public + admin JS in one bundle | Admin bundle deployed independently |
+| Edge policy | Same ingress as public users | IAP, IP allowlist, or stricter Armor on admin LB only |
+| CORS / App Check / Maps keys | Shared web origin | Admin origin listed explicitly; public keys need not trust admin host |
+| Discoverability | `/admin` on a marketing-facing URL | Admin hostname can be omitted from public docs |
+| Deploy cadence | Ship admin UI with every public web release | Admin releases on their own workflow |
+
+**Recommendation for TTF:** Use a **separate admin site** if you care about VPC-level separation and ops isolation — which matches your goals.
+
+### Why a dev DNS segment?
+
+Align DNS with **GCP project boundaries** (already planned as `ttf-restaurant-dev` vs `ttf-restaurant-prod`):
+
+| DNS pattern | GCP project | Firebase | Who uses it |
+|-------------|-------------|----------|-------------|
+| `app.dev.<DOMAIN>`, `api.dev.<DOMAIN>`, `admin.dev.<DOMAIN>` | `ttf-restaurant-dev` | dev Firebase | Team, pilot testers |
+| `app.<DOMAIN>`, `api.<DOMAIN>`, `admin.<DOMAIN>` | `ttf-restaurant-prod` | prod Firebase | Public launch |
+
+Benefits:
+
+- No accidental prod sign-in from dev Firebase config (separate authorized domains and secrets).
+- Clear CI mapping: dev workflows → dev hostnames; prod environment approval → prod hostnames.
+- Terraform `environments/dev` and `environments/prod` each own a hostname set.
+- You can keep `*.run.app` as an internal fallback without exposing it in DNS.
+
+**Alternative:** `dev.app.<DOMAIN>` instead of `app.dev.<DOMAIN>` — pick one convention and stick to it. This doc uses **`app.dev.<DOMAIN>`** (environment before role).
+
+### Target DNS layout (dev first)
+
+| Hostname | Cloud Run service | Audience |
+|----------|-------------------|----------|
+| `app.dev.<DOMAIN>` | `ttf-web` | Public pilot web |
+| `api.dev.<DOMAIN>` | `ttf-api` (public routes) | Web, iOS, read/write API |
+| `admin.dev.<DOMAIN>` | `ttf-admin-web` **new** | Operators only |
+| `admin-api.dev.<DOMAIN>` *(optional)* | `ttf-api` admin routes only via LB path rules, or internal service later | Tighter split |
+
+Prod (later, separate project): same pattern without `.dev` — `app.<DOMAIN>`, `api.<DOMAIN>`, `admin.<DOMAIN>`.
 
 ```mermaid
-flowchart LR
-  subgraph dns [DNS at registrar]
-    APEX["<DOMAIN>"]
-    APP["app.<DOMAIN>"]
-    API["api.<DOMAIN>"]
+flowchart TB
+  subgraph dns_dev [DNS dev segment]
+    APP["app.dev.DOMAIN"]
+    API["api.dev.DOMAIN"]
+    ADM["admin.dev.DOMAIN"]
   end
-  subgraph gcp [GCP us-central1]
-    WEB["Cloud Run ttf-web"]
-    APISVC["Cloud Run ttf-api"]
-    FB["Firebase Auth / App Check"]
+  subgraph edge [External HTTPS Load Balancer]
+    LB_PUB["LB + Armor public"]
+    LB_ADM["LB + IAP + Armor admin"]
   end
-  APP --> WEB
-  API --> APISVC
-  WEB -->|"Bearer JWT + App Check"| APISVC
-  WEB --> FB
+  subgraph vpc [VPC ttf-dev]
+    WEB["ttf-web"]
+    APISVC["ttf-api"]
+    ADMWEB["ttf-admin-web"]
+    SQL["Cloud SQL private IP"]
+  end
+  APP --> LB_PUB --> WEB
+  API --> LB_PUB --> APISVC
+  ADM --> LB_ADM --> ADMWEB
+  APISVC --> SQL
+  WEB -->|"JWT + App Check"| APISVC
+  ADMWEB -->|"JWT admin"| APISVC
 ```
 
 ---
 
-## 4. Admin Site (`/admin`)
+## 4. Admin as a Separate Site
 
-### Current behavior
+### What “separate site” means (not just another hostname)
 
-| URL | Access |
-|-----|--------|
-| `https://<web-host>/admin` | Firebase sign-in + `role=admin` claim |
-| `https://<web-host>/admin/restaurants` | Same |
-| `https://<web-host>/admin/users` | Same |
-| `https://<web-host>/admin/observations` | Same |
+Minimum bar:
 
-After custom domain cutover, admin URLs become e.g. `https://app.<DOMAIN>/admin` with **no code changes** if the SPA stays on one origin.
+1. **Separate Cloud Run service** — `ttf-admin-web` (new), not a second domain on `ttf-web`.
+2. **Separate container image** — admin-only Vite build (no public map/list routes in the bundle).
+3. **Separate hostname** — `admin.dev.<DOMAIN>` (and `admin.<DOMAIN>` in prod).
+4. **Separate edge policy** — IAP on the admin load balancer backend; optional corp IP allowlist via Cloud Armor.
 
-### Optional: `admin.<DOMAIN>` subdomain
+### Code / repo changes (planned)
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **A. Keep `/admin` path** (recommended) | Zero routing work; one TLS cert; one Cloud Run mapping; matches current code | Admin URL is discoverable (still protected by auth) |
-| **B. Separate `admin.<DOMAIN>`** | Clear separation; can restrict at edge later | Second Cloud Run domain mapping to **same** `ttf-web` image **or** separate deploy; must add hostname to Firebase authorized domains, CORS (if API called from new origin), Maps referrers |
-| **C. IP / IAP restrict `admin.<DOMAIN>`** | Stronger ops security | Cloud Armor or Identity-Aware Proxy in front of Cloud Run — more infra |
+| Piece | Change |
+|-------|--------|
+| `web/` | Split entry: `web/src/admin-main.tsx` + Vite multi-page build, **or** `web-admin/` package |
+| `web/Dockerfile` | Second target `Dockerfile.admin` → image `ttf-admin-web` |
+| `.github/workflows/web.yml` | Split or add `admin-web.yml` deploy job |
+| `infra/terraform/.../admin-web.tf` | New `cloud-run-static` module instance for `ttf-admin-web` |
+| Firebase | Add `admin.dev.<DOMAIN>` to authorized domains; separate reCAPTCHA key optional (admin may skip Maps) |
+| API CORS | Add `https://admin.dev.<DOMAIN>`; public app origin unchanged |
+| API `/v1/admin/*` | Still on `ttf-api` initially; protect with JWT `role=admin` **and** consider IAP identity headers later |
 
-**Recommendation:** Ship **Approach A** first. Revisit **B/C** only if you want network-level admin isolation.
+### What stays shared (initially)
 
-If you later add `admin.<DOMAIN>` as a second hostname on the same Cloud Run service:
+- **Same API service** (`ttf-api`) serves public and admin routes — acceptable if admin **UI** and **ingress** are isolated. Phase 2 hardening: `INGRESS_TRAFFIC_INTERNAL_ONLY` admin API behind internal LB (only if admin UI calls API from inside VPC — usually overkill while admin is a browser SPA).
+- **Same Cloud SQL** — fine inside one VPC; prod uses a different project/instance.
 
-1. Map both hostnames to `ttf-web`.
-2. Add `admin.<DOMAIN>` to Firebase authorized domains and Maps referrers.
-3. Optionally add nginx logic to redirect `/` on admin host → `/admin` (not required today).
+### Remove `/admin` from public app
 
----
+After `ttf-admin-web` ships:
 
-## 5. Touchpoints Matrix
+1. Delete `/admin/*` routes from `web/src/App.tsx` (or guard with build flag excluded from public build).
+2. Public image no longer ships admin components (smaller bundle, no admin URL leak).
 
-When `app.<DOMAIN>` and `api.<DOMAIN>` go live, update **every** row:
+### IAP vs Firebase for admin
 
-| System | What to update | Where today | Custom domain value |
-|--------|----------------|-------------|---------------------|
-| Cloud Run domain mapping | Map hostname → service | Not in Terraform | `google_cloud_run_domain_mapping` (new) |
-| Firebase authorized domains | Allow sign-in from web origin | `firebase-auth.tf` | `app.<DOMAIN>` |
-| API CORS | Browser `fetch` from web origin | `phase-b.tf` `CORS_ORIGINS` | `https://app.<DOMAIN>` |
-| Web build `VITE_API_URL` | API base URL baked into JS | `web.yml` reads Cloud Run URL | `https://api.<DOMAIN>` (after API mapping) |
-| Maps web API key referrers | Maps JS loads only from allowed sites | `maps-web.tf` | `https://app.<DOMAIN>/*` |
-| reCAPTCHA Enterprise | App Check allowed domains | GCP Console | `app.<DOMAIN>` |
-| Google OAuth client | Authorized JavaScript origins | GCP Console → Credentials | `https://app.<DOMAIN>` |
-| Google OAuth client | Redirect URIs (if used) | Same | Firebase handler URLs (usually unchanged if `authDomain` stays default) |
-| Firebase `authDomain` in web env | SDK config | `ttf-firebase-web-env` secret | **Keep** `ttf-restaurant-dev.firebaseapp.com` unless you adopt [custom auth domain](https://firebase.google.com/docs/auth/web/custom-domain) |
-| iOS / future clients | API base URL | App config (Phase 3) | `https://api.<DOMAIN>` |
-| Email links / bookmarks | User-facing URL | — | `https://app.<DOMAIN>` |
+| Layer | Role |
+|-------|------|
+| **IAP** (recommended on `admin.*`) | Google account allowlist **before** the request hits Cloud Run — stops unauthenticated scanning |
+| **Firebase `role=admin`** (keep) | App-level authorization for API writes and UI state — same as today |
 
-**Important:** Changing `VITE_API_URL` requires a **web image rebuild and redeploy** (`web.yml`). Terraform-only changes are not enough for the front end.
+Both together: IAP keeps random internet off the admin SPA; Firebase JWT keeps API semantics consistent with iOS/web.
 
 ---
 
-## 6. DNS & TLS
+## 5. VPC & Network Segmentation
+
+DNS labels environments; **VPC enforces network boundaries**.
+
+### Target VPC layout (`ttf-restaurant-dev`)
+
+| Resource | Purpose |
+|----------|---------|
+| `google_compute_network` `ttf-vpc-dev` | Private network for dev |
+| Subnet `us-central1` | Serverless VPC Access connector range |
+| `google_vpc_access_connector` | Cloud Run → private RFC1918 |
+| Service Networking connection | Peering for Cloud SQL private IP |
+| Cloud SQL | `ipv4_enabled = false`, `private_network` on VPC |
+| Serverless NEGs | Attach Cloud Run services to external HTTPS LB |
+
+### Ingress model per service
+
+| Service | Cloud Run ingress | Front door | Rationale |
+|---------|-------------------|------------|-----------|
+| `ttf-web` | `INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER` | External HTTPS LB → serverless NEG | Public app; Armor rate limits |
+| `ttf-api` (public) | `INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER` | External HTTPS LB → serverless NEG | `api.dev.<DOMAIN>`; mobile clients |
+| `ttf-admin-web` | `INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER` | External HTTPS LB + **IAP** | Admin only; Google identity at edge |
+| Cloud SQL | Private IP only | Via connector from Cloud Run | No public DB IP |
+
+Direct `*.run.app` URLs can be disabled or left for break-glass only once LB hostnames work.
+
+### Dev vs prod VPC
+
+| Environment | VPC | Peering | Notes |
+|-------------|-----|---------|-------|
+| Dev | `ttf-vpc-dev` in `ttf-restaurant-dev` | Own Service Networking range | Pilot + team |
+| Prod | `ttf-vpc-prod` in `ttf-restaurant-prod` | Separate range | No shared subnets with dev |
+
+Do **not** put dev and prod in one VPC with “logical” separation — project + VPC per environment is simpler and matches your existing two-project design in [DESIGN.md](DESIGN.md).
+
+### Terraform modules to add (sketch)
+
+```
+infra/terraform/modules/
+  vpc/                 # network, subnet, connector, service networking
+  serverless-lb/       # external HTTPS LB, NEG, managed certs, host rules
+  iap/                 # OAuth brand + IAP binding on admin backend
+```
+
+Update `cloud-run` / `cloud-run-static` modules: `ingress` variable, `invoker_members` default to LB service account (not `allUsers`).
+
+### What VPC does **not** replace
+
+- Firebase authorized domains — still required per hostname.
+- JWT admin claims — still required on `/v1/admin/*`.
+- App Check on public writes — still required for `app.dev.<DOMAIN>`.
+
+---
+
+## 6. Touchpoints Matrix
+
+When dev hostnames go live, update **every** row (prod hostnames mirror without `.dev`):
+
+| System | What to update | Where today | Dev value |
+|--------|----------------|-------------|-----------|
+| VPC + connector | Private SQL, LB-only ingress | Not provisioned | `modules/vpc/` |
+| External HTTPS LB | Host-based routing to NEGs | Not provisioned | `modules/serverless-lb/` |
+| IAP | Admin backend only | Not provisioned | `admin.dev.<DOMAIN>` backend |
+| Cloud Run services | `ttf-web`, `ttf-api`, `ttf-admin-web` | 2 services | 3 services; ingress via LB |
+| Firebase authorized domains | Sign-in origins | `firebase-auth.tf` | `app.dev.<DOMAIN>`, `admin.dev.<DOMAIN>` |
+| API CORS | Browser origins | `phase-b.tf` | `https://app.dev.<DOMAIN>`, `https://admin.dev.<DOMAIN>` |
+| Web `VITE_API_URL` | Public build | `web.yml` | `https://api.dev.<DOMAIN>` |
+| Admin `VITE_API_URL` | Admin build | `admin-web.yml` (new) | `https://api.dev.<DOMAIN>` |
+| Maps web key referrers | Public app only | `maps-web.tf` | `https://app.dev.<DOMAIN>/*` (not admin) |
+| reCAPTCHA / App Check | Public app | Console + Terraform | `app.dev.<DOMAIN>` |
+| Google OAuth JS origins | Sign-in | Console | `app.dev.<DOMAIN>`, `admin.dev.<DOMAIN>` |
+| Firebase `authDomain` | SDK config | `ttf-firebase-web-env` | Keep `ttf-restaurant-dev.firebaseapp.com` unless using [custom auth domain](https://firebase.google.com/docs/auth/web/custom-domain) |
+| iOS / TestFlight | API base URL | App config | `https://api.dev.<DOMAIN>` (dev) → `https://api.<DOMAIN>` (prod) |
+| Cloud SQL | Private IP | `cloud-sql` module | `ipv4_enabled = false` + VPC |
+
+**Important:** `VITE_*` values are baked at Docker build time. Terraform/LB changes alone do not update front-end bundles — rerun **Web** and **Admin Web** workflows.
+
+---
+
+## 7. DNS & TLS
 
 ### Domain verification (GCP)
 
-Before mappings work, verify domain ownership once per GCP project:
+Verify `<DOMAIN>` once per GCP project (Search Console or domain verification TXT).
 
-1. [Cloud Run → Domain mappings](https://console.cloud.google.com/run/domains) or `gcloud run domain-mappings create`.
-2. Google provides a **TXT** record for `_google-domain-verification` (or use Search Console verification).
-3. After verification, create mappings per service; Google shows required **CNAME** or **A/AAAA** records.
+With **load balancer + managed certificates** (recommended for VPC + IAP):
 
-### Typical records (subdomains)
+1. Terraform creates `google_certificate_manager_certificate` (or classic managed SSL certs) for each hostname.
+2. DNS points hostnames at the **load balancer IP** (A/AAAA), not per-service Cloud Run domain mappings.
 
-For `app.<DOMAIN>` → `ttf-web`:
+Legacy `google_cloud_run_domain_mapping` is still valid for a quick POC without VPC, but **conflicts with the segmented target** — prefer LB host rules once VPC work starts.
+
+### Typical records (dev segment, LB front door)
 
 | Type | Name | Target |
 |------|------|--------|
-| CNAME | `app` | `ghs.googlehosted.com` (exact target shown in Cloud Run UI after mapping) |
+| A / AAAA | `app.dev` | External LB IP |
+| A / AAAA | `api.dev` | Same LB (host-based routing) or separate LB |
+| A / AAAA | `admin.dev` | Admin LB (IAP-enabled backend) |
+| TXT | `_google-domain-verification` | From GCP verification |
 
-For `api.<DOMAIN>` → `ttf-api`: same pattern with name `api`.
-
-Cloud Run provisions **managed TLS** for mapped domains automatically once DNS propagates.
+Managed certs provision after DNS propagates.
 
 ### Apex `<DOMAIN>`
 
 | Option | Mechanism |
 |--------|-----------|
-| Registrar redirect | `https://<DOMAIN>` → `https://app.<DOMAIN>` (easiest) |
-| Cloud Load Balancer | A/AAAA to LB → serverless NEG → Cloud Run (Terraform-heavy) |
-| `www` only | Skip apex; use `www.<DOMAIN>` as canonical web host |
+| Registrar redirect | `https://<DOMAIN>` → `https://app.<DOMAIN>` when prod launches |
+| Marketing only | Apex on Webflow/Notion; app stays on `app.*` |
 
 ### TTL & cutover
 
-- Lower TTL on affected records to **300s** before cutover.
-- Keep `*.run.app` URLs active; do not remove Cloud Run default URLs until custom domain is verified end-to-end.
+- Lower TTL to **300s** before cutover.
+- Keep `*.run.app` as break-glass until LB hostnames pass the verification checklist.
 
 ---
 
-## 7. Terraform Changes (Proposed)
+## 8. Terraform Changes (Proposed)
 
 Introduce variables in `infra/terraform/environments/dev/variables.tf`:
 
 ```hcl
-variable "web_custom_domain" {
+variable "dns_environment" {
   type        = string
-  description = "Browser-facing hostname for ttf-web (e.g. app.example.com). Empty = run.app only."
+  description = "DNS segment: dev → app.dev.example.com; prod → app.example.com"
+  default     = "dev"
+}
+
+variable "dns_base_domain" {
+  type        = string
+  description = "Registrable domain (example.com). Empty = run.app only."
   default     = ""
 }
 
-variable "api_custom_domain" {
-  type        = string
-  description = "API hostname for ttf-api (e.g. api.example.com). Empty = run.app only."
-  default     = ""
+locals {
+  dns_suffix = var.dns_base_domain != "" ? (
+    var.dns_environment == "dev" ? ".dev.${var.dns_base_domain}" : ".${var.dns_base_domain}"
+  ) : ""
+  web_fqdn   = var.dns_base_domain != "" ? "app${local.dns_suffix}" : ""
+  api_fqdn   = var.dns_base_domain != "" ? "api${local.dns_suffix}" : ""
+  admin_fqdn = var.dns_base_domain != "" ? "admin${local.dns_suffix}" : ""
 }
 ```
 
-### New file: `domains.tf` (sketch)
+### New modules (priority order)
+
+1. **`modules/vpc`** — network, subnet, Serverless VPC Access connector, Service Networking for Cloud SQL.
+2. **`modules/serverless-lb`** — external HTTPS LB, serverless NEGs per Cloud Run service, managed certs, URL maps (`app.dev.*` → `ttf-web`, `api.dev.*` → `ttf-api`, `admin.dev.*` → `ttf-admin-web`).
+3. **`modules/iap`** — IAP OAuth client + `google_iap_web_backend_service_iam_binding` for admin backend (Google Group allowlist).
+4. **`admin-web.tf`** — third `cloud-run-static` instance, `ingress = INTERNAL_LOAD_BALANCER`.
+
+Update **`modules/cloud-sql`**: `ipv4_enabled = false`, `private_network` = VPC self link.
+
+Update **`phase-b.tf`** `CORS_ORIGINS`:
 
 ```hcl
-resource "google_cloud_run_domain_mapping" "web" {
-  count    = var.enable_web_cloud_run && var.web_custom_domain != "" ? 1 : 0
-  location = var.region
-  name     = var.web_custom_domain
-
-  metadata {
-    namespace = var.project_id
-  }
-
-  spec {
-    route_name = module.cloud_run_web[0].service_name # add output if missing
-  }
-}
-
-resource "google_cloud_run_domain_mapping" "api" {
-  count    = var.enable_cloud_run && var.api_custom_domain != "" ? 1 : 0
-  location = var.region
-  name     = var.api_custom_domain
-  # ... same pattern for ttf-api
-}
+concat(
+  ["http://localhost:5173", ...],
+  local.web_fqdn != "" ? ["https://${local.web_fqdn}", "https://${local.admin_fqdn}"] : [],
+)
 ```
 
-> **Note:** Confirm resource compatibility with `google_cloud_run_v2_service` in your provider version; domain mapping resources target the Cloud Run **service name** in the project/region. Add module outputs for service names if not already exposed.
+Update **`firebase-auth.tf`** `authorized_domains` with `local.web_fqdn` and `local.admin_fqdn`.
 
-### Wire domains into existing modules
+### API URL secrets for CI
 
-**`firebase-auth.tf`** — extend `authorized_domains`:
+Store in Secret Manager (Terraform-managed):
 
-```hcl
-var.web_custom_domain != "" ? [var.web_custom_domain] : []
-```
+- `ttf-api-public-url` → `https://${local.api_fqdn}`
+- `ttf-web-public-url` → `https://${local.web_fqdn}`
 
-**`phase-b.tf`** — extend `CORS_ORIGINS`:
-
-```hcl
-var.web_custom_domain != "" ? ["https://${var.web_custom_domain}"] : []
-```
-
-**`maps-web.tf`** — extend referrers:
-
-```hcl
-var.web_custom_domain != "" ? ["https://${var.web_custom_domain}/*"] : []
-```
-
-### API URL for web builds
-
-Today `web.yml` discovers API URL via `gcloud run services describe ttf-api`. Options:
-
-| Option | Description |
-|--------|-------------|
-| **A. Secret** | Store `https://api.<DOMAIN>` in Secret Manager; Terraform writes it when `api_custom_domain` is set; `web.yml` prefers secret over `gcloud describe` |
-| **B. Terraform output only** | Manual `workflow_dispatch` input until secret exists |
-| **C. Keep run.app for API** | Custom domain only on web; CORS still needs web custom origin |
-
-**Recommendation:** **A** — single source of truth, works for iOS config later (`ttf-api-base-url` secret).
+`web.yml` and `admin-web.yml` read secrets instead of `gcloud run services describe`.
 
 ### Optional: `google_dns_managed_zone`
 
-Only if the domain’s DNS is delegated to **Cloud DNS**. If DNS stays at Namecheap, Cloudflare, etc., apply records manually from Terraform outputs or a small `docs/` runbook table — do not create a managed zone unless you plan to move DNS to GCP.
+Use if DNS moves to **Cloud DNS**; otherwise output LB IPs and record table for your registrar (Cloudflare, etc.).
 
 ---
 
-## 8. Console & CI Changes
+## 9. Console & CI Changes
 
 ### One-time / manual (unless codified later)
 
 | Task | Location |
 |------|----------|
-| Verify domain in GCP | Cloud Run domain mappings |
-| Add DNS records | Domain registrar |
-| reCAPTCHA allowed domains | [reCAPTCHA Enterprise](https://console.cloud.google.com/security/recaptcha) |
-| OAuth JavaScript origins | [APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials) → Web client used by Firebase Google sign-in |
-| Apex redirect | Registrar or load balancer |
+| Verify domain in GCP | Search Console / domain verification |
+| IAP OAuth consent | OAuth brand for admin LB |
+| IAP access list | Google Group for operators |
+| Add DNS A/AAAA to LB IPs | Registrar or Cloud DNS |
+| reCAPTCHA allowed domains | `app.dev.<DOMAIN>` only (public) |
+| OAuth JavaScript origins | `app.dev.<DOMAIN>`, `admin.dev.<DOMAIN>` |
 
-### `.github/workflows/web.yml`
+### Workflows
 
-After Terraform stores public URLs in Secret Manager:
-
-1. Read `ttf-web-public-url` / `ttf-api-public-url` (names TBD) when present.
-2. Fall back to `gcloud run services describe` for backward compatibility.
-3. Re-run **Web** workflow after Terraform apply so `VITE_API_URL` matches `api.<DOMAIN>`.
+| Workflow | Deploys |
+|----------|---------|
+| `web.yml` | `ttf-web` → `app.dev.<DOMAIN>` |
+| `admin-web.yml` *(new)* | `ttf-admin-web` → `admin.dev.<DOMAIN>` |
+| `api.yml` | `ttf-api` (unchanged image path; ingress via LB) |
+| `terraform.yml` | VPC, SQL private IP, LB, IAP, secrets |
 
 ### Deploy order
 
 ```text
-1. Terraform: domain mappings + authorized_domains + CORS + maps referrers + secrets
-2. DNS: add records at registrar; wait for propagation
-3. Console: reCAPTCHA + OAuth origins
-4. Web workflow: rebuild with new VITE_API_URL
-5. Smoke test (checklist below)
+1. Terraform: VPC + private Cloud SQL + connectors (may need brief SQL cutover)
+2. Terraform: serverless LB + certs + IAP on admin backend
+3. DNS: A/AAAA for app.dev, api.dev, admin.dev
+4. Split admin build; deploy ttf-admin-web
+5. Console: reCAPTCHA + OAuth origins
+6. Web + admin-web workflows with secret-based VITE_API_URL
+7. Remove /admin routes from public web build
+8. Smoke test (checklist below)
 ```
-
-Path-filtered workflows: changes under `infra/**` trigger **Terraform**; `web/**` triggers **Web**. A domain-only infra change needs Terraform apply **and** a Web redeploy (manual `workflow_dispatch` on Web if `web/` did not change).
 
 ---
 
-## 9. Implementation Phases
+## 10. Implementation Phases
 
-### Phase 0 — Decisions (you)
+### Phase 0 — Decisions
 
-- [ ] Confirm apex vs `app.` vs `www.` canonical hostname
-- [ ] Confirm `api.<DOMAIN>` hostname
-- [ ] Confirm DNS stays at registrar vs move to Cloud DNS
-- [ ] Fill in `<DOMAIN>` in this doc or `terraform.tfvars`
+- [ ] Confirm `<DOMAIN>` and convention (`app.dev.<DOMAIN>` vs `dev.app.<DOMAIN>`)
+- [ ] IAP allowlist Google Group for admin
+- [ ] DNS at registrar vs Cloud DNS
+- [ ] Optional: Cloud Armor rules (geo, rate limit) on public LB
 
-### Phase 1 — Domain verification (no user impact)
+### Phase 1 — VPC foundation (no public DNS yet)
 
-- [ ] Verify `<DOMAIN>` in GCP (TXT record)
-- [ ] Add Terraform variables (empty default); plan only
+- [ ] `modules/vpc` + private Cloud SQL migration
+- [ ] VPC connector on Cloud Run services
+- [ ] Verify API health via connector (still on `run.app` temporarily if needed)
 
-### Phase 2 — API custom domain
+### Phase 2 — Load balancers + dev DNS
 
-- [ ] `google_cloud_run_domain_mapping` for `api.<DOMAIN>`
-- [ ] DNS CNAME for `api`
-- [ ] Wait for TLS active
-- [ ] `curl https://api.<DOMAIN>/health`
-- [ ] Store public API URL in Secret Manager (optional but recommended)
+- [ ] `modules/serverless-lb` with `app.dev`, `api.dev`, `admin.dev` host rules
+- [ ] Managed certs + DNS records
+- [ ] `modules/iap` on admin backend
+- [ ] Secrets: public URLs for CI
 
-### Phase 3 — Web custom domain
+### Phase 3 — Split admin site
 
-- [ ] Domain mapping for `app.<DOMAIN>`
-- [ ] Terraform: authorized domains, CORS, Maps referrers
-- [ ] DNS CNAME for `app`
-- [ ] Console: reCAPTCHA + OAuth origins
-- [ ] Rebuild/deploy web with `VITE_API_URL=https://api.<DOMAIN>`
-- [ ] Test login, map, TTF submit, `/admin`
+- [ ] Admin-only Vite build + `ttf-admin-web` Terraform
+- [ ] `admin-web.yml` CI
+- [ ] Firebase authorized domains + CORS for admin origin
+- [ ] Remove `/admin` from public `ttf-web` bundle
 
-### Phase 4 — Apex & cleanup
+### Phase 4 — Public app on dev hostname
 
-- [ ] Registrar redirect `<DOMAIN>` → `app.<DOMAIN>`
-- [ ] Update any hardcoded `run.app` links in docs/scripts
-- [ ] Optional: remove `run.app` hostnames from CORS after soak period
+- [ ] `web.yml` uses `https://api.dev.<DOMAIN>`
+- [ ] Maps + App Check for `app.dev.<DOMAIN>` only
+- [ ] End-to-end pilot on dev segment
 
 ### Phase 5 — Prod mirror
 
-When `ttf-restaurant-prod` exists, repeat with prod hostnames (e.g. `app.<DOMAIN>` on prod project or env-specific subdomains like `app.dev.<DOMAIN>`).
+- [ ] `ttf-restaurant-prod` + `ttf-vpc-prod` + `app.<DOMAIN>` / `api.<DOMAIN>` / `admin.<DOMAIN>`
+- [ ] Separate Firebase project and secrets (no shared dev prod keys)
 
 ---
 
-## 10. Verification Checklist
+## 11. Verification Checklist
 
 Run after each phase. Replace hostnames with your values.
 
 ### DNS & TLS
 
-- [ ] `dig app.<DOMAIN>` / `dig api.<DOMAIN>` returns expected CNAME
-- [ ] `curl -I https://app.<DOMAIN>` → `200` (or `304`)
-- [ ] `curl -I https://api.<DOMAIN>/health` → `200`
+- [ ] `dig app.dev.<DOMAIN>` / `api.dev.<DOMAIN>` / `admin.dev.<DOMAIN>` → LB IP
+- [ ] Managed certs ACTIVE on all three hostnames
+- [ ] `curl -I https://api.dev.<DOMAIN>/health` → `200`
 
-### Firebase Auth
+### VPC
 
-- [ ] Email/password sign-in on `https://app.<DOMAIN>/login`
-- [ ] Google sign-in (no `redirect_uri_mismatch` / `unauthorized-domain`)
-- [ ] MFA enrollment on `/account` if enabled
+- [ ] Cloud SQL has no public IP; Cloud Run connects via connector
+- [ ] Cloud Run ingress is LB-only (direct `run.app` not required for users)
+
+### Firebase Auth (public + admin)
+
+- [ ] Sign-in on `https://app.dev.<DOMAIN>/login`
+- [ ] Sign-in on `https://admin.dev.<DOMAIN>` (after IAP)
+- [ ] Google OAuth works on both origins
 
 ### API & CORS
 
-- [ ] Browser network tab: API calls go to `https://api.<DOMAIN>/v1/...` without CORS errors
-- [ ] Authenticated write (e.g. TTF submit) succeeds with App Check header when enforced
+- [ ] Public app calls `https://api.dev.<DOMAIN>/v1/...` without CORS errors
+- [ ] Admin dashboard calls `/v1/admin/*` successfully
 
-### Maps & App Check
+### IAP (admin)
 
-- [ ] Map page loads tiles (no RefererNotAllowedMapError)
-- [ ] No App Check console errors on load
+- [ ] Unauthenticated request to `admin.dev.<DOMAIN>` → IAP login wall
+- [ ] Non-group Google account denied
+- [ ] Allowed operator reaches admin SPA
 
-### Admin
+### Admin isolation
 
-- [ ] `https://app.<DOMAIN>/admin` loads for user with admin claim
-- [ ] Non-admin redirected to `/restaurants`
-- [ ] Admin API stats load (`/v1/admin/stats`)
+- [ ] `https://app.dev.<DOMAIN>/admin` → 404 or redirect (removed from public bundle)
+- [ ] Admin image does not include public map routes
 
 ### Regression
 
-- [ ] `localhost:5173` dev still works
-- [ ] Old `*.run.app` URL still works until intentionally retired
+- [ ] `localhost:5173` still works
+- [ ] Break-glass `run.app` still works if kept
 
 ---
 
-## 11. Decisions Needed
+## 12. Decisions Needed
 
 | # | Question | Default recommendation |
 |---|----------|------------------------|
 | 1 | What is `<DOMAIN>`? | *(fill in)* |
-| 2 | Web hostname: `app.`, `www.`, or apex? | `app.<DOMAIN>` |
-| 3 | API hostname | `api.<DOMAIN>` |
-| 4 | Admin: path vs `admin.` subdomain? | Keep `/admin` on web hostname |
-| 5 | Custom Firebase Auth domain (`auth.<DOMAIN>`)? | Defer; use `*.firebaseapp.com` |
-| 6 | DNS provider | Registrar UI unless moving to Cloud DNS |
-| 7 | Retire `run.app` URLs after cutover? | Keep 30-day overlap |
+| 2 | Dev DNS convention | `app.dev.<DOMAIN>` (env before role) |
+| 3 | Admin separate site? | **Yes** — `ttf-admin-web` + IAP |
+| 4 | VPC per project? | **Yes** — `ttf-vpc-dev` / `ttf-vpc-prod` |
+| 5 | IAP allowlist | Google Group e.g. `ttf-ops@yourdomain.com` |
+| 6 | Custom Firebase Auth domain? | Defer |
+| 7 | DNS provider | Cloud DNS or registrar — either works with LB IPs |
+| 8 | Retire `run.app` after cutover? | Keep 30-day overlap for ops |
 
 ---
 
-## 12. Risks & Rollback
+## 13. Risks & Rollback
 
 | Risk | Mitigation |
 |------|------------|
 | DNS propagation delay | Low TTL; test with `/etc/hosts` or `curl --resolve` |
 | CORS mismatch | Terraform apply before announcing URL; test in browser |
 | Stale web build (old API URL) | Always run Web workflow after API domain change |
-| OAuth / App Check domain missing | Console checklist in Phase 3 |
-| Apex SSL complexity | Use registrar redirect instead of apex on Cloud Run |
+| OAuth / App Check domain missing | Console checklist in Phase 4 |
+| Cloud SQL private IP migration | Plan maintenance window; take backup before cutover |
+| IAP misconfiguration | Test with non-admin Google account before removing `run.app` |
+| LB + cert propagation | Allow 15–60 min; keep `run.app` until green checklist |
 
-**Rollback:** Point DNS back to previous targets (or stop using custom URLs). `*.run.app` endpoints remain unless services are deleted. Revert Terraform variables to empty strings and re-apply to drop custom domains from Firebase/CORS/Maps config.
+**Rollback:** Point DNS back to LB previous IPs or re-enable `run.app` ingress. VPC/SQL rollback is harder — take a SQL backup before private IP migration. Revert `dns_base_domain` to `""` in Terraform to drop custom hostnames from Firebase/CORS.
 
 ---
 
-## 13. Related Docs
+## 14. Related Docs
 
 | Doc | Relevance |
 |-----|-----------|
@@ -455,18 +573,17 @@ Run after each phase. Replace hostnames with your values.
 ## Appendix A — Example `terraform.tfvars` (gitignored)
 
 ```hcl
-# After domain verification in GCP:
-web_custom_domain = "app.example.com"
-api_custom_domain = "api.example.com"
+dns_base_domain = "example.com"
+dns_environment = "dev"   # → app.dev.example.com, api.dev.example.com, admin.dev.example.com
 ```
 
-## Appendix B — Example registrar DNS (illustrative)
+## Appendix B — Example registrar DNS (dev segment, LB front door)
 
 | Type | Host | Value |
 |------|------|-------|
-| TXT | `@` or `_google-domain-verification` | *(from GCP verification)* |
-| CNAME | `app` | *(from Cloud Run mapping for ttf-web)* |
-| CNAME | `api` | *(from Cloud Run mapping for ttf-api)* |
-| URL redirect | `@` | `https://app.example.com` |
+| TXT | `@` | *(domain verification)* |
+| A | `app.dev` | *(external LB IP from Terraform output)* |
+| A | `api.dev` | *(same or dedicated LB IP)* |
+| A | `admin.dev` | *(admin LB IP — may match public LB with host rules)* |
 
-Exact CNAME targets are **not** generic — copy them from the Cloud Run domain mapping screen after creation.
+Prod (later): identical pattern without `.dev` (`app`, `api`, `admin`).
