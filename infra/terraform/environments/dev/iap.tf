@@ -15,8 +15,8 @@ locals {
 
   iap_oauth_bootstrap = (
     local.iap_oauth_enabled
-    && var.iap_oauth_client_id != ""
-    && var.iap_oauth_client_secret != ""
+    && length(nonsensitive(var.iap_oauth_client_id)) > 0
+    && length(nonsensitive(var.iap_oauth_client_secret)) > 0
   )
 
   # When TF vars are set this run, use them directly (also writes SM version).

@@ -111,6 +111,7 @@ output "admin_iap_enabled" {
 output "iap_oauth_configured" {
   description = "Whether IAP OAuth credentials are available (bootstrap vars or ttf-iap-oauth secret)"
   value       = local.iap_oauth_enabled && (local.iap_oauth_bootstrap || local.iap_oauth_read_secret)
+  sensitive   = false
 }
 
 output "public_urls" {
