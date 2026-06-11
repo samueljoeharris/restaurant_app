@@ -58,6 +58,51 @@ class RestaurantDetailResponse(BaseModel):
     ttf: TtfAggregate = Field(default_factory=TtfAggregate)
 
 
+class RestaurantSeedJobRequest(BaseModel):
+    location: str | None = Field(None, min_length=2, max_length=200)
+    lat: float | None = None
+    lng: float | None = None
+    radius_m: int = Field(default=8000, ge=1000, le=25000)
+    force: bool = False
+
+    @model_validator(mode="after")
+    def require_location_or_coordinates(self) -> "RestaurantSeedJobRequest":
+        has_location = bool(self.location and self.location.strip())
+        has_lat_lng = self.lat is not None and self.lng is not None
+        if has_location == has_lat_lng:
+            raise ValueError("Provide either location or both lat and lng")
+        return self
+
+
+class RestaurantSeedJob(BaseModel):
+    id: UUID
+    pilot_city: str
+    area_key: str
+    query: str | None = None
+    lat: float
+    lng: float
+    radius_m: int
+    refresh: bool = False
+    status: Literal["pending", "running", "succeeded", "failed", "skipped"]
+    error: str | None = None
+    inserted_count: int = 0
+    updated_count: int = 0
+    closed_count: int = 0
+    outside_area_count: int = 0
+    skipped_count: int = 0
+    out_of_area_count: int = 0
+    unique_places_count: int = 0
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class RestaurantSeedJobResponse(BaseModel):
+    job: RestaurantSeedJob
+    reused: bool = False
+
+
 class UserProfile(BaseModel):
     firebase_uid: str
     display_name: str | None = None

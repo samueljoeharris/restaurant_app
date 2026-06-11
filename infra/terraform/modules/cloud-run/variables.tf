@@ -36,6 +36,15 @@ variable "container_env" {
   default     = {}
 }
 
+variable "secret_env" {
+  type = map(object({
+    secret  = string
+    version = optional(string, "latest")
+  }))
+  description = "Secret Manager env vars for the API container"
+  default     = {}
+}
+
 variable "invoker_members" {
   type        = list(string)
   description = "IAM members allowed to invoke Cloud Run (public: allUsers)"

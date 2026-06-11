@@ -2,14 +2,16 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from psycopg.types.json import Jsonb
 
 from ttf_api.aggregates import build_attribute_aggregates
-from ttf_api.auth import AuthUser
+from ttf_api.auth import AuthUser, get_current_user
 from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
+from ttf_api.places_seed import PlacesSeedError
+from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area, run_seed_job
 from ttf_api.schemas import (
     AttributeSubmissionRequest,
     AttributeSubmissionResponse,
@@ -18,6 +20,9 @@ from ttf_api.schemas import (
     NoteSubmissionResponse,
     RestaurantDetail,
     RestaurantDetailResponse,
+    RestaurantSeedJob,
+    RestaurantSeedJobRequest,
+    RestaurantSeedJobResponse,
     RestaurantMapEntry,
     RestaurantSummary,
     TtfAggregate,
@@ -75,12 +80,23 @@ def _fetch_ttf_aggregate(conn, restaurant_id: UUID) -> TtfAggregate:
 
 def _ensure_restaurant(conn, restaurant_id: UUID) -> dict:
     row = conn.execute(
-        "SELECT * FROM restaurants WHERE id = %s AND pilot_city = %s",
+        "SELECT * FROM restaurants WHERE id = %s AND pilot_city = %s AND status = 'active'",
         (restaurant_id, settings.pilot_city),
     ).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Restaurant not found")
     return row
+
+
+def _seed_job_response(row: dict, reused: bool = False) -> RestaurantSeedJobResponse:
+    return RestaurantSeedJobResponse(job=RestaurantSeedJob(**row), reused=reused)
+
+
+def _raise_seed_error(exc: PlacesSeedError) -> None:
+    status_code = status.HTTP_400_BAD_REQUEST
+    if "MAPS_API_KEY" in str(exc):
+        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    raise HTTPException(status_code=status_code, detail=str(exc)) from exc
 
 
 @router.get("", response_model=list[RestaurantSummary])
@@ -89,7 +105,7 @@ def list_restaurants(
     cuisine: str | None = Query(None, description="Filter by cuisine tag"),
 ) -> list[RestaurantSummary]:
     pilot = settings.pilot_city
-    clauses = ["pilot_city = %s"]
+    clauses = ["pilot_city = %s", "status = 'active'"]
     params: list[object] = [pilot]
 
     if q:
@@ -142,7 +158,7 @@ def list_restaurants_for_map() -> list[RestaurantMapEntry]:
             FROM restaurant_attribute_ratings
             WHERE restaurant_id = r.id
         ) a ON true
-        WHERE r.pilot_city = %s
+        WHERE r.pilot_city = %s AND r.status = 'active'
         ORDER BY r.name
     """
     with get_conn() as conn:
@@ -173,6 +189,43 @@ def list_restaurants_for_map() -> list[RestaurantMapEntry]:
             )
         )
     return results
+
+
+@router.post(
+    "/seed-jobs",
+    response_model=RestaurantSeedJobResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def trigger_restaurant_seed_job(
+    body: RestaurantSeedJobRequest,
+    background_tasks: BackgroundTasks,
+    user: Annotated[AuthUser, Depends(require_write_access)],
+) -> RestaurantSeedJobResponse:
+    try:
+        area = resolve_seed_area(body.location, body.lat, body.lng, body.radius_m)
+    except PlacesSeedError as exc:
+        _raise_seed_error(exc)
+
+    job, reused = create_seed_job(
+        area,
+        query=body.location.strip() if body.location else area.label,
+        requested_by=user.firebase_uid,
+        force=body.force,
+    )
+    if not reused and job["status"] == "pending":
+        background_tasks.add_task(run_seed_job, job["id"])
+    return _seed_job_response(job, reused=reused)
+
+
+@router.get("/seed-jobs/{job_id}", response_model=RestaurantSeedJobResponse)
+def get_restaurant_seed_job(
+    job_id: UUID,
+    _user: Annotated[AuthUser, Depends(get_current_user)],
+) -> RestaurantSeedJobResponse:
+    job = get_seed_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Seed job not found")
+    return _seed_job_response(job)
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantDetailResponse)

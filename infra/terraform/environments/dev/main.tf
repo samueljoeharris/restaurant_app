@@ -24,6 +24,7 @@ locals {
     "run.googleapis.com",
     "sqladmin.googleapis.com",
     "servicenetworking.googleapis.com",
+    "cloudscheduler.googleapis.com",
   ]
 
   # Custom domains — global HTTPS load balancer + managed certs
