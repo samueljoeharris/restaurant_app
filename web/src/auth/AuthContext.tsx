@@ -15,6 +15,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type { ReactNode } from "react";
@@ -93,6 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [reauthMfaResolver, setReauthMfaResolver] =
     useState<MultiFactorResolver | null>(null);
   const [redirectError, setRedirectError] = useState<string | null>(null);
+  const [redirectReady, setRedirectReady] = useState(isAdminSite);
+  const [authListenerReady, setAuthListenerReady] = useState(false);
+  const redirectCheckedRef = useRef(false);
 
   const syncUser = useCallback(async (next: User | null, forceRefresh = false) => {
     setUser(next);
@@ -110,14 +114,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isAdminSite) return;
 
-    getRedirectResult(auth)
-      .then(async (result) => {
+    let cancelled = false;
+
+    (async () => {
+      if (redirectCheckedRef.current) {
+        if (!cancelled) setRedirectReady(true);
+        return;
+      }
+      redirectCheckedRef.current = true;
+
+      try {
+        const result = await getRedirectResult(auth);
+        if (cancelled) return;
         if (result?.user) {
           setRedirectError(null);
           await syncUser(result.user);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
+        if (cancelled) return;
         const resolver = getTotpResolver(auth, err);
         if (resolver) {
           setRedirectError(null);
@@ -126,7 +140,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         console.error("Firebase redirect sign-in failed", err);
         setRedirectError(authErrorMessage(err));
-      });
+      } finally {
+        if (!cancelled) setRedirectReady(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [syncUser]);
 
   useEffect(() => {
@@ -157,11 +178,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return onAuthStateChanged(auth, async (next) => {
       await syncUser(next);
-      if (iapBootstrapDone) {
-        setLoading(false);
-      }
+      setAuthListenerReady(true);
     });
-  }, [syncUser, iapBootstrapDone]);
+  }, [syncUser]);
+
+  useEffect(() => {
+    setLoading(!(redirectReady && authListenerReady && iapBootstrapDone));
+  }, [redirectReady, authListenerReady, iapBootstrapDone]);
 
   const runSignIn = async (fn: () => Promise<void>) => {
     setMfaResolver(null);

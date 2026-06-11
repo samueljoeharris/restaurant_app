@@ -7,10 +7,12 @@ import { defaultAuthedPath, isAdminSite, PUBLIC_APP_URL } from "../buildTarget";
 import { MfaChallengeForm } from "../components/MfaChallengeForm";
 import { Button, ButtonAnchor } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { Skeleton } from "../components/ui/Skeleton";
 
 export function LoginPage() {
   const {
     user,
+    loading,
     isAdmin,
     iapAccessDenied,
     mfaResolver,
@@ -25,6 +27,20 @@ export function LoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  if (loading) {
+    return (
+      <div className={`auth-page${isAdminSite ? " auth-page--admin" : ""}`}>
+        <main className="page page--narrow page-enter">
+          <div className="auth-hero">
+            <div className="auth-hero__mark">🔭</div>
+            <Skeleton className="ui-skeleton--title" />
+            <Skeleton className="ui-skeleton--line" />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (user) {
     if (isAdminSite) {
