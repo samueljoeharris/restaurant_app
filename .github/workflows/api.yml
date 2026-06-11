@@ -14,6 +14,7 @@ env:
   AR_REPO: ttf-containers
   IMAGE_NAME: ttf-api
   CLOUD_RUN_SERVICE: ttf-api
+  REFRESH_JOB: ttf-restaurant-refresh
 
 concurrency:
   group: api-dev-${{ github.ref }}
@@ -71,3 +72,13 @@ jobs:
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
             --image="${IMAGE_URI}"
+
+          if gcloud run jobs describe "${{ env.REFRESH_JOB }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --format="value(name)" 2>/dev/null; then
+            gcloud run jobs update "${{ env.REFRESH_JOB }}" \
+              --region="${{ env.REGION }}" \
+              --project="${{ env.PROJECT_ID }}" \
+              --image="${IMAGE_URI}"
+          fi

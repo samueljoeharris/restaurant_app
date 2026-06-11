@@ -23,17 +23,8 @@ resource "google_secret_manager_secret_version" "db_url" {
   depends_on = [module.cloud_sql, module.secrets]
 }
 
-module "cloud_run" {
-  count  = var.enable_cloud_run ? 1 : 0
-  source = "../../modules/cloud-run"
-
-  project_id                = var.project_id
-  region                    = var.region
-  image                     = var.api_image
-  service_account_email     = module.iam.api_runtime_email
-  cloud_sql_connection_name = module.cloud_sql[0].connection_name
-  database_url_secret_id    = "ttf-db-url"
-  file_secret_mounts = var.firebase_admin_sa_configured ? [
+locals {
+  api_file_secret_mounts = var.firebase_admin_sa_configured ? [
     {
       volume_name = "firebase-admin-sa"
       secret_name = module.secrets.secret_resource_names["ttf-firebase-admin-sa"]
@@ -41,7 +32,15 @@ module "cloud_run" {
       file_name   = "firebase-sa.json"
     },
   ] : []
-  container_env = merge({
+
+  api_secret_env = {
+    MAPS_API_KEY = {
+      secret  = "ttf-maps-api-key"
+      version = "latest"
+    }
+  }
+
+  api_container_env = merge({
     PILOT_CITY                = "dedham-ma"
     PILOT_DISPLAY_NAME        = "Dedham, Massachusetts"
     FIREBASE_PROJECT_ID       = var.project_id
@@ -63,11 +62,156 @@ module "cloud_run" {
       GCP_PROJECT_NUMBER        = data.google_project.current.number
     } : {},
   ))
+}
+
+module "cloud_run" {
+  count  = var.enable_cloud_run ? 1 : 0
+  source = "../../modules/cloud-run"
+
+  project_id                = var.project_id
+  region                    = var.region
+  image                     = var.api_image
+  service_account_email     = module.iam.api_runtime_email
+  cloud_sql_connection_name = module.cloud_sql[0].connection_name
+  database_url_secret_id    = "ttf-db-url"
+  secret_env                = local.api_secret_env
+  file_secret_mounts        = local.api_file_secret_mounts
+  container_env             = local.api_container_env
 
   depends_on = [
     module.iam,
     module.cloud_sql,
     google_secret_manager_secret_version.db_url,
     google_artifact_registry_repository_iam_member.api_runtime_reader,
+  ]
+}
+
+resource "google_cloud_run_v2_job" "restaurant_refresh" {
+  count = var.enable_cloud_run ? 1 : 0
+
+  name     = "ttf-restaurant-refresh"
+  project  = var.project_id
+  location = var.region
+
+  template {
+    template {
+      service_account = module.iam.api_runtime_email
+
+      volumes {
+        name = "cloudsql"
+        cloud_sql_instance {
+          instances = [module.cloud_sql[0].connection_name]
+        }
+      }
+
+      dynamic "volumes" {
+        for_each = local.api_file_secret_mounts
+        content {
+          name = volumes.value.volume_name
+          secret {
+            secret = volumes.value.secret_name
+            items {
+              version = "latest"
+              path    = volumes.value.file_name
+            }
+          }
+        }
+      }
+
+      containers {
+        image   = var.api_image
+        command = ["python", "-m", "ttf_api.jobs.refresh_restaurants"]
+
+        volume_mounts {
+          name       = "cloudsql"
+          mount_path = "/cloudsql"
+        }
+
+        dynamic "volume_mounts" {
+          for_each = local.api_file_secret_mounts
+          content {
+            name       = volume_mounts.value.volume_name
+            mount_path = volume_mounts.value.mount_path
+          }
+        }
+
+        env {
+          name = "DATABASE_URL"
+          value_source {
+            secret_key_ref {
+              secret  = "ttf-db-url"
+              version = "latest"
+            }
+          }
+        }
+
+        dynamic "env" {
+          for_each = local.api_container_env
+          content {
+            name  = env.key
+            value = env.value
+          }
+        }
+
+        dynamic "env" {
+          for_each = local.api_secret_env
+          content {
+            name = env.key
+            value_source {
+              secret_key_ref {
+                secret  = env.value.secret
+                version = env.value.version
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].template[0].containers[0].image,
+    ]
+  }
+
+  depends_on = [
+    module.iam,
+    module.cloud_sql,
+    google_secret_manager_secret_version.db_url,
+    google_artifact_registry_repository_iam_member.api_runtime_reader,
+  ]
+}
+
+resource "google_project_iam_member" "api_runtime_run_developer" {
+  count = var.enable_cloud_run ? 1 : 0
+
+  project = var.project_id
+  role    = "roles/run.developer"
+  member  = "serviceAccount:${module.iam.api_runtime_email}"
+}
+
+resource "google_cloud_scheduler_job" "restaurant_refresh" {
+  count = var.enable_cloud_run ? 1 : 0
+
+  name        = "ttf-restaurant-refresh-weekly"
+  project     = var.project_id
+  region      = var.region
+  description = "Refresh Little Scout restaurant catalog from Google Places"
+  schedule    = "0 9 * * 1"
+  time_zone   = "America/New_York"
+
+  http_target {
+    http_method = "POST"
+    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${google_cloud_run_v2_job.restaurant_refresh[0].name}:run"
+
+    oauth_token {
+      service_account_email = module.iam.api_runtime_email
+    }
+  }
+
+  depends_on = [
+    google_cloud_run_v2_job.restaurant_refresh,
+    google_project_iam_member.api_runtime_run_developer,
   ]
 }

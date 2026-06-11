@@ -74,7 +74,7 @@ Terraform: `infra/terraform/environments/dev/` with `dns_base_domain = "littlesc
 | API CORS origins | `phase-b.tf` |
 | Maps key referrers (public web only) | `maps-web.tf` |
 | Secrets `ttf-api-public-url`, `ttf-web-public-url`, `ttf-admin-public-url` | `networking.tf` |
-| IAP on admin backend | `networking.tf`, `ci.tfvars` |
+| IAP on admin backend | `networking.tf`, `ci.tfvars`, `iap.tf` |
 
 After `terraform apply`, get DNS targets:
 
@@ -290,7 +290,7 @@ Firebase Auth stays on `ttf-restaurant-dev` for dev builds. Use a separate Fireb
 - [ ] `https://admin.dev.littlescout.app` → IAP Google sign-in → admin dashboard
 - [ ] Admin stats load (`/v1/admin/stats`)
 - [ ] iOS simulator/device hits `api.dev.littlescout.app`
-- [ ] `https://app.dev.littlescout.app/admin` does **not** exist (removed from public bundle)
+- [ ] `https://app.dev.littlescout.app/admin` redirects to `https://admin.dev.littlescout.app` (admin UI is not served from the public app bundle)
 
 ---
 
