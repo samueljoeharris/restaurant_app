@@ -74,9 +74,9 @@ module "cloud_run" {
   service_account_email     = module.iam.api_runtime_email
   cloud_sql_connection_name = module.cloud_sql[0].connection_name
   database_url_secret_id    = "ttf-db-url"
-  secret_env                 = local.api_secret_env
-  file_secret_mounts         = local.api_file_secret_mounts
-  container_env              = local.api_container_env
+  secret_env                = local.api_secret_env
+  file_secret_mounts        = local.api_file_secret_mounts
+  container_env             = local.api_container_env
 
   depends_on = [
     module.iam,
