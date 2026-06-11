@@ -30,6 +30,8 @@ enable_cloud_run = false
 # enable_admin_cloud_run = true
 # enable_admin_iap        = true   # default true when admin is deployed
 # iap_admin_members       = ["user:you@gmail.com"]
-# Optional custom OAuth client (Console → Security → IAP) if Google-managed client is insufficient:
+# IAP OAuth: create client in Console (Security → IAP), then either:
+#   - GitHub Environment secrets IAP_OAUTH_CLIENT_ID / IAP_OAUTH_CLIENT_SECRET, or
+#   - local terraform.tfvars / ./scripts/bootstrap-iap-oauth-secret.sh
 # iap_oauth_client_id     = "....apps.googleusercontent.com"
 # iap_oauth_client_secret = "..."

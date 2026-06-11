@@ -49,6 +49,9 @@ jobs:
         run: terraform init -input=false
 
       - name: Terraform Plan
+        env:
+          TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
+          TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
         run: terraform plan -input=false -no-color -var-file=ci.tfvars -out=tfplan
         id: plan
 

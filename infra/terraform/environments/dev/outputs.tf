@@ -108,6 +108,12 @@ output "admin_iap_enabled" {
   value       = var.enable_custom_domains && var.enable_admin_cloud_run && var.enable_admin_iap
 }
 
+output "iap_oauth_configured" {
+  description = "Whether IAP OAuth client credentials are loaded (ttf-iap-oauth secret or TF_VAR bootstrap)"
+  value       = local.iap_oauth_enabled && local.iap_oauth_client_id_effective != ""
+  sensitive   = false
+}
+
 output "public_urls" {
   description = "Canonical HTTPS origins after DNS cutover"
   value = var.enable_custom_domains ? {

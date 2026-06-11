@@ -46,6 +46,7 @@ locals {
     var.enable_cloud_run ? ["ttf-firebase-admin-sa"] : [],
     var.enable_custom_domains ? ["ttf-api-public-url", "ttf-web-public-url"] : [],
     var.enable_custom_domains && var.enable_admin_cloud_run ? ["ttf-admin-public-url"] : [],
+    var.enable_custom_domains && var.enable_admin_cloud_run && var.enable_admin_iap ? ["ttf-iap-oauth"] : [],
   )
 
   database_url = var.enable_cloud_sql ? format(

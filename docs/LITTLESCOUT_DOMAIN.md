@@ -166,7 +166,9 @@ GCP-side (after DNS):
 
 ## IAP for admin intranet (enabled)
 
-`admin.dev.littlescout.app` is protected by **Identity-Aware Proxy** before traffic reaches Cloud Run. Terraform enables IAP on the admin load balancer backend using Google's **managed OAuth client** (no manual client ID/secret required).
+`admin.dev.littlescout.app` is protected by **Identity-Aware Proxy** before traffic reaches Cloud Run.
+
+Terraform enables IAP on the admin load balancer backend and reads OAuth credentials from the **`ttf-iap-oauth`** Secret Manager secret (JSON: `client_id`, `client_secret`).
 
 Configured in [`ci.tfvars`](../infra/terraform/environments/dev/ci.tfvars):
 
@@ -175,11 +177,49 @@ enable_admin_iap  = true
 iap_admin_members = ["user:samueljoeharris@gmail.com"]
 ```
 
-To add another operator, append to `iap_admin_members` (e.g. `user:colleague@gmail.com`) and `terraform apply`.
+### One-time OAuth client setup
 
-**Custom OAuth client** (only if you need branded consent or external-user edge cases): create one in [GCP Console → Security → IAP](https://console.cloud.google.com/security/iap), then set `iap_oauth_client_id` and `iap_oauth_client_secret` in gitignored `terraform.tfvars`.
+Google no longer allows creating IAP OAuth clients via Terraform (`google_iap_brand` / `google_iap_client` API is shut down). Personal Gmail projects also cannot use the auto-managed client (502: empty OAuth client).
 
-After apply, visiting `https://admin.dev.littlescout.app` prompts for Google sign-in, then the Firebase admin UI loads.
+1. [GCP Console → Security → IAP](https://console.cloud.google.com/security/iap?project=ttf-restaurant-dev)
+2. OAuth consent screen: **External**, support email = your Gmail
+3. Backend **`ttf-dev-admin-backend`** → turn **IAP ON** → create OAuth client → copy **Client ID** and **Secret**
+
+Then choose **one** bootstrap path:
+
+**A — GitHub Environment secrets (recommended for CI apply)**
+
+In repo **Settings → Environments → dev**, add:
+
+| Secret | Value |
+|--------|--------|
+| `IAP_OAUTH_CLIENT_ID` | `....apps.googleusercontent.com` |
+| `IAP_OAUTH_CLIENT_SECRET` | from Console |
+
+Push to `main` or run Terraform workflow with apply. Terraform stores credentials in `ttf-iap-oauth` and wires the backend.
+
+**B — Local / script**
+
+```bash
+# After Terraform has created the secret shell once
+IAP_OAUTH_CLIENT_ID=.... \
+IAP_OAUTH_CLIENT_SECRET=.... \
+./scripts/bootstrap-iap-oauth-secret.sh
+
+cd infra/terraform/environments/dev
+terraform apply -var-file=ci.tfvars
+```
+
+Or put the same values in gitignored `terraform.tfvars` and apply with `-var-file=terraform.tfvars` (bootstrap writes the secret version).
+
+### Verify
+
+```bash
+curl -I https://admin.dev.littlescout.app/
+# 302 to accounts.google.com — not 502
+```
+
+To add another operator, append to `iap_admin_members` (or use a `@googlegroups.com` group) and `terraform apply`.
 
 IAP handles **network edge**; Firebase `role=admin` is still required for API/UI logic.
 
@@ -259,6 +299,7 @@ Firebase Auth stays on `ttf-restaurant-dev` for dev builds. Use a separate Fireb
 | Symptom | Fix |
 |---------|-----|
 | SSL `PROVISIONING` forever | DNS A records wrong; verify with `dig app.dev.littlescout.app` |
+| `502` + empty OAuth client on admin | Add IAP OAuth creds to `ttf-iap-oauth` secret (see IAP section) |
 | `403` on admin | IAP enabled but your Google user not in `iap_admin_members` |
 | CORS errors on web | Re-run Terraform (CORS origins) + Web workflow |
 | `unauthorized-domain` Firebase | Add hostname to authorized domains |
