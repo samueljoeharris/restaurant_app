@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -42,18 +42,21 @@ function hasFastStarterData(restaurant: RestaurantMapEntry) {
   );
 }
 
+function restaurantFilterUrl(filter: RestaurantFilter, query: string) {
+  const params = new URLSearchParams();
+  if (filter !== "all") params.set("filter", filter);
+  if (query.trim()) params.set("q", query.trim());
+  const qs = params.toString();
+  return qs ? `/restaurants?${qs}` : "/restaurants";
+}
+
 export function RestaurantListPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeFilter = getFilter(searchParams.get("filter"));
-  const urlQuery = searchParams.get("q") ?? "";
+  const query = searchParams.get("q") ?? "";
   const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
-  const [query, setQuery] = useState(urlQuery);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setQuery(urlQuery);
-  }, [urlQuery]);
 
   useRefreshOnNavigate(() => {
     let cancelled = false;
@@ -108,7 +111,16 @@ export function RestaurantListPage() {
           className="search"
           placeholder="Search by name…"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            const nextQuery = e.target.value;
+            const params = new URLSearchParams(searchParams);
+            if (nextQuery.trim()) {
+              params.set("q", nextQuery);
+            } else {
+              params.delete("q");
+            }
+            setSearchParams(params, { replace: true });
+          }}
           aria-label="Search restaurants"
         />
       </div>
@@ -118,7 +130,7 @@ export function RestaurantListPage() {
           <Link
             key={filter}
             className={`explore-filter${filter === activeFilter ? " explore-filter--active" : ""}`}
-            to={filter === "all" ? "/restaurants" : `/restaurants?filter=${filter}`}
+            to={restaurantFilterUrl(filter, query)}
           >
             {filterLabels[filter]}
           </Link>
