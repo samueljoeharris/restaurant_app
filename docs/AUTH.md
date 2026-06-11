@@ -62,6 +62,8 @@ Sign in at `https://app.dev.littlescout.app/login` → **Continue with Google**.
 
 **Console-only fallback:** Enable Google in [Firebase Authentication](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) if you are not passing Terraform OAuth vars yet. Prefer Terraform so config stays in code.
 
+If apply fails with `CONFIGURATION_EXISTS`, Google was enabled in Console first. CI runs `scripts/terraform-import-google-idp.sh` before plan; locally run the same script once, then re-apply.
+
 ## MFA (authenticator app)
 
 Terraform (`modules/firebase-auth`) sets MFA to **ENABLED** (opt-in, not mandatory). **Requires a successful Terraform apply** — if you see `auth/operation-not-allowed` for TOTP, Identity Platform MFA is not enabled in GCP yet (apply failed or pending).
