@@ -53,14 +53,14 @@ export function mapPinTooltip(entry: RestaurantMapEntry): string {
 
   if (entry.ttf.sample_size >= 3) {
     lines.push(
-      `TTF: ${formatTtfMedian(entry.ttf)} median (${entry.ttf.sample_size} visits) — ${TTF_TIER_LABELS[ttfTier(entry.ttf)]}`,
+      `Speed: ${formatTtfMedian(entry.ttf)} median (${entry.ttf.sample_size} visits) — ${TTF_TIER_LABELS[ttfTier(entry.ttf)]}`,
     );
   } else if (entry.ttf.sample_size > 0) {
     lines.push(
-      `TTF: ${formatTtfMedian(entry.ttf)} from ${entry.ttf.sample_size} visit${entry.ttf.sample_size === 1 ? "" : "s"} (need 3 for tier)`,
+      `Speed: ${formatTtfMedian(entry.ttf)} from ${entry.ttf.sample_size} visit${entry.ttf.sample_size === 1 ? "" : "s"} (need 3 for tier)`,
     );
   } else {
-    lines.push("TTF: no visits logged yet");
+    lines.push("Speed: no visits logged yet");
   }
 
   if (entry.attribute_rating_count > 0) {

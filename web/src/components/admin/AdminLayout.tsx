@@ -7,7 +7,7 @@ const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin", label: "Overview", end: true },
   { to: "/admin/restaurants", label: "Restaurants" },
   { to: "/admin/users", label: "Contributors" },
-  { to: "/admin/observations", label: "TTF log" },
+  { to: "/admin/observations", label: "Observation log" },
 ];
 
 export function AdminLayout({ children }: { children: ReactNode }) {
@@ -18,8 +18,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <Link to="/admin" className="admin-sidebar__brand">
-          <span className="shell__brand-mark">🍟</span>
-          TTF Admin
+          <span className="shell__brand-mark">🔭</span>
+          Little Scout Admin
         </Link>
         <nav className="admin-sidebar__nav">
           {NAV.map((item) => {

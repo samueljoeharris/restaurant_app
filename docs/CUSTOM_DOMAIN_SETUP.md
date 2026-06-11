@@ -4,7 +4,7 @@
 **Environment:** `ttf-restaurant-dev` (GCP + Firebase) — dev hostnames first; prod mirrors later  
 **Last reviewed:** 2026-06-10
 
-This document inventories how TTF is hosted today, what must change when you attach a purchased domain, and a phased plan to do it safely. Replace `<DOMAIN>` with your real domain (e.g. `example.com`).
+This document inventories how **Little Scout** is hosted today, what must change when you attach a purchased domain, and a phased plan to do it safely. Replace `<DOMAIN>` with your real domain (e.g. `example.com`). GCP resources keep the `ttf` prefix.
 
 **Architecture direction (updated):** Segment by **environment** (`dev` vs prod DNS), deploy **admin as its own site** (separate Cloud Run service + hostname), and back separation with a **VPC** (private database, controlled ingress, IAP at the edge for admin). DNS alone does not isolate workloads — the VPC and ingress model below does.
 
@@ -121,7 +121,7 @@ The first draft recommended a `/admin` **path** because it is the fastest POC pa
 | Discoverability | `/admin` on a marketing-facing URL | Admin hostname can be omitted from public docs |
 | Deploy cadence | Ship admin UI with every public web release | Admin releases on their own workflow |
 
-**Recommendation for TTF:** Use a **separate admin site** if you care about VPC-level separation and ops isolation — which matches your goals.
+**Recommendation for Little Scout:** Use a **separate admin site** if you care about VPC-level separation and ops isolation — which matches your goals.
 
 ### Why a dev DNS segment?
 

@@ -1,4 +1,4 @@
-# Firebase Auth — TTF
+# Firebase Auth — Little Scout
 
 Auth flow for API write endpoints and future web/iOS clients.
 

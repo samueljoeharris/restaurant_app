@@ -52,8 +52,8 @@ export function AdminObservationsPage() {
     <div className="admin-page stack">
       <header className="admin-page__header">
         <div>
-          <h1>TTF log</h1>
-          <p className="muted">Recent Time to Fries submissions</p>
+          <h1>Observation log</h1>
+          <p className="muted">Recent kid food speed submissions</p>
         </div>
       </header>
 
@@ -66,7 +66,7 @@ export function AdminObservationsPage() {
             columns={[
               { key: "when", label: "When" },
               { key: "restaurant", label: "Restaurant" },
-              { key: "ttf", label: "TTF", align: "right" },
+              { key: "ttf", label: "Speed", align: "right" },
               { key: "item", label: "Item" },
               { key: "quality", label: "Quality", align: "right" },
               { key: "daypart", label: "Daypart" },
@@ -88,7 +88,7 @@ export function AdminObservationsPage() {
                 uid: <code className="admin-code">{r.firebase_uid.slice(0, 10)}…</code>,
               },
             }))}
-            emptyMessage="No TTF observations yet."
+            emptyMessage="No observations yet."
           />
           <Pagination
             total={total}

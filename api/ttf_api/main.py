@@ -16,7 +16,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="TTF Restaurant API",
-    description="Time to Fries — parent-focused restaurant ratings (Dedham pilot)",
+    description="Little Scout — parent-focused restaurant ratings (Dedham pilot)",
     version="0.1.0",
     lifespan=lifespan,
 )

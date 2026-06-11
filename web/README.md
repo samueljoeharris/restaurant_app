@@ -1,4 +1,4 @@
-# TTF Web POC
+# Little Scout Web POC
 
 Browser pilot for Dedham — Firebase Auth + Cloud Run API.
 

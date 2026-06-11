@@ -1,6 +1,6 @@
-# TTF Restaurant App — Product & Technical Design
+# Little Scout — Product & Technical Design
 
-**Working name:** TTF — *Time to Fries* (product codename; final brand TBD)  
+**Public brand:** Little Scout · **Internal codename / GCP prefix:** `ttf` (legacy: Time to Fries)  
 **Status:** Phase 2 — API scaffold  
 **MVP scope:** Dedham, Massachusetts pilot; native iOS (Swift/SwiftUI); GCP backend  
 **Agents:** See [AGENTS.md](../AGENTS.md) for AI coding agent guidance
@@ -29,7 +29,7 @@
 
 ## 1. Naming Conventions
 
-Use slug prefix **`ttf`** (Time to Fries) across cloud resources. GitHub repo name stays **`restaurant_app`** (do not rename).
+Use slug prefix **`ttf`** across cloud resources (legacy from internal codename; do not rename GCP projects). Public-facing copy uses **Little Scout**. GitHub repo name stays **`restaurant_app`** (do not rename).
 
 ### Rules
 
@@ -70,9 +70,9 @@ GCP project IDs are **globally unique**. If `ttf-restaurant-dev` is taken, appen
 | **Local Postgres URL** | `postgresql://ttf_app:ttf_local@localhost:5432/ttf` | — | Env: `LOCAL_POSTGRES_URL` |
 | **iOS Xcode project** | `TTF` | — | Path: `ios/TTF/` |
 | **iOS bundle ID** | `com.samueljoeharris.ttf` | same | |
-| **App Store Connect name** | `TTF - Time to Fries` | — | |
+| **App Store Connect name** | `Little Scout` | — | |
 | **TestFlight group** | `ttf-pilot-testers` | — | Internal: `ttf-team` |
-| **OpenAPI spec** | `TTF Restaurant API` | — | File: `api/openapi.yaml` |
+| **OpenAPI spec** | `Little Scout API` | — | File: `api/openapi.yaml` |
 
 ### Future Multi-Repo Split (if needed)
 
@@ -93,12 +93,12 @@ Existing restaurant apps (Yelp, Google Maps, OpenTable) lack **structured, paren
 
 ### Solution
 
-TTF is a social restaurant rating app focused on **parents dining with children**. It captures:
+Little Scout is a social restaurant rating app focused on **parents dining with children**. It captures:
 
 - **Pre-selected metrics** — curated schema every restaurant shares (high chairs, noise, etc.)
 - **Crowd-sourced observations** — structured submissions from real visits
 - **Restaurant-specific notes** — unique per-venue tags and freeform data
-- **TTF (Time to Fries)** — the flagship metric measuring speed, type, and quality of kid starters
+- **Kid food speed (TTF metric)** — the flagship signal measuring speed, type, and quality of kid starters
 
 ### Goals
 
@@ -247,7 +247,7 @@ UserProfile {
 
 ## 5. TTF Metric — Detailed Spec
 
-**TTF (Time to Fries)** measures how quickly a kid-friendly starter reaches the table, plus what was served and how good it was.
+The **TTF metric** (kid food speed) measures how quickly a kid-friendly starter reaches the table, plus what was served and how good it was.
 
 ### TTFObservation Schema
 
@@ -740,7 +740,7 @@ flowchart TD
 - **Moderation policy:** How to handle spam or bad-faith TTF submissions?
 - **Verification:** Honor system vs check-in (GPS proximity)?
 - **Monetization:** None planned for MVP
-- **Brand:** "TTF" codename vs final App Store name
+- **Brand:** Resolved — public name **Little Scout**; `ttf` retained for GCP/API internals
 
 ### Phase 2+ Roadmap
 

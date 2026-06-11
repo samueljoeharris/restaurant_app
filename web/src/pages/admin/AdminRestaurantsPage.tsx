@@ -78,7 +78,7 @@ export function AdminRestaurantsPage() {
           <DataTable
             columns={[
               { key: "name", label: "Restaurant" },
-              { key: "ttf", label: "TTF n", align: "right" },
+              { key: "ttf", label: "Speed n", align: "right" },
               { key: "median", label: "Median", align: "right" },
               { key: "quality", label: "Quality", align: "right" },
               { key: "attr", label: "Attrs", align: "right" },

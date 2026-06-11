@@ -145,7 +145,7 @@ export function TtfSubmitPage() {
 
   if (!restaurant) {
     return (
-      <Page narrow title="Submit TTF">
+      <Page narrow title="Submit observation">
         <p className="muted">Loading…</p>
       </Page>
     );
@@ -154,7 +154,7 @@ export function TtfSubmitPage() {
   return (
     <Page
       narrow
-      title="Submit TTF"
+      title="Submit observation"
       subtitle={restaurant.restaurant.name}
       back={
         <Link to={`/restaurants/${id}`} className="back-link">

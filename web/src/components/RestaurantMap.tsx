@@ -145,7 +145,7 @@ function MapLegend() {
   const tiers: TtfTier[] = ["fast", "ok", "slow"];
   return (
     <div className="map-legend" aria-label="Map pin legend">
-      <span className="map-legend__heading">TTF tier</span>
+      <span className="map-legend__heading">Speed tier</span>
       {tiers.map((tier) => (
         <span key={tier} className="map-legend__item">
           <span
@@ -220,7 +220,7 @@ function MapRestaurantSheet({
         </div>
 
         <section className="map-sheet__section">
-          <h3 className="map-sheet__section-title">Time to Fries</h3>
+          <h3 className="map-sheet__section-title">Kid food speed</h3>
           {hasTtf ? (
             <>
               <StatGrid>
@@ -277,7 +277,7 @@ function MapRestaurantSheet({
                 kind === "empty"
                   ? "—"
                   : kind === "confirmed_ttf"
-                    ? "TTF"
+                    ? "Speed"
                     : kind === "early_ttf"
                       ? "Early"
                       : kind === "ratings"

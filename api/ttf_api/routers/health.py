@@ -15,7 +15,7 @@ def root() -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TTF API</title>
+  <title>Little Scout API</title>
   <style>
     body {{ font-family: system-ui, sans-serif; max-width: 36rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.5; color: #1a1a1a; }}
     h1 {{ font-size: 1.5rem; margin-bottom: 0.25rem; }}
@@ -26,7 +26,7 @@ def root() -> str:
   </style>
 </head>
 <body>
-  <h1>Time to Fries API</h1>
+  <h1>Little Scout API</h1>
   <p>Parent-focused restaurant ratings — <strong>{pilot}</strong> pilot.</p>
   <ul>
     <li><a href="/health">Health</a> — service status</li>

@@ -28,11 +28,11 @@ export function RestaurantListCard({ restaurant: r }: { restaurant: RestaurantMa
         <div className="restaurant-card__stats">
           {hasTtf ? (
             <Badge tone={r.ttf.sample_size >= 3 ? "brand" : "neutral"}>
-              TTF {formatTtfMedian(r.ttf)}
+              Speed {formatTtfMedian(r.ttf)}
               {r.ttf.sample_size < 3 ? " · early" : ""}
             </Badge>
           ) : (
-            <span className="muted small">No TTF yet</span>
+            <span className="muted small">No speed data yet</span>
           )}
           {hasRatings && (
             <Badge tone="neutral">★ {r.attribute_rating_count}</Badge>

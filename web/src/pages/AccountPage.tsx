@@ -75,7 +75,7 @@ export function AccountPage() {
   }
 
   return (
-    <Page title="You" subtitle={user.email ?? "Your TTF account"}>
+    <Page title="You" subtitle={user.email ?? "Your Little Scout account"}>
       <Card title="Profile">
         <p>
           <strong>{user.displayName ?? user.email ?? "Signed in"}</strong>

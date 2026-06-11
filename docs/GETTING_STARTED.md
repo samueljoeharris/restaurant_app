@@ -1,6 +1,6 @@
-# Getting Started — TTF Restaurant App
+# Getting Started — Little Scout
 
-Actionable checklist for building the TTF (Time to Fries) restaurant app from zero. For full product and technical detail, see [DESIGN.md](DESIGN.md).
+Actionable checklist for building the **Little Scout** restaurant app from zero. Internal codename and GCP prefix: **TTF**. For full product and technical detail, see [DESIGN.md](DESIGN.md).
 
 **Your setup:** Mac (Apple Silicon), Docker, GitHub, Apple Developer enrolled, Xcode.
 
