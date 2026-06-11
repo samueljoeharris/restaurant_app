@@ -195,7 +195,7 @@ variable "admin_web_image" {
 
 variable "enable_admin_iap" {
   type        = bool
-  description = "Enable Identity-Aware Proxy on admin.dev load balancer backend (Google-managed OAuth client)"
+  description = "Enable Identity-Aware Proxy on admin.dev load balancer backend"
   default     = true
 
   validation {
@@ -209,13 +209,13 @@ variable "enable_admin_iap" {
 
 variable "iap_oauth_client_id" {
   type        = string
-  description = "Optional custom IAP OAuth client ID (Console-created; omit to use Google-managed client)"
+  description = "IAP OAuth client ID from Console (Security → IAP). Bootstrap: also stored in ttf-iap-oauth secret. CI: set GitHub secret IAP_OAUTH_CLIENT_ID."
   default     = ""
 }
 
 variable "iap_oauth_client_secret" {
   type        = string
-  description = "Optional custom IAP OAuth client secret (required with iap_oauth_client_id)"
+  description = "IAP OAuth client secret. CI: set GitHub secret IAP_OAUTH_CLIENT_SECRET."
   default     = ""
   sensitive   = true
 }

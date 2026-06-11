@@ -48,12 +48,11 @@ resource "google_compute_backend_service" "backend" {
   }
 
   dynamic "iap" {
-    for_each = each.value.enable_iap ? [1] : []
+    for_each = each.value.enable_iap && var.iap_oauth_client_id != "" ? [1] : []
     content {
-      enabled = true
-      # Google-managed OAuth client when id/secret omitted (see cloud.google.com/iap/docs/deprecations/migrate-oauth-client).
-      oauth2_client_id     = var.iap_oauth_client_id != "" ? var.iap_oauth_client_id : null
-      oauth2_client_secret = var.iap_oauth_client_secret != "" ? var.iap_oauth_client_secret : null
+      enabled              = true
+      oauth2_client_id     = var.iap_oauth_client_id
+      oauth2_client_secret = var.iap_oauth_client_secret
     }
   }
 }

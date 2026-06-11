@@ -47,8 +47,8 @@ module "serverless_lb" {
     }] : [],
   )
 
-  iap_oauth_client_id     = var.iap_oauth_client_id
-  iap_oauth_client_secret = var.iap_oauth_client_secret
+  iap_oauth_client_id     = local.iap_oauth_client_id_effective
+  iap_oauth_client_secret = local.iap_oauth_client_secret_effective
 
   depends_on = [
     module.project_services,
