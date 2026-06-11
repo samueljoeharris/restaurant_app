@@ -23,8 +23,11 @@ import {
   completeTotpSignIn,
   finishTotpEnrollment,
   getTotpResolver,
+  isMfaResolverError,
+  reauthenticateUser,
   startTotpEnrollment,
   totpHint,
+  unenrollTotp,
   userHasTotpMfa,
 } from "./mfa";
 import type { TotpEnrollment } from "./mfa";
@@ -47,6 +50,14 @@ interface AuthContextValue {
     enrollment: TotpEnrollment,
     code: string,
   ) => Promise<void>;
+  removeTotpMfa: () => Promise<void>;
+  reauthenticate: (options: {
+    password?: string;
+    google?: boolean;
+  }) => Promise<"ok" | "mfa-required">;
+  reauthMfaResolver: MultiFactorResolver | null;
+  completeReauthMfa: (code: string) => Promise<void>;
+  cancelReauthMfa: () => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   refreshClaims: () => Promise<void>;
@@ -70,6 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(
     null,
   );
+  const [reauthMfaResolver, setReauthMfaResolver] =
+    useState<MultiFactorResolver | null>(null);
 
   const syncUser = useCallback(async (next: User | null, forceRefresh = false) => {
     setUser(next);
@@ -160,6 +173,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await auth.currentUser.reload();
         await syncUser(auth.currentUser);
       },
+      removeTotpMfa: async () => {
+        if (!auth.currentUser) throw new Error("Sign in first");
+        await unenrollTotp(auth.currentUser);
+        await auth.currentUser.reload();
+        await syncUser(auth.currentUser);
+      },
+      reauthenticate: async (options) => {
+        if (!auth.currentUser) throw new Error("Sign in first");
+        setReauthMfaResolver(null);
+        try {
+          await reauthenticateUser(auth, auth.currentUser, options);
+          return "ok";
+        } catch (err) {
+          if (isMfaResolverError(err)) {
+            setReauthMfaResolver(err.mfaResolver);
+            return "mfa-required";
+          }
+          throw err;
+        }
+      },
+      reauthMfaResolver,
+      completeReauthMfa: async (code) => {
+        if (!reauthMfaResolver) throw new Error("No re-auth MFA challenge");
+        const hint = totpHint(reauthMfaResolver);
+        if (!hint) throw new Error("No supported MFA method found");
+        await completeTotpSignIn(reauthMfaResolver, hint, code);
+        setReauthMfaResolver(null);
+      },
+      cancelReauthMfa: () => setReauthMfaResolver(null),
       logout: () => signOut(auth),
       refreshUser: async () => {
         if (auth.currentUser) {
@@ -173,7 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [user, loading, idToken, role, mfaResolver, syncUser],
+    [user, loading, idToken, role, mfaResolver, reauthMfaResolver, syncUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

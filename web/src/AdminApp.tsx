@@ -6,6 +6,7 @@ import { AdminRoute } from "./components/admin/AdminRoute";
 import { LoginPage } from "./pages/LoginPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminObservationsPage } from "./pages/admin/AdminObservationsPage";
+import { AdminAccountPage } from "./pages/admin/AdminAccountPage";
 import { AdminRestaurantsPage } from "./pages/admin/AdminRestaurantsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 
@@ -52,6 +53,16 @@ export default function AdminApp() {
               <AdminRoute>
                 <AdminLayout>
                   <AdminObservationsPage />
+                </AdminLayout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/account"
+            element={
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminAccountPage />
                 </AdminLayout>
               </AdminRoute>
             }

@@ -97,17 +97,25 @@ jobs:
       - name: Build image
         run: |
           IMAGE_BASE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}"
-          docker build \
-            -f ./web/Dockerfile.admin \
-            --build-arg VITE_API_URL="${{ steps.env.outputs.api_url }}" \
-            --build-arg VITE_PUBLIC_APP_URL="${{ steps.env.outputs.public_app_url }}" \
-            --build-arg VITE_FIREBASE_API_KEY="${{ steps.env.outputs.firebase_api_key }}" \
-            --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ steps.env.outputs.firebase_auth_domain }}" \
-            --build-arg VITE_FIREBASE_PROJECT_ID="${{ steps.env.outputs.firebase_project_id }}" \
-            -t "${IMAGE_BASE}:${{ github.sha }}" \
-            -t "${IMAGE_BASE}:latest" \
-            ./web
-          echo "IMAGE_URI=${IMAGE_BASE}:${{ github.sha }}" >> "$GITHUB_ENV"
+          for attempt in 1 2 3; do
+            if docker build \
+              -f ./web/Dockerfile.admin \
+              --build-arg VITE_API_URL="${{ steps.env.outputs.api_url }}" \
+              --build-arg VITE_PUBLIC_APP_URL="${{ steps.env.outputs.public_app_url }}" \
+              --build-arg VITE_FIREBASE_API_KEY="${{ steps.env.outputs.firebase_api_key }}" \
+              --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ steps.env.outputs.firebase_auth_domain }}" \
+              --build-arg VITE_FIREBASE_PROJECT_ID="${{ steps.env.outputs.firebase_project_id }}" \
+              -t "${IMAGE_BASE}:${{ github.sha }}" \
+              -t "${IMAGE_BASE}:latest" \
+              ./web; then
+              echo "IMAGE_URI=${IMAGE_BASE}:${{ github.sha }}" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            echo "docker build attempt ${attempt} failed; retrying in 15s..."
+            sleep 15
+          done
+          echo "::error::docker build failed after 3 attempts"
+          exit 1
 
       - name: Push image
         run: |

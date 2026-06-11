@@ -36,6 +36,8 @@ Terraform (`modules/firebase-auth`) sets MFA to **ENABLED** (opt-in, not mandato
 
 **Enroll:** Sign in → **Account** (nav) → **Set up authenticator** → scan QR → enter 6-digit code.
 
+**Unenroll:** Sign in → **Account** (nav) or **Admin → Security** → **Remove authenticator** → confirm your password or Google sign-in when prompted.
+
 **Sign-in:** After password or Google, enter authenticator code when prompted.
 
 Supported apps: Google Authenticator, 1Password, Authy, etc. (TOTP).

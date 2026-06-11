@@ -1,8 +1,12 @@
 import {
+  EmailAuthProvider,
+  GoogleAuthProvider,
   TotpMultiFactorGenerator,
   TotpSecret,
   getMultiFactorResolver,
   multiFactor,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
   type Auth,
   type MultiFactorInfo,
   type MultiFactorResolver,
@@ -70,8 +74,83 @@ export async function completeTotpSignIn(
   await resolver.resolveSignIn(assertion);
 }
 
-export function userHasTotpMfa(user: User): boolean {
-  return multiFactor(user).enrolledFactors.some(
-    (f) => f.factorId === TotpMultiFactorGenerator.FACTOR_ID,
+export function getTotpFactor(user: User): MultiFactorInfo | null {
+  return (
+    multiFactor(user).enrolledFactors.find(
+      (f) => f.factorId === TotpMultiFactorGenerator.FACTOR_ID,
+    ) ?? null
   );
+}
+
+export function userHasTotpMfa(user: User): boolean {
+  return getTotpFactor(user) !== null;
+}
+
+export async function unenrollTotp(user: User): Promise<void> {
+  const factor = getTotpFactor(user);
+  if (!factor) return;
+  await multiFactor(user).unenroll(factor.uid);
+}
+
+export function isRequiresRecentLogin(error: unknown): boolean {
+  return (
+    !!error &&
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code: string }).code === "auth/requires-recent-login"
+  );
+}
+
+export function isMfaResolverError(
+  error: unknown,
+): error is { mfaResolver: MultiFactorResolver } {
+  return (
+    !!error &&
+    typeof error === "object" &&
+    "mfaResolver" in error &&
+    !!(error as { mfaResolver: MultiFactorResolver }).mfaResolver
+  );
+}
+
+export function userHasPasswordProvider(user: User): boolean {
+  return user.providerData.some((p) => p.providerId === "password");
+}
+
+export function userHasGoogleProvider(user: User): boolean {
+  return user.providerData.some((p) => p.providerId === "google.com");
+}
+
+export async function reauthenticateUser(
+  auth: Auth,
+  user: User,
+  options: { password?: string; google?: boolean },
+): Promise<void> {
+  if (options.google) {
+    const provider = new GoogleAuthProvider();
+    try {
+      await reauthenticateWithPopup(user, provider);
+    } catch (err) {
+      const resolver = getTotpResolver(auth, err);
+      if (resolver) throw { mfaResolver: resolver };
+      throw err;
+    }
+    return;
+  }
+
+  if (options.password && user.email) {
+    const credential = EmailAuthProvider.credential(
+      user.email,
+      options.password,
+    );
+    try {
+      await reauthenticateWithCredential(user, credential);
+    } catch (err) {
+      const resolver = getTotpResolver(auth, err);
+      if (resolver) throw { mfaResolver: resolver };
+      throw err;
+    }
+    return;
+  }
+
+  throw new Error("Password or Google sign-in required");
 }
