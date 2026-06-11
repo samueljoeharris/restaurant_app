@@ -2,9 +2,7 @@ import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { useAuth } from "../../auth/AuthContext";
-
-const PUBLIC_APP_URL =
-  import.meta.env.VITE_PUBLIC_APP_URL || "https://app.dev.littlescout.app";
+import { PUBLIC_APP_URL } from "../../buildTarget";
 
 const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin", label: "Overview", end: true },
