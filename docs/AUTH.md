@@ -68,7 +68,7 @@ Users may still briefly see `ttf-restaurant-dev.firebaseapp.com` in the URL duri
 
 1. Open `https://app.dev.littlescout.app/login` in a normal (non-incognito) window.
 2. **Continue with Google** → Google account picker should say **Little Scout** (after consent screen update).
-3. After choosing an account, you should land back on `/login` briefly, then redirect to `/restaurants`.
+3. After choosing an account, you should land back on `/login` briefly, then redirect to `/` (home).
 
 If you see `auth/unauthorized-domain`, add the hostname to Firebase authorized domains. If Google shows `redirect_uri_mismatch`, check the Web client redirect URI above.
 
