@@ -74,7 +74,7 @@ Terraform: `infra/terraform/environments/dev/` with `dns_base_domain = "littlesc
 | API CORS origins | `phase-b.tf` |
 | Maps key referrers (public web only) | `maps-web.tf` |
 | Secrets `ttf-api-public-url`, `ttf-web-public-url`, `ttf-admin-public-url` | `networking.tf` |
-| IAP on admin backend (optional) | `networking.tf` + `ci.tfvars` |
+| IAP on admin backend | `networking.tf`, `ci.tfvars` |
 
 After `terraform apply`, get DNS targets:
 
@@ -164,27 +164,24 @@ GCP-side (after DNS):
 
 ---
 
-## IAP for admin intranet (recommended)
+## IAP for admin intranet (enabled)
 
-Protect `admin.dev.littlescout.app` before exposing the URL:
+`admin.dev.littlescout.app` is protected by **Identity-Aware Proxy** before traffic reaches Cloud Run. Terraform enables IAP on the admin load balancer backend using Google's **managed OAuth client** (no manual client ID/secret required).
 
-1. [GCP Console → Security → Identity-Aware Proxy](https://console.cloud.google.com/security/iap)
-2. Configure consent screen / OAuth brand if prompted
-3. Find backend `ttf-dev-admin-backend` → enable IAP
-4. Create OAuth client → copy **Client ID** and **Secret**
-5. Add to gitignored `terraform.tfvars`:
+Configured in [`ci.tfvars`](../infra/terraform/environments/dev/ci.tfvars):
 
 ```hcl
-enable_admin_iap        = true
-iap_oauth_client_id     = "....apps.googleusercontent.com"
-iap_oauth_client_secret = "..."
-iap_admin_members       = ["user:YOUR_GOOGLE_EMAIL@gmail.com"]
+enable_admin_iap  = true
+iap_admin_members = ["user:samueljoeharris@gmail.com"]
 ```
 
-6. `terraform apply`
-7. Visit `https://admin.dev.littlescout.app` → Google sign-in → then Firebase admin UI
+To add another operator, append to `iap_admin_members` (e.g. `user:colleague@gmail.com`) and `terraform apply`.
 
-IAP handles **network edge**; Firebase `role=admin` still required for API/UI logic.
+**Custom OAuth client** (only if you need branded consent or external-user edge cases): create one in [GCP Console → Security → IAP](https://console.cloud.google.com/security/iap), then set `iap_oauth_client_id` and `iap_oauth_client_secret` in gitignored `terraform.tfvars`.
+
+After apply, visiting `https://admin.dev.littlescout.app` prompts for Google sign-in, then the Firebase admin UI loads.
+
+IAP handles **network edge**; Firebase `role=admin` is still required for API/UI logic.
 
 Grant admin claim:
 
@@ -239,7 +236,7 @@ Firebase Auth stays on `ttf-restaurant-dev` for dev builds. Use a separate Fireb
 5. Firebase / reCAPTCHA / OAuth console updates (table above)
 6. Run Admin Web workflow → deploy ttf-admin-web image
 7. Run Web workflow → public pilot on app.dev
-8. Optional: enable IAP in tfvars + apply
+8. IAP is enabled via Terraform (`enable_admin_iap = true` in ci.tfvars)
 9. Smoke test checklist below
 ```
 
@@ -250,7 +247,7 @@ Firebase Auth stays on `ttf-restaurant-dev` for dev builds. Use a separate Fireb
 - [ ] `curl https://api.dev.littlescout.app/health` → 200
 - [ ] `https://app.dev.littlescout.app` loads map/list
 - [ ] Sign-in on public web works
-- [ ] `https://admin.dev.littlescout.app` → IAP (if enabled) → admin dashboard
+- [ ] `https://admin.dev.littlescout.app` → IAP Google sign-in → admin dashboard
 - [ ] Admin stats load (`/v1/admin/stats`)
 - [ ] iOS simulator/device hits `api.dev.littlescout.app`
 - [ ] `https://app.dev.littlescout.app/admin` does **not** exist (removed from public bundle)

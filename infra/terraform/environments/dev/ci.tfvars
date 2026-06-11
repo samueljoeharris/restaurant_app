@@ -24,8 +24,6 @@ dns_base_domain        = "littlescout.app"
 dns_environment        = "dev"
 enable_custom_domains  = true
 enable_admin_cloud_run = true
-# IAP: set after creating OAuth client in GCP Console (see docs/LITTLESCOUT_DOMAIN.md)
-# enable_admin_iap       = true
-# iap_oauth_client_id     = "....apps.googleusercontent.com"
-# iap_oauth_client_secret = "..."
-# iap_admin_members       = ["user:you@gmail.com"]
+# IAP — Google login wall on admin.dev (Google-managed OAuth client + allowlist)
+enable_admin_iap  = true
+iap_admin_members = ["user:samueljoeharris@gmail.com"]
