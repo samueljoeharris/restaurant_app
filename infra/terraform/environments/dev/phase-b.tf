@@ -87,7 +87,7 @@ module "cloud_run" {
 }
 
 resource "google_cloud_run_v2_job" "restaurant_refresh" {
-  count = var.enable_cloud_run ? 1 : 0
+  count = var.enable_restaurant_refresh_job ? 1 : 0
 
   name     = "ttf-restaurant-refresh"
   project  = var.project_id
@@ -184,7 +184,7 @@ resource "google_cloud_run_v2_job" "restaurant_refresh" {
 }
 
 resource "google_project_iam_member" "api_runtime_run_developer" {
-  count = var.enable_cloud_run ? 1 : 0
+  count = var.enable_restaurant_refresh_job ? 1 : 0
 
   project = var.project_id
   role    = "roles/run.developer"
@@ -192,7 +192,7 @@ resource "google_project_iam_member" "api_runtime_run_developer" {
 }
 
 resource "google_cloud_scheduler_job" "restaurant_refresh" {
-  count = var.enable_cloud_run ? 1 : 0
+  count = var.enable_restaurant_refresh_job ? 1 : 0
 
   name        = "ttf-restaurant-refresh-weekly"
   project     = var.project_id
