@@ -103,6 +103,11 @@ output "cloud_run_admin_url" {
   value       = var.enable_admin_cloud_run ? module.cloud_run_admin[0].service_uri : null
 }
 
+output "admin_iap_enabled" {
+  description = "Whether IAP protects the admin load balancer backend"
+  value       = var.enable_custom_domains && var.enable_admin_cloud_run && var.enable_admin_iap
+}
+
 output "public_urls" {
   description = "Canonical HTTPS origins after DNS cutover"
   value = var.enable_custom_domains ? {

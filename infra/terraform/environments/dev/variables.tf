@@ -195,19 +195,27 @@ variable "admin_web_image" {
 
 variable "enable_admin_iap" {
   type        = bool
-  description = "Enable Identity-Aware Proxy on admin.dev load balancer backend"
-  default     = false
+  description = "Enable Identity-Aware Proxy on admin.dev load balancer backend (Google-managed OAuth client)"
+  default     = true
+
+  validation {
+    condition = (
+      !var.enable_admin_iap
+      || length(var.iap_admin_members) > 0
+    )
+    error_message = "enable_admin_iap requires at least one entry in iap_admin_members."
+  }
 }
 
 variable "iap_oauth_client_id" {
   type        = string
-  description = "IAP OAuth client ID (Console → Security → Identity-Aware Proxy)"
+  description = "Optional custom IAP OAuth client ID (Console-created; omit to use Google-managed client)"
   default     = ""
 }
 
 variable "iap_oauth_client_secret" {
   type        = string
-  description = "IAP OAuth client secret"
+  description = "Optional custom IAP OAuth client secret (required with iap_oauth_client_id)"
   default     = ""
   sensitive   = true
 }
