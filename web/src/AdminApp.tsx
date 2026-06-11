@@ -1,8 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
+import { AdminLandingRedirect } from "./components/admin/AdminLandingRedirect";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminRoute } from "./components/admin/AdminRoute";
+import { AdminAccessDeniedPage } from "./pages/admin/AdminAccessDeniedPage";
 import { LoginPage } from "./pages/LoginPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminObservationsPage } from "./pages/admin/AdminObservationsPage";
@@ -16,7 +18,9 @@ export default function AdminApp() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<AdminLandingRedirect />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/access-denied" element={<AdminAccessDeniedPage />} />
           <Route
             path="/admin"
             element={
@@ -67,7 +71,7 @@ export default function AdminApp() {
               </AdminRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/admin" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -1,18 +1,20 @@
-import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
 import { useAuth } from "../../auth/AuthContext";
 import { AdminAccessDeniedPage } from "../../pages/admin/AdminAccessDeniedPage";
 import { Skeleton } from "../ui/Skeleton";
 
-export function AdminRoute({ children }: { children: ReactNode }) {
+/** Root landing for admin.<env>.littlescout.app — login first, then console. */
+export function AdminLandingRedirect() {
   const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
-      <div className="admin-shell admin-shell--loading">
-        <Skeleton className="ui-skeleton--title" />
-        <Skeleton className="ui-skeleton--line" />
+      <div className="auth-page auth-page--admin">
+        <main className="page page--narrow">
+          <Skeleton className="ui-skeleton--title" />
+          <Skeleton className="ui-skeleton--line" />
+        </main>
       </div>
     );
   }
@@ -25,5 +27,5 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     return <AdminAccessDeniedPage />;
   }
 
-  return children;
+  return <Navigate to="/admin" replace />;
 }

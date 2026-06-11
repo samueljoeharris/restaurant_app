@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "VITE_BUILD_TARGET=admin vite --open /admin.html",
     "build": "tsc -b && vite build",
     "build:admin": "tsc -b && VITE_BUILD_TARGET=admin vite build",
     "lint": "eslint .",

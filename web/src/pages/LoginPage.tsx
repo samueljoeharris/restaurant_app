@@ -4,18 +4,25 @@ import { Navigate } from "react-router-dom";
 
 import { useAuth, authErrorMessage } from "../auth/AuthContext";
 import { MfaChallengeForm } from "../components/MfaChallengeForm";
-import { Button } from "../components/ui/Button";
+import { Button, ButtonAnchor } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { isAdminApp, PUBLIC_APP_URL } from "../lib/appMode";
 
 export function LoginPage() {
-  const { user, mfaResolver, signIn, signUp, signInWithGoogle } = useAuth();
+  const adminApp = isAdminApp();
+  const { user, isAdmin, mfaResolver, signIn, signUp, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (user) return <Navigate to="/restaurants" replace />;
+  if (user) {
+    if (adminApp) {
+      return <Navigate to={isAdmin ? "/admin" : "/access-denied"} replace />;
+    }
+    return <Navigate to="/restaurants" replace />;
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -48,10 +55,11 @@ export function LoginPage() {
 
   if (mfaResolver) {
     return (
-      <div className="auth-page">
+      <div className={`auth-page${adminApp ? " auth-page--admin" : ""}`}>
         <main className="page page--narrow page-enter">
           <div className="auth-hero">
             <div className="auth-hero__mark">🔭</div>
+            {adminApp && <p className="auth-hero__badge">Operator console</p>}
             <h1 className="auth-hero__title">Verify it&apos;s you</h1>
           </div>
           <MfaChallengeForm />
@@ -61,12 +69,25 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
+    <div className={`auth-page${adminApp ? " auth-page--admin" : ""}`}>
       <main className="page page--narrow page-enter">
         <div className="auth-hero">
           <div className="auth-hero__mark">🔭</div>
-          <h1 className="auth-hero__title">Little Scout</h1>
-          <p className="muted">Dedham pilot — rate kid-food speed with other parents.</p>
+          {adminApp ? (
+            <>
+              <p className="auth-hero__badge">Operator console</p>
+              <h1 className="auth-hero__title">Little Scout Admin</h1>
+              <p className="muted">
+                Sign in with your operator account to manage restaurants and
+                observations.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="auth-hero__title">Little Scout</h1>
+              <p className="muted">Dedham pilot — rate kid-food speed with other parents.</p>
+            </>
+          )}
         </div>
 
         <Card>
@@ -106,16 +127,24 @@ export function LoginPage() {
             <Button type="submit" fullWidth disabled={busy}>
               {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
             </Button>
-            <button
-              type="button"
-              className="linkish"
-              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            >
-              {mode === "signin"
-                ? "Need an account? Sign up"
-                : "Have an account? Sign in"}
-            </button>
+            {!adminApp && (
+              <button
+                type="button"
+                className="linkish"
+                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+              >
+                {mode === "signin"
+                  ? "Need an account? Sign up"
+                  : "Have an account? Sign in"}
+              </button>
+            )}
           </form>
+
+          {adminApp && (
+            <ButtonAnchor href={PUBLIC_APP_URL} variant="ghost" fullWidth>
+              ← Back to public app
+            </ButtonAnchor>
+          )}
         </Card>
       </main>
     </div>
