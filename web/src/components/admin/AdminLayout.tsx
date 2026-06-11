@@ -11,6 +11,7 @@ const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin/restaurants", label: "Restaurants" },
   { to: "/admin/users", label: "Contributors" },
   { to: "/admin/observations", label: "Observation log" },
+  { to: "/admin/account", label: "Security" },
 ];
 
 export function AdminLayout({ children }: { children: ReactNode }) {

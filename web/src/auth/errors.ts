@@ -14,6 +14,10 @@ const MESSAGES: Record<string, string> = {
     "An account already exists with the same email using a different sign-in method.",
   "auth/multi-factor-auth-required": "Enter your authenticator code to finish signing in.",
   "auth/invalid-verification-code": "That code did not work. Try again.",
+  "auth/requires-recent-login":
+    "Confirm your password or Google sign-in to change security settings.",
+  "auth/operation-not-allowed":
+    "This action is not allowed. MFA may not be enabled for this project yet.",
   "auth/unverified-email": "Verify your email before signing in.",
 };
 
