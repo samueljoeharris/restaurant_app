@@ -121,7 +121,7 @@ export function RestaurantListPage() {
   return (
     <Page
       title={activeFilter === "all" ? "Explore" : filterLabels[activeFilter]}
-      subtitle="Parent-rated restaurants in Dedham"
+      subtitle="Restaurants in Dedham"
     >
       <div className="search-input">
         <input
