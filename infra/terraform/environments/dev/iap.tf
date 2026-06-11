@@ -58,6 +58,9 @@ locals {
     local.iap_oauth_config.client_secret,
     "",
   )
+
+  # LB backend service name is deterministic (see modules/serverless-lb) — avoids TF cycle with Cloud Run.
+  admin_iap_backend_service_name = "ttf-${var.dns_environment}-admin-backend"
 }
 
 # IAP → Cloud Run: provision service agent + grant run.invoker on ttf-admin-web.

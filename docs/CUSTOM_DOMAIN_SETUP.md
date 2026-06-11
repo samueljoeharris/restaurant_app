@@ -221,7 +221,7 @@ After `ttf-admin-web` ships:
 | **IAP** (recommended on `admin.*`) | Google account allowlist **before** the request hits Cloud Run — stops unauthenticated scanning |
 | **Firebase `role=admin`** (keep) | App-level authorization for API writes and UI state — same as today |
 
-Both together: IAP keeps random internet off the admin SPA; Firebase JWT keeps API semantics consistent with iOS/web.
+Both together: IAP is the single Google login; the API mints a Firebase custom token from the verified IAP JWT so the admin SPA never prompts for Firebase Google sign-in separately.
 
 ---
 

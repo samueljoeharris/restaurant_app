@@ -32,6 +32,18 @@ Operator access to **`admin.dev`** uses **Identity-Aware Proxy** on the load bal
 
 Terraform also provisions the IAP service agent and grants `roles/run.invoker` on `ttf-admin-web` (required for IAP → Cloud Run).
 
+### Admin IAP → Firebase SSO (single Google login)
+
+On **`admin.dev`**, operators sign in once at the IAP wall. The admin SPA then calls same-origin **`/auth/firebase-session`**, which nginx proxies to **`GET /v1/admin/firebase-session`** on the API with the `X-Goog-IAP-JWT-Assertion` header. The API verifies the IAP JWT, confirms `role=admin` on the Firebase user, and returns a **Firebase custom token** for silent `signInWithCustomToken()` — no second Google prompt.
+
+**Grant admin (one-time per operator):**
+
+```bash
+python api/scripts/set_admin_claim.py --email you@example.com
+```
+
+Reload `admin.dev` after granting the claim. Local admin dev without IAP still uses email/password on `/login`.
+
 ## MFA (authenticator app)
 
 Terraform (`modules/firebase-auth`) sets MFA to **ENABLED** (opt-in, not mandatory). **Requires a successful Terraform apply** — if you see `auth/operation-not-allowed` for TOTP, Identity Platform MFA is not enabled in GCP yet (apply failed or pending).
@@ -59,14 +71,5 @@ All write endpoints require `Authorization: Bearer <firebase_id_token>`. Token r
 ## Admin access
 
 Admin UI is deployed separately at **`https://admin.dev.littlescout.app`** (`ttf-admin-web`). Routes: `/admin` overview, restaurants, contributors, observation log. The API enforces `role: admin` from Firebase **custom claims** on `/v1/admin/*`. See [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md).
-
-**Grant yourself admin (one-time):**
-
-```bash
-# Download firebase-sa.json from Firebase Console → Service accounts
-python api/scripts/set_admin_claim.py --email you@example.com
-```
-
-Sign out and back in (or call `refreshClaims()` in the app) so the JWT picks up the claim.
 
 **Local API without Firebase SA:** set `AUTH_DEV_ADMIN_UIDS=<your-uid>` in `.env` and use `Bearer dev:<uid>` — or run against Cloud SQL with production Firebase tokens after granting the claim.

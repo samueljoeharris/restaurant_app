@@ -25,6 +25,11 @@ export default defineConfig(({ mode }) => {
           target: apiTarget,
           changeOrigin: true,
         },
+        "/auth/firebase-session": {
+          target: apiTarget,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/auth\/firebase-session/, "/v1/admin/firebase-session"),
+        },
       },
     },
   };

@@ -140,6 +140,10 @@ class NoteSubmissionResponse(BaseModel):
 # --- Admin ---
 
 
+class AdminFirebaseSessionResponse(BaseModel):
+    custom_token: str
+
+
 class AdminOverviewStats(BaseModel):
     pilot_city: str
     pilot_display_name: str
