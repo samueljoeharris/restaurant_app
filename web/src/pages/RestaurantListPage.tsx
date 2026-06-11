@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { api } from "../api/client";
 import { RestaurantListCard } from "../components/RestaurantListCard";
@@ -9,11 +10,50 @@ import { SkeletonList } from "../components/ui/Skeleton";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import type { RestaurantMapEntry } from "../types";
 
+type RestaurantFilter = "all" | "fast-starters" | "parent-data" | "needs-data";
+
+const filterLabels: Record<RestaurantFilter, string> = {
+  all: "All",
+  "fast-starters": "Quick starters",
+  "parent-data": "Parent-rated",
+  "needs-data": "Needs scouting",
+};
+
+function getFilter(value: string | null): RestaurantFilter {
+  if (value === "fast-starters" || value === "parent-data" || value === "needs-data") {
+    return value;
+  }
+  return "all";
+}
+
+function hasParentData(restaurant: RestaurantMapEntry) {
+  return (
+    restaurant.ttf.sample_size > 0 ||
+    restaurant.attribute_rating_count > 0 ||
+    restaurant.note_count > 0
+  );
+}
+
+function hasFastStarterData(restaurant: RestaurantMapEntry) {
+  return (
+    restaurant.ttf.sample_size > 0 &&
+    restaurant.ttf.median_minutes !== null &&
+    restaurant.ttf.median_minutes <= 10
+  );
+}
+
 export function RestaurantListPage() {
+  const [searchParams] = useSearchParams();
+  const activeFilter = getFilter(searchParams.get("filter"));
+  const urlQuery = searchParams.get("q") ?? "";
   const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(urlQuery);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setQuery(urlQuery);
+  }, [urlQuery]);
 
   useRefreshOnNavigate(() => {
     let cancelled = false;
@@ -37,9 +77,15 @@ export function RestaurantListPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return restaurants;
-    return restaurants.filter((r) => r.name.toLowerCase().includes(q));
-  }, [restaurants, query]);
+    return restaurants.filter((r) => {
+      const matchesQuery = !q || r.name.toLowerCase().includes(q);
+      if (!matchesQuery) return false;
+      if (activeFilter === "fast-starters") return hasFastStarterData(r);
+      if (activeFilter === "parent-data") return hasParentData(r);
+      if (activeFilter === "needs-data") return !hasParentData(r);
+      return true;
+    });
+  }, [restaurants, query, activeFilter]);
 
   const withContributions = useMemo(
     () =>
@@ -53,7 +99,10 @@ export function RestaurantListPage() {
   );
 
   return (
-    <Page title="Explore" subtitle="Parent-rated restaurants in Dedham">
+    <Page
+      title={activeFilter === "all" ? "Explore" : filterLabels[activeFilter]}
+      subtitle="Parent-rated restaurants in Dedham"
+    >
       <div className="search-input">
         <input
           className="search"
@@ -64,9 +113,24 @@ export function RestaurantListPage() {
         />
       </div>
 
+      <nav className="explore-filters" aria-label="Restaurant filters">
+        {(Object.keys(filterLabels) as RestaurantFilter[]).map((filter) => (
+          <Link
+            key={filter}
+            className={`explore-filter${filter === activeFilter ? " explore-filter--active" : ""}`}
+            to={filter === "all" ? "/restaurants" : `/restaurants?filter=${filter}`}
+          >
+            {filterLabels[filter]}
+          </Link>
+        ))}
+      </nav>
+
       {!loading && !error && (
         <div className="explore-summary">
           <Badge tone="brand">{filtered.length} places</Badge>
+          {activeFilter !== "all" && (
+            <span className="muted small">{filterLabels[activeFilter].toLowerCase()} filter</span>
+          )}
           {withContributions > 0 && (
             <span className="muted small">{withContributions} with parent data</span>
           )}
@@ -90,7 +154,7 @@ export function RestaurantListPage() {
         <EmptyState
           emoji="🔎"
           title="No matches"
-          description="Try a different search term."
+          description="Try a different search term or switch filters."
         />
       )}
 

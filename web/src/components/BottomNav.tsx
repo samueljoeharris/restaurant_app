@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 
 const tabs = [
+  { to: "/", label: "Home", icon: "🏠" },
   { to: "/restaurants", label: "Explore", icon: "🔍" },
   { to: "/map", label: "Map", icon: "🗺️" },
   { to: "/account", label: "You", icon: "👤" },
@@ -13,6 +14,7 @@ export function BottomNav() {
         <NavLink
           key={tab.to}
           to={tab.to}
+          end={tab.to === "/"}
           className={({ isActive }) =>
             ["bottom-nav__item", isActive ? "bottom-nav__item--active" : ""].join(" ")
           }

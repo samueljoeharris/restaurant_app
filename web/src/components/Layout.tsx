@@ -35,7 +35,7 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className={`shell${hideNav ? " shell--no-nav" : ""}${isMap ? " shell--map" : ""}`}>
       <header className="shell__header">
-        <Link to="/restaurants" className="shell__brand">
+        <Link to="/" className="shell__brand">
           <span className="shell__brand-mark">🔭</span>
           Little Scout
         </Link>

@@ -4,6 +4,7 @@ import { AuthProvider } from "./auth/AuthContext";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
 import { Layout } from "./components/Layout";
 import { AccountPage } from "./pages/AccountPage";
+import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { RestaurantListPage } from "./pages/RestaurantListPage";
@@ -17,6 +18,14 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/"
+            element={
+              <Layout>
+                <HomePage />
+              </Layout>
+            }
+          />
           <Route
             path="/restaurants"
             element={
@@ -66,7 +75,7 @@ export default function App() {
             }
           />
           <Route path="/admin/*" element={<AdminSiteRedirect />} />
-          <Route path="/" element={<Navigate to="/restaurants" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
