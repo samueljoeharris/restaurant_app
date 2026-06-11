@@ -82,9 +82,10 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 
 1. Check [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for current phase before scaffolding new code
 2. Prefer minimal, focused diffs — match existing conventions in surrounding code
-3. Cross-cutting changes (API schema + iOS model + migration) belong in one PR in this monorepo
-4. Use path-filtered CI awareness: `api/**`, `infra/**`, `ios/**` trigger separate workflows
-5. MCP servers available: GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
+3. Cross-cutting changes (API schema + iOS model + migration) belong in one commit/ push to `main` in this monorepo
+4. **Solo dev CI:** push directly to `main` — workflows do not run on pull requests ([docs/CI.md](docs/CI.md))
+5. Use path-filtered CI awareness: `api/**`, `infra/**`, `ios/**` trigger separate workflows
+6. MCP servers available: GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
 
 ## Data model essentials
 

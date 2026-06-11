@@ -1,5 +1,6 @@
 name: Terraform
 
+# Solo dev: push to main only. Plan + apply on infra/** changes; manual apply via workflow_dispatch.
 on:
   workflow_dispatch:
     inputs:
@@ -8,10 +9,6 @@ on:
         required: false
         default: false
         type: boolean
-  pull_request:
-    paths:
-      - "infra/**"
-      - ".github/workflows/terraform.yml"
   push:
     branches: [main]
     paths:
@@ -29,7 +26,6 @@ jobs:
     environment: dev
     permissions:
       contents: read
-      pull-requests: write
       id-token: write
     defaults:
       run:
