@@ -1,12 +1,12 @@
-# Custom Domain Setup — Investigation & Plan
+# Custom Domain Setup — Historical Plan
 
-**Status:** Investigation / planning (not implemented)  
+**Status:** Historical planning document. The current implementation runbook is [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md).
 **Environment:** `ttf-restaurant-dev` (GCP + Firebase) — dev hostnames first; prod mirrors later  
 **Last reviewed:** 2026-06-10
 
-This document inventories how **Little Scout** is hosted today, what must change when you attach a purchased domain, and a phased plan to do it safely. Replace `<DOMAIN>` with your real domain (e.g. `example.com`). GCP resources keep the `ttf` prefix.
+This document captured the original custom-domain investigation before the `littlescout.app` dev hostnames were implemented. Treat it as background context only; for DNS records, TLS checks, IAP, smoke tests, and Terraform outputs, use [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md).
 
-**Architecture direction (updated):** Segment by **environment** (`dev` vs prod DNS), deploy **admin as its own site** (separate Cloud Run service + hostname), and back separation with a **VPC** (private database, controlled ingress, IAP at the edge for admin). DNS alone does not isolate workloads — the VPC and ingress model below does.
+**Implemented direction:** Segment by **environment** (`dev` vs prod DNS), deploy **admin as its own site** (separate Cloud Run service + hostname), and protect admin with IAP at the load balancer. VPC/network-hardening notes below remain future-planning context unless they are also reflected in Terraform.
 
 ---
 
@@ -562,7 +562,7 @@ Run after each phase. Replace hostnames with your values.
 
 | Doc | Relevance |
 |-----|-----------|
-| [DESIGN.md](DESIGN.md) | Architecture; mentions `api.ttf.app` as future custom API domain |
+| [DESIGN.md](DESIGN.md) | Product and architecture overview |
 | [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | Authorized domains, App Check, service account |
 | [AUTH.md](AUTH.md) | Google OAuth, admin claims, `/admin` access |
 | [web/README.md](../web/README.md) | Local dev and Cloud Run deploy |

@@ -1,6 +1,6 @@
 # Little Scout Web POC
 
-Browser pilot for Dedham — Firebase Auth + Cloud Run API.
+Browser pilot and admin build for Dedham — Firebase Auth + Cloud Run API.
 
 ## Setup
 
@@ -32,11 +32,13 @@ Terraform provisions `ttf-web` (see `infra/terraform/environments/dev/web.tf`). 
 
 1. Merge to `main` so **Terraform** applies `enable_web_cloud_run` (updates API CORS + Firebase authorized domains).
 2. Run the **Web** workflow (or push `web/` changes).
-3. Open the URL from:
+3. Open `https://app.dev.littlescout.app` after DNS/TLS is active. If you need the direct Cloud Run fallback, use:
 
 ```bash
 docker compose run --rm terraform -chdir=environments/dev output -raw cloud_run_web_url
 ```
+
+Admin deploys from the same `web/` source tree using `.github/workflows/admin-web.yml` and `web/Dockerfile.admin`, then serves at `https://admin.dev.littlescout.app` behind IAP.
 
 ## Local API instead of Cloud Run
 
@@ -49,6 +51,7 @@ Set in `.env.local`:
 
 ```
 VITE_API_URL=http://localhost:8080
+VITE_USE_AUTH_EMULATOR=true
 ```
 
-Use the Auth emulator: add to `firebase.ts` connectAuthEmulator when `VITE_USE_AUTH_EMULATOR=true` — optional for later.
+Use the Auth emulator with `docker compose --profile emulator up postgres api firebase-emulator`.

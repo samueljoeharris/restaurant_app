@@ -12,6 +12,16 @@ class Settings(BaseSettings):
     pilot_city: str = "dedham-ma"
     pilot_display_name: str = "Dedham, Massachusetts"
     maps_api_key: str = ""
+    restaurant_seed_default_lat: float = 42.2418
+    restaurant_seed_default_lng: float = -71.1662
+    restaurant_seed_default_radius_m: int = 8000
+    restaurant_seed_cooldown_hours: int = 24
+    restaurant_seed_refresh_queries: list[str] = [
+        "restaurants in Dedham Massachusetts",
+        "family restaurants Dedham MA",
+        "pizza Dedham MA",
+        "breakfast Dedham Massachusetts",
+    ]
     firebase_project_id: str = "ttf-restaurant-dev"
     firebase_service_account_path: str = ""
     firebase_auth_emulator_host: str = ""
@@ -36,6 +46,19 @@ class Settings(BaseSettings):
             return value
         if isinstance(value, str):
             return json.loads(value)
+        return []
+
+    @field_validator("restaurant_seed_refresh_queries", mode="before")
+    @classmethod
+    def parse_seed_queries(cls, value: Any) -> list[str]:
+        if value is None or value == "":
+            return []
+        if isinstance(value, list):
+            return [str(item) for item in value]
+        if isinstance(value, str):
+            parsed = json.loads(value)
+            if isinstance(parsed, list):
+                return [str(item) for item in parsed]
         return []
 
 

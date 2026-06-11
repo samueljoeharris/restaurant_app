@@ -4,6 +4,8 @@ Infrastructure as code for the TTF restaurant app. **No GCP Organization** — r
 
 ## Phased deploy
 
+The committed dev CI vars (`environments/dev/ci.tfvars`) currently enable Phase B, web Cloud Run, admin Cloud Run, custom dev domains, and admin IAP for `ttf-restaurant-dev`. The Phase A/B notes below remain useful when bootstrapping a fresh environment from `terraform.tfvars.example`.
+
 ### Phase A (default) — apply now
 
 Foundation only. **No monthly compute cost.** Use local Postgres (`docker compose up postgres`) for API development.
@@ -38,6 +40,8 @@ api_image = "us-central1-docker.pkg.dev/ttf-restaurant-dev/ttf-containers/ttf-ap
 Defined in [`environments/dev/phase-b.tf`](environments/dev/phase-b.tf).
 
 **Terraform (`modules/firebase-web`):** Firebase project binding + Web app for `web/` SDK config (`terraform output firebase_web_env`). Email/Password provider may still be toggled in Console if not yet codified.
+
+**Custom domains (dev):** `dns_base_domain = "littlescout.app"` and `dns_environment = "dev"` create the load balancer, managed SSL cert, and public URLs documented in [`docs/LITTLESCOUT_DOMAIN.md`](../../docs/LITTLESCOUT_DOMAIN.md).
 
 **Not in Terraform (console):** Apple Sign-In, Maps API key **creation** (value stored via `gcloud secrets versions add`).
 
@@ -111,7 +115,7 @@ docker compose run --rm terraform -chdir=environments/dev apply
 docker compose run --rm terraform -chdir=environments/dev output
 ```
 
-Key outputs: `cloud_run_url`, `artifact_registry_url`, `api_image_target`.
+Key outputs: `cloud_run_url`, `cloud_run_web_url`, `api_image_target`, `load_balancer_ip`, and `godaddy_dns_records`.
 
 ## CI (GitHub Actions)
 

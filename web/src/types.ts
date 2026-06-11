@@ -14,6 +14,35 @@ export interface RestaurantMapEntry extends RestaurantSummary {
   attribute_rating_count: number;
 }
 
+export interface RestaurantSeedJob {
+  id: string;
+  pilot_city: string;
+  area_key: string;
+  query: string | null;
+  lat: number;
+  lng: number;
+  radius_m: number;
+  refresh: boolean;
+  status: "pending" | "running" | "succeeded" | "failed" | "skipped";
+  error: string | null;
+  inserted_count: number;
+  updated_count: number;
+  closed_count: number;
+  outside_area_count: number;
+  skipped_count: number;
+  out_of_area_count: number;
+  unique_places_count: number;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RestaurantSeedJobResponse {
+  job: RestaurantSeedJob;
+  reused: boolean;
+}
+
 export interface TtfAggregate {
   sample_size: number;
   median_minutes: number | null;

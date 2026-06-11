@@ -10,6 +10,7 @@ import type {
   Paginated,
   RestaurantDetailResponse,
   RestaurantMapEntry,
+  RestaurantSeedJobResponse,
   RestaurantNote,
   RestaurantSummary,
   TtfSubmission,
@@ -78,6 +79,18 @@ export const api = {
         attribute_rating_count: r.attribute_rating_count ?? 0,
       })),
     ),
+
+  triggerRestaurantSeed: (
+    body: { location: string; radius_m?: number; force?: boolean },
+    token: string,
+  ) =>
+    request<RestaurantSeedJobResponse>("/v1/restaurants/seed-jobs", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
+
+  getRestaurantSeedJob: (id: string, token: string) =>
+    request<RestaurantSeedJobResponse>(`/v1/restaurants/seed-jobs/${id}`, {}, token),
 
   getRestaurant: (id: string) =>
     request<RestaurantDetailResponse>(`/v1/restaurants/${id}`),

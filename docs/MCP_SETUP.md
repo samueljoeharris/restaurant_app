@@ -9,7 +9,7 @@ Configure Model Context Protocol (MCP) servers so Cursor can interact with GitHu
 | **github** | Docker stdio | PRs, issues, Actions, repo management |
 | **gcloud** | npx stdio | GCP/Terraform commands via natural language |
 | **postgres** | npx stdio | Optional — query local Docker Postgres during **API** dev only |
-| **firebase** | npx stdio | Auth/project config — add in Phase 2 when `firebase.json` exists |
+| **firebase** | npx stdio | Optional — Auth/project config now that `firebase.json` exists |
 | **Cloud SQL** | HTTP remote | Add in Phase 2 after GCP project exists |
 
 Project config: [`.cursor/mcp.json`](../.cursor/mcp.json)  
@@ -19,7 +19,7 @@ Template (includes Firebase stub): [`.cursor/mcp.json.example`](../.cursor/mcp.j
 
 - [x] Monorepo: `restaurant_app`
 - [x] Remote: `git@github.com:samueljoeharris/restaurant_app.git`
-- [ ] First commit + `git push` (this doc is part of that commit)
+- [x] First commit + `git push`
 
 ## Phase 0b — Prerequisites
 
@@ -116,11 +116,11 @@ Store the PAT only in your **global** Cursor config (never commit). Official Git
 | gcloud MCP auth errors | Run `gcloud auth login` in terminal |
 | postgres MCP red | Optional server — only enable when `docker compose up postgres` is running for API dev |
 | Terraform compose auth fails | Mac: `gcloud auth application-default login`. Windows: set `GCLOUD_CONFIG_PATH` in `.env` |
-| Firebase shows 0 tools | Add Firebase block from `mcp.json.example` only after `firebase.json` exists in repo |
+| Firebase shows 0 tools | Add the Firebase block from `mcp.json.example`, run `npx firebase login`, then restart Cursor |
 
-## Phase 0e — Firebase MCP (Phase 2)
+## Phase 0e — Firebase MCP (optional)
 
-When `firebase.json` is scaffolded, add to `.cursor/mcp.json`:
+Because `firebase.json` is now scaffolded, add this block to `.cursor/mcp.json` if you want Firebase MCP tools:
 
 ```json
 "firebase": {

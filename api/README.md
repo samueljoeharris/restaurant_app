@@ -16,6 +16,8 @@ docker compose up --build api
 |--------|------|--------|
 | GET | `/health` | ✅ |
 | GET | `/v1/restaurants` | ✅ (empty until seeded) |
+| POST | `/v1/restaurants/seed-jobs` | ✅ start background Places seed by ZIP/city/coords |
+| GET | `/v1/restaurants/seed-jobs/{id}` | ✅ poll seed job status |
 | GET | `/v1/restaurants/{id}` | ✅ |
 | GET | `/v1/metrics` | ✅ (12 seed metrics) |
 | GET | `/v1/restaurants/{id}/ttf` | ✅ |
@@ -50,7 +52,42 @@ export MAPS_API_KEY=$(gcloud secrets versions access latest --secret=ttf-maps-ap
 docker compose run --rm -e MAPS_API_KEY api python scripts/seed_dedham.py
 ```
 
-Re-running the script upserts by `google_place_id` (safe to run again).
+Re-running the script upserts by `google_place_id` and soft-hides closed/out-of-area venues
+so user contributions are preserved.
+
+### Background seed by ZIP / location
+
+Authenticated clients can request a background seed job:
+
+```bash
+curl -X POST http://localhost:8080/v1/restaurants/seed-jobs \
+  -H "Authorization: Bearer dev:pilot-tester-1" \
+  -H "Content-Type: application/json" \
+  -d '{"location": "02026", "radius_m": 8000}'
+```
+
+The API returns `202 Accepted` with a `job.id`. Poll:
+
+```bash
+curl -H "Authorization: Bearer dev:pilot-tester-1" \
+  http://localhost:8080/v1/restaurants/seed-jobs/{job_id}
+```
+
+Recent jobs for the same rounded area/radius are reused for
+`RESTAURANT_SEED_COOLDOWN_HOURS` to avoid repeated Places API calls.
+
+### Periodic refresh
+
+The production Terraform defines a weekly Cloud Scheduler trigger for a Cloud Run Job
+that runs:
+
+```bash
+python -m ttf_api.jobs.refresh_restaurants
+```
+
+The job refreshes the configured pilot area, upserts new/modified Places data, marks
+closed Places as `closed`, and marks active rows outside the pilot radius as
+`outside_area` rather than deleting rows.
 
 ## Firebase Auth
 
@@ -94,6 +131,11 @@ curl -X POST http://localhost:8080/v1/restaurants/{id}/ttf \
 | `RATE_LIMIT_MAX_WRITES` | Max writes per user per window (default `60`) |
 | `RATE_LIMIT_WINDOW_MINUTES` | Rate limit window (default `60`) |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to service account JSON (prod) |
+| `MAPS_API_KEY` | Server key for Geocoding + Places API |
+| `RESTAURANT_SEED_DEFAULT_LAT` / `RESTAURANT_SEED_DEFAULT_LNG` | Pilot refresh center |
+| `RESTAURANT_SEED_DEFAULT_RADIUS_M` | Pilot refresh radius (default `8000`) |
+| `RESTAURANT_SEED_COOLDOWN_HOURS` | Reuse recent area seed jobs (default `24`) |
+| `RESTAURANT_SEED_REFRESH_QUERIES` | JSON array of Places text queries for scheduled refresh |
 
 Migrations run automatically on API startup (`api/migrations/*.sql`).
 

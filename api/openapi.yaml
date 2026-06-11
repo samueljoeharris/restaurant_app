@@ -58,6 +58,51 @@ paths:
         "501":
           description: Not implemented — Firebase Auth required
 
+  /v1/restaurants/seed-jobs:
+    post:
+      tags: [restaurants]
+      summary: Start a background restaurant seed job for a ZIP, city, or coordinates
+      security: [{ firebase: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestaurantSeedJobRequest"
+      responses:
+        "202":
+          description: Seed job accepted or reused
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantSeedJobResponse"
+        "400":
+          description: Invalid or un-geocodable location
+        "503":
+          description: Server-side Maps key is not configured
+
+  /v1/restaurants/seed-jobs/{job_id}:
+    get:
+      tags: [restaurants]
+      summary: Poll a restaurant seed job
+      security: [{ firebase: [] }]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Seed job status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantSeedJobResponse"
+        "404":
+          description: Seed job not found
+
   /v1/restaurants/{id}:
     get:
       tags: [restaurants]
@@ -207,6 +252,67 @@ components:
       properties:
         restaurant: { $ref: "#/components/schemas/RestaurantDetail" }
         ttf: { $ref: "#/components/schemas/TtfAggregate" }
+
+    RestaurantSeedJobRequest:
+      type: object
+      properties:
+        location:
+          type: string
+          nullable: true
+          description: ZIP, city/state, or address to geocode before seeding
+          example: "02026"
+        lat:
+          type: number
+          format: double
+          nullable: true
+        lng:
+          type: number
+          format: double
+          nullable: true
+        radius_m:
+          type: integer
+          default: 8000
+          minimum: 1000
+          maximum: 25000
+        force:
+          type: boolean
+          default: false
+      oneOf:
+        - required: [location]
+        - required: [lat, lng]
+
+    RestaurantSeedJob:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        pilot_city: { type: string }
+        area_key: { type: string }
+        query: { type: string, nullable: true }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+        radius_m: { type: integer }
+        refresh: { type: boolean }
+        status:
+          type: string
+          enum: [pending, running, succeeded, failed, skipped]
+        error: { type: string, nullable: true }
+        inserted_count: { type: integer }
+        updated_count: { type: integer }
+        closed_count: { type: integer }
+        outside_area_count: { type: integer }
+        skipped_count: { type: integer }
+        out_of_area_count: { type: integer }
+        unique_places_count: { type: integer }
+        started_at: { type: string, format: date-time, nullable: true }
+        finished_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    RestaurantSeedJobResponse:
+      type: object
+      properties:
+        job: { $ref: "#/components/schemas/RestaurantSeedJob" }
+        reused: { type: boolean }
 
     MetricDefinition:
       type: object

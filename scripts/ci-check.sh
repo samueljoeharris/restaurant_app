@@ -40,7 +40,7 @@ EOF
 
 require_docker() {
   command -v docker >/dev/null 2>&1 || {
-    echo "::error:: docker not found — install Docker Desktop and retry" >&2
+    echo "::error:: docker not found — install Docker Desktop locally or check .cursor/environment.json in Cursor Cloud" >&2
     exit 1
   }
   docker info >/dev/null 2>&1 || {
