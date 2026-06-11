@@ -28,6 +28,7 @@ locals {
     "roles/resourcemanager.projectIamAdmin",
     "roles/cloudsql.admin",
     "roles/run.admin",
+    "roles/cloudscheduler.admin",
     "roles/compute.networkAdmin",
     "roles/compute.loadBalancerAdmin",
     "roles/serviceusage.apiKeysAdmin",
