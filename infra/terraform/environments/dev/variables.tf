@@ -113,19 +113,19 @@ variable "firebase_web_app_display_name" {
 
 variable "enable_google_sign_in" {
   type        = bool
-  description = "Sign in with Google (requires OAuth client in tfvars or Console)"
+  description = "Sign in with Google via Identity Platform (requires OAuth Web client; see google-oauth.tf)"
   default     = true
 }
 
 variable "google_oauth_client_id" {
   type        = string
-  description = "OAuth 2.0 Web client ID for Google sign-in (optional in ci.tfvars)"
+  description = "Google sign-in OAuth Web client ID. CI: GitHub secret GOOGLE_OAUTH_CLIENT_ID. Stored in ttf-google-oauth."
   default     = ""
 }
 
 variable "google_oauth_client_secret" {
   type        = string
-  description = "OAuth client secret for Google sign-in"
+  description = "Google sign-in OAuth client secret. CI: GitHub secret GOOGLE_OAUTH_CLIENT_SECRET."
   default     = ""
   sensitive   = true
 }
