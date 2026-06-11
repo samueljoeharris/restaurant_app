@@ -61,6 +61,14 @@ resource "google_project_iam_member" "api_runtime_secret_accessor" {
   member  = "serviceAccount:${google_service_account.api_runtime.email}"
 }
 
+resource "google_project_iam_member" "api_runtime_compute_viewer" {
+  count = var.enable_admin_iap ? 1 : 0
+
+  project = var.project_id
+  role    = "roles/compute.viewer"
+  member  = "serviceAccount:${google_service_account.api_runtime.email}"
+}
+
 resource "google_storage_bucket_iam_member" "api_runtime_uploads_admin" {
   bucket = var.uploads_bucket_name
   role   = "roles/storage.objectAdmin"

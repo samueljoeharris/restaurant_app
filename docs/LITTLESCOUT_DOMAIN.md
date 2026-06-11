@@ -221,13 +221,13 @@ curl -I https://admin.dev.littlescout.app/
 
 To add another operator, append to `iap_admin_members` (or use a `@googlegroups.com` group) and `terraform apply`.
 
-IAP handles **network edge** (first Google login at the load balancer). The admin SPA still requires **Firebase sign-in** (second Google prompt — shows `ttf-restaurant-dev.firebaseapp.com`) plus `role: admin` on your JWT.
-
-After IAP, sign in on `/login` with the same Google account, then grant admin if needed:
+IAP handles the **Google login wall** at the load balancer. The admin SPA exchanges that IAP session for a **Firebase JWT** automatically via `/auth/firebase-session` (one Google prompt total). Operators still need `role: admin` on their Firebase user:
 
 ```bash
 python api/scripts/set_admin_claim.py --email YOUR_EMAIL
 ```
+
+Then reload `https://admin.dev.littlescout.app`.
 
 ---
 

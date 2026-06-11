@@ -20,6 +20,8 @@ import {
 import type { ReactNode } from "react";
 
 import { auth } from "../firebase";
+import { isAdminSite } from "../buildTarget";
+import { bootstrapFirebaseFromIapSession } from "./iapSession";
 import { authErrorMessage } from "./errors";
 import {
   completeTotpSignIn,
@@ -37,6 +39,7 @@ import type { TotpEnrollment } from "./mfa";
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  iapAccessDenied: boolean;
   idToken: string | null;
   role: string | null;
   isAdmin: boolean;
@@ -82,6 +85,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [idToken, setIdToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [iapBootstrapDone, setIapBootstrapDone] = useState(!isAdminSite);
+  const [iapAccessDenied, setIapAccessDenied] = useState(false);
   const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(
     null,
   );
@@ -103,6 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (isAdminSite) return;
+
     getRedirectResult(auth)
       .then(async (result) => {
         if (result?.user) {
@@ -123,11 +130,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [syncUser]);
 
   useEffect(() => {
+    if (!isAdminSite) return;
+
+    let cancelled = false;
+
+    (async () => {
+      if (auth.currentUser) {
+        if (!cancelled) setIapBootstrapDone(true);
+        return;
+      }
+
+      const result = await bootstrapFirebaseFromIapSession();
+      if (cancelled) return;
+
+      if (result.ok === false && result.reason === "denied") {
+        setIapAccessDenied(true);
+      }
+      setIapBootstrapDone(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     return onAuthStateChanged(auth, async (next) => {
       await syncUser(next);
-      setLoading(false);
+      if (iapBootstrapDone) {
+        setLoading(false);
+      }
     });
-  }, [syncUser]);
+  }, [syncUser, iapBootstrapDone]);
 
   const runSignIn = async (fn: () => Promise<void>) => {
     setMfaResolver(null);
@@ -146,6 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
+      iapAccessDenied,
       idToken,
       role,
       isAdmin: role === "admin",
@@ -170,6 +205,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       },
       signInWithGoogle: async () => {
+        if (isAdminSite) {
+          throw new Error("Google sign-in is disabled on the admin site. Use IAP SSO.");
+        }
         setRedirectError(null);
         await runSignIn(async () => {
           const provider = new GoogleAuthProvider();
@@ -247,7 +285,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [user, loading, idToken, role, mfaResolver, reauthMfaResolver, redirectError, syncUser],
+    [
+      user,
+      loading,
+      iapAccessDenied,
+      idToken,
+      role,
+      mfaResolver,
+      reauthMfaResolver,
+      redirectError,
+      syncUser,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

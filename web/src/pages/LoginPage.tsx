@@ -12,6 +12,7 @@ export function LoginPage() {
   const {
     user,
     isAdmin,
+    iapAccessDenied,
     mfaResolver,
     redirectError,
     clearRedirectError,
@@ -30,6 +31,10 @@ export function LoginPage() {
       return <Navigate to={isAdmin ? "/admin" : "/access-denied"} replace />;
     }
     return <Navigate to={defaultAuthedPath} replace />;
+  }
+
+  if (isAdminSite && !import.meta.env.DEV) {
+    return <Navigate to="/" replace />;
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -84,10 +89,10 @@ export function LoginPage() {
           {isAdminSite ? (
             <>
               <p className="auth-hero__badge">Operator console</p>
-              <h1 className="auth-hero__title">Little Scout Admin</h1>
+              <h1 className="auth-hero__title">Local dev sign-in</h1>
               <p className="muted">
-                Sign in with the Google account allowed through IAP to manage
-                restaurants and observations.
+                Production admin uses IAP SSO automatically. Use email/password here only when
+                running the admin build locally without IAP.
               </p>
             </>
           ) : (
@@ -99,13 +104,17 @@ export function LoginPage() {
         </div>
 
         <Card>
-          <Button variant="secondary" fullWidth onClick={handleGoogle} disabled={busy}>
-            Continue with Google
-          </Button>
+          {!isAdminSite && (
+            <>
+              <Button variant="secondary" fullWidth onClick={handleGoogle} disabled={busy}>
+                Continue with Google
+              </Button>
 
-          <div className="divider">
-            <span>or email</span>
-          </div>
+              <div className="divider">
+                <span>or email</span>
+              </div>
+            </>
+          )}
 
           <form onSubmit={handleSubmit}>
             <label>
@@ -151,9 +160,17 @@ export function LoginPage() {
           </form>
 
           {isAdminSite && (
-            <ButtonAnchor href={PUBLIC_APP_URL} variant="ghost" fullWidth>
-              ← Back to public app
-            </ButtonAnchor>
+            <>
+              {iapAccessDenied && (
+                <p className="muted">
+                  IAP SSO reported missing admin access. Grant the claim, then reload{" "}
+                  <a href="/">the home page</a>.
+                </p>
+              )}
+              <ButtonAnchor href={PUBLIC_APP_URL} variant="ghost" fullWidth>
+                ← Back to public app
+              </ButtonAnchor>
+            </>
           )}
         </Card>
       </main>

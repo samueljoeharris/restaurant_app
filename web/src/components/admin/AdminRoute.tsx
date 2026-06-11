@@ -6,7 +6,7 @@ import { AdminAccessDeniedPage } from "../../pages/admin/AdminAccessDeniedPage";
 import { Skeleton } from "../ui/Skeleton";
 
 export function AdminRoute({ children }: { children: ReactNode }) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, iapAccessDenied } = useAuth();
 
   if (loading) {
     return (
@@ -17,12 +17,12 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (iapAccessDenied || (user && !isAdmin)) {
+    return <AdminAccessDeniedPage />;
   }
 
-  if (!isAdmin) {
-    return <AdminAccessDeniedPage />;
+  if (!user) {
+    return <Navigate to="/" replace />;
   }
 
   return children;

@@ -54,9 +54,15 @@ module "cloud_run" {
       var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],
       var.enable_custom_domains ? [local.web_origin, local.admin_origin] : [],
     )))
-    }, var.firebase_admin_sa_configured ? {
-    FIREBASE_SERVICE_ACCOUNT_PATH = "/secrets/firebase-admin/firebase-sa.json"
-  } : {})
+    }, merge(
+    var.firebase_admin_sa_configured ? {
+      FIREBASE_SERVICE_ACCOUNT_PATH = "/secrets/firebase-admin/firebase-sa.json"
+    } : {},
+    local.iap_oauth_enabled ? {
+      IAP_ADMIN_BACKEND_SERVICE = local.admin_iap_backend_service_name
+      GCP_PROJECT_NUMBER        = data.google_project.current.number
+    } : {},
+  ))
 
   depends_on = [
     module.iam,

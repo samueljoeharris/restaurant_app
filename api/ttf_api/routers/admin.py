@@ -4,17 +4,19 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from firebase_admin import auth as firebase_auth
 
 from ttf_api.auth import AuthUser, _init_firebase, require_admin
 from ttf_api.config import settings
 from ttf_api.db import get_conn
+from ttf_api.iap import IapJwtError, verify_iap_jwt
 from ttf_api.schemas import (
     AdminActivityDay,
     AdminActivityResponse,
     AdminContributorRow,
     AdminContributorsResponse,
+    AdminFirebaseSessionResponse,
     AdminObservationRow,
     AdminObservationsResponse,
     AdminOverviewStats,
@@ -29,6 +31,57 @@ _MAX_LIMIT = 200
 
 def _clamp_limit(limit: int) -> int:
     return max(1, min(limit, _MAX_LIMIT))
+
+
+@router.get("/firebase-session", response_model=AdminFirebaseSessionResponse)
+async def admin_firebase_session(
+    x_goog_iap_jwt_assertion: Annotated[str | None, Header()] = None,
+) -> AdminFirebaseSessionResponse:
+    """Exchange a verified IAP login for a Firebase custom token (admin SPA SSO)."""
+    if settings.auth_dev_mode and not x_goog_iap_jwt_assertion:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="IAP session bootstrap is disabled in AUTH_DEV_MODE without IAP headers",
+        )
+
+    try:
+        iap_claims = verify_iap_jwt(x_goog_iap_jwt_assertion or "")
+    except IapJwtError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
+
+    email = iap_claims.get("email")
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="IAP token missing email",
+        )
+
+    _init_firebase()
+    try:
+        user = firebase_auth.get_user_by_email(email)
+    except firebase_auth.UserNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "No Firebase account for this Google user. "
+                "Sign in on the public app once, then grant admin access."
+            ),
+        ) from exc
+
+    role = (user.custom_claims or {}).get("role")
+    if role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+
+    custom_token = firebase_auth.create_custom_token(user.uid)
+    if isinstance(custom_token, bytes):
+        custom_token = custom_token.decode("utf-8")
+    return AdminFirebaseSessionResponse(custom_token=custom_token)
 
 
 def _enrich_firebase_users(rows: list[AdminContributorRow]) -> list[AdminContributorRow]:

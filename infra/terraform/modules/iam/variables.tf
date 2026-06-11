@@ -32,3 +32,9 @@ variable "enable_cloud_run" {
   description = "Grant Firebase Auth admin to API runtime SA (Phase B)"
   default     = false
 }
+
+variable "enable_admin_iap" {
+  type        = bool
+  description = "Grant compute.viewer so API can resolve IAP JWT audience"
+  default     = false
+}

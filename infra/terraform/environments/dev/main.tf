@@ -100,6 +100,7 @@ module "iam" {
   uploads_bucket_name = module.storage.bucket_name
   enable_cloud_sql    = var.enable_cloud_sql
   enable_cloud_run    = var.enable_cloud_run
+  enable_admin_iap    = var.enable_admin_iap
 
   depends_on = [module.storage]
 }
