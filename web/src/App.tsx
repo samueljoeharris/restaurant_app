@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
+import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
 import { Layout } from "./components/Layout";
 import { AccountPage } from "./pages/AccountPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -64,6 +65,7 @@ export default function App() {
               </Layout>
             }
           />
+          <Route path="/admin/*" element={<AdminSiteRedirect />} />
           <Route path="/" element={<Navigate to="/restaurants" replace />} />
         </Routes>
       </BrowserRouter>

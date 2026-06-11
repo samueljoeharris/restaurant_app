@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { Link } from "react-router-dom";
-
 import { useAuth } from "../auth/AuthContext";
+import { ADMIN_APP_URL } from "../buildTarget";
 import { MfaSettings } from "../components/MfaSettings";
 import { api } from "../api/client";
 import { Button } from "../components/ui/Button";
@@ -39,9 +38,12 @@ export function AccountPage() {
           <strong>{user.displayName ?? user.email ?? "Signed in"}</strong>
         </p>
         <p className="muted small">Sign-in: {providers || "password"}</p>
-        {(isAdmin || profile?.role === "admin") ? (
+        {isAdmin || profile?.role === "admin" ? (
           <p className="success small">
-            Admin access · <Link to="/admin">Open dashboard</Link>
+            Operator access ·{" "}
+            <a href={ADMIN_APP_URL} className="linkish">
+              Open operator console
+            </a>
           </p>
         ) : (
           <p className="muted small">

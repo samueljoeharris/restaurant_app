@@ -91,13 +91,21 @@ jobs:
             MAPS_API_KEY="$MAPS_JSON"
           fi
 
-          export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY MAPS_API_KEY
+          ADMIN_APP_URL="https://admin.dev.littlescout.app"
+          if ADMIN_JSON="$(gcloud secrets versions access latest \
+            --secret=ttf-admin-public-url \
+            --project="${{ env.PROJECT_ID }}" 2>/dev/null)"; then
+            ADMIN_APP_URL="$ADMIN_JSON"
+          fi
+
+          export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY MAPS_API_KEY ADMIN_APP_URL
           python3 <<'PY'
           import json, os
           cfg = json.loads(os.environ["FIREBASE_JSON"])
           api_url = os.environ["API_URL"]
           recaptcha = os.environ.get("RECAPTCHA_SITE_KEY", "").strip()
           maps_key = os.environ.get("MAPS_API_KEY", "").strip()
+          admin_app_url = os.environ.get("ADMIN_APP_URL", "").strip()
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"api_url={api_url}\n")
               out.write(f"firebase_api_key={cfg['VITE_FIREBASE_API_KEY']}\n")
@@ -105,6 +113,7 @@ jobs:
               out.write(f"firebase_project_id={cfg['VITE_FIREBASE_PROJECT_ID']}\n")
               out.write(f"recaptcha_site_key={recaptcha}\n")
               out.write(f"maps_api_key={maps_key}\n")
+              out.write(f"admin_app_url={admin_app_url}\n")
           PY
 
       - name: Build image
@@ -112,6 +121,7 @@ jobs:
           IMAGE_BASE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}"
           docker build \
             --build-arg VITE_API_URL="${{ steps.env.outputs.api_url }}" \
+            --build-arg VITE_ADMIN_APP_URL="${{ steps.env.outputs.admin_app_url }}" \
             --build-arg VITE_FIREBASE_API_KEY="${{ steps.env.outputs.firebase_api_key }}" \
             --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ steps.env.outputs.firebase_auth_domain }}" \
             --build-arg VITE_FIREBASE_PROJECT_ID="${{ steps.env.outputs.firebase_project_id }}" \
