@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const tabs = [
   { to: "/", label: "Home", icon: "🏠" },
@@ -8,22 +8,29 @@ const tabs = [
 ] as const;
 
 export function BottomNav() {
+  const { pathname } = useLocation();
+
+  function isActive(path: string) {
+    if (path === "/") return pathname === "/";
+    if (path === "/restaurants") return pathname.startsWith("/restaurants");
+    return pathname === path;
+  }
+
   return (
     <nav className="bottom-nav" aria-label="Main">
       {tabs.map((tab) => (
-        <NavLink
+        <Link
           key={tab.to}
           to={tab.to}
-          end={tab.to === "/"}
-          className={({ isActive }) =>
-            ["bottom-nav__item", isActive ? "bottom-nav__item--active" : ""].join(" ")
-          }
+          className={["bottom-nav__item", isActive(tab.to) ? "bottom-nav__item--active" : ""].join(
+            " ",
+          )}
         >
           <span className="bottom-nav__icon" aria-hidden>
             {tab.icon}
           </span>
           <span className="bottom-nav__label">{tab.label}</span>
-        </NavLink>
+        </Link>
       ))}
     </nav>
   );
