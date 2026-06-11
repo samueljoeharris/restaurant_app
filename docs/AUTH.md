@@ -1,6 +1,6 @@
 # Auth — sign-in, Google, MFA
 
-TTF uses **Firebase Auth** only (no local users table). The web app and API share JWT identity.
+Little Scout uses **Firebase Auth** only (no local users table). The web app and API share JWT identity.
 
 ## Sign-in methods (web)
 
@@ -54,7 +54,7 @@ All write endpoints require `Authorization: Bearer <firebase_id_token>`. Token r
 
 ## Admin access
 
-Admin UI lives at `/admin` (overview, restaurants, contributors, TTF log). The API enforces `role: admin` from Firebase **custom claims** on `/v1/admin/*`.
+Admin UI lives at `/admin` (overview, restaurants, contributors, observation log). The API enforces `role: admin` from Firebase **custom claims** on `/v1/admin/*`.
 
 **Grant yourself admin (one-time):**
 

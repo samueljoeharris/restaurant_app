@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: TTF Restaurant API
+  title: Little Scout API
   description: |
-    Time to Fries (TTF) — social restaurant ratings for parents and caregivers.
+    Little Scout — social restaurant ratings for parents and caregivers.
     Pilot metro: Dedham, Massachusetts (`pilot_city=dedham-ma`).
   version: 0.1.0
 

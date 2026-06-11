@@ -51,7 +51,7 @@ export function LoginPage() {
       <div className="auth-page">
         <main className="page page--narrow page-enter">
           <div className="auth-hero">
-            <div className="auth-hero__mark">🍟</div>
+            <div className="auth-hero__mark">🔭</div>
             <h1 className="auth-hero__title">Verify it&apos;s you</h1>
           </div>
           <MfaChallengeForm />
@@ -64,8 +64,8 @@ export function LoginPage() {
     <div className="auth-page">
       <main className="page page--narrow page-enter">
         <div className="auth-hero">
-          <div className="auth-hero__mark">🍟</div>
-          <h1 className="auth-hero__title">Time to Fries</h1>
+          <div className="auth-hero__mark">🔭</div>
+          <h1 className="auth-hero__title">Little Scout</h1>
           <p className="muted">Dedham pilot — rate kid-food speed with other parents.</p>
         </div>
 

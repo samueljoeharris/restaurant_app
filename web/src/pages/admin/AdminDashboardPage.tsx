@@ -61,11 +61,11 @@ export function AdminDashboardPage() {
       <StatGrid>
         <Stat label="Restaurants" value={stats.restaurant_count} highlight />
         <Stat label="Contributors" value={stats.contributor_count} />
-        <Stat label="TTF observations" value={stats.ttf_observation_count} />
+        <Stat label="Speed observations" value={stats.ttf_observation_count} />
         <Stat label="Attribute ratings" value={stats.attribute_rating_count} />
         <Stat label="Notes" value={stats.note_count} />
         <Stat
-          label="Median TTF"
+          label="Median speed"
           value={stats.median_ttf_minutes != null ? `${fmtNum(stats.median_ttf_minutes, 0)} min` : "—"}
           hint={stats.avg_ttf_quality != null ? `avg quality ${fmtNum(stats.avg_ttf_quality)}` : undefined}
         />
@@ -77,7 +77,7 @@ export function AdminDashboardPage() {
         <Stat
           label="Last 7 days"
           value={stats.ttf_last_7_days + stats.attribute_ratings_last_7_days + stats.notes_last_7_days}
-          hint={`${stats.ttf_last_7_days} TTF · ${stats.attribute_ratings_last_7_days} attrs · ${stats.notes_last_7_days} notes`}
+          hint={`${stats.ttf_last_7_days} speed · ${stats.attribute_ratings_last_7_days} attrs · ${stats.notes_last_7_days} notes`}
         />
       </StatGrid>
 
@@ -88,14 +88,14 @@ export function AdminDashboardPage() {
 
       <section className="admin-panel admin-panel--split">
         <div>
-          <h3>Restaurants with TTF</h3>
+          <h3>Restaurants with speed data</h3>
           <p className="admin-panel__big">{stats.restaurants_with_ttf}</p>
           <p className="muted small">of {stats.restaurant_count} seeded venues</p>
         </div>
         <div>
           <h3>Any parent data</h3>
           <p className="admin-panel__big">{stats.restaurants_with_any_data}</p>
-          <p className="muted small">TTF, attributes, or notes</p>
+          <p className="muted small">Speed, attributes, or notes</p>
         </div>
       </section>
     </div>

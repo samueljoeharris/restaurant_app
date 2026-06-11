@@ -66,7 +66,7 @@ export function AdminUsersPage() {
             columns={[
               { key: "user", label: "User" },
               { key: "uid", label: "Firebase UID" },
-              { key: "ttf", label: "TTF", align: "right" },
+              { key: "ttf", label: "Speed", align: "right" },
               { key: "attr", label: "Attrs", align: "right" },
               { key: "notes", label: "Notes", align: "right" },
               { key: "total", label: "Total", align: "right" },

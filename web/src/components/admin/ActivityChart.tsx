@@ -9,7 +9,7 @@ export function ActivityChart({ days }: { days: AdminActivityDay[] }) {
   return (
     <div className="admin-activity">
       <div className="admin-activity__legend">
-        <span><i className="admin-activity__dot admin-activity__dot--ttf" /> TTF</span>
+        <span><i className="admin-activity__dot admin-activity__dot--ttf" /> Speed</span>
         <span><i className="admin-activity__dot admin-activity__dot--attr" /> Attributes</span>
         <span><i className="admin-activity__dot admin-activity__dot--note" /> Notes</span>
       </div>

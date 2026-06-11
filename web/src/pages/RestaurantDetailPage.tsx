@@ -105,11 +105,11 @@ export function RestaurantDetailPage() {
         </div>
       )}
 
-      <Card title="Time to Fries" subtitle="How fast did kid food arrive?" accent>
+      <Card title="Kid food speed" subtitle="How fast did kid food arrive?" accent>
         {ttf.sample_size === 0 ? (
           <EmptyState
             emoji="⏱️"
-            title="No fries timer yet"
+            title="No speed data yet"
             description="Be the first parent to clock a visit."
             action={
               <ButtonLink to={`/restaurants/${r.id}/submit`} fullWidth>

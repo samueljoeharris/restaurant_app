@@ -19,7 +19,7 @@ export async function startTotpEnrollment(user: User): Promise<TotpEnrollment> {
   const secret = await TotpMultiFactorGenerator.generateSecret(session);
   const qrCodeUrl = secret.generateQrCodeUrl(
     user.email ?? "user",
-    "Time to Fries",
+    "Little Scout",
   );
   return { secret, qrCodeUrl };
 }

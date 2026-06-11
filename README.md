@@ -1,8 +1,8 @@
-# TTF — Time to Fries
+# Little Scout
 
 A social restaurant rating app for **parents and caregivers** dining out with children.
 
-**Flagship metric: TTF (Time to Fries)** — how fast kid-friendly food reaches the table, plus what was served and how good it was. Beyond generic ratings, TTF captures structured, crowd-sourced data parents actually need: high chairs, noise level, stroller access, kids menu quality, and more.
+**Flagship metric: kid food speed (TTF internally)** — how fast kid-friendly food reaches the table, plus what was served and how good it was. Beyond generic ratings, Little Scout captures structured, crowd-sourced data parents actually need: high chairs, noise level, stroller access, kids menu quality, and more.
 
 ## Status
 

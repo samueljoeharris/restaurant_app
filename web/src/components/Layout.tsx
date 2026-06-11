@@ -16,8 +16,8 @@ export function Layout({ children }: { children: ReactNode }) {
       <div className="shell shell--no-nav">
         <div className="shell__header">
           <div className="shell__brand">
-            <span className="shell__brand-mark">🍟</span>
-            TTF
+            <span className="shell__brand-mark">🔭</span>
+            Little Scout
           </div>
         </div>
         <div className="shell__main page stack">
@@ -36,8 +36,8 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className={`shell${hideNav ? " shell--no-nav" : ""}${isMap ? " shell--map" : ""}`}>
       <header className="shell__header">
         <Link to="/restaurants" className="shell__brand">
-          <span className="shell__brand-mark">🍟</span>
-          TTF
+          <span className="shell__brand-mark">🔭</span>
+          Little Scout
         </Link>
         <span className="shell__tagline">Dedham pilot</span>
       </header>

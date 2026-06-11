@@ -1,6 +1,6 @@
 # TTF API (Python / FastAPI)
 
-REST API for the Time to Fries restaurant app. **Pilot city:** Dedham, Massachusetts (`dedham-ma`).
+REST API for **Little Scout**. **Pilot city:** Dedham, Massachusetts (`dedham-ma`).
 
 ## Run locally
 
