@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 
 import { useAuth } from "../../auth/AuthContext";
 import { Skeleton } from "../ui/Skeleton";
+import { AdminAccessDeniedPage } from "../../pages/admin/AdminAccessDeniedPage";
 
 export function AdminRoute({ children }: { children: ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
@@ -21,7 +22,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   }
 
   if (!isAdmin) {
-    return <Navigate to="/restaurants" replace />;
+    return <AdminAccessDeniedPage />;
   }
 
   return children;

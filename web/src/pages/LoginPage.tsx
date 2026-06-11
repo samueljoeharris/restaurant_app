@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 
 import { useAuth, authErrorMessage } from "../auth/AuthContext";
+import { defaultAuthedPath, isAdminSite } from "../buildTarget";
 import { MfaChallengeForm } from "../components/MfaChallengeForm";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -15,7 +16,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (user) return <Navigate to="/restaurants" replace />;
+  if (user) return <Navigate to={defaultAuthedPath} replace />;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -66,7 +67,11 @@ export function LoginPage() {
         <div className="auth-hero">
           <div className="auth-hero__mark">🔭</div>
           <h1 className="auth-hero__title">Little Scout</h1>
-          <p className="muted">Dedham pilot — rate kid-food speed with other parents.</p>
+          <p className="muted">
+            {isAdminSite
+              ? "Operator console — sign in with the same Google account allowed through IAP."
+              : "Dedham pilot — rate kid-food speed with other parents."}
+          </p>
         </div>
 
         <Card>

@@ -1,9 +1,11 @@
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  getRedirectResult,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
 } from "firebase/auth";
 import type { MultiFactorResolver, User } from "firebase/auth";
@@ -18,6 +20,7 @@ import {
 import type { ReactNode } from "react";
 
 import { auth } from "../firebase";
+import { isAdminSite } from "../buildTarget";
 import { authErrorMessage } from "./errors";
 import {
   completeTotpSignIn,
@@ -98,6 +101,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          await syncUser(result.user);
+        }
+      })
+      .catch((err) => {
+        console.error("Firebase redirect sign-in failed", err);
+      });
+  }, [syncUser]);
+
+  useEffect(() => {
     return onAuthStateChanged(auth, async (next) => {
       await syncUser(next);
       setLoading(false);
@@ -149,6 +164,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const provider = new GoogleAuthProvider();
           provider.setCustomParameters({ prompt: "select_account" });
           try {
+            if (isAdminSite) {
+              await signInWithRedirect(auth, provider);
+              return;
+            }
             await signInWithPopup(auth, provider);
           } catch (err) {
             await afterCredential(err);
