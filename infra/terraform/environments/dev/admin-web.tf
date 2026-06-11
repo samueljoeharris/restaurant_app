@@ -10,6 +10,18 @@ module "cloud_run_admin" {
   image                 = var.admin_web_image
   service_account_email = module.iam.api_runtime_email
 
+  # IAP on LB: only the IAP service agent may invoke; ingress limited to load balancer.
+  ingress = (
+    var.enable_custom_domains && var.enable_admin_iap
+    ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+    : "INGRESS_TRAFFIC_ALL"
+  )
+  invoker_members = (
+    var.enable_custom_domains && var.enable_admin_iap
+    ? []
+    : ["allUsers"]
+  )
+
   depends_on = [
     module.iam,
     google_artifact_registry_repository_iam_member.api_runtime_reader,

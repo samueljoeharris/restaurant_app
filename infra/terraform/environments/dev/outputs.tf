@@ -109,14 +109,8 @@ output "admin_iap_enabled" {
 }
 
 output "iap_oauth_configured" {
-  description = "Whether IAP OAuth client credentials are loaded (ttf-iap-oauth secret or TF_VAR bootstrap)"
-  value       = local.iap_oauth_enabled && local.iap_oauth_client_id_effective != ""
-  sensitive   = false
-}
-
-output "google_oauth_configured" {
-  description = "Whether Google sign-in OAuth credentials are loaded (ttf-google-oauth secret or TF_VAR bootstrap)"
-  value       = local.google_oauth_enabled && local.google_oauth_client_id_effective != ""
+  description = "Whether IAP OAuth credentials are available (bootstrap vars or ttf-iap-oauth secret)"
+  value       = local.iap_oauth_enabled && (local.iap_oauth_bootstrap || local.iap_oauth_read_secret)
 }
 
 output "public_urls" {

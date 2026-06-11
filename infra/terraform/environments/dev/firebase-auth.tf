@@ -16,8 +16,8 @@ module "firebase_auth" {
   )
 
   enable_google_sign_in      = var.enable_google_sign_in
-  google_oauth_client_id     = local.google_oauth_client_id_effective
-  google_oauth_client_secret = local.google_oauth_client_secret_effective
+  google_oauth_client_id     = var.google_oauth_client_id
+  google_oauth_client_secret = var.google_oauth_client_secret
   mfa_state                  = var.firebase_mfa_state
 
   depends_on = [module.firebase_web]

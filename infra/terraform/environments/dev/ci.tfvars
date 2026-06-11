@@ -16,6 +16,8 @@ web_image                    = "us-docker.pkg.dev/cloudrun/container/hello"
 cloud_sql_tier               = "db-f1-micro"
 firebase_mfa_state           = "ENABLED"
 firebase_admin_sa_configured = true
+# Google sign-in: managed in Firebase Console (not Terraform). See docs/AUTH.md.
+enable_google_sign_in = false
 # App Check: set site key after creating reCAPTCHA Enterprise key (public; safe in ci.tfvars).
 # app_check_recaptcha_site_key = "6L..."
 

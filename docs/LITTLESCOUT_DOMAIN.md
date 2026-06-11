@@ -189,16 +189,14 @@ Then choose **one** bootstrap path:
 
 **A — GitHub Environment secrets (recommended for CI apply)**
 
-In repo **Settings → Environments → dev**, add (see also [AUTH.md](AUTH.md) for Google sign-in):
+In repo **Settings → Environments → dev**, add:
 
 | Secret | Value |
 |--------|--------|
-| `IAP_OAUTH_CLIENT_ID` | IAP Console client |
+| `IAP_OAUTH_CLIENT_ID` | IAP Console client (`IAP-ttf-dev-admin-backend`) |
 | `IAP_OAUTH_CLIENT_SECRET` | IAP Console client |
-| `GOOGLE_OAUTH_CLIENT_ID` | Firebase Web OAuth client (optional; enables Google sign-in via TF) |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | Firebase Web OAuth client |
 
-Push to `main` or run Terraform workflow with apply. Terraform stores credentials in `ttf-iap-oauth` and wires the backend.
+Push to `main` or run Terraform workflow with apply. Terraform stores credentials in `ttf-iap-oauth`, wires the LB backend, provisions the IAP service agent, and grants `roles/run.invoker` on `ttf-admin-web`.
 
 **B — Local / script**
 
