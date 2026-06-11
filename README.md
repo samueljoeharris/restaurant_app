@@ -29,6 +29,7 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased onboarding checklist |
 | [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP setup (GitHub, GCP, Postgres) |
 | [docs/CI.md](docs/CI.md) | Local Docker checks and GitHub Actions (dev) |
+| [docs/BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Auth, deletion, caching, map search, and trust guidelines |
 | [infra/terraform/README.md](infra/terraform/README.md) | Terraform bootstrap and deploy |
 
 ## Repository

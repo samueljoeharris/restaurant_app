@@ -111,6 +111,7 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 | Doc | When to read |
 |-----|--------------|
 | [docs/DESIGN.md](docs/DESIGN.md) | Architecture, data model, API sketch, Terraform scope |
+| [docs/BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Auth, account deletion, caching, map search, moderation |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased checklist, account setup |
 | [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP configuration |
 

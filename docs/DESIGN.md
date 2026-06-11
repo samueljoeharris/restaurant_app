@@ -335,6 +335,8 @@ Seed `MetricDefinition` records for MVP:
 
 ## 7. Maps, Search & External Links
 
+Operational guidance for caching, auth, deletion, and trust controls: [BEST_PRACTICES.md](BEST_PRACTICES.md).
+
 ### Maps (iOS)
 
 - **Apple MapKit** for discovery, pins, and directions

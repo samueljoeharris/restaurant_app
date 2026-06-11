@@ -151,6 +151,7 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 - [ ] Gather TTF observations from real visits
 - [ ] Iterate on aggregates and UX
 - [ ] Plan `ttf-restaurant-prod` GCP project for public launch
+- [ ] Pre-launch hardening — [BEST_PRACTICES.md](BEST_PRACTICES.md) checklist (auth, account deletion, caching, moderation)
 
 ---
 
