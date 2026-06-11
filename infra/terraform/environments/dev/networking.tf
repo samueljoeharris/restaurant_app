@@ -5,10 +5,10 @@ module "serverless_lb" {
   count  = var.enable_custom_domains && var.enable_cloud_run ? 1 : 0
   source = "../../modules/serverless-lb"
 
-  project_id    = var.project_id
-  region        = var.region
-  name_prefix   = "ttf-${var.dns_environment}"
-  ssl_domains   = local.custom_domain_hostnames
+  project_id          = var.project_id
+  region              = var.region
+  name_prefix         = "ttf-${var.dns_environment}"
+  ssl_domains         = local.custom_domain_hostnames
   default_backend_key = "web"
 
   backends = merge(
@@ -32,20 +32,20 @@ module "serverless_lb" {
     } : {},
   )
 
-  host_routes = compact([
-    var.enable_web_cloud_run && local.web_fqdn != "" ? {
+  host_routes = concat(
+    var.enable_web_cloud_run && local.web_fqdn != "" ? [{
       hostname    = local.web_fqdn
       backend_key = "web"
-    } : null,
-    local.api_fqdn != "" ? {
+    }] : [],
+    local.api_fqdn != "" ? [{
       hostname    = local.api_fqdn
       backend_key = "api"
-    } : null,
-    var.enable_admin_cloud_run && local.admin_fqdn != "" ? {
+    }] : [],
+    var.enable_admin_cloud_run && local.admin_fqdn != "" ? [{
       hostname    = local.admin_fqdn
       backend_key = "admin"
-    } : null,
-  ])
+    }] : [],
+  )
 
   iap_oauth_client_id     = var.iap_oauth_client_id
   iap_oauth_client_secret = var.iap_oauth_client_secret
