@@ -122,7 +122,7 @@ Only create git commits when the user explicitly asks.
 
 ### Docker daemon
 
-Cloud VMs do not run Docker Desktop. Start `dockerd` before `docker compose` or `./scripts/ci-check.sh` (use `fuse-overlayfs` storage driver and `iptables-legacy` on nested VMs). Ensure `/var/run/docker.sock` is writable.
+Cloud agents install Docker through `.cursor/environment.json` + `.cursor/Dockerfile`, then run `.cursor/scripts/start-docker.sh` on startup. If Docker is unavailable, run `bash .cursor/scripts/start-docker.sh` before `docker compose` or `./scripts/ci-check.sh`.
 
 ### Local full-stack (no cloud Firebase secrets)
 

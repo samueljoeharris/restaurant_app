@@ -1,0 +1,9 @@
+{
+  "name": "Little Scout Cloud Agent",
+  "user": "ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "start": "bash .cursor/scripts/start-docker.sh"
+}

@@ -49,7 +49,7 @@ SKIP_CI=1 git push
 
 **Cursor hook:** `.cursor/hooks.json` runs the same checks before agent-initiated `git push` (blocks `--no-verify`).
 
-Requires Docker Desktop running.
+Requires Docker Desktop on local machines. Cursor Cloud Agents install Docker via `.cursor/environment.json` and start the daemon automatically at boot.
 
 ## GitHub workflows
 
