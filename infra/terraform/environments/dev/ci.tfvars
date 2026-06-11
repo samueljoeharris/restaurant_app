@@ -18,3 +18,14 @@ firebase_mfa_state           = "ENABLED"
 firebase_admin_sa_configured = true
 # App Check: set site key after creating reCAPTCHA Enterprise key (public; safe in ci.tfvars).
 # app_check_recaptcha_site_key = "6L..."
+
+# littlescout.app — dev segment on ttf-restaurant-dev (GoDaddy DNS → load_balancer_ip output)
+dns_base_domain        = "littlescout.app"
+dns_environment        = "dev"
+enable_custom_domains  = true
+enable_admin_cloud_run = true
+# IAP: set after creating OAuth client in GCP Console (see docs/LITTLESCOUT_DOMAIN.md)
+# enable_admin_iap       = true
+# iap_oauth_client_id     = "....apps.googleusercontent.com"
+# iap_oauth_client_secret = "..."
+# iap_admin_members       = ["user:you@gmail.com"]

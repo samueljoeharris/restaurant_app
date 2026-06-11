@@ -71,3 +71,43 @@ output "firebase_web_app_id" {
   description = "Firebase Web app ID"
   value       = var.enable_firebase_web ? module.firebase_web[0].app_id : null
 }
+
+output "dns_hostnames" {
+  description = "Custom domain hostnames (dev segment)"
+  value = var.enable_custom_domains ? {
+    web   = local.web_fqdn
+    api   = local.api_fqdn
+    admin = var.enable_admin_cloud_run ? local.admin_fqdn : null
+  } : null
+}
+
+output "load_balancer_ip" {
+  description = "GoDaddy A record target for app.dev / api.dev / admin.dev"
+  value       = var.enable_custom_domains && var.enable_cloud_run ? module.serverless_lb[0].lb_ip_address : null
+}
+
+output "godaddy_dns_records" {
+  description = "Create these A records in GoDaddy DNS (see docs/LITTLESCOUT_DOMAIN.md)"
+  value = var.enable_custom_domains && var.enable_cloud_run ? [
+    for host in local.custom_domain_hostnames : {
+      type  = "A"
+      name  = replace(host, ".${local.dns_base}", "")
+      value = module.serverless_lb[0].lb_ip_address
+      ttl   = 600
+    }
+  ] : null
+}
+
+output "cloud_run_admin_url" {
+  description = "Admin intranet (run.app until DNS + LB ready)"
+  value       = var.enable_admin_cloud_run ? module.cloud_run_admin[0].service_uri : null
+}
+
+output "public_urls" {
+  description = "Canonical HTTPS origins after DNS cutover"
+  value = var.enable_custom_domains ? {
+    web   = local.web_origin
+    api   = local.api_origin
+    admin = var.enable_admin_cloud_run ? local.admin_origin : null
+  } : null
+}

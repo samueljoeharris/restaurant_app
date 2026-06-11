@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:admin": "tsc -b && VITE_BUILD_TARGET=admin vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

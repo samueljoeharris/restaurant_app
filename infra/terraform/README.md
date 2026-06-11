@@ -217,6 +217,14 @@ Add to `web/.env.local` as `VITE_GOOGLE_MAPS_API_KEY=...`.
 - **Phase B:** Cloud SQL is the main cost (~$7–10/mo); Cloud Run scales to zero when idle
 - `terraform destroy` when not actively developing
 
+## Custom domain (littlescout.app)
+
+Dev hostnames: `app.dev.littlescout.app`, `api.dev.littlescout.app`, `admin.dev.littlescout.app`.
+
+Terraform provisions a global HTTPS load balancer (`modules/serverless-lb`), managed SSL, and `ttf-admin-web`. After apply, point GoDaddy A records at `terraform output load_balancer_ip`.
+
+Full runbook: [docs/LITTLESCOUT_DOMAIN.md](../../docs/LITTLESCOUT_DOMAIN.md).
+
 ## Prod
 
 Copy `environments/dev` → `environments/prod` when pilot launches, or add `prod/` with `ttf-restaurant-prod` project.

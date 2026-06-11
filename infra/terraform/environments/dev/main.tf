@@ -26,7 +26,17 @@ locals {
     "servicenetworking.googleapis.com",
   ]
 
-  required_apis = var.enable_cloud_sql || var.enable_cloud_run ? concat(local.phase_a_apis, local.phase_b_apis) : local.phase_a_apis
+  # Custom domains — global HTTPS load balancer + managed certs
+  custom_domain_apis = [
+    "compute.googleapis.com",
+    "iap.googleapis.com",
+  ]
+
+  required_apis = concat(
+    local.phase_a_apis,
+    var.enable_cloud_sql || var.enable_cloud_run ? local.phase_b_apis : [],
+    var.enable_custom_domains ? local.custom_domain_apis : [],
+  )
 
   secret_ids = concat(
     var.enable_cloud_sql ? ["ttf-db-url"] : [],
@@ -34,6 +44,8 @@ locals {
     var.enable_web_cloud_run ? ["ttf-maps-web-api-key"] : [],
     var.enable_firebase_web ? ["ttf-firebase-web-env", "ttf-recaptcha-site-key"] : [],
     var.enable_cloud_run ? ["ttf-firebase-admin-sa"] : [],
+    var.enable_custom_domains ? ["ttf-api-public-url", "ttf-web-public-url"] : [],
+    var.enable_custom_domains && var.enable_admin_cloud_run ? ["ttf-admin-public-url"] : [],
   )
 
   database_url = var.enable_cloud_sql ? format(

@@ -49,10 +49,11 @@ module "cloud_run" {
     APP_CHECK_ENFORCE         = var.app_check_recaptcha_site_key != "" ? "true" : "false"
     RATE_LIMIT_MAX_WRITES     = "60"
     RATE_LIMIT_WINDOW_MINUTES = "60"
-    CORS_ORIGINS = jsonencode(concat(
+    CORS_ORIGINS = jsonencode(compact(concat(
       ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
       var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],
-    ))
+      var.enable_custom_domains ? [local.web_origin, local.admin_origin] : [],
+    )))
     }, var.firebase_admin_sa_configured ? {
     FIREBASE_SERVICE_ACCOUNT_PATH = "/secrets/firebase-admin/firebase-sa.json"
   } : {})

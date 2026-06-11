@@ -147,3 +147,73 @@ variable "firebase_admin_sa_configured" {
   description = "Set true after api/scripts/upload_firebase_admin_sa.sh uploads ttf-firebase-admin-sa"
   default     = false
 }
+
+variable "dns_base_domain" {
+  type        = string
+  description = "Registrable domain (e.g. littlescout.app). Empty disables custom hostnames."
+  default     = ""
+}
+
+variable "dns_environment" {
+  type        = string
+  description = "DNS segment: dev → app.dev.example.com; prod → app.example.com"
+  default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "prod"], var.dns_environment)
+    error_message = "dns_environment must be dev or prod."
+  }
+}
+
+variable "enable_custom_domains" {
+  type        = bool
+  description = "Provision global HTTPS LB + managed cert for dns_base_domain hostnames"
+  default     = false
+
+  validation {
+    condition     = !var.enable_custom_domains || var.dns_base_domain != ""
+    error_message = "enable_custom_domains requires dns_base_domain."
+  }
+}
+
+variable "enable_admin_cloud_run" {
+  type        = bool
+  description = "Deploy ttf-admin-web (operator intranet / admin console)"
+  default     = false
+
+  validation {
+    condition     = !var.enable_admin_cloud_run || var.enable_cloud_run
+    error_message = "enable_admin_cloud_run requires enable_cloud_run = true."
+  }
+}
+
+variable "admin_web_image" {
+  type        = string
+  description = "Cloud Run container image URI for ttf-admin-web"
+  default     = "us-docker.pkg.dev/cloudrun/container/hello"
+}
+
+variable "enable_admin_iap" {
+  type        = bool
+  description = "Enable Identity-Aware Proxy on admin.dev load balancer backend"
+  default     = false
+}
+
+variable "iap_oauth_client_id" {
+  type        = string
+  description = "IAP OAuth client ID (Console → Security → Identity-Aware Proxy)"
+  default     = ""
+}
+
+variable "iap_oauth_client_secret" {
+  type        = string
+  description = "IAP OAuth client secret"
+  default     = ""
+  sensitive   = true
+}
+
+variable "iap_admin_members" {
+  type        = list(string)
+  description = "IAM members granted IAP access to admin backend (e.g. user:you@gmail.com)"
+  default     = []
+}

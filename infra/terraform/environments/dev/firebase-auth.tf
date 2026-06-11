@@ -12,6 +12,7 @@ module "firebase_auth" {
     var.enable_web_cloud_run ? [
       replace(module.cloud_run_web[0].service_uri, "https://", ""),
     ] : [],
+    var.enable_custom_domains ? compact([local.web_fqdn, local.admin_fqdn]) : [],
   )
 
   enable_google_sign_in      = var.enable_google_sign_in

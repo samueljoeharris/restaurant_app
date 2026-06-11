@@ -1,4 +1,4 @@
-name: Web
+name: Admin Web
 
 on:
   workflow_dispatch:
@@ -6,23 +6,23 @@ on:
     branches: [main]
     paths:
       - "web/**"
-      - ".github/workflows/web.yml"
+      - ".github/workflows/admin-web.yml"
 
 env:
   PROJECT_ID: ttf-restaurant-dev
   REGION: us-central1
   AR_REPO: ttf-containers
-  IMAGE_NAME: ttf-web
-  CLOUD_RUN_SERVICE: ttf-web
+  IMAGE_NAME: ttf-admin-web
+  CLOUD_RUN_SERVICE: ttf-admin-web
   API_SERVICE: ttf-api
 
 concurrency:
-  group: web-dev-${{ github.ref }}
+  group: admin-web-dev-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   build-push-deploy:
-    name: Build, push, deploy (dev)
+    name: Build, push, deploy admin (dev)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -68,55 +68,42 @@ jobs:
             exit 1
           fi
 
+          PUBLIC_APP_URL="https://app.dev.littlescout.app"
+          if WEB_JSON="$(gcloud secrets versions access latest \
+            --secret=ttf-web-public-url \
+            --project="${{ env.PROJECT_ID }}" 2>/dev/null)"; then
+            PUBLIC_APP_URL="$WEB_JSON"
+          fi
+
           if ! FIREBASE_JSON="$(gcloud secrets versions access latest \
             --secret=ttf-firebase-web-env \
             --project="${{ env.PROJECT_ID }}" 2>&1)"; then
-            echo "::error::Could not read Secret Manager secret ttf-firebase-web-env"
-            echo "$FIREBASE_JSON"
-            echo "Run the Terraform workflow on main first (creates the secret and deploy IAM)."
+            echo "::error::Could not read ttf-firebase-web-env"
             exit 1
           fi
 
-          RECAPTCHA_SITE_KEY=""
-          if RECAPTCHA_JSON="$(gcloud secrets versions access latest \
-            --secret=ttf-recaptcha-site-key \
-            --project="${{ env.PROJECT_ID }}" 2>/dev/null)"; then
-            RECAPTCHA_SITE_KEY="$RECAPTCHA_JSON"
-          fi
-
-          MAPS_API_KEY=""
-          if MAPS_JSON="$(gcloud secrets versions access latest \
-            --secret=ttf-maps-web-api-key \
-            --project="${{ env.PROJECT_ID }}" 2>/dev/null)"; then
-            MAPS_API_KEY="$MAPS_JSON"
-          fi
-
-          export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY MAPS_API_KEY
+          export API_URL PUBLIC_APP_URL FIREBASE_JSON
           python3 <<'PY'
           import json, os
           cfg = json.loads(os.environ["FIREBASE_JSON"])
-          api_url = os.environ["API_URL"]
-          recaptcha = os.environ.get("RECAPTCHA_SITE_KEY", "").strip()
-          maps_key = os.environ.get("MAPS_API_KEY", "").strip()
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
-              out.write(f"api_url={api_url}\n")
+              out.write(f"api_url={os.environ['API_URL']}\n")
+              out.write(f"public_app_url={os.environ['PUBLIC_APP_URL']}\n")
               out.write(f"firebase_api_key={cfg['VITE_FIREBASE_API_KEY']}\n")
               out.write(f"firebase_auth_domain={cfg['VITE_FIREBASE_AUTH_DOMAIN']}\n")
               out.write(f"firebase_project_id={cfg['VITE_FIREBASE_PROJECT_ID']}\n")
-              out.write(f"recaptcha_site_key={recaptcha}\n")
-              out.write(f"maps_api_key={maps_key}\n")
           PY
 
       - name: Build image
         run: |
           IMAGE_BASE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}"
           docker build \
+            -f ./web/Dockerfile.admin \
             --build-arg VITE_API_URL="${{ steps.env.outputs.api_url }}" \
+            --build-arg VITE_PUBLIC_APP_URL="${{ steps.env.outputs.public_app_url }}" \
             --build-arg VITE_FIREBASE_API_KEY="${{ steps.env.outputs.firebase_api_key }}" \
             --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ steps.env.outputs.firebase_auth_domain }}" \
             --build-arg VITE_FIREBASE_PROJECT_ID="${{ steps.env.outputs.firebase_project_id }}" \
-            --build-arg VITE_APP_CHECK_RECAPTCHA_SITE_KEY="${{ steps.env.outputs.recaptcha_site_key }}" \
-            --build-arg VITE_GOOGLE_MAPS_API_KEY="${{ steps.env.outputs.maps_api_key }}" \
             -t "${IMAGE_BASE}:${{ github.sha }}" \
             -t "${IMAGE_BASE}:latest" \
             ./web
@@ -134,8 +121,8 @@ jobs:
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
             --format="value(name)" 2>/dev/null; then
-            echo "Cloud Run service not found — image pushed only."
-            echo "Run Terraform apply (enable_web_cloud_run) first, then re-run this workflow."
+            echo "Cloud Run service ttf-admin-web not found — image pushed only."
+            echo "Run Terraform apply (enable_admin_cloud_run) first, then re-run this workflow."
             exit 0
           fi
           gcloud run services update "${{ env.CLOUD_RUN_SERVICE }}" \
