@@ -211,6 +211,7 @@ resource "google_cloud_scheduler_job" "restaurant_refresh" {
   }
 
   depends_on = [
+    module.iam,
     google_cloud_run_v2_job.restaurant_refresh,
     google_project_iam_member.api_runtime_run_developer,
   ]
