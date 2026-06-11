@@ -29,6 +29,8 @@ locals {
     "roles/cloudsql.admin",
     "roles/run.admin",
     "roles/compute.networkAdmin",
+    "roles/compute.loadBalancerAdmin",
+    "roles/serviceusage.apiKeysAdmin",
     "roles/iap.admin",
     # Deploy Cloud Run services that run as ttf-api-runtime (actAs)
     "roles/iam.serviceAccountUser",
