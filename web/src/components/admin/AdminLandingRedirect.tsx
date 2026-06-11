@@ -28,8 +28,8 @@ export function AdminLandingRedirect() {
       <Navigate to="/login" replace />
     ) : (
       <AdminAccessDeniedPage
-        title="Could not connect operator session"
-        message="IAP sign-in succeeded, but the app could not start a Firebase admin session. Reload the page or contact an existing admin."
+        title="Access denied"
+        message="We couldn't sign you in to the operator console."
       />
     );
   }

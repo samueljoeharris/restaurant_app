@@ -10,10 +10,10 @@ type AdminAccessDeniedPageProps = {
   message?: string;
 };
 
-/** IAP allowlist passed but Firebase JWT lacks role=admin (or SSO failed). */
+/** Signed-in user lacks operator access, or IAP SSO could not start a session. */
 export function AdminAccessDeniedPage({
-  title = "Admin access required",
-  message = "Your Google account passed the IAP login wall, but it does not have operator access in Firebase yet.",
+  title = "Access denied",
+  message = "You don't have permission to use the operator console.",
 }: AdminAccessDeniedPageProps) {
   const { user, logout } = useAuth();
 
@@ -33,11 +33,6 @@ export function AdminAccessDeniedPage({
               Signed in as <strong>{user.email}</strong>
             </p>
           )}
-          <p className="muted">
-            An existing admin must run{" "}
-            <code>python api/scripts/set_admin_claim.py --email YOUR_EMAIL</code>, then
-            reload this page.
-          </p>
           <div className="auth-actions">
             <ButtonAnchor href={PUBLIC_APP_URL} fullWidth>
               Go to public app

@@ -14,7 +14,6 @@ export function AccountPage() {
     user,
     idToken,
     isAdmin,
-    refreshClaims,
     logout,
   } = useAuth();
   const [profile, setProfile] = useState<{
@@ -38,23 +37,12 @@ export function AccountPage() {
           <strong>{user.displayName ?? user.email ?? "Signed in"}</strong>
         </p>
         <p className="muted small">Sign-in: {providers || "password"}</p>
-        {isAdmin || profile?.role === "admin" ? (
+        {(isAdmin || profile?.role === "admin") && (
           <p className="success small">
             Operator access ·{" "}
             <a href={ADMIN_APP_URL} className="linkish">
               Open operator console
             </a>
-          </p>
-        ) : (
-          <p className="muted small">
-            Just granted admin?{" "}
-            <button
-              type="button"
-              className="link-button"
-              onClick={() => refreshClaims().catch(() => {})}
-            >
-              Refresh permissions
-            </button>
           </p>
         )}
         {profile && (

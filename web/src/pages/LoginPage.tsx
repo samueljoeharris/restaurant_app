@@ -163,8 +163,7 @@ export function LoginPage() {
             <>
               {iapAccessDenied && (
                 <p className="muted">
-                  IAP SSO reported missing admin access. Grant the claim, then reload{" "}
-                  <a href="/">the home page</a>.
+                  You don&apos;t have permission to use the operator console.
                 </p>
               )}
               <ButtonAnchor href={PUBLIC_APP_URL} variant="ghost" fullWidth>
