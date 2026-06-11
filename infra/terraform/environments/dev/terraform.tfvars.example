@@ -16,6 +16,9 @@ enable_cloud_run = false
 # enable_cloud_run = true
 # api_image = "us-central1-docker.pkg.dev/ttf-restaurant-dev/ttf-containers/ttf-api:latest"
 # cloud_sql_tier = "db-f1-micro"
+#
+# Weekly restaurant catalog refresh (Cloud Run Job + Cloud Scheduler). Off until reviewed.
+# enable_restaurant_refresh_job = true
 
 # Optional budget alert — requires billing account ID from:
 #   gcloud billing accounts list
