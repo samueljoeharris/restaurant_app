@@ -26,6 +26,7 @@ jobs:
   plan:
     name: Terraform Plan (dev)
     runs-on: ubuntu-latest
+    environment: dev
     permissions:
       contents: read
       pull-requests: write

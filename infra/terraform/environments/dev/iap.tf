@@ -18,6 +18,10 @@ locals {
     && var.iap_oauth_client_id != ""
     && var.iap_oauth_client_secret != ""
   )
+
+  # When TF vars are set this run, use them directly (also writes SM version).
+  # Otherwise read the persisted secret (subsequent applies without re-passing secrets).
+  iap_oauth_read_secret = local.iap_oauth_enabled && !local.iap_oauth_bootstrap
 }
 
 resource "google_secret_manager_secret_version" "iap_oauth" {
@@ -35,19 +39,23 @@ resource "google_secret_manager_secret_version" "iap_oauth" {
 }
 
 data "google_secret_manager_secret_version" "iap_oauth" {
-  count = local.iap_oauth_enabled ? 1 : 0
+  count = local.iap_oauth_read_secret ? 1 : 0
 
   secret  = module.secrets.secret_resource_names["ttf-iap-oauth"]
   version = "latest"
-
-  depends_on = [google_secret_manager_secret_version.iap_oauth]
 }
 
 locals {
-  iap_oauth_config = local.iap_oauth_enabled ? jsondecode(
+  iap_oauth_config = local.iap_oauth_read_secret ? jsondecode(
     data.google_secret_manager_secret_version.iap_oauth[0].secret_data
   ) : {}
 
-  iap_oauth_client_id_effective     = try(local.iap_oauth_config.client_id, "")
-  iap_oauth_client_secret_effective = try(local.iap_oauth_config.client_secret, "")
+  iap_oauth_client_id_effective = local.iap_oauth_bootstrap ? var.iap_oauth_client_id : try(
+    local.iap_oauth_config.client_id,
+    "",
+  )
+  iap_oauth_client_secret_effective = local.iap_oauth_bootstrap ? var.iap_oauth_client_secret : try(
+    local.iap_oauth_config.client_secret,
+    "",
+  )
 }
