@@ -153,7 +153,7 @@ Google for **`app.dev`** is configured in [Firebase Authentication](https://cons
 - `https://ttf-restaurant-dev.firebaseapp.com/__/auth/handler` (legacy)
 - `https://app.dev.littlescout.app/__/auth/handler` (**required** — app uses `app.dev` as `authDomain` with an nginx proxy to Firebase; without this URI, Google redirect sign-in returns to `/login` with no error on Chrome 115+)
 
-The public web nginx config proxies `/__/auth` to `ttf-restaurant-dev.firebaseapp.com` so auth storage stays same-origin. See [Firebase redirect best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices).
+The public web nginx config proxies `/__/auth` (and `/__/firebase`) to `ttf-restaurant-dev.firebaseapp.com` so auth storage stays same-origin. Use `location ^~` so the static `*.js` cache rule does not intercept `handler.js` / `iframe.js` (those 404s break Google redirect sign-in). See [Firebase redirect best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices).
 
 ### 3. OAuth consent screen branding
 
