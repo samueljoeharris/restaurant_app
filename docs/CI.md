@@ -5,14 +5,17 @@
 | Layer | What runs | When |
 |-------|-----------|------|
 | **Local** | `./scripts/ci-check.sh` (Docker) | Before push; git hook + Cursor hook |
-| **CI** (`ci.yml`) | Path-filtered Docker builds for web/api | **Push to `main` only** |
-| **Deploy** (`deploy.yml`) | Orchestrated pipeline: Terraform → API/Web/Admin deploys | **Push to `main` only** (path-aware jobs) |
+| **Pipeline** (`deploy.yml`, workflow **CI/CD**) | checks → Terraform → build+deploy, path-aware | **Push to `main` only** |
 
-**`deploy.yml` is the single deploy entrypoint on push.** It detects which paths changed, runs Terraform plan + apply first when `infra/**` changed, then deploys services — so infra changes always land before the code that depends on them. `terraform.yml`, `api.yml`, `web.yml`, and `admin-web.yml` are reusable workflows called by the pipeline; they no longer trigger on push themselves, but each keeps `workflow_dispatch` for manual runs.
+**`deploy.yml` is the single pipeline on push** — there is no separate CI workflow. Stages:
 
-Service deploys run when their paths changed **or** after a successful Terraform apply (apply can change env vars / secrets baked into images). A failed Terraform apply blocks all service deploys for that push.
+1. **CI checks** (fast, no Docker): web `tsc` typecheck + eslint (non-blocking until pre-existing errors are fixed), API `compileall` + **app import smoke** (catches Cloud Run boot crashes), `terraform fmt -check`. Required check name: **CI/CD / CI**.
+2. **Terraform** plan + apply, only when `infra/**` changed.
+3. **API / Web / Admin Web**: build the real image once (prod build args from Secret Manager), push to Artifact Registry, update Cloud Run.
 
-Infra validation (Terraform fmt + validate locally; plan + apply in GitHub) lives in **terraform.yml**, not the generic CI workflow.
+Nothing is built twice: checks don't build images, and each deploy job builds exactly one image. `terraform.yml`, `api.yml`, `web.yml`, and `admin-web.yml` are reusable workflows called by the pipeline; each keeps `workflow_dispatch` for manual runs.
+
+Service deploys run when their paths changed **or** after a successful Terraform apply (apply can change env vars / secrets baked into images). Failed checks block everything; a failed Terraform apply blocks all service deploys for that push.
 
 ## Solo dev workflow (Option A)
 
@@ -21,10 +24,10 @@ This repo is configured for **one developer pushing directly to `main`** — no 
 ```
 1. ./scripts/ci-check.sh          # optional local gate
 2. git push origin main
-3. CI runs once (if web/api changed)
-4. Deploy pipeline runs once:
-   a. Terraform plan + apply (if infra/** changed)
-   b. API / Web / Admin Web deploys (if their paths changed, or after apply)
+3. CI/CD pipeline runs once:
+   a. CI checks (typecheck, lint, app import smoke, terraform fmt)
+   b. Terraform plan + apply (if infra/** changed)
+   c. API / Web / Admin Web deploys (if their paths changed, or after apply)
 ```
 
 **Terraform manual apply:** Actions → **Terraform** → Run workflow → check **apply = true** (also runs automatically inside the **Deploy** pipeline on `main` push when `infra/**` changes — note a manual Terraform apply does **not** redeploy services; dispatch them yourself if env vars changed).
@@ -70,14 +73,13 @@ cd web && npm run dev             # http://localhost:5173
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| **CI** | Push to `main` | Path-filtered Docker builds for web/api (required check) |
-| **Deploy** | Push to `main` | Orchestrates Terraform → API / Web / Admin Web in order |
-| **Terraform** | Called by Deploy, or workflow_dispatch | Plan + apply dev GCP |
-| **API** | Called by Deploy, or workflow_dispatch | Deploy `ttf-api` |
-| **Web** | Called by Deploy, or workflow_dispatch | Deploy `ttf-web` |
-| **Admin Web** | Called by Deploy, or workflow_dispatch | Deploy `ttf-admin-web` |
+| **CI/CD** (`deploy.yml`) | Push to `main` | CI checks, then Terraform → API / Web / Admin Web in order |
+| **Terraform** | Called by CI/CD, or workflow_dispatch | Plan + apply dev GCP |
+| **API** | Called by CI/CD, or workflow_dispatch | Deploy `ttf-api` |
+| **Web** | Called by CI/CD, or workflow_dispatch | Deploy `ttf-web` |
+| **Admin Web** | Called by CI/CD, or workflow_dispatch | Deploy `ttf-admin-web` |
 
-Deploy jobs are **path-aware** inside the pipeline. A green **CI** workflow does not mean Cloud Run was updated — check the **Deploy** run when you changed runtime code.
+Jobs are **path-aware** inside the pipeline — skipped jobs mean those paths didn't change in the push (and Terraform didn't apply).
 
 ## When deploys do not run
 

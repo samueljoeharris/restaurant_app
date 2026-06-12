@@ -23,7 +23,7 @@ Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.
 | Auth | Firebase Auth + Apple Sign-In |
 | Infra | Terraform — `infra/terraform/` |
 | Local dev | Docker Compose (Mac or Windows host) |
-| CI/CD | GitHub Actions — **CI** gate on every push; deploy workflows path-filtered ([docs/CI.md](docs/CI.md)) |
+| CI/CD | GitHub Actions — single **CI/CD** pipeline per push: checks gate → Terraform → path-aware deploys ([docs/CI.md](docs/CI.md)) |
 
 ## Repository layout
 
@@ -88,7 +88,7 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 2. Prefer minimal, focused diffs — match existing conventions in surrounding code
 3. Cross-cutting changes (API schema + iOS model + migration) belong in one commit/ push to `main` in this monorepo
 4. **Solo dev CI:** push directly to `main` — workflows do not run on pull requests ([docs/CI.md](docs/CI.md))
-5. Use path-filtered CI awareness: `api/**`, `web/**`, `infra/**`, and future `ios/**` trigger separate workflows
+5. Use path-filtered CI awareness: `api/**`, `web/**`, `infra/**`, and future `ios/**` drive which pipeline jobs run
 6. MCP servers available: GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
 
 ## Pull requests

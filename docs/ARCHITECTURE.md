@@ -349,18 +349,19 @@ Important modules include:
 
 ## Deployment and CI/CD
 
-The repo is configured for solo-development pushes to `main`. A single **Deploy**
-pipeline (`deploy.yml`) orchestrates everything in order: Terraform applies first
-when `infra/**` changed, then path-aware service deploys run (and always run after
-a successful apply, since apply can change env vars baked into images).
+The repo is configured for solo-development pushes to `main`. A single **CI/CD**
+pipeline (`deploy.yml`) runs everything in order: fast CI checks (typecheck, lint,
+API app-import smoke, terraform fmt), then Terraform apply when `infra/**` changed,
+then path-aware service deploys (which also always run after a successful apply,
+since apply can change env vars baked into images). Images are built exactly once,
+in the deploy jobs, with real build args.
 
 ```mermaid
 flowchart TB
     Dev[Developer]
     LocalCI[./scripts/ci-check.sh]
     Push[git push origin main]
-    CI[CI workflow\nDocker build checks]
-    Pipeline[Deploy pipeline\npath detection]
+    Checks[CI checks job\ntypecheck, lint, import smoke, fmt]
     TF[Terraform job\nplan/apply dev]
     API[API job\nbuild/push/deploy ttf-api]
     Web[Web job\nbuild/push/deploy ttf-web]
@@ -369,9 +370,8 @@ flowchart TB
 
     Dev --> LocalCI
     LocalCI --> Push
-    Push --> CI
-    Push --> Pipeline
-    Pipeline -->|infra/** changed| TF
+    Push --> Checks
+    Checks -->|infra/** changed| TF
     TF -->|"after apply (or skipped)"| API
     TF -->|"after apply (or skipped)"| Web
     TF -->|"after apply (or skipped)"| Admin
@@ -384,8 +384,7 @@ Workflow responsibilities:
 
 | Workflow | Purpose |
 | --- | --- |
-| `.github/workflows/ci.yml` | Path-filtered Docker build checks for API and web changes (required check). |
-| `.github/workflows/deploy.yml` | Orchestrator on push to `main`: Terraform first, then service deploys. |
+| `.github/workflows/deploy.yml` | CI/CD pipeline on push to `main`: checks, then Terraform, then service deploys. |
 | `.github/workflows/terraform.yml` | Terraform plan/apply for dev infrastructure (reusable + manual dispatch). |
 | `.github/workflows/api.yml` | Build, push, and deploy `ttf-api` (reusable + manual dispatch). |
 | `.github/workflows/web.yml` | Build, push, and deploy `ttf-web` (reusable + manual dispatch). |

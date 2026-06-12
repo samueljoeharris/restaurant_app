@@ -105,9 +105,10 @@ if [[ "$MODE" != "all" ]]; then
   if echo "$changed" | grep -qE '^web/'; then RUN_WEB=true; fi
   if echo "$changed" | grep -qE '^api/'; then RUN_API=true; fi
   if echo "$changed" | grep -qE '^infra/terraform/'; then RUN_INFRA=true; fi
-  if echo "$changed" | grep -qE '^\.github/workflows/ci\.yml'; then
+  if echo "$changed" | grep -qE '^\.github/workflows/deploy\.yml'; then
     RUN_WEB=true
     RUN_API=true
+    RUN_INFRA=true
   fi
   if echo "$changed" | grep -qE '^\.github/workflows/terraform\.yml'; then
     RUN_INFRA=true
@@ -149,9 +150,12 @@ if $RUN_WEB; then
 fi
 
 if $RUN_API; then
-  echo "→ api: docker build + compileall (api/Dockerfile)"
+  echo "→ api: docker build + compileall + app import (api/Dockerfile)"
   docker build -t ttf-api-ci ./api
   docker run --rm ttf-api-ci python -m compileall -q ttf_api
+  # Import the app: catches startup-time failures (route config, bad imports)
+  # that compileall misses — same failure mode as a Cloud Run boot crash.
+  docker run --rm ttf-api-ci python -c "from ttf_api.main import app"
   echo "✓ api build"
 fi
 

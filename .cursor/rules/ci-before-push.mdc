@@ -9,9 +9,9 @@ Before `git push` to `main`:
 
 1. Run `./scripts/ci-check.sh` (or `--all` if unsure what changed). Requires Docker running.
 2. If the user has not run `./scripts/setup-githooks.sh`, suggest it once — installs a **pre-push hook** that runs the same checks automatically.
-3. After pushing, confirm the **CI** workflow (`.github/workflows/ci.yml`) is green on GitHub Actions before claiming deploy is done. Required check name: **CI / CI**.
-4. Deploys run through the **Deploy** pipeline (`deploy.yml`) on push to `main`: Terraform applies first (if `infra/**` changed), then path-aware API/Web/Admin jobs. If a job was skipped because its paths weren't in the push, run **workflow_dispatch** on that workflow (`api.yml`, `web.yml`, `admin-web.yml`) or include the paths in the push.
-5. Cross-stack changes: `web/src/api/client.ts` + new API routes require **both** the API and Web jobs in the Deploy run to succeed.
+3. After pushing, confirm the **CI/CD** pipeline (`.github/workflows/deploy.yml`) is green on GitHub Actions before claiming deploy is done. Required check name: **CI/CD / CI** (checks job); deploy jobs follow in the same run.
+4. The pipeline runs in order: CI checks → Terraform apply (if `infra/**` changed) → path-aware API/Web/Admin deploy jobs. If a deploy job was skipped because its paths weren't in the push, run **workflow_dispatch** on that workflow (`api.yml`, `web.yml`, `admin-web.yml`) or include the paths in the push.
+5. Cross-stack changes: `web/src/api/client.ts` + new API routes require **both** the API and Web jobs in the pipeline run to succeed.
 6. Never use `git push --no-verify` unless the user explicitly asks to skip hooks.
 7. Infra changes: Terraform plan/apply runs inside the Deploy pipeline (`terraform.yml` is a reusable workflow, not push-triggered). After a successful apply in the pipeline, all service deploys run automatically; a failed apply blocks them. A manual Terraform dispatch does **not** redeploy services.
 
