@@ -41,6 +41,6 @@ variable "enable_admin_iap" {
 
 variable "enable_restaurant_refresh_scheduler" {
   type        = bool
-  description = "Grant Cloud Scheduler jobEditor so API can sync refresh schedule from admin UI"
+  description = "Grant Cloud Scheduler admin so API can sync refresh schedule from admin UI"
   default     = false
 }
