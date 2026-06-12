@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     iap_jwt_audience: str = ""
     iap_admin_backend_service: str = ""
     gcp_project_number: str = ""
+    restaurant_seed_pubsub_topic: str = ""
+    internal_job_secret: str = ""
 
     @field_validator("cors_origins", mode="before")
     @classmethod

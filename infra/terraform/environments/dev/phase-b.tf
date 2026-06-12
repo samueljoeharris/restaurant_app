@@ -33,12 +33,17 @@ locals {
     },
   ] : []
 
-  api_secret_env = {
+  api_secret_env = merge({
     MAPS_API_KEY = {
       secret  = "ttf-maps-api-key"
       version = "latest"
     }
-  }
+  }, var.enable_restaurant_refresh_job ? {
+    INTERNAL_JOB_SECRET = {
+      secret  = "ttf-internal-job-secret"
+      version = "latest"
+    }
+  } : {})
 
   api_container_env = merge({
     PILOT_CITY                = "dedham-ma"
@@ -60,6 +65,9 @@ locals {
     local.iap_oauth_enabled ? {
       IAP_ADMIN_BACKEND_SERVICE = local.admin_iap_backend_service_name
       GCP_PROJECT_NUMBER        = data.google_project.current.number
+    } : {},
+    var.enable_restaurant_refresh_job ? {
+      RESTAURANT_SEED_PUBSUB_TOPIC = local.restaurant_seed_topic_id
     } : {},
   ))
 }
@@ -197,13 +205,17 @@ resource "google_cloud_scheduler_job" "restaurant_refresh" {
   name        = "ttf-restaurant-refresh-weekly"
   project     = var.project_id
   region      = var.region
-  description = "Refresh Little Scout restaurant catalog from Google Places"
+  description = "Enqueue weekly restaurant catalog refresh (reads location_refresh_config)"
   schedule    = "0 9 * * 1"
   time_zone   = "America/New_York"
 
   http_target {
     http_method = "POST"
-    uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${google_cloud_run_v2_job.restaurant_refresh[0].name}:run"
+    uri         = "${module.cloud_run[0].service_uri}/v1/internal/scheduled-restaurant-refresh"
+
+    headers = {
+      X-Internal-Job-Token = random_password.internal_job_secret[0].result
+    }
 
     oauth_token {
       service_account_email = module.iam.api_runtime_email
@@ -212,7 +224,23 @@ resource "google_cloud_scheduler_job" "restaurant_refresh" {
 
   depends_on = [
     module.iam,
-    google_cloud_run_v2_job.restaurant_refresh,
-    google_project_iam_member.api_runtime_run_developer,
+    module.cloud_run,
+    google_secret_manager_secret_version.internal_job_secret,
   ]
+}
+
+resource "google_secret_manager_secret_version" "internal_job_secret" {
+  count = var.enable_restaurant_refresh_job ? 1 : 0
+
+  secret      = module.secrets.secret_resource_names["ttf-internal-job-secret"]
+  secret_data = random_password.internal_job_secret[0].result
+
+  depends_on = [module.secrets]
+}
+
+resource "random_password" "internal_job_secret" {
+  count = var.enable_restaurant_refresh_job ? 1 : 0
+
+  length  = 32
+  special = false
 }

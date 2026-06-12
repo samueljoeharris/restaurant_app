@@ -5,11 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 import math
 import time
+from uuid import UUID
 
 import httpx
 from psycopg import Connection
 
 from ttf_api.config import settings
+from ttf_api.restaurant_changelog import log_change
 
 GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
 PLACES_URL = "https://places.googleapis.com/v1/places:searchText"
@@ -29,6 +31,8 @@ GENERIC_TYPES = frozenset(
         "store",
     }
 )
+
+HIDDEN_STATUSES = frozenset({"closed", "outside_area", "tombstoned"})
 
 
 class PlacesSeedError(RuntimeError):
@@ -54,6 +58,8 @@ class SeedResult:
     updated: int = 0
     closed: int = 0
     outside_area: int = 0
+    tombstoned: int = 0
+    reactivated: int = 0
     skipped: int = 0
     out_of_area: int = 0
     unique_places: int = 0
@@ -225,18 +231,43 @@ def normalize_place(place: dict, area: SeedArea, pilot_city: str) -> dict | None
     }
 
 
-def upsert_restaurant(conn: Connection, row: dict) -> str:
+def _field_changes(existing: dict, row: dict) -> dict | None:
+    changes: dict[str, dict[str, object]] = {}
+    for field in ("name", "address", "lat", "lng", "status"):
+        old = existing.get(field)
+        new = row.get(field)
+        if old != new:
+            changes[field] = {"from": old, "to": new}
+    return changes or None
+
+
+def upsert_restaurant(
+    conn: Connection,
+    row: dict,
+    *,
+    seed_job_id: UUID | None = None,
+) -> str:
     existing = conn.execute(
-        "SELECT id FROM restaurants WHERE google_place_id = %s",
+        """
+        SELECT id, name, address, lat, lng, status, google_place_id
+        FROM restaurants
+        WHERE google_place_id = %s
+        """,
         (row["google_place_id"],),
     ).fetchone()
+
     if existing:
+        prev_status = existing["status"]
+        new_status = row["status"]
+        changes = _field_changes(existing, row)
+
         conn.execute(
             """
             UPDATE restaurants
             SET name = %s, address = %s, lat = %s, lng = %s,
                 google_maps_url = %s, cuisine_tags = %s, status = %s,
                 last_places_sync_at = now(), last_seen_in_places_at = now(),
+                tombstoned_at = NULL, tombstone_reason = NULL,
                 updated_at = now()
             WHERE google_place_id = %s
             """,
@@ -247,19 +278,64 @@ def upsert_restaurant(conn: Connection, row: dict) -> str:
                 row["lng"],
                 row["google_maps_url"],
                 row["cuisine_tags"],
-                row["status"],
+                new_status,
                 row["google_place_id"],
             ),
         )
-        return "closed" if row["status"] == "closed" else "updated"
 
-    conn.execute(
+        if prev_status in HIDDEN_STATUSES and new_status == "active":
+            log_change(
+                conn,
+                restaurant_id=existing["id"],
+                google_place_id=row["google_place_id"],
+                restaurant_name=row["name"],
+                action="reactivated",
+                previous_status=prev_status,
+                new_status=new_status,
+                reason="seen_in_places_sync",
+                seed_job_id=seed_job_id,
+                changed_fields=changes,
+            )
+            return "reactivated"
+
+        if new_status == "closed" and prev_status != "closed":
+            log_change(
+                conn,
+                restaurant_id=existing["id"],
+                google_place_id=row["google_place_id"],
+                restaurant_name=row["name"],
+                action="closed",
+                previous_status=prev_status,
+                new_status=new_status,
+                reason="google_places_closed",
+                seed_job_id=seed_job_id,
+            )
+            return "closed"
+
+        if changes:
+            log_change(
+                conn,
+                restaurant_id=existing["id"],
+                google_place_id=row["google_place_id"],
+                restaurant_name=row["name"],
+                action="updated",
+                previous_status=prev_status,
+                new_status=new_status,
+                seed_job_id=seed_job_id,
+                changed_fields=changes,
+            )
+            return "updated"
+
+        return "updated"
+
+    inserted = conn.execute(
         """
         INSERT INTO restaurants (
             name, address, lat, lng, google_place_id, google_maps_url,
             cuisine_tags, pilot_city, status, last_places_sync_at,
             last_seen_in_places_at
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now())
+        RETURNING id
         """,
         (
             row["name"],
@@ -272,11 +348,70 @@ def upsert_restaurant(conn: Connection, row: dict) -> str:
             row["pilot_city"],
             row["status"],
         ),
+    ).fetchone()
+
+    action = "closed" if row["status"] == "closed" else "added"
+    log_change(
+        conn,
+        restaurant_id=inserted["id"],
+        google_place_id=row["google_place_id"],
+        restaurant_name=row["name"],
+        action=action,
+        new_status=row["status"],
+        reason="google_places_closed" if action == "closed" else None,
+        seed_job_id=seed_job_id,
     )
-    return "closed" if row["status"] == "closed" else "inserted"
+    return "inserted" if action == "added" else "closed"
 
 
-def mark_outside_area(conn: Connection, area: SeedArea, pilot_city: str) -> int:
+def tombstone_restaurant(
+    conn: Connection,
+    restaurant_id: UUID,
+    *,
+    reason: str,
+    new_status: str = "tombstoned",
+    seed_job_id: UUID | None = None,
+) -> bool:
+    row = conn.execute(
+        "SELECT id, name, google_place_id, status FROM restaurants WHERE id = %s",
+        (restaurant_id,),
+    ).fetchone()
+    if not row or row["status"] == new_status:
+        return False
+
+    conn.execute(
+        """
+        UPDATE restaurants
+        SET status = %s,
+            tombstoned_at = now(),
+            tombstone_reason = %s,
+            last_places_sync_at = now(),
+            updated_at = now()
+        WHERE id = %s
+        """,
+        (new_status, reason, restaurant_id),
+    )
+    log_change(
+        conn,
+        restaurant_id=row["id"],
+        google_place_id=row["google_place_id"],
+        restaurant_name=row["name"],
+        action="tombstoned" if new_status == "tombstoned" else "outside_area",
+        previous_status=row["status"],
+        new_status=new_status,
+        reason=reason,
+        seed_job_id=seed_job_id,
+    )
+    return True
+
+
+def mark_outside_area(
+    conn: Connection,
+    area: SeedArea,
+    pilot_city: str,
+    *,
+    seed_job_id: UUID | None = None,
+) -> int:
     rows = conn.execute(
         """
         SELECT id, lat, lng
@@ -290,15 +425,51 @@ def mark_outside_area(conn: Connection, area: SeedArea, pilot_city: str) -> int:
     for row in rows:
         if within_area(area, row["lat"], row["lng"]):
             continue
-        conn.execute(
-            """
-            UPDATE restaurants
-            SET status = 'outside_area', last_places_sync_at = now(), updated_at = now()
-            WHERE id = %s
-            """,
-            (row["id"],),
-        )
-        marked += 1
+        if tombstone_restaurant(
+            conn,
+            row["id"],
+            reason="outside_seed_area",
+            new_status="outside_area",
+            seed_job_id=seed_job_id,
+        ):
+            marked += 1
+    return marked
+
+
+def mark_not_seen_in_sync(
+    conn: Connection,
+    area: SeedArea,
+    pilot_city: str,
+    seen_place_ids: set[str],
+    *,
+    seed_job_id: UUID | None = None,
+) -> int:
+    """Tombstone active venues in the seed area that were absent from Places results."""
+    rows = conn.execute(
+        """
+        SELECT id, google_place_id, lat, lng
+        FROM restaurants
+        WHERE pilot_city = %s
+          AND status = 'active'
+          AND google_place_id IS NOT NULL
+        """,
+        (pilot_city,),
+    ).fetchall()
+
+    marked = 0
+    for row in rows:
+        place_id = row["google_place_id"]
+        if place_id in seen_place_ids:
+            continue
+        if not within_area(area, row["lat"], row["lng"]):
+            continue
+        if tombstone_restaurant(
+            conn,
+            row["id"],
+            reason="not_seen_in_places_sync",
+            seed_job_id=seed_job_id,
+        ):
+            marked += 1
     return marked
 
 
@@ -310,9 +481,11 @@ def seed_restaurants_for_area(
     pilot_city: str,
     queries: list[str] | None = None,
     mark_missing_outside_area: bool = False,
+    tombstone_not_seen: bool = False,
+    seed_job_id: UUID | None = None,
 ) -> SeedResult:
     seen: set[str] = set()
-    inserted = updated = closed = skipped = out_of_area = 0
+    inserted = updated = closed = reactivated = skipped = out_of_area = 0
 
     for query in queries or search_queries_for_area(area):
         places = search_places(client, api_key, area, query)
@@ -333,20 +506,34 @@ def seed_restaurants_for_area(
                 continue
             seen.add(place_id)
 
-            action = upsert_restaurant(conn, row)
+            action = upsert_restaurant(conn, row, seed_job_id=seed_job_id)
             if action == "inserted":
                 inserted += 1
             elif action == "closed":
                 closed += 1
+            elif action == "reactivated":
+                reactivated += 1
             else:
                 updated += 1
 
-    outside_area = mark_outside_area(conn, area, pilot_city) if mark_missing_outside_area else 0
+    outside_area = (
+        mark_outside_area(conn, area, pilot_city, seed_job_id=seed_job_id)
+        if mark_missing_outside_area
+        else 0
+    )
+    tombstoned = (
+        mark_not_seen_in_sync(conn, area, pilot_city, seen, seed_job_id=seed_job_id)
+        if tombstone_not_seen
+        else 0
+    )
+
     return SeedResult(
         inserted=inserted,
         updated=updated,
         closed=closed,
         outside_area=outside_area,
+        tombstoned=tombstoned,
+        reactivated=reactivated,
         skipped=skipped,
         out_of_area=out_of_area,
         unique_places=len(seen),

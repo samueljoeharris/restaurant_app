@@ -9,6 +9,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminObservationsPage } from "./pages/admin/AdminObservationsPage";
 import { AdminAccountPage } from "./pages/admin/AdminAccountPage";
+import { AdminLocationSeedingPage } from "./pages/admin/AdminLocationSeedingPage";
 import { AdminRestaurantsPage } from "./pages/admin/AdminRestaurantsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 
@@ -37,6 +38,16 @@ export default function AdminApp() {
               <AdminRoute>
                 <AdminLayout>
                   <AdminRestaurantsPage />
+                </AdminLayout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/locations"
+            element={
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminLocationSeedingPage />
                 </AdminLayout>
               </AdminRoute>
             }

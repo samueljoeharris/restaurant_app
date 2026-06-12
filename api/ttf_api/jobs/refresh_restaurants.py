@@ -6,13 +6,20 @@ import sys
 
 from ttf_api.db import run_migrations
 from ttf_api.places_seed import PlacesSeedError
-from ttf_api.seed_jobs import run_default_refresh
+from ttf_api.seed_jobs import create_scheduled_refresh_job, get_seed_job, run_seed_job
 
 
 def main() -> int:
     run_migrations()
     try:
-        job = run_default_refresh(force=True)
+        job = create_scheduled_refresh_job()
+        if not job:
+            print("Auto-refresh disabled in location_refresh_config")
+            return 0
+        run_seed_job(job["id"])
+        job = get_seed_job(job["id"])
+        if not job:
+            raise PlacesSeedError("Refresh job disappeared before completion")
     except PlacesSeedError as exc:
         print(exc, file=sys.stderr)
         return 1
@@ -21,7 +28,8 @@ def main() -> int:
         "Refresh complete — "
         f"status: {job['status']}, inserted: {job['inserted_count']}, "
         f"updated: {job['updated_count']}, closed: {job['closed_count']}, "
-        f"outside area: {job['outside_area_count']}, unique places: {job['unique_places_count']}"
+        f"outside area: {job['outside_area_count']}, tombstoned: {job.get('tombstoned_count', 0)}, "
+        f"unique places: {job['unique_places_count']}"
     )
     if job["status"] != "succeeded":
         print(job["error"] or "Refresh failed", file=sys.stderr)

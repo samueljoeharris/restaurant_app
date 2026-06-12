@@ -7,6 +7,7 @@ import { PUBLIC_APP_URL } from "../../buildTarget";
 const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin", label: "Overview", end: true },
   { to: "/admin/restaurants", label: "Restaurants" },
+  { to: "/admin/locations", label: "Location seeding" },
   { to: "/admin/users", label: "Contributors" },
   { to: "/admin/observations", label: "Observation log" },
   { to: "/admin/account", label: "Security" },

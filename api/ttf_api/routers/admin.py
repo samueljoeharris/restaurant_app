@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from firebase_admin import auth as firebase_auth
@@ -11,6 +12,8 @@ from ttf_api.auth import AuthUser, _init_firebase, require_admin
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.iap import IapJwtError, verify_iap_jwt
+from ttf_api.places_seed import PlacesSeedError
+from ttf_api.pubsub_seed import enqueue_seed_job
 from ttf_api.schemas import (
     AdminActivityDay,
     AdminActivityResponse,
@@ -22,6 +25,23 @@ from ttf_api.schemas import (
     AdminOverviewStats,
     AdminRestaurantRow,
     AdminRestaurantsResponse,
+    AdminSeedJobRequest,
+    LocationRefreshConfig,
+    LocationRefreshConfigUpdate,
+    RestaurantChangelogResponse,
+    RestaurantChangelogRow,
+    RestaurantSeedJob,
+    RestaurantSeedJobResponse,
+    RestaurantSeedJobsListResponse,
+)
+from ttf_api.seed_jobs import (
+    create_seed_job,
+    create_scheduled_refresh_job,
+    get_refresh_config,
+    get_seed_job,
+    list_seed_jobs,
+    resolve_seed_area,
+    update_refresh_config,
 )
 
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
@@ -325,6 +345,8 @@ def admin_restaurants(
                 r.name,
                 r.address,
                 r.cuisine_tags,
+                r.status,
+                r.tombstone_reason,
                 r.updated_at,
                 COALESCE(t.sample_size, 0)::int AS ttf_sample_size,
                 t.median_minutes AS ttf_median_minutes,
@@ -364,6 +386,8 @@ def admin_restaurants(
                 name=r["name"],
                 address=r["address"],
                 cuisine_tags=r["cuisine_tags"] or [],
+                status=r["status"],
+                tombstone_reason=r.get("tombstone_reason"),
                 ttf_sample_size=int(r["ttf_sample_size"]),
                 ttf_median_minutes=r["ttf_median_minutes"],
                 ttf_avg_quality=r["ttf_avg_quality"],
@@ -373,6 +397,133 @@ def admin_restaurants(
             )
             for r in rows
         ],
+        total=int(total["total"]),
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get("/seed-jobs", response_model=RestaurantSeedJobsListResponse)
+def admin_list_seed_jobs(
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+    limit: int = Query(50, ge=1, le=_MAX_LIMIT),
+    offset: int = Query(0, ge=0),
+) -> RestaurantSeedJobsListResponse:
+    limit = _clamp_limit(limit)
+    rows, total = list_seed_jobs(limit=limit, offset=offset)
+    return RestaurantSeedJobsListResponse(
+        items=[RestaurantSeedJob(**row) for row in rows],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get("/seed-jobs/{job_id}", response_model=RestaurantSeedJobResponse)
+def admin_get_seed_job(
+    job_id: UUID,
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+) -> RestaurantSeedJobResponse:
+    job = get_seed_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Seed job not found")
+    return RestaurantSeedJobResponse(job=RestaurantSeedJob(**job))
+
+
+@router.post(
+    "/seed-jobs",
+    response_model=RestaurantSeedJobResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def admin_trigger_seed_job(
+    body: AdminSeedJobRequest,
+    admin: Annotated[AuthUser, Depends(require_admin)],
+) -> RestaurantSeedJobResponse:
+    if body.refresh:
+        job = create_scheduled_refresh_job(requested_by=admin.firebase_uid)
+        if not job:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Auto-refresh is disabled in location refresh config",
+            )
+    else:
+        try:
+            area = resolve_seed_area(body.location, body.lat, body.lng, body.radius_m)
+        except PlacesSeedError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        job, reused = create_seed_job(
+            area,
+            query=body.location.strip() if body.location else area.label,
+            requested_by=admin.firebase_uid,
+            refresh=body.refresh,
+            force=body.force,
+        )
+        if reused:
+            return RestaurantSeedJobResponse(job=RestaurantSeedJob(**job), reused=True)
+
+    if job["status"] == "pending":
+        enqueue_seed_job(job["id"])
+    return RestaurantSeedJobResponse(job=RestaurantSeedJob(**job))
+
+
+@router.get("/refresh-config", response_model=LocationRefreshConfig)
+def admin_get_refresh_config(
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+) -> LocationRefreshConfig:
+    return LocationRefreshConfig(**get_refresh_config())
+
+
+@router.put("/refresh-config", response_model=LocationRefreshConfig)
+def admin_update_refresh_config(
+    body: LocationRefreshConfigUpdate,
+    admin: Annotated[AuthUser, Depends(require_admin)],
+) -> LocationRefreshConfig:
+    row = update_refresh_config(
+        enabled=body.enabled,
+        schedule_cron=body.schedule_cron,
+        schedule_timezone=body.schedule_timezone,
+        default_location=body.default_location,
+        default_lat=body.default_lat,
+        default_lng=body.default_lng,
+        default_radius_m=body.default_radius_m,
+        updated_by=admin.firebase_uid,
+    )
+    return LocationRefreshConfig(**row)
+
+
+@router.get("/restaurant-changelog", response_model=RestaurantChangelogResponse)
+def admin_restaurant_changelog(
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+    limit: int = Query(50, ge=1, le=_MAX_LIMIT),
+    offset: int = Query(0, ge=0),
+    action: str | None = Query(None, max_length=32),
+) -> RestaurantChangelogResponse:
+    limit = _clamp_limit(limit)
+    params: list[object] = []
+    where = ""
+    if action and action.strip():
+        where = "WHERE action = %s"
+        params.append(action.strip())
+
+    with get_conn() as conn:
+        total = conn.execute(
+            f"SELECT COUNT(*)::int AS total FROM restaurant_changelog {where}",
+            tuple(params),
+        ).fetchone()
+        rows = conn.execute(
+            f"""
+            SELECT *
+            FROM restaurant_changelog
+            {where}
+            ORDER BY created_at DESC
+            LIMIT %s OFFSET %s
+            """,
+            tuple([*params, limit, offset]),
+        ).fetchall()
+
+    return RestaurantChangelogResponse(
+        items=[RestaurantChangelogRow(**row) for row in rows],
         total=int(total["total"]),
         limit=limit,
         offset=offset,

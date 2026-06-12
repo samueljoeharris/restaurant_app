@@ -78,6 +78,7 @@ export function AdminRestaurantsPage() {
           <DataTable
             columns={[
               { key: "name", label: "Restaurant" },
+              { key: "status", label: "Status" },
               { key: "ttf", label: "Speed n", align: "right" },
               { key: "median", label: "Median", align: "right" },
               { key: "quality", label: "Quality", align: "right" },
@@ -95,6 +96,16 @@ export function AdminRestaurantsPage() {
                     <div className="muted small">{r.address}</div>
                     {r.cuisine_tags.length > 0 && (
                       <div className="muted small">{r.cuisine_tags.join(" · ")}</div>
+                    )}
+                  </div>
+                ),
+                status: (
+                  <div>
+                    <span className={r.status === "active" ? "" : "admin-badge--warn"}>
+                      {r.status}
+                    </span>
+                    {r.tombstone_reason && (
+                      <div className="muted small">{r.tombstone_reason}</div>
                     )}
                   </div>
                 ),

@@ -84,11 +84,14 @@ class RestaurantSeedJob(BaseModel):
     radius_m: int
     refresh: bool = False
     status: Literal["pending", "running", "succeeded", "failed", "skipped"]
+    requested_by: str | None = None
     error: str | None = None
     inserted_count: int = 0
     updated_count: int = 0
     closed_count: int = 0
     outside_area_count: int = 0
+    tombstoned_count: int = 0
+    reactivated_count: int = 0
     skipped_count: int = 0
     out_of_area_count: int = 0
     unique_places_count: int = 0
@@ -101,6 +104,77 @@ class RestaurantSeedJob(BaseModel):
 class RestaurantSeedJobResponse(BaseModel):
     job: RestaurantSeedJob
     reused: bool = False
+
+
+class RestaurantSeedJobsListResponse(BaseModel):
+    items: list[RestaurantSeedJob]
+    total: int
+    limit: int
+    offset: int
+
+
+class AdminSeedJobRequest(BaseModel):
+    location: str | None = Field(None, min_length=2, max_length=200)
+    lat: float | None = None
+    lng: float | None = None
+    radius_m: int = Field(default=8000, ge=1000, le=25000)
+    refresh: bool = False
+    force: bool = False
+
+    @model_validator(mode="after")
+    def require_location_or_coordinates(self) -> "AdminSeedJobRequest":
+        if self.refresh:
+            return self
+        has_location = bool(self.location and self.location.strip())
+        has_lat_lng = self.lat is not None and self.lng is not None
+        if has_location == has_lat_lng:
+            raise ValueError("Provide either location or both lat and lng")
+        return self
+
+
+class LocationRefreshConfig(BaseModel):
+    pilot_city: str
+    enabled: bool
+    schedule_cron: str
+    schedule_timezone: str
+    default_location: str | None = None
+    default_lat: float | None = None
+    default_lng: float | None = None
+    default_radius_m: int
+    last_scheduled_at: datetime | None = None
+    updated_at: datetime | None = None
+    updated_by: str | None = None
+
+
+class LocationRefreshConfigUpdate(BaseModel):
+    enabled: bool | None = None
+    schedule_cron: str | None = Field(None, min_length=5, max_length=100)
+    schedule_timezone: str | None = Field(None, min_length=3, max_length=64)
+    default_location: str | None = Field(None, min_length=2, max_length=200)
+    default_lat: float | None = None
+    default_lng: float | None = None
+    default_radius_m: int | None = Field(None, ge=1000, le=25000)
+
+
+class RestaurantChangelogRow(BaseModel):
+    id: UUID
+    restaurant_id: UUID | None = None
+    google_place_id: str | None = None
+    restaurant_name: str | None = None
+    action: Literal["added", "updated", "tombstoned", "reactivated", "closed", "outside_area"]
+    previous_status: str | None = None
+    new_status: str | None = None
+    reason: str | None = None
+    seed_job_id: UUID | None = None
+    changed_fields: dict | None = None
+    created_at: datetime
+
+
+class RestaurantChangelogResponse(BaseModel):
+    items: list[RestaurantChangelogRow]
+    total: int
+    limit: int
+    offset: int
 
 
 class UserProfile(BaseModel):
@@ -230,6 +304,8 @@ class AdminRestaurantRow(BaseModel):
     name: str
     address: str
     cuisine_tags: list[str]
+    status: Literal["active", "closed", "outside_area", "tombstoned"]
+    tombstone_reason: str | None = None
     ttf_sample_size: int
     ttf_median_minutes: float | None = None
     ttf_avg_quality: float | None = None

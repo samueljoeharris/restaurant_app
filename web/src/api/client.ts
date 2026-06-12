@@ -6,10 +6,13 @@ import type {
   AdminOverviewStats,
   AdminRestaurantRow,
   AttributeEntry,
+  LocationRefreshConfig,
   MetricDefinition,
   Paginated,
+  RestaurantChangelogRow,
   RestaurantDetailResponse,
   RestaurantMapEntry,
+  RestaurantSeedJob,
   RestaurantSeedJobResponse,
   RestaurantNote,
   RestaurantSummary,
@@ -166,4 +169,65 @@ export const api = {
       {},
       token,
     ),
+
+  adminSeedJobs: (token: string, limit = 50, offset = 0) =>
+    request<Paginated<RestaurantSeedJob>>(
+      `/v1/admin/seed-jobs?limit=${limit}&offset=${offset}`,
+      {},
+      token,
+    ),
+
+  adminGetSeedJob: (token: string, jobId: string) =>
+    request<RestaurantSeedJobResponse>(`/v1/admin/seed-jobs/${jobId}`, {}, token),
+
+  adminTriggerSeedJob: (
+    token: string,
+    body: {
+      location?: string;
+      lat?: number;
+      lng?: number;
+      radius_m?: number;
+      refresh?: boolean;
+      force?: boolean;
+    },
+  ) =>
+    request<RestaurantSeedJobResponse>("/v1/admin/seed-jobs", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
+
+  adminRefreshConfig: (token: string) =>
+    request<LocationRefreshConfig>("/v1/admin/refresh-config", {}, token),
+
+  adminUpdateRefreshConfig: (
+    token: string,
+    body: Partial<{
+      enabled: boolean;
+      schedule_cron: string;
+      schedule_timezone: string;
+      default_location: string;
+      default_lat: number;
+      default_lng: number;
+      default_radius_m: number;
+    }>,
+  ) =>
+    request<LocationRefreshConfig>("/v1/admin/refresh-config", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }, token),
+
+  adminRestaurantChangelog: (
+    token: string,
+    opts: { limit?: number; offset?: number; action?: string } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    if (opts.action) params.set("action", opts.action);
+    return request<Paginated<RestaurantChangelogRow>>(
+      `/v1/admin/restaurant-changelog?${params}`,
+      {},
+      token,
+    );
+  },
 };

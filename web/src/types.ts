@@ -24,11 +24,14 @@ export interface RestaurantSeedJob {
   radius_m: number;
   refresh: boolean;
   status: "pending" | "running" | "succeeded" | "failed" | "skipped";
+  requested_by: string | null;
   error: string | null;
   inserted_count: number;
   updated_count: number;
   closed_count: number;
   outside_area_count: number;
+  tombstoned_count: number;
+  reactivated_count: number;
   skipped_count: number;
   out_of_area_count: number;
   unique_places_count: number;
@@ -36,6 +39,34 @@ export interface RestaurantSeedJob {
   finished_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface LocationRefreshConfig {
+  pilot_city: string;
+  enabled: boolean;
+  schedule_cron: string;
+  schedule_timezone: string;
+  default_location: string | null;
+  default_lat: number | null;
+  default_lng: number | null;
+  default_radius_m: number;
+  last_scheduled_at: string | null;
+  updated_at: string | null;
+  updated_by: string | null;
+}
+
+export interface RestaurantChangelogRow {
+  id: string;
+  restaurant_id: string | null;
+  google_place_id: string | null;
+  restaurant_name: string | null;
+  action: "added" | "updated" | "tombstoned" | "reactivated" | "closed" | "outside_area";
+  previous_status: string | null;
+  new_status: string | null;
+  reason: string | null;
+  seed_job_id: string | null;
+  changed_fields: Record<string, unknown> | null;
+  created_at: string;
 }
 
 export interface RestaurantSeedJobResponse {
@@ -125,6 +156,8 @@ export interface AdminRestaurantRow {
   name: string;
   address: string;
   cuisine_tags: string[];
+  status: "active" | "closed" | "outside_area" | "tombstoned";
+  tombstone_reason: string | null;
   ttf_sample_size: number;
   ttf_median_minutes: number | null;
   ttf_avg_quality: number | null;

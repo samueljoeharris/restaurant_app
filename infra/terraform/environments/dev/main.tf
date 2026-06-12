@@ -25,6 +25,7 @@ locals {
     "sqladmin.googleapis.com",
     "servicenetworking.googleapis.com",
     "cloudscheduler.googleapis.com",
+    "pubsub.googleapis.com",
   ]
 
   # Custom domains — global HTTPS load balancer + managed certs
@@ -45,6 +46,7 @@ locals {
     var.enable_web_cloud_run ? ["ttf-maps-web-api-key"] : [],
     var.enable_firebase_web ? ["ttf-firebase-web-env", "ttf-recaptcha-site-key"] : [],
     var.enable_cloud_run ? ["ttf-firebase-admin-sa"] : [],
+    var.enable_restaurant_refresh_job ? ["ttf-internal-job-secret"] : [],
     var.enable_custom_domains ? ["ttf-api-public-url", "ttf-web-public-url"] : [],
     var.enable_custom_domains && var.enable_admin_cloud_run ? ["ttf-admin-public-url"] : [],
     var.enable_custom_domains && var.enable_admin_cloud_run && var.enable_admin_iap ? ["ttf-iap-oauth"] : [],

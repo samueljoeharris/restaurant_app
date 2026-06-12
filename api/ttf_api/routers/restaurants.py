@@ -11,7 +11,8 @@ from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.places_seed import PlacesSeedError
-from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area, run_seed_job
+from ttf_api.pubsub_seed import enqueue_seed_job
+from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area
 from ttf_api.schemas import (
     AttributeSubmissionRequest,
     AttributeSubmissionResponse,
@@ -213,7 +214,7 @@ def trigger_restaurant_seed_job(
         force=body.force,
     )
     if not reused and job["status"] == "pending":
-        background_tasks.add_task(run_seed_job, job["id"])
+        enqueue_seed_job(job["id"], background_tasks=background_tasks)
     return _seed_job_response(job, reused=reused)
 
 
