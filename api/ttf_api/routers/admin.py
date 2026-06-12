@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from firebase_admin import auth as firebase_auth
 
 from ttf_api.auth import AuthUser, _init_firebase, require_admin
@@ -544,13 +544,18 @@ def admin_update_seed_location(
     return SeedLocation(**row)
 
 
-@router.delete("/seed-locations/{location_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/seed-locations/{location_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
 def admin_delete_seed_location(
     location_id: UUID,
     _admin: Annotated[AuthUser, Depends(require_admin)],
-) -> None:
+) -> Response:
     if not delete_seed_location(location_id):
         raise HTTPException(status_code=404, detail="Seed location not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/refresh-config", response_model=LocationRefreshConfig)
