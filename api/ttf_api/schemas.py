@@ -190,6 +190,36 @@ class LocationRefreshConfigUpdate(BaseModel):
     default_radius_m: int | None = Field(None, ge=1000, le=25000)
 
 
+class SchedulerSyncStatus(BaseModel):
+    status: Literal["synced", "skipped", "failed"]
+    detail: str | None = None
+
+
+class LocationRefreshConfigSaveResponse(BaseModel):
+    config: LocationRefreshConfig
+    scheduler_sync: SchedulerSyncStatus
+
+
+class AdminAuditLogRow(BaseModel):
+    id: UUID
+    category: Literal["refresh_config", "seed_location"]
+    action: str
+    entity_id: str | None = None
+    changed_by_uid: str | None = None
+    changed_by_email: str | None = None
+    previous_values: dict | None = None
+    new_values: dict | None = None
+    metadata: dict | None = None
+    created_at: datetime
+
+
+class AdminAuditLogResponse(BaseModel):
+    items: list[AdminAuditLogRow]
+    total: int
+    limit: int
+    offset: int
+
+
 class RestaurantChangelogRow(BaseModel):
     id: UUID
     restaurant_id: UUID | None = None

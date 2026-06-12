@@ -67,7 +67,9 @@ locals {
       GCP_PROJECT_NUMBER        = data.google_project.current.number
     } : {},
     var.enable_restaurant_refresh_job ? {
-      RESTAURANT_SEED_PUBSUB_TOPIC = local.restaurant_seed_topic_id
+      RESTAURANT_SEED_PUBSUB_TOPIC     = local.restaurant_seed_topic_id
+      GCP_REGION                       = var.region
+      RESTAURANT_REFRESH_SCHEDULER_JOB = "ttf-restaurant-refresh-weekly"
     } : {},
   ))
 }
@@ -113,6 +115,15 @@ resource "google_cloud_scheduler_job" "restaurant_refresh" {
   description = "Enqueue weekly restaurant catalog refresh (reads location_refresh_config)"
   schedule    = "0 9 * * 1"
   time_zone   = "America/New_York"
+  paused      = false
+
+  lifecycle {
+    ignore_changes = [
+      schedule,
+      time_zone,
+      paused,
+    ]
+  }
 
   http_target {
     http_method = "POST"

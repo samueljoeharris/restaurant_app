@@ -70,6 +70,15 @@ restaurant_app/
    - Admin: `https://admin.dev.littlescout.app` (IAP-protected)
 5. For iOS work, enroll in [Apple Developer Program](https://developer.apple.com/programs/enroll/) and continue with Phase 3 in [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 
+## Future work / backlog
+
+Not scheduled — design notes and product ideas for later phases. See also [docs/DESIGN.md § Roadmap](docs/DESIGN.md#15-open-questions--roadmap).
+
+| Doc | Area | Summary |
+|-----|------|---------|
+| [docs/AI_CONTRIBUTION_RESEARCH.md](docs/AI_CONTRIBUTION_RESEARCH.md) | API / web / iOS | Chat or voice visit logging via Firebase/GCP AI; structured draft extraction with human review before submit |
+| [docs/TTF_SUBMIT_TIMER_IDEAS.md](docs/TTF_SUBMIT_TIMER_IDEAS.md) | Web pilot | Fun timer UX on the TTF submit page — progress ring, parent humor copy, median comparison |
+
 ## License
 
 TBD

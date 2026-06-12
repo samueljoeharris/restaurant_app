@@ -64,6 +64,14 @@ resource "google_project_iam_member" "api_runtime_secret_accessor" {
   member  = "serviceAccount:${google_service_account.api_runtime.email}"
 }
 
+resource "google_project_iam_member" "api_runtime_scheduler_editor" {
+  count = var.enable_restaurant_refresh_scheduler ? 1 : 0
+
+  project = var.project_id
+  role    = "roles/cloudscheduler.jobEditor"
+  member  = "serviceAccount:${google_service_account.api_runtime.email}"
+}
+
 resource "google_project_iam_member" "api_runtime_compute_viewer" {
   count = var.enable_admin_iap ? 1 : 0
 

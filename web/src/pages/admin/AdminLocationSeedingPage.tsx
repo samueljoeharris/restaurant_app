@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import type {
+  AdminAuditLogRow,
   LocationRefreshConfig,
   RestaurantChangelogRow,
   RestaurantSeedJob,
@@ -11,6 +12,31 @@ import type {
 } from "../../types";
 
 const PAGE_SIZE = 20;
+
+// Seed runs execute inside the ttf-api Cloud Run service (Pub/Sub push), so the
+// GCP view of a run is its Cloud Logging entries filtered by job id + time window.
+const GCP_PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "";
+const API_SERVICE_NAME = "ttf-api";
+const LOG_WINDOW_PAD_MS = 5 * 60_000;
+
+function gcpRunLogsUrl(run: RestaurantSeedJob): string | null {
+  if (!GCP_PROJECT_ID) return null;
+  const query = [
+    'resource.type="cloud_run_revision"',
+    `resource.labels.service_name="${API_SERVICE_NAME}"`,
+    `"${run.id}"`,
+  ].join("\n");
+  const start = new Date(run.started_at ?? run.created_at).getTime() - LOG_WINDOW_PAD_MS;
+  const end = run.finished_at
+    ? new Date(run.finished_at).getTime() + LOG_WINDOW_PAD_MS
+    : Date.now() + LOG_WINDOW_PAD_MS;
+  const params = [
+    `query=${encodeURIComponent(query)}`,
+    `startTime=${new Date(start).toISOString()}`,
+    `endTime=${new Date(end).toISOString()}`,
+  ].join(";");
+  return `https://console.cloud.google.com/logs/query;${params}?project=${GCP_PROJECT_ID}`;
+}
 
 function fmtTime(iso: string | null) {
   if (!iso) return "—";
@@ -36,6 +62,31 @@ function actionLabel(action: RestaurantChangelogRow["action"]) {
   return labels[action];
 }
 
+function auditActionLabel(action: AdminAuditLogRow["action"]) {
+  const labels: Record<string, string> = {
+    auto_refresh_enabled: "Auto-refresh enabled",
+    auto_refresh_disabled: "Auto-refresh disabled",
+    updated: "Settings updated",
+    enabled: "Location enabled",
+    disabled: "Location disabled",
+  };
+  return labels[action] ?? action;
+}
+
+function auditSummary(row: AdminAuditLogRow) {
+  if (row.category === "seed_location") {
+    const label = (row.new_values?.label as string | undefined) ?? row.entity_id ?? "location";
+    return label;
+  }
+  if (row.action === "auto_refresh_enabled" || row.action === "auto_refresh_disabled") {
+    return row.action === "auto_refresh_enabled" ? "Scheduler resumed" : "Scheduler paused";
+  }
+  const sync = row.metadata?.scheduler_sync as { status?: string; detail?: string } | undefined;
+  if (sync?.status === "synced") return sync.detail ?? "Scheduler synced";
+  if (sync?.status === "failed") return sync.detail ?? "Scheduler sync failed";
+  return "Refresh settings saved";
+}
+
 export function AdminLocationSeedingPage() {
   const { idToken } = useAuth();
   const [runs, setRuns] = useState<RestaurantSeedJob[]>([]);
@@ -51,10 +102,27 @@ export function AdminLocationSeedingPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [auditLog, setAuditLog] = useState<AdminAuditLogRow[]>([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditOffset, setAuditOffset] = useState(0);
 
   const [location, setLocation] = useState("");
   const [radiusM, setRadiusM] = useState(8000);
   const [force, setForce] = useState(false);
+
+  const loadAuditLog = useCallback(async (offset = auditOffset) => {
+    if (!idToken) return;
+    try {
+      const data = await api.adminAuditLog(idToken, {
+        limit: PAGE_SIZE,
+        offset,
+      });
+      setAuditLog(data.items);
+      setAuditTotal(data.total);
+    } catch {
+      // Non-blocking — main page data still loads.
+    }
+  }, [idToken, auditOffset]);
 
   const load = useCallback(async () => {
     if (!idToken) return;
@@ -87,6 +155,10 @@ export function AdminLocationSeedingPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    loadAuditLog();
+  }, [loadAuditLog]);
 
   useEffect(() => {
     if (!idToken) return;
@@ -154,6 +226,8 @@ export function AdminLocationSeedingPage() {
         enabled: !loc.enabled,
       });
       setLocations((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+      setAuditOffset(0);
+      await loadAuditLog(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -181,15 +255,23 @@ export function AdminLocationSeedingPage() {
     setBusy(true);
     setError(null);
     try {
-      const updated = await api.adminUpdateRefreshConfig(idToken, {
+      const res = await api.adminUpdateRefreshConfig(idToken, {
         enabled: config.enabled,
         schedule_cron: config.schedule_cron,
         schedule_timezone: config.schedule_timezone,
         default_location: config.default_location ?? undefined,
         default_radius_m: config.default_radius_m,
       });
-      setConfig(updated);
-      setMessage("Auto-refresh settings saved");
+      setConfig(res.config);
+      const syncNote =
+        res.scheduler_sync.status === "synced"
+          ? "Cloud Scheduler updated."
+          : res.scheduler_sync.status === "skipped"
+            ? "Scheduler sync skipped (not configured in this environment)."
+            : `Scheduler sync failed: ${res.scheduler_sync.detail ?? "unknown error"}`;
+      setMessage(`Auto-refresh settings saved. ${syncNote}`);
+      setAuditOffset(0);
+      await loadAuditLog(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -322,6 +404,7 @@ export function AdminLocationSeedingPage() {
               <p className="muted small">
                 Scheduled refresh re-seeds all enabled locations and the full catalog,
                 tombstoning venues missing from Places and updating closed status.
+                Saving updates the Cloud Scheduler job schedule and pause state in GCP.
               </p>
               <div className="admin-seed-form admin-seed-form--config">
                 <label className="admin-seed-form__check">
@@ -386,6 +469,42 @@ export function AdminLocationSeedingPage() {
           </section>
 
           <section className="admin-panel">
+            <h2>Refresh audit log</h2>
+            <p className="muted small">
+              Who enabled or disabled auto-refresh, changed the schedule, or toggled refresh
+              locations — plus Cloud Scheduler sync results.
+            </p>
+            <DataTable
+              columns={[
+                { key: "when", label: "When" },
+                { key: "category", label: "Type" },
+                { key: "action", label: "Action" },
+                { key: "who", label: "Changed by" },
+                { key: "detail", label: "Detail" },
+              ]}
+              rows={auditLog.map((row) => ({
+                key: row.id,
+                cells: {
+                  when: fmtTime(row.created_at),
+                  category: row.category === "refresh_config" ? "Auto-refresh" : "Location",
+                  action: auditActionLabel(row.action),
+                  who: row.changed_by_email ?? row.changed_by_uid ?? "—",
+                  detail: auditSummary(row),
+                },
+              }))}
+            />
+            {auditLog.length === 0 && (
+              <p className="muted small">No refresh setting changes recorded yet.</p>
+            )}
+            <Pagination
+              total={auditTotal}
+              limit={PAGE_SIZE}
+              offset={auditOffset}
+              onChange={setAuditOffset}
+            />
+          </section>
+
+          <section className="admin-panel">
             <h2>Runs</h2>
             <DataTable
               columns={[
@@ -396,6 +515,7 @@ export function AdminLocationSeedingPage() {
                 { key: "updated", label: "Updated", align: "right" },
                 { key: "tombstoned", label: "Tombstoned", align: "right" },
                 { key: "by", label: "Requested by" },
+                { key: "logs", label: "" },
               ]}
               rows={runs.map((r) => ({
                 key: r.id,
@@ -422,6 +542,22 @@ export function AdminLocationSeedingPage() {
                   updated: r.updated_count,
                   tombstoned: r.tombstoned_count,
                   by: r.requested_by ?? "—",
+                  logs: (() => {
+                    const url = gcpRunLogsUrl(r);
+                    return url ? (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="small"
+                        title="Open this run's logs in Google Cloud Logging"
+                      >
+                        GCP logs ↗
+                      </a>
+                    ) : (
+                      "—"
+                    );
+                  })(),
                 },
               }))}
             />

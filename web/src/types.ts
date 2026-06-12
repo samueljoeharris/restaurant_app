@@ -56,6 +56,29 @@ export interface LocationRefreshConfig {
   updated_by: string | null;
 }
 
+export interface SchedulerSyncStatus {
+  status: "synced" | "skipped" | "failed";
+  detail: string | null;
+}
+
+export interface LocationRefreshConfigSaveResponse {
+  config: LocationRefreshConfig;
+  scheduler_sync: SchedulerSyncStatus;
+}
+
+export interface AdminAuditLogRow {
+  id: string;
+  category: "refresh_config" | "seed_location";
+  action: string;
+  entity_id: string | null;
+  changed_by_uid: string | null;
+  changed_by_email: string | null;
+  previous_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
 export interface RestaurantChangelogRow {
   id: string;
   restaurant_id: string | null;

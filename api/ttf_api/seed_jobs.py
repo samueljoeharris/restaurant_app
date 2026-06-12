@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from uuid import UUID
 
 import httpx
@@ -18,6 +19,8 @@ from ttf_api.places_seed import (
     search_queries_for_area,
     seed_restaurants_for_area,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def resolve_seed_area(
@@ -154,6 +157,18 @@ def ensure_seed_location(
     ).fetchone()
 
 
+def get_seed_location(location_id: UUID) -> dict | None:
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT *
+            FROM seed_locations
+            WHERE id = %s AND pilot_city = %s
+            """,
+            (location_id, settings.pilot_city),
+        ).fetchone()
+
+
 def list_seed_locations() -> list[dict]:
     with get_conn() as conn:
         return conn.execute(
@@ -243,6 +258,12 @@ def run_seed_job(job_id: UUID) -> None:
         if not job:
             return
 
+    logger.info(
+        "seed_job %s started (kind=%s area=%s)",
+        job_id,
+        job.get("kind") or "area",
+        job["area_key"],
+    )
     try:
         api_key = require_maps_api_key()
         area = SeedArea(
@@ -321,7 +342,15 @@ def run_seed_job(job_id: UUID) -> None:
                     job_id,
                 ),
             )
+        logger.info(
+            "seed_job %s succeeded (inserted=%s updated=%s tombstoned=%s)",
+            job_id,
+            result.inserted,
+            result.updated,
+            result.tombstoned,
+        )
     except Exception as exc:
+        logger.exception("seed_job %s failed: %s", job_id, exc)
         with get_conn() as conn:
             conn.execute(
                 """

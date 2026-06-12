@@ -38,3 +38,9 @@ variable "enable_admin_iap" {
   description = "Grant compute.viewer so API can resolve IAP JWT audience"
   default     = false
 }
+
+variable "enable_restaurant_refresh_scheduler" {
+  type        = bool
+  description = "Grant Cloud Scheduler jobEditor so API can sync refresh schedule from admin UI"
+  default     = false
+}

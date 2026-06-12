@@ -8,15 +8,19 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from firebase_admin import auth as firebase_auth
 
+from ttf_api.admin_audit import list_admin_audit_log, write_admin_audit
 from ttf_api.auth import AuthUser, _init_firebase, require_admin
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.iap import IapJwtError, verify_iap_jwt
 from ttf_api.places_seed import PlacesSeedError
 from ttf_api.pubsub_seed import enqueue_seed_job
+from ttf_api.refresh_scheduler import sync_refresh_scheduler
 from ttf_api.schemas import (
     AdminActivityDay,
     AdminActivityResponse,
+    AdminAuditLogResponse,
+    AdminAuditLogRow,
     AdminContributorRow,
     AdminContributorsResponse,
     AdminFirebaseSessionResponse,
@@ -28,12 +32,14 @@ from ttf_api.schemas import (
     AdminRestaurantsResponse,
     AdminSeedJobRequest,
     LocationRefreshConfig,
+    LocationRefreshConfigSaveResponse,
     LocationRefreshConfigUpdate,
     RestaurantChangelogResponse,
     RestaurantChangelogRow,
     RestaurantSeedJob,
     RestaurantSeedJobResponse,
     RestaurantSeedJobsListResponse,
+    SchedulerSyncStatus,
     SeedLocation,
     SeedLocationCreate,
     SeedLocationsResponse,
@@ -46,6 +52,7 @@ from ttf_api.seed_jobs import (
     delete_seed_location,
     get_refresh_config,
     get_seed_job,
+    get_seed_location,
     list_seed_jobs,
     list_seed_locations,
     resolve_seed_area,
@@ -56,6 +63,27 @@ from ttf_api.seed_jobs import (
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
 _MAX_LIMIT = 200
+_REFRESH_CONFIG_AUDIT_FIELDS = (
+    "enabled",
+    "schedule_cron",
+    "schedule_timezone",
+    "default_location",
+    "default_lat",
+    "default_lng",
+    "default_radius_m",
+)
+
+
+def _refresh_config_snapshot(config: dict) -> dict:
+    return {field: config.get(field) for field in _REFRESH_CONFIG_AUDIT_FIELDS}
+
+
+def _refresh_config_action(previous: dict, updated: dict) -> str:
+    if previous.get("enabled") is True and updated.get("enabled") is False:
+        return "auto_refresh_disabled"
+    if previous.get("enabled") is False and updated.get("enabled") is True:
+        return "auto_refresh_enabled"
+    return "updated"
 
 
 def _clamp_limit(limit: int) -> int:
@@ -531,8 +559,9 @@ def admin_add_seed_location(
 def admin_update_seed_location(
     location_id: UUID,
     body: SeedLocationUpdate,
-    _admin: Annotated[AuthUser, Depends(require_admin)],
+    admin: Annotated[AuthUser, Depends(require_admin)],
 ) -> SeedLocation:
+    before = get_seed_location(location_id)
     row = update_seed_location(
         location_id,
         enabled=body.enabled,
@@ -541,6 +570,27 @@ def admin_update_seed_location(
     )
     if not row:
         raise HTTPException(status_code=404, detail="Seed location not found")
+
+    if (
+        before
+        and body.enabled is not None
+        and before["enabled"] != body.enabled
+    ):
+        write_admin_audit(
+            category="seed_location",
+            action="enabled" if body.enabled else "disabled",
+            entity_id=str(location_id),
+            changed_by_uid=admin.firebase_uid,
+            changed_by_email=admin.email,
+            previous_values={
+                "enabled": before["enabled"],
+                "label": before["label"],
+            },
+            new_values={
+                "enabled": row["enabled"],
+                "label": row["label"],
+            },
+        )
     return SeedLocation(**row)
 
 
@@ -565,11 +615,12 @@ def admin_get_refresh_config(
     return LocationRefreshConfig(**get_refresh_config())
 
 
-@router.put("/refresh-config", response_model=LocationRefreshConfig)
+@router.put("/refresh-config", response_model=LocationRefreshConfigSaveResponse)
 def admin_update_refresh_config(
     body: LocationRefreshConfigUpdate,
     admin: Annotated[AuthUser, Depends(require_admin)],
-) -> LocationRefreshConfig:
+) -> LocationRefreshConfigSaveResponse:
+    previous = _refresh_config_snapshot(get_refresh_config())
     row = update_refresh_config(
         enabled=body.enabled,
         schedule_cron=body.schedule_cron,
@@ -580,7 +631,50 @@ def admin_update_refresh_config(
         default_radius_m=body.default_radius_m,
         updated_by=admin.firebase_uid,
     )
-    return LocationRefreshConfig(**row)
+    updated = _refresh_config_snapshot(row)
+    scheduler_sync = sync_refresh_scheduler(row)
+
+    if previous != updated:
+        write_admin_audit(
+            category="refresh_config",
+            action=_refresh_config_action(previous, updated),
+            entity_id=row["pilot_city"],
+            changed_by_uid=admin.firebase_uid,
+            changed_by_email=admin.email,
+            previous_values=previous,
+            new_values=updated,
+            metadata={
+                "scheduler_sync": {
+                    "status": scheduler_sync.status,
+                    "detail": scheduler_sync.detail,
+                }
+            },
+        )
+
+    return LocationRefreshConfigSaveResponse(
+        config=LocationRefreshConfig(**row),
+        scheduler_sync=SchedulerSyncStatus(
+            status=scheduler_sync.status,
+            detail=scheduler_sync.detail,
+        ),
+    )
+
+
+@router.get("/audit-log", response_model=AdminAuditLogResponse)
+def admin_audit_log(
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+    limit: int = Query(50, ge=1, le=_MAX_LIMIT),
+    offset: int = Query(0, ge=0),
+    category: str | None = Query(None, pattern="^(refresh_config|seed_location)$"),
+) -> AdminAuditLogResponse:
+    limit = _clamp_limit(limit)
+    rows, total = list_admin_audit_log(category=category, limit=limit, offset=offset)
+    return AdminAuditLogResponse(
+        items=[AdminAuditLogRow(**row) for row in rows],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/restaurant-changelog", response_model=RestaurantChangelogResponse)

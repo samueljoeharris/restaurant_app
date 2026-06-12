@@ -1,6 +1,7 @@
 import { getAppCheckToken } from "../appCheck";
 import type {
   AdminActivityDay,
+  AdminAuditLogRow,
   AdminContributorRow,
   AdminObservationRow,
   AdminOverviewStats,
@@ -8,6 +9,7 @@ import type {
   AdminRestaurantRow,
   AttributeEntry,
   LocationRefreshConfig,
+  LocationRefreshConfigSaveResponse,
   MetricDefinition,
   Paginated,
   RestaurantChangelogRow,
@@ -247,10 +249,25 @@ export const api = {
       default_radius_m: number;
     }>,
   ) =>
-    request<LocationRefreshConfig>("/v1/admin/refresh-config", {
+    request<LocationRefreshConfigSaveResponse>("/v1/admin/refresh-config", {
       method: "PUT",
       body: JSON.stringify(body),
     }, token),
+
+  adminAuditLog: (
+    token: string,
+    opts: { limit?: number; offset?: number; category?: "refresh_config" | "seed_location" } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 20));
+    params.set("offset", String(opts.offset ?? 0));
+    if (opts.category) params.set("category", opts.category);
+    return request<Paginated<AdminAuditLogRow>>(
+      `/v1/admin/audit-log?${params}`,
+      {},
+      token,
+    );
+  },
 
   adminRestaurantChangelog: (
     token: string,

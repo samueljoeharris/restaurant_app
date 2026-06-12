@@ -30,3 +30,12 @@ Start here when you are orienting yourself in the Little Scout repo.
 - The current web pilot and admin app both live under `web/`; separate Cloud Run services are built by `web.yml` and `admin-web.yml`.
 - `CUSTOM_DOMAIN_SETUP.md` is a historical planning document. Use [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) as the live runbook.
 - GitHub Actions are intentionally push-to-`main` for this solo-dev repo; see [CI.md](CI.md) before changing branch protection or workflow triggers.
+
+## Future ideas & backlog
+
+Not scheduled — design notes and product ideas for later phases.
+
+| Doc | Area | Summary |
+|------|------|---------|
+| [TTF_SUBMIT_TIMER_IDEAS.md](TTF_SUBMIT_TIMER_IDEAS.md) | Web pilot | Fun timer UX on the TTF submit page — progress ring, parent humor copy, median comparison |
+| [AI_CONTRIBUTION_RESEARCH.md](AI_CONTRIBUTION_RESEARCH.md) | API / web / iOS | Chat or voice visit logging via Firebase/GCP AI; structured draft extraction with human review before submit |
