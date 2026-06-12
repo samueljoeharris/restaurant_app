@@ -128,7 +128,9 @@ Google for **`app.dev`** is configured in [Firebase Authentication](https://cons
 2. Firebase auto-creates the **Web client (auto created by Google Service)** in GCP Credentials.
 3. Complete the checklist below.
 
-> This OAuth client is **only for the public app**. Admin IAP uses a separate OAuth client — see [ADMIN_AUTH.md](ADMIN_AUTH.md).
+> **Not the admin IAP client.** Use **Web client (auto created by Google Service)** for public Google sign-in. The IAP OAuth client (`IAP-ttf-dev-admin-backend`) is only for `admin.dev`.
+
+> If sign-in fails with **`The provided client secret is invalid`**, the secret stored in Firebase → Google provider is stale. Create a **new client secret** on the Web client in GCP Credentials, then open [Firebase → Google sign-in](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) and re-enter Client ID + the new secret → Save.
 
 ### 1. Firebase authorized domains
 
@@ -175,7 +177,8 @@ Also set **Firebase → Project settings → General → Public-facing name** to
 | `auth/unauthorized-domain` | Add hostname to Firebase authorized domains |
 | `redirect_uri_mismatch` | Check Web client redirect URIs above |
 | Back on `/login`, no error (Chrome) | Add `https://app.dev.littlescout.app/__/auth/handler` to OAuth redirect URIs; redeploy web |
-| `signInWithIdp` **400** in Network tab | Same — missing `https://app.dev.littlescout.app/__/auth/handler` on the OAuth Web client |
+| `signInWithIdp` **400** / `auth/invalid-credential` with `client secret is invalid` | Regenerate **Web client** secret in [GCP Credentials](https://console.cloud.google.com/apis/credentials?project=ttf-restaurant-dev) and re-save **Firebase → Authentication → Google** with matching Client ID + secret (not the admin IAP OAuth client) |
+| `signInWithIdp` **400** (other) | Add `https://app.dev.littlescout.app/__/auth/handler` to OAuth Web client redirect URIs |
 | `Cross-Origin-Opener-Policy` console warnings | Benign with redirect flow; for popup mode nginx sends `same-origin-allow-popups` |
 
 ---

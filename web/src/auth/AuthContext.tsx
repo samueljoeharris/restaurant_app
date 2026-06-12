@@ -273,6 +273,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
             if (err && typeof err === "object" && "code" in err) {
               const code = (err as { code: string }).code;
+              const message =
+                err instanceof Error
+                  ? err.message
+                  : "message" in err && typeof err.message === "string"
+                    ? err.message
+                    : "";
+              if (
+                code === "auth/invalid-credential" &&
+                message.includes("client secret is invalid")
+              ) {
+                throw err;
+              }
               if (
                 code === "auth/invalid-credential" ||
                 code === "auth/internal-error"

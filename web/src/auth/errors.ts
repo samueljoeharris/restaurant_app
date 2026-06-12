@@ -29,6 +29,16 @@ const MESSAGES: Record<string, string> = {
 };
 
 export function authErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    const msg = err.message;
+    if (msg.includes("client secret is invalid")) {
+      return (
+        "Google sign-in failed: the OAuth client secret in Firebase does not match GCP. " +
+        "In GCP Credentials → Web client (auto created by Google Service), create a new client secret, " +
+        "then paste the Client ID and new secret into Firebase Authentication → Sign-in method → Google → Save."
+      );
+    }
+  }
   if (err && typeof err === "object" && "code" in err) {
     const code = (err as FirebaseError).code;
     if (code && MESSAGES[code]) return MESSAGES[code];
