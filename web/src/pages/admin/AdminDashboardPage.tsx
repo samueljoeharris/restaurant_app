@@ -12,14 +12,17 @@ function fmtNum(n: number | null | undefined, digits = 1) {
 }
 
 export function AdminDashboardPage() {
-  const { idToken } = useAuth();
+  const { idToken, refreshClaims } = useAuth();
   const [stats, setStats] = useState<AdminOverviewStats | null>(null);
   const [activity, setActivity] = useState<AdminActivityDay[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!idToken) return;
+    if (!idToken) {
+      void refreshClaims();
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     Promise.all([api.adminStats(idToken), api.adminActivity(idToken, 14)])
@@ -38,11 +41,11 @@ export function AdminDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [idToken]);
+  }, [idToken, refreshClaims]);
 
-  if (loading) return <p className="muted">Loading dashboard…</p>;
+  if (!idToken || loading) return <p className="muted">Loading dashboard…</p>;
   if (error) return <p className="error">{error}</p>;
-  if (!stats) return null;
+  if (!stats) return <p className="muted">No dashboard data yet.</p>;
 
   const coveragePct =
     stats.restaurant_count > 0

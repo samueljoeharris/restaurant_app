@@ -22,16 +22,17 @@ A user can pass IAP but still be denied by the app if they lack the Firebase adm
 ```mermaid
 sequenceDiagram
     participant Operator
-    participant IAP as Google IAP
-    participant Admin as Admin SPA / nginx
+    participant LB as HTTPS LB + IAP
+    participant Admin as Admin SPA
     participant API as ttf-api
     participant Firebase as Firebase Admin SDK
 
-    Operator->>IAP: Open admin.dev.littlescout.app
-    IAP-->>Operator: Google login challenge
-    Operator->>Admin: Request with IAP assertion header
-    Admin->>API: GET /v1/admin/firebase-session\nX-Goog-IAP-JWT-Assertion
-    API->>API: Verify IAP JWT
+    Operator->>LB: Open admin.dev.littlescout.app
+    LB-->>Operator: Google login challenge (IAP)
+    Operator->>Admin: Admin SPA loads
+    Admin->>LB: GET /auth/firebase-session (same-origin)
+    LB->>API: Path rule to IAP-enabled API backend\nX-Goog-IAP-JWT-Assertion
+    API->>API: Verify IAP JWT (fail closed)
     API->>Firebase: Look up user by email
     API->>Firebase: Confirm custom claim role=admin
     API-->>Admin: Firebase custom token
@@ -42,12 +43,12 @@ sequenceDiagram
 
 1. Operator opens `https://admin.dev.littlescout.app`.
 2. **IAP** prompts for Google account (OAuth client `IAP-ttf-dev-admin-backend` — **not** the Firebase Web client used by `app.dev`).
-3. Admin SPA loads and calls same-origin **`/auth/firebase-session`** (nginx proxies to **`GET /v1/admin/firebase-session`** on the API with `X-Goog-IAP-JWT-Assertion`).
-4. API verifies IAP JWT, confirms `role=admin` on the Firebase user, returns a **Firebase custom token**.
+3. Admin SPA loads and calls same-origin **`/auth/firebase-session`**. A load-balancer **path rule** on the admin host routes it (rewritten to `GET /v1/admin/firebase-session`) to a second, **IAP-enabled backend for `ttf-api`** (`ttf-dev-admin-api-backend`), so the API receives `X-Goog-IAP-JWT-Assertion` from IAP itself. There is no nginx proxy or shared secret in this path.
+4. API verifies **only** the IAP JWT — missing or invalid header fails closed with `401` — then confirms `role=admin` on the Firebase user and returns a **Firebase custom token**.
 5. Admin SPA calls `signInWithCustomToken()` — no second Google prompt.
 6. Subsequent `/v1/admin/*` calls use the Firebase ID token.
 
-Implementation: `web/src/auth/iapSession.ts`, `web/nginx.admin.conf`, `api/ttf_api/routes/admin.py`.
+Implementation: `web/src/auth/iapSession.ts`, `infra/terraform/modules/serverless-lb` (path rule), `api/ttf_api/routers/admin.py`.
 
 ---
 

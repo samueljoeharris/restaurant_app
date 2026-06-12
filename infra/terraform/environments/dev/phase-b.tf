@@ -63,7 +63,7 @@ locals {
       FIREBASE_SERVICE_ACCOUNT_PATH = "/secrets/firebase-admin/firebase-sa.json"
     } : {},
     local.iap_oauth_enabled ? {
-      IAP_ADMIN_BACKEND_SERVICE = local.admin_iap_backend_service_name
+      IAP_ADMIN_BACKEND_SERVICE = local.admin_api_iap_backend_service_name
       GCP_PROJECT_NUMBER        = data.google_project.current.number
     } : {},
     var.enable_restaurant_refresh_job ? {

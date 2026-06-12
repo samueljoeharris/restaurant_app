@@ -59,8 +59,11 @@ locals {
     "",
   )
 
-  # LB backend service name is deterministic (see modules/serverless-lb) — avoids TF cycle with Cloud Run.
-  admin_iap_backend_service_name = "ttf-${var.dns_environment}-admin-backend"
+  # LB backend service names are deterministic (see modules/serverless-lb) — avoids TF cycle with Cloud Run.
+  # admin-api is the IAP-enabled backend in front of ttf-api that serves the
+  # /auth/firebase-session bootstrap path on the admin host; the API verifies
+  # IAP JWTs against this backend's audience.
+  admin_api_iap_backend_service_name = "ttf-${var.dns_environment}-admin-api-backend"
 }
 
 # IAP → Cloud Run: provision service agent + grant run.invoker on ttf-admin-web.

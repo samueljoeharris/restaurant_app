@@ -57,6 +57,14 @@ resource "google_compute_backend_service" "backend" {
   }
 }
 
+locals {
+  # Path overrides per path matcher (matcher name == host route's backend_key).
+  # Assumes each backend_key is used by at most one host route.
+  path_routes_by_matcher = {
+    for route in var.host_routes : route.backend_key => route.path_routes
+  }
+}
+
 resource "google_compute_url_map" "https" {
   name            = "${var.name_prefix}-url-map"
   project         = var.project_id
@@ -75,6 +83,23 @@ resource "google_compute_url_map" "https" {
     content {
       name            = path_matcher.key
       default_service = google_compute_backend_service.backend[path_matcher.key].id
+
+      dynamic "path_rule" {
+        for_each = lookup(local.path_routes_by_matcher, path_matcher.key, [])
+        content {
+          paths   = path_rule.value.paths
+          service = google_compute_backend_service.backend[path_rule.value.backend_key].id
+
+          dynamic "route_action" {
+            for_each = path_rule.value.rewrite_path != null ? [1] : []
+            content {
+              url_rewrite {
+                path_prefix_rewrite = path_rule.value.rewrite_path
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

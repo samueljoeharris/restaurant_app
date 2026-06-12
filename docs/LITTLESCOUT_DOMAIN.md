@@ -221,7 +221,7 @@ curl -I https://admin.dev.littlescout.app/
 
 To add another operator, append to `iap_admin_members` (or use a `@googlegroups.com` group) and `terraform apply`.
 
-IAP handles the **Google login wall** at the load balancer. The admin SPA exchanges that IAP session for a **Firebase JWT** automatically via `/auth/firebase-session` (one Google prompt total). Operators still need `role: admin` on their Firebase user:
+IAP handles the **Google login wall** at the load balancer. The admin SPA exchanges that IAP session for a **Firebase JWT** automatically via `/auth/firebase-session` (one Google prompt total): an LB path rule on the admin host routes that path to a second, IAP-enabled `ttf-api` backend (`ttf-dev-admin-api-backend`), and the API verifies the `X-Goog-IAP-JWT-Assertion` header IAP attaches — failing closed if it is missing or invalid. No nginx proxy or shared secret is involved. Operators still need `role: admin` on their Firebase user:
 
 ```bash
 python api/scripts/set_admin_claim.py --email YOUR_EMAIL
@@ -305,6 +305,7 @@ Firebase Auth stays on `ttf-restaurant-dev` for dev builds. Use a separate Fireb
 | `unauthorized-domain` Firebase | Add hostname to authorized domains |
 | Maps blank | Add `https://app.dev.littlescout.app/*` to Maps web key |
 | Admin API 403 | Grant Firebase `role=admin` claim; sign out/in |
+| `401` on `/auth/firebase-session` after IAP login | Re-run Terraform: the LB path rule must route the path to the IAP-enabled `ttf-dev-admin-api-backend`, and the API needs `IAP_ADMIN_BACKEND_SERVICE` + `GCP_PROJECT_NUMBER` env vars to resolve the JWT audience |
 
 ---
 

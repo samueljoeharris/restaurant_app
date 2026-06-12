@@ -517,8 +517,8 @@ docker compose run terraform apply
 
 ### CI/CD — `.github/workflows/terraform.yml`
 
-- **Push to main:** `terraform plan` + `terraform apply` for `dev` on `infra/**` changes
-- **Manual dispatch:** plan/apply on demand
+- **Push to main:** called by the `deploy.yml` pipeline when `infra/**` changes — `terraform plan` + `terraform apply` for `dev`, then service deploys run
+- **Manual dispatch:** plan/apply on demand (does not redeploy services)
 - **Prod:** manual approval gate
 - State locking via GCS backend (`ttf-tfstate-dev`)
 
@@ -558,14 +558,17 @@ restaurant_app/
 └── .github/workflows/ # Path-filtered CI
 ```
 
-### Path-Filtered CI
+### Path-Aware Deploy Pipeline
 
-| Workflow | Triggers on |
-|----------|-------------|
-| `api.yml` | `api/**`, `docker-compose.yml` |
-| `web.yml` | `web/**` |
-| `admin-web.yml` | `web/**` |
-| `terraform.yml` | `infra/**` |
+`deploy.yml` runs on every push to `main` and routes work by changed paths
+(Terraform first, then service deploys):
+
+| Pipeline job | Runs when |
+|--------------|-----------|
+| Terraform (`terraform.yml`) | `infra/**` changed |
+| API (`api.yml`) | `api/**` changed, or after Terraform apply |
+| Web (`web.yml`) | `web/**` changed, or after Terraform apply |
+| Admin Web (`admin-web.yml`) | `web/**` changed, or after Terraform apply |
 | iOS workflow | Planned for `ios/**` when Phase 3 CI is added |
 
 ### When to Split

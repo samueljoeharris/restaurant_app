@@ -22,6 +22,7 @@ import type { ReactNode } from "react";
 
 import { auth } from "../firebase";
 import { isAdminSite } from "../buildTarget";
+import { consumeHandoffToken, signInFromHandoffToken } from "./handoff";
 import { bootstrapFirebaseFromIapSession } from "./iapSession";
 import { authErrorMessage } from "./errors";
 import {
@@ -107,9 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [reauthMfaResolver, setReauthMfaResolver] =
     useState<MultiFactorResolver | null>(null);
   const [redirectError, setRedirectError] = useState<string | null>(null);
+  const redirectCheckedRef = useRef(false);
   const [redirectReady, setRedirectReady] = useState(isAdminSite);
   const [authListenerReady, setAuthListenerReady] = useState(false);
-  const redirectCheckedRef = useRef(false);
 
   const syncUser = useCallback(async (next: User | null, forceRefresh = false) => {
     setUser(next);
@@ -131,6 +132,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let unsubscribe = () => {};
 
     (async () => {
+      if (!auth.currentUser) {
+        // One-time admin → public SSO handoff token in the URL hash.
+        const handoffToken = consumeHandoffToken();
+        if (handoffToken) {
+          try {
+            await signInFromHandoffToken(handoffToken);
+          } catch (err) {
+            console.error("Auth handoff from admin failed", err);
+          }
+        }
+      }
+      if (cancelled) return;
+
       if (!redirectCheckedRef.current) {
         redirectCheckedRef.current = true;
         try {
@@ -182,6 +196,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       if (auth.currentUser) {
+        // Reuse persisted session (local dev) — refresh so new custom claims apply.
+        await syncUser(auth.currentUser, true);
         if (!cancelled) setIapBootstrapDone(true);
         return;
       }
@@ -198,12 +214,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [syncUser]);
 
   useEffect(() => {
     if (!isAdminSite) return;
     return onAuthStateChanged(auth, async (next) => {
-      await syncUser(next);
+      await syncUser(next, isAdminSite);
       setAuthListenerReady(true);
     });
   }, [syncUser]);

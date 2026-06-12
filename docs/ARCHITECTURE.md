@@ -120,8 +120,8 @@ Important files:
 - `web/src/AdminApp.tsx` - admin routes.
 - `web/src/components/admin/AdminRoute.tsx` - Firebase admin-claim guard.
 - `web/src/auth/iapSession.ts` - IAP to Firebase session bootstrap.
-- `web/Dockerfile.admin` and `web/nginx.admin.conf` - admin static container and
-  same-origin proxy for the IAP session endpoint.
+- `web/Dockerfile.admin` and `web/nginx.admin.conf` - admin static container
+  (the IAP session endpoint is routed by a load-balancer path rule, not nginx).
 
 The deployed admin site is additionally protected by Google Cloud IAP before the
 SPA loads.
@@ -248,15 +248,17 @@ For deployed admin single sign-on:
 sequenceDiagram
     participant Operator
     participant IAP as Google IAP
-    participant Admin as Admin SPA / nginx
+    participant Admin as Admin SPA
+    participant LB as HTTPS LB path rule
     participant API as ttf-api
     participant Firebase as Firebase Admin SDK
 
     Operator->>IAP: Open admin.dev.littlescout.app
     IAP-->>Operator: Google login challenge
     Operator->>Admin: Authenticated request with IAP assertion
-    Admin->>API: GET /v1/admin/firebase-session\nX-Goog-IAP-JWT-Assertion
-    API->>API: Verify IAP JWT
+    Admin->>LB: GET /auth/firebase-session (same origin)
+    LB->>API: IAP-enabled api backend\nX-Goog-IAP-JWT-Assertion
+    API->>API: Verify IAP JWT (fail closed)
     API->>Firebase: Look up user by email
     API->>Firebase: Confirm custom claim role=admin
     API-->>Admin: Firebase custom token
@@ -347,8 +349,10 @@ Important modules include:
 
 ## Deployment and CI/CD
 
-The repo is configured for solo-development pushes to `main`; workflows are
-path-filtered and deploy to the dev GCP project.
+The repo is configured for solo-development pushes to `main`. A single **Deploy**
+pipeline (`deploy.yml`) orchestrates everything in order: Terraform applies first
+when `infra/**` changed, then path-aware service deploys run (and always run after
+a successful apply, since apply can change env vars baked into images).
 
 ```mermaid
 flowchart TB
@@ -356,22 +360,21 @@ flowchart TB
     LocalCI[./scripts/ci-check.sh]
     Push[git push origin main]
     CI[CI workflow\nDocker build checks]
-    TF[Terraform workflow\nplan/apply dev]
-    API[API workflow\nbuild/push/deploy ttf-api]
-    Web[Web workflow\nbuild/push/deploy ttf-web]
-    Admin[Admin Web workflow\nbuild/push/deploy ttf-admin-web]
+    Pipeline[Deploy pipeline\npath detection]
+    TF[Terraform job\nplan/apply dev]
+    API[API job\nbuild/push/deploy ttf-api]
+    Web[Web job\nbuild/push/deploy ttf-web]
+    Admin[Admin Web job\nbuild/push/deploy ttf-admin-web]
     GCP[GCP dev project]
 
     Dev --> LocalCI
     LocalCI --> Push
     Push --> CI
-    Push -->|infra/**| TF
-    Push -->|api/**| API
-    Push -->|web/**| Web
-    Push -->|web/** or admin workflow| Admin
-    TF -->|post-apply dispatch| API
-    TF -->|post-apply dispatch| Web
-    TF -->|post-apply dispatch| Admin
+    Push --> Pipeline
+    Pipeline -->|infra/** changed| TF
+    TF -->|"after apply (or skipped)"| API
+    TF -->|"after apply (or skipped)"| Web
+    TF -->|"after apply (or skipped)"| Admin
     API --> GCP
     Web --> GCP
     Admin --> GCP
@@ -381,11 +384,12 @@ Workflow responsibilities:
 
 | Workflow | Purpose |
 | --- | --- |
-| `.github/workflows/ci.yml` | Path-filtered Docker build checks for API and web changes. |
-| `.github/workflows/terraform.yml` | Terraform plan/apply for dev infrastructure. |
-| `.github/workflows/api.yml` | Build, push, and deploy `ttf-api`. |
-| `.github/workflows/web.yml` | Build, push, and deploy `ttf-web`. |
-| `.github/workflows/admin-web.yml` | Build, push, and deploy `ttf-admin-web`. |
+| `.github/workflows/ci.yml` | Path-filtered Docker build checks for API and web changes (required check). |
+| `.github/workflows/deploy.yml` | Orchestrator on push to `main`: Terraform first, then service deploys. |
+| `.github/workflows/terraform.yml` | Terraform plan/apply for dev infrastructure (reusable + manual dispatch). |
+| `.github/workflows/api.yml` | Build, push, and deploy `ttf-api` (reusable + manual dispatch). |
+| `.github/workflows/web.yml` | Build, push, and deploy `ttf-web` (reusable + manual dispatch). |
+| `.github/workflows/admin-web.yml` | Build, push, and deploy `ttf-admin-web` (reusable + manual dispatch). |
 
 Deploy workflows use GitHub Workload Identity Federation to authenticate to GCP,
 then build images into Artifact Registry and update Cloud Run. Web builds bake in

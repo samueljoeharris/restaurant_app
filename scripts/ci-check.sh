@@ -156,19 +156,11 @@ if $RUN_API; then
 fi
 
 if $RUN_INFRA; then
-  echo "→ infra: terraform fmt + validate (host network)"
-  docker run --rm --network host \
-    -v "$ROOT/infra/terraform:/infra" \
-    -w /infra \
-    hashicorp/terraform:1.9 fmt -check -recursive .
-  docker run --rm --network host \
-    -v "$ROOT/infra/terraform:/infra" \
-    -w /infra/environments/dev \
-    hashicorp/terraform:1.9 init -backend=false -input=false >/dev/null
-  docker run --rm --network host \
-    -v "$ROOT/infra/terraform:/infra" \
-    -w /infra/environments/dev \
-    hashicorp/terraform:1.9 validate
+  echo "→ infra: terraform fmt + validate"
+  # Compose mounts gcloud ADC (required for init even with -backend=false when backend.tf exists).
+  docker compose run --rm --no-TTY terraform fmt -check -recursive .
+  docker compose run --rm --no-TTY terraform -chdir=environments/dev init -backend=false -input=false >/dev/null
+  docker compose run --rm --no-TTY terraform -chdir=environments/dev validate
   echo "✓ terraform validate"
 fi
 

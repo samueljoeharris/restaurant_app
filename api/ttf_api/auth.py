@@ -75,24 +75,6 @@ def _init_firebase() -> None:
     _firebase_initialized = True
 
 
-def _validate_claims(claims: dict) -> None:
-    uid = claims.get("uid") or claims.get("sub")
-    if not uid:
-        raise HTTPException(status_code=401, detail="Token missing uid")
-
-    if _using_emulator():
-        return
-
-    aud = claims.get("aud")
-    if aud and aud != settings.firebase_project_id:
-        raise HTTPException(status_code=401, detail="Token audience does not match project")
-
-    iss = claims.get("iss", "")
-    expected_iss = f"https://securetoken.google.com/{settings.firebase_project_id}"
-    if iss and iss != expected_iss:
-        raise HTTPException(status_code=401, detail="Token issuer does not match project")
-
-
 def _verify_firebase_token(token: str) -> dict:
     _init_firebase()
     try:
@@ -110,7 +92,6 @@ def _verify_firebase_token(token: str) -> dict:
             detail="Firebase token verification failed",
         ) from exc
 
-    _validate_claims(claims)
     return claims
 
 
@@ -156,16 +137,6 @@ async def get_current_user(
             detail="Authorization Bearer token required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return resolve_user_from_token(creds.credentials)
-
-
-async def get_optional_user(
-    creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
-) -> AuthUser | None:
-    if creds is None:
-        return None
-    if creds.scheme.lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Invalid authorization scheme")
     return resolve_user_from_token(creds.credentials)
 
 

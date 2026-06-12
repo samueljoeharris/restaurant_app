@@ -28,8 +28,15 @@ variable "host_routes" {
   type = list(object({
     hostname    = string
     backend_key = string
+    path_routes = optional(list(object({
+      paths       = list(string)
+      backend_key = string
+      # Optional rewrite applied to the matched portion of the path before
+      # forwarding (URL map url_rewrite.path_prefix_rewrite).
+      rewrite_path = optional(string)
+    })), [])
   }))
-  description = "Hostname → backend_key routing"
+  description = "Hostname → backend_key routing, with optional path overrides routed to another backend"
 }
 
 variable "default_backend_key" {

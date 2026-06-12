@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, s
 from psycopg.types.json import Jsonb
 
 from ttf_api.aggregates import build_attribute_aggregates
-from ttf_api.auth import AuthUser, get_current_user
+from ttf_api.auth import AuthUser, require_admin
 from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
@@ -200,7 +200,7 @@ def list_restaurants_for_map() -> list[RestaurantMapEntry]:
 def trigger_restaurant_seed_job(
     body: RestaurantSeedJobRequest,
     background_tasks: BackgroundTasks,
-    user: Annotated[AuthUser, Depends(require_write_access)],
+    user: Annotated[AuthUser, Depends(require_admin)],
 ) -> RestaurantSeedJobResponse:
     try:
         area = resolve_seed_area(body.location, body.lat, body.lng, body.radius_m)
@@ -221,7 +221,7 @@ def trigger_restaurant_seed_job(
 @router.get("/seed-jobs/{job_id}", response_model=RestaurantSeedJobResponse)
 def get_restaurant_seed_job(
     job_id: UUID,
-    _user: Annotated[AuthUser, Depends(get_current_user)],
+    _user: Annotated[AuthUser, Depends(require_admin)],
 ) -> RestaurantSeedJobResponse:
     job = get_seed_job(job_id)
     if not job:

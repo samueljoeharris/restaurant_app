@@ -31,3 +31,18 @@ variable "invoker_members" {
   description = "IAM members allowed to invoke Cloud Run (public: allUsers). Empty when IAP SA is granted separately."
   default     = ["allUsers"]
 }
+
+variable "container_env" {
+  type        = map(string)
+  description = "Plain environment variables for the container"
+  default     = {}
+}
+
+variable "secret_env" {
+  type = map(object({
+    secret  = string
+    version = string
+  }))
+  description = "Secret Manager env vars (secret id + version)"
+  default     = {}
+}

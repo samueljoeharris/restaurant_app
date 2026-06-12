@@ -63,7 +63,7 @@ function formatPlaceCount(count: number) {
 }
 
 export function RestaurantListPage() {
-  const { idToken } = useAuth();
+  const { idToken, isAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeFilter = getFilter(searchParams.get("filter"));
   const query = searchParams.get("q") ?? "";
@@ -225,31 +225,33 @@ export function RestaurantListPage() {
         ))}
       </nav>
 
-      <form className="area-seed-card" onSubmit={handleSeedSubmit}>
-        <div>
-          <label htmlFor="seed-location">Search a new area</label>
-          <p className="muted small">
-            Enter a ZIP or city and Little Scout will seed restaurants in the background.
-          </p>
-        </div>
-        <div className="area-seed-card__controls">
-          <input
-            id="seed-location"
-            value={seedLocation}
-            onChange={(e) => setSeedLocation(e.target.value)}
-            placeholder="02026 or Dedham, MA"
-            disabled={seedLoading}
-          />
-          <button type="submit" disabled={seedLoading || !seedLocation.trim()}>
-            {seedLoading ? "Searching…" : "Seed area"}
-          </button>
-        </div>
-        {seedStatus && (
-          <p className={seedJob?.status === "failed" ? "error small" : "muted small"}>
-            {seedStatus}
-          </p>
-        )}
-      </form>
+      {isAdmin && (
+        <form className="area-seed-card" onSubmit={handleSeedSubmit}>
+          <div>
+            <label htmlFor="seed-location">Search a new area</label>
+            <p className="muted small">
+              Enter a ZIP or city and Little Scout will seed restaurants in the background.
+            </p>
+          </div>
+          <div className="area-seed-card__controls">
+            <input
+              id="seed-location"
+              value={seedLocation}
+              onChange={(e) => setSeedLocation(e.target.value)}
+              placeholder="02026 or Dedham, MA"
+              disabled={seedLoading}
+            />
+            <button type="submit" disabled={seedLoading || !seedLocation.trim()}>
+              {seedLoading ? "Searching…" : "Seed area"}
+            </button>
+          </div>
+          {seedStatus && (
+            <p className={seedJob?.status === "failed" ? "error small" : "muted small"}>
+              {seedStatus}
+            </p>
+          )}
+        </form>
+      )}
 
       {!loading && !error && (
         <div className="explore-summary">

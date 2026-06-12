@@ -29,6 +29,13 @@ module "serverless_lb" {
         cloud_run_service = module.cloud_run_admin[0].service_name
         enable_iap        = var.enable_admin_iap
       }
+      # Second NEG/backend for ttf-api, IAP-enabled: serves only the
+      # /auth/firebase-session bootstrap on the admin host (see path_routes below)
+      # so the API receives a verifiable X-Goog-IAP-JWT-Assertion.
+      "admin-api" = {
+        cloud_run_service = module.cloud_run[0].service_name
+        enable_iap        = var.enable_admin_iap
+      }
     } : {},
   )
 
@@ -44,6 +51,11 @@ module "serverless_lb" {
     var.enable_admin_cloud_run && local.admin_fqdn != "" ? [{
       hostname    = local.admin_fqdn
       backend_key = "admin"
+      path_routes = [{
+        paths        = ["/auth/firebase-session"]
+        backend_key  = "admin-api"
+        rewrite_path = "/v1/admin/firebase-session"
+      }]
     }] : [],
   )
 
@@ -63,6 +75,15 @@ resource "google_iap_web_backend_service_iam_binding" "admin" {
 
   project             = var.project_id
   web_backend_service = module.serverless_lb[0].backend_service_names["admin"]
+  role                = "roles/iap.httpsResourceAccessor"
+  members             = var.iap_admin_members
+}
+
+resource "google_iap_web_backend_service_iam_binding" "admin_api" {
+  count = var.enable_custom_domains && var.enable_admin_cloud_run && var.enable_admin_iap && length(var.iap_admin_members) > 0 ? 1 : 0
+
+  project             = var.project_id
+  web_backend_service = module.serverless_lb[0].backend_service_names["admin-api"]
   role                = "roles/iap.httpsResourceAccessor"
   members             = var.iap_admin_members
 }

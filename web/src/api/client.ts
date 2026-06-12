@@ -101,6 +101,9 @@ export const api = {
   getMe: (token: string) =>
     request<UserProfile>("/v1/me", {}, token),
 
+  authHandoff: (token: string) =>
+    request<{ custom_token: string }>("/v1/auth/handoff", { method: "POST" }, token),
+
   submitTtf: (id: string, body: TtfSubmission, token: string) =>
     request(`/v1/restaurants/${id}/ttf`, {
       method: "POST",

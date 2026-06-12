@@ -16,11 +16,9 @@ module "cloud_run_admin" {
     ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
     : "INGRESS_TRAFFIC_ALL"
   )
-  invoker_members = (
-    var.enable_custom_domains && var.enable_admin_iap
-    ? []
-    : ["allUsers"]
-  )
+  # Fail closed: never public. With IAP, the IAP service agent gets run.invoker
+  # via iap.tf; without IAP the admin console is intentionally unreachable.
+  invoker_members = []
 
   depends_on = [
     module.iam,

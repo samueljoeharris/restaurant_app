@@ -53,31 +53,42 @@ def _clamp_limit(limit: int) -> int:
     return max(1, min(limit, _MAX_LIMIT))
 
 
-@router.get("/firebase-session", response_model=AdminFirebaseSessionResponse)
-async def admin_firebase_session(
-    x_goog_iap_jwt_assertion: Annotated[str | None, Header()] = None,
-) -> AdminFirebaseSessionResponse:
-    """Exchange a verified IAP login for a Firebase custom token (admin SPA SSO)."""
-    if settings.auth_dev_mode and not x_goog_iap_jwt_assertion:
+def _resolve_iap_operator_email(iap_jwt: str | None) -> str:
+    """Resolve the operator email from a verified IAP JWT — fail closed, no fallback."""
+    if not iap_jwt or not iap_jwt.strip():
+        if settings.auth_dev_mode:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="IAP session bootstrap is disabled in AUTH_DEV_MODE without IAP headers",
+            )
         raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail="IAP session bootstrap is disabled in AUTH_DEV_MODE without IAP headers",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing IAP JWT",
         )
 
     try:
-        iap_claims = verify_iap_jwt(x_goog_iap_jwt_assertion or "")
+        iap_claims = verify_iap_jwt(iap_jwt)
     except IapJwtError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(exc),
+            detail="Invalid IAP JWT",
         ) from exc
 
     email = iap_claims.get("email")
     if not email:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="IAP token missing email",
+            detail="IAP JWT missing email claim",
         )
+    return email
+
+
+@router.get("/firebase-session", response_model=AdminFirebaseSessionResponse)
+async def admin_firebase_session(
+    x_goog_iap_jwt_assertion: Annotated[str | None, Header()] = None,
+) -> AdminFirebaseSessionResponse:
+    """Exchange a verified IAP login for a Firebase custom token (admin SPA SSO)."""
+    email = _resolve_iap_operator_email(x_goog_iap_jwt_assertion)
 
     _init_firebase()
     try:

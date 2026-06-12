@@ -1,7 +1,9 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
+import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
+import { publicAppHandoffUrl } from "../../auth/handoff";
 import { PUBLIC_APP_URL } from "../../buildTarget";
 
 const NAV: { to: string; label: string; end?: boolean }[] = [
@@ -15,7 +17,23 @@ const NAV: { to: string; label: string; end?: boolean }[] = [
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, idToken, logout } = useAuth();
+  const [publicNavBusy, setPublicNavBusy] = useState(false);
+
+  async function openPublicApp() {
+    if (publicNavBusy) return;
+    if (!idToken) {
+      window.location.href = PUBLIC_APP_URL;
+      return;
+    }
+    setPublicNavBusy(true);
+    try {
+      const { custom_token } = await api.authHandoff(idToken);
+      window.location.href = publicAppHandoffUrl(PUBLIC_APP_URL, custom_token);
+    } catch {
+      window.location.href = PUBLIC_APP_URL;
+    }
+  }
 
   return (
     <div className="admin-shell">
@@ -45,9 +63,14 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         </nav>
         <div className="admin-sidebar__footer">
           <p className="admin-sidebar__user">{user?.email ?? "Admin"}</p>
-          <a href={PUBLIC_APP_URL} className="admin-sidebar__back">
-            ← Public app
-          </a>
+          <button
+            type="button"
+            className="admin-sidebar__back"
+            disabled={publicNavBusy}
+            onClick={() => void openPublicApp()}
+          >
+            {publicNavBusy ? "Opening…" : "← Public app"}
+          </button>
           <button type="button" className="admin-sidebar__logout" onClick={() => logout()}>
             Sign out
           </button>

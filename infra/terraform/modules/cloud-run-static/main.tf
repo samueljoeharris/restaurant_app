@@ -18,6 +18,27 @@ resource "google_cloud_run_v2_service" "web" {
       ports {
         container_port = 8080
       }
+
+      dynamic "env" {
+        for_each = var.container_env
+        content {
+          name  = env.key
+          value = env.value
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.secret_env
+        content {
+          name = env.key
+          value_source {
+            secret_key_ref {
+              secret  = env.value.secret
+              version = env.value.version
+            }
+          }
+        }
+      }
     }
   }
 

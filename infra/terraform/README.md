@@ -165,15 +165,37 @@ On push to `main` (`api/**`): build image → Artifact Registry → `gcloud run 
 ## Day-to-day commands (from repo root)
 
 ```bash
-# Plan
-docker compose run --rm terraform -chdir=environments/dev plan
+# Plan only (safe — read-only against remote state)
+./scripts/terraform-plan-local.sh
+# or manually:
+docker compose run --rm terraform -chdir=environments/dev plan -var-file=ci.tfvars
 
-# Apply
-docker compose run --rm terraform -chdir=environments/dev apply
+# Apply (changes dev GCP — prefer GitHub Actions on main)
+docker compose run --rm terraform -chdir=environments/dev apply -var-file=ci.tfvars
 
 # Destroy (careful)
-docker compose run --rm terraform -chdir=environments/dev destroy
+docker compose run --rm terraform -chdir=environments/dev destroy -var-file=ci.tfvars
 ```
+
+Prerequisites for plan/apply: Docker running + `gcloud auth application-default login` (ADC mounted read-only in compose).
+
+### Stuck destroy: `ttf-restaurant-refresh` Cloud Run Job
+
+Cloud Run v2 jobs default to `deletion_protection = true`. If you disable `enable_restaurant_refresh_job` while the job still exists in state, **apply** fails with:
+
+`cannot destroy job without setting deletion_protection=false`
+
+Two-step fix (plan is safe locally; apply changes GCP):
+
+```bash
+# 1) Re-enable job in plan only — should show deletion_protection true → false
+./scripts/terraform-plan-local.sh -var='enable_restaurant_refresh_job=true'
+
+# 2) Apply once with job enabled (GitHub Actions on main, or local apply)
+#    then set enable_restaurant_refresh_job = false in ci.tfvars and apply again
+```
+
+`phase-b.tf` sets `deletion_protection = false` on the job resource so step 2 can destroy cleanly.
 
 ## Phase B — after API is built
 
