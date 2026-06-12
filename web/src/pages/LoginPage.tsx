@@ -78,6 +78,7 @@ export function LoginPage() {
       await signInWithGoogle();
     } catch (err) {
       setError(authErrorMessage(err));
+    } finally {
       setBusy(false);
     }
   }

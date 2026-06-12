@@ -74,14 +74,10 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const GOOGLE_REDIRECT_PENDING_KEY = "ttf:googleRedirectPending";
-const GOOGLE_USE_POPUP_KEY = "ttf:googleUsePopup";
 
-function shouldUseGooglePopup(): boolean {
-  return (
-    import.meta.env.DEV ||
-    import.meta.env.VITE_USE_AUTH_EMULATOR === "true" ||
-    sessionStorage.getItem(GOOGLE_USE_POPUP_KEY) === "1"
-  );
+/** Popup avoids brittle full-page redirect on custom domains; redirect is opt-in. */
+function shouldUseGoogleRedirect(): boolean {
+  return import.meta.env.VITE_GOOGLE_AUTH_USE_REDIRECT === "true";
 }
 
 async function afterCredential(authError: unknown): Promise<void> {
@@ -126,46 +122,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isAdminSite) return;
 
     let cancelled = false;
+    let unsubscribe = () => {};
 
     (async () => {
-      if (redirectCheckedRef.current) {
-        if (!cancelled) setRedirectReady(true);
-        return;
+      if (!redirectCheckedRef.current) {
+        redirectCheckedRef.current = true;
+        try {
+          const result = await getRedirectResult(auth);
+          if (cancelled) return;
+          if (result?.user) {
+            sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
+            setRedirectError(null);
+            await syncUser(result.user);
+          } else if (sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY)) {
+            sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
+            setRedirectError(
+              "Google sign-in did not complete after redirect. Click Continue with Google again.",
+            );
+          }
+        } catch (err) {
+          if (cancelled) return;
+          const resolver = getTotpResolver(auth, err);
+          if (resolver) {
+            setRedirectError(null);
+            setMfaResolver(resolver);
+          } else {
+            console.error("Firebase redirect sign-in failed", err);
+            setRedirectError(authErrorMessage(err));
+          }
+        }
       }
-      redirectCheckedRef.current = true;
 
-      try {
-        const result = await getRedirectResult(auth);
+      if (cancelled) return;
+      setRedirectReady(true);
+
+      unsubscribe = onAuthStateChanged(auth, async (next) => {
         if (cancelled) return;
-        if (result?.user) {
-          sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
-          sessionStorage.removeItem(GOOGLE_USE_POPUP_KEY);
-          setRedirectError(null);
-          await syncUser(result.user);
-        } else if (sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY)) {
-          sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
-          sessionStorage.setItem(GOOGLE_USE_POPUP_KEY, "1");
-          setRedirectError(
-            "Google sign-in did not complete. Click Continue with Google again — we will try a popup this time.",
-          );
-        }
-      } catch (err) {
-        if (cancelled) return;
-        const resolver = getTotpResolver(auth, err);
-        if (resolver) {
-          setRedirectError(null);
-          setMfaResolver(resolver);
-          return;
-        }
-        console.error("Firebase redirect sign-in failed", err);
-        setRedirectError(authErrorMessage(err));
-      } finally {
-        if (!cancelled) setRedirectReady(true);
-      }
+        await syncUser(next);
+        setAuthListenerReady(true);
+      });
     })();
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [syncUser]);
 
@@ -195,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!isAdminSite) return;
     return onAuthStateChanged(auth, async (next) => {
       await syncUser(next);
       setAuthListenerReady(true);
@@ -255,13 +256,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const provider = new GoogleAuthProvider();
           provider.setCustomParameters({ prompt: "select_account" });
           try {
-            if (shouldUseGooglePopup()) {
-              sessionStorage.removeItem(GOOGLE_USE_POPUP_KEY);
-              await signInWithPopup(auth, provider);
+            if (shouldUseGoogleRedirect()) {
+              sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, "1");
+              await signInWithRedirect(auth, provider);
               return;
             }
-            sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, "1");
-            await signInWithRedirect(auth, provider);
+            const cred = await signInWithPopup(auth, provider);
+            await syncUser(cred.user);
           } catch (err) {
             sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
             await afterCredential(err);
