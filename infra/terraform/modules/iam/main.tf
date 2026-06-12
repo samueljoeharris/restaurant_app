@@ -33,6 +33,7 @@ locals {
     "roles/compute.loadBalancerAdmin",
     "roles/serviceusage.apiKeysAdmin",
     "roles/iap.admin",
+    "roles/logging.viewer",
     # Deploy Cloud Run services that run as ttf-api-runtime (actAs)
     "roles/iam.serviceAccountUser",
     # Firebase Web app + project management
@@ -91,5 +92,11 @@ resource "google_project_iam_member" "github_deploy_ar_writer" {
 resource "google_project_iam_member" "github_deploy_sa_user" {
   project = var.project_id
   role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${google_service_account.github_deploy.email}"
+}
+
+resource "google_project_iam_member" "github_deploy_logging_viewer" {
+  project = var.project_id
+  role    = "roles/logging.viewer"
   member  = "serviceAccount:${google_service_account.github_deploy.email}"
 }

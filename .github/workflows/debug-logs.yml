@@ -1,0 +1,73 @@
+name: Debug Logs
+
+# Fetch recent Cloud Run / API logs (e.g. admin firebase-session 500s).
+# Uses the deploy service account — requires roles/logging.viewer (see iam module).
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Cloud Run service name
+        required: true
+        default: ttf-api
+        type: choice
+        options:
+          - ttf-api
+          - ttf-admin-web
+          - ttf-web
+      filter:
+        description: Extra Logging query filter (AND-ed with service filter)
+        required: false
+        default: 'httpRequest.requestUrl=~"/v1/admin/firebase-session" OR textPayload=~"Traceback|Exception|Error"'
+        type: string
+      limit:
+        description: Max log entries
+        required: false
+        default: "25"
+        type: string
+      freshness:
+        description: Time window (e.g. 1h, 24h)
+        required: false
+        default: 24h
+        type: string
+
+env:
+  PROJECT_ID: ttf-restaurant-dev
+  REGION: us-central1
+
+jobs:
+  fetch:
+    name: Fetch Cloud Logging
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Read logs
+        env:
+          SERVICE: ${{ inputs.service }}
+          FILTER: ${{ inputs.filter }}
+          LIMIT: ${{ inputs.limit }}
+          FRESHNESS: ${{ inputs.freshness }}
+        run: |
+          set -euo pipefail
+          BASE='resource.type="cloud_run_revision" resource.labels.service_name="'"${SERVICE}"'"'
+          if [[ -n "${FILTER}" ]]; then
+            QUERY="${BASE} (${FILTER})"
+          else
+            QUERY="${BASE}"
+          fi
+          echo "Query: ${QUERY}"
+          echo "---"
+          gcloud logging read "${QUERY}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --limit="${LIMIT}" \
+            --freshness="${FRESHNESS}" \
+            --format='table(timestamp,severity,httpRequest.status,httpRequest.requestUrl,textPayload)'
