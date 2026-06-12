@@ -23,6 +23,7 @@ from ttf_api.schemas import (
     AdminObservationRow,
     AdminObservationsResponse,
     AdminOverviewStats,
+    AdminRefreshRunResponse,
     AdminRestaurantRow,
     AdminRestaurantsResponse,
     AdminSeedJobRequest,
@@ -33,15 +34,23 @@ from ttf_api.schemas import (
     RestaurantSeedJob,
     RestaurantSeedJobResponse,
     RestaurantSeedJobsListResponse,
+    SeedLocation,
+    SeedLocationCreate,
+    SeedLocationsResponse,
+    SeedLocationUpdate,
 )
 from ttf_api.seed_jobs import (
+    add_seed_location,
     create_seed_job,
-    create_scheduled_refresh_job,
+    create_scheduled_refresh_jobs,
+    delete_seed_location,
     get_refresh_config,
     get_seed_job,
     list_seed_jobs,
+    list_seed_locations,
     resolve_seed_area,
     update_refresh_config,
+    update_seed_location,
 )
 
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
@@ -450,32 +459,98 @@ def admin_trigger_seed_job(
     body: AdminSeedJobRequest,
     admin: Annotated[AuthUser, Depends(require_admin)],
 ) -> RestaurantSeedJobResponse:
-    if body.refresh:
-        job = create_scheduled_refresh_job(requested_by=admin.firebase_uid)
-        if not job:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Auto-refresh is disabled in location refresh config",
-            )
-    else:
-        try:
-            area = resolve_seed_area(body.location, body.lat, body.lng, body.radius_m)
-        except PlacesSeedError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+    try:
+        area = resolve_seed_area(body.location, body.lat, body.lng, body.radius_m)
+    except PlacesSeedError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        job, reused = create_seed_job(
-            area,
-            query=body.location.strip() if body.location else area.label,
-            requested_by=admin.firebase_uid,
-            refresh=body.refresh,
-            force=body.force,
-        )
-        if reused:
-            return RestaurantSeedJobResponse(job=RestaurantSeedJob(**job), reused=True)
-
+    job, reused = create_seed_job(
+        area,
+        query=body.location.strip() if body.location else area.label,
+        requested_by=admin.firebase_uid,
+        force=body.force,
+    )
+    # Re-enqueue even when reused: unsticks pending jobs whose original enqueue
+    # was lost (run_seed_job's status guard makes duplicate delivery a no-op).
     if job["status"] == "pending":
         enqueue_seed_job(job["id"])
-    return RestaurantSeedJobResponse(job=RestaurantSeedJob(**job))
+    return RestaurantSeedJobResponse(job=RestaurantSeedJob(**job), reused=reused)
+
+
+@router.post(
+    "/refresh-runs",
+    response_model=AdminRefreshRunResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def admin_trigger_refresh_runs(
+    admin: Annotated[AuthUser, Depends(require_admin)],
+) -> AdminRefreshRunResponse:
+    """Refresh every enabled requested location plus the full catalog."""
+    jobs = create_scheduled_refresh_jobs(requested_by=admin.firebase_uid)
+    if not jobs:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Auto-refresh is disabled in location refresh config",
+        )
+    for job in jobs:
+        if job["status"] == "pending":
+            enqueue_seed_job(job["id"])
+    return AdminRefreshRunResponse(jobs=[RestaurantSeedJob(**job) for job in jobs])
+
+
+@router.get("/seed-locations", response_model=SeedLocationsResponse)
+def admin_list_seed_locations(
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+) -> SeedLocationsResponse:
+    return SeedLocationsResponse(
+        items=[SeedLocation(**row) for row in list_seed_locations()]
+    )
+
+
+@router.post(
+    "/seed-locations",
+    response_model=SeedLocation,
+    status_code=status.HTTP_201_CREATED,
+)
+def admin_add_seed_location(
+    body: SeedLocationCreate,
+    admin: Annotated[AuthUser, Depends(require_admin)],
+) -> SeedLocation:
+    try:
+        row = add_seed_location(
+            body.location,
+            radius_m=body.radius_m,
+            created_by=admin.firebase_uid,
+        )
+    except PlacesSeedError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return SeedLocation(**row)
+
+
+@router.patch("/seed-locations/{location_id}", response_model=SeedLocation)
+def admin_update_seed_location(
+    location_id: UUID,
+    body: SeedLocationUpdate,
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+) -> SeedLocation:
+    row = update_seed_location(
+        location_id,
+        enabled=body.enabled,
+        radius_m=body.radius_m,
+        label=body.label,
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Seed location not found")
+    return SeedLocation(**row)
+
+
+@router.delete("/seed-locations/{location_id}", status_code=status.HTTP_204_NO_CONTENT)
+def admin_delete_seed_location(
+    location_id: UUID,
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+) -> None:
+    if not delete_seed_location(location_id):
+        raise HTTPException(status_code=404, detail="Seed location not found")
 
 
 @router.get("/refresh-config", response_model=LocationRefreshConfig)

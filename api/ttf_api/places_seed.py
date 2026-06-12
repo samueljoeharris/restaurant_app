@@ -405,37 +405,6 @@ def tombstone_restaurant(
     return True
 
 
-def mark_outside_area(
-    conn: Connection,
-    area: SeedArea,
-    pilot_city: str,
-    *,
-    seed_job_id: UUID | None = None,
-) -> int:
-    rows = conn.execute(
-        """
-        SELECT id, lat, lng
-        FROM restaurants
-        WHERE pilot_city = %s AND status = 'active'
-        """,
-        (pilot_city,),
-    ).fetchall()
-
-    marked = 0
-    for row in rows:
-        if within_area(area, row["lat"], row["lng"]):
-            continue
-        if tombstone_restaurant(
-            conn,
-            row["id"],
-            reason="outside_seed_area",
-            new_status="outside_area",
-            seed_job_id=seed_job_id,
-        ):
-            marked += 1
-    return marked
-
-
 def mark_not_seen_in_sync(
     conn: Connection,
     area: SeedArea,
@@ -480,7 +449,6 @@ def seed_restaurants_for_area(
     area: SeedArea,
     pilot_city: str,
     queries: list[str] | None = None,
-    mark_missing_outside_area: bool = False,
     tombstone_not_seen: bool = False,
     seed_job_id: UUID | None = None,
 ) -> SeedResult:
@@ -516,11 +484,6 @@ def seed_restaurants_for_area(
             else:
                 updated += 1
 
-    outside_area = (
-        mark_outside_area(conn, area, pilot_city, seed_job_id=seed_job_id)
-        if mark_missing_outside_area
-        else 0
-    )
     tombstoned = (
         mark_not_seen_in_sync(conn, area, pilot_city, seen, seed_job_id=seed_job_id)
         if tombstone_not_seen
@@ -531,10 +494,123 @@ def seed_restaurants_for_area(
         inserted=inserted,
         updated=updated,
         closed=closed,
-        outside_area=outside_area,
         tombstoned=tombstoned,
         reactivated=reactivated,
         skipped=skipped,
         out_of_area=out_of_area,
         unique_places=len(seen),
+    )
+
+
+PLACE_DETAILS_URL = "https://places.googleapis.com/v1/places"
+DETAILS_FIELD_MASK = (
+    "id,displayName,formattedAddress,location,types,googleMapsUri,businessStatus"
+)
+
+
+def fetch_place_details(
+    client: httpx.Client,
+    api_key: str,
+    place_id: str,
+) -> dict | None:
+    """Fetch Place Details for one place id. Returns None when the place is gone."""
+    resp = client.get(
+        f"{PLACE_DETAILS_URL}/{place_id}",
+        headers={
+            "X-Goog-Api-Key": api_key,
+            "X-Goog-FieldMask": DETAILS_FIELD_MASK,
+        },
+        timeout=20.0,
+    )
+    if resp.status_code == 404:
+        return None
+    if resp.status_code != 200:
+        raise PlacesSeedError(f"Place Details API error {resp.status_code}: {resp.text}")
+    return resp.json()
+
+
+def _normalize_place_details(place: dict, pilot_city: str) -> dict | None:
+    """Like normalize_place but with no seed-area radius constraint."""
+    place_id = place.get("id")
+    name = (place.get("displayName") or {}).get("text")
+    address = place.get("formattedAddress")
+    loc = place.get("location") or {}
+    lat = loc.get("latitude")
+    lng = loc.get("longitude")
+    if not place_id or not name or not address or lat is None or lng is None:
+        return None
+    return {
+        "google_place_id": place_id,
+        "name": name.strip(),
+        "address": address.strip(),
+        "lat": float(lat),
+        "lng": float(lng),
+        "google_maps_url": place.get("googleMapsUri"),
+        "cuisine_tags": types_to_cuisine_tags(place.get("types") or []),
+        "pilot_city": pilot_city,
+        "status": place_status(place),
+    }
+
+
+def refresh_catalog(
+    conn: Connection,
+    client: httpx.Client,
+    api_key: str,
+    pilot_city: str,
+    *,
+    seed_job_id: UUID | None = None,
+) -> SeedResult:
+    """Refresh every known restaurant via Place Details, regardless of seed zone.
+
+    Covers venues whose seed location was removed or that sit outside every
+    requested area. Vanished place ids are tombstoned; reopened/closed status
+    flows through the normal upsert + changelog path.
+    """
+    rows = conn.execute(
+        """
+        SELECT id, google_place_id
+        FROM restaurants
+        WHERE pilot_city = %s
+          AND google_place_id IS NOT NULL
+          AND status IN ('active', 'closed', 'outside_area')
+        ORDER BY last_places_sync_at ASC NULLS FIRST
+        """,
+        (pilot_city,),
+    ).fetchall()
+
+    updated = closed = reactivated = tombstoned = skipped = 0
+    for row in rows:
+        place = fetch_place_details(client, api_key, row["google_place_id"])
+        time.sleep(0.05)
+
+        if place is None:
+            if tombstone_restaurant(
+                conn,
+                row["id"],
+                reason="place_no_longer_exists",
+                seed_job_id=seed_job_id,
+            ):
+                tombstoned += 1
+            continue
+
+        normalized = _normalize_place_details(place, pilot_city)
+        if not normalized:
+            skipped += 1
+            continue
+
+        action = upsert_restaurant(conn, normalized, seed_job_id=seed_job_id)
+        if action == "closed":
+            closed += 1
+        elif action == "reactivated":
+            reactivated += 1
+        else:
+            updated += 1
+
+    return SeedResult(
+        updated=updated,
+        closed=closed,
+        tombstoned=tombstoned,
+        reactivated=reactivated,
+        skipped=skipped,
+        unique_places=len(rows),
     )

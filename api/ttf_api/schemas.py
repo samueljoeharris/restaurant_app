@@ -83,6 +83,7 @@ class RestaurantSeedJob(BaseModel):
     lng: float
     radius_m: int
     refresh: bool = False
+    kind: Literal["area", "catalog"] = "area"
     status: Literal["pending", "running", "succeeded", "failed", "skipped"]
     requested_by: str | None = None
     error: str | None = None
@@ -118,18 +119,51 @@ class AdminSeedJobRequest(BaseModel):
     lat: float | None = None
     lng: float | None = None
     radius_m: int = Field(default=8000, ge=1000, le=25000)
-    refresh: bool = False
     force: bool = False
 
     @model_validator(mode="after")
     def require_location_or_coordinates(self) -> "AdminSeedJobRequest":
-        if self.refresh:
-            return self
         has_location = bool(self.location and self.location.strip())
         has_lat_lng = self.lat is not None and self.lng is not None
         if has_location == has_lat_lng:
             raise ValueError("Provide either location or both lat and lng")
         return self
+
+
+class AdminRefreshRunResponse(BaseModel):
+    jobs: list[RestaurantSeedJob]
+
+
+class SeedLocation(BaseModel):
+    id: UUID
+    pilot_city: str
+    area_key: str
+    label: str
+    query: str | None = None
+    lat: float
+    lng: float
+    radius_m: int
+    enabled: bool
+    source: Literal["seed", "admin", "migration"]
+    created_by: str | None = None
+    last_refreshed_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class SeedLocationsResponse(BaseModel):
+    items: list[SeedLocation]
+
+
+class SeedLocationCreate(BaseModel):
+    location: str = Field(min_length=2, max_length=200)
+    radius_m: int = Field(default=8000, ge=1000, le=25000)
+
+
+class SeedLocationUpdate(BaseModel):
+    enabled: bool | None = None
+    radius_m: int | None = Field(None, ge=1000, le=25000)
+    label: str | None = Field(None, min_length=2, max_length=200)
 
 
 class LocationRefreshConfig(BaseModel):

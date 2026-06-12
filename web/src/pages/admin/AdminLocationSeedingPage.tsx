@@ -7,6 +7,7 @@ import type {
   LocationRefreshConfig,
   RestaurantChangelogRow,
   RestaurantSeedJob,
+  SeedLocation,
 } from "../../types";
 
 const PAGE_SIZE = 20;
@@ -45,6 +46,7 @@ export function AdminLocationSeedingPage() {
   const [changelogOffset, setChangelogOffset] = useState(0);
   const [changelogAction, setChangelogAction] = useState("");
   const [config, setConfig] = useState<LocationRefreshConfig | null>(null);
+  const [locations, setLocations] = useState<SeedLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -59,7 +61,7 @@ export function AdminLocationSeedingPage() {
     setLoading(true);
     setError(null);
     try {
-      const [runsData, changelogData, configData] = await Promise.all([
+      const [runsData, changelogData, configData, locationsData] = await Promise.all([
         api.adminSeedJobs(idToken, PAGE_SIZE, runsOffset),
         api.adminRestaurantChangelog(idToken, {
           limit: PAGE_SIZE,
@@ -67,12 +69,14 @@ export function AdminLocationSeedingPage() {
           action: changelogAction || undefined,
         }),
         api.adminRefreshConfig(idToken),
+        api.adminSeedLocations(idToken),
       ]);
       setRuns(runsData.items);
       setRunsTotal(runsData.total);
       setChangelog(changelogData.items);
       setChangelogTotal(changelogData.total);
       setConfig(configData);
+      setLocations(locationsData.items);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Load failed");
     } finally {
@@ -97,15 +101,17 @@ export function AdminLocationSeedingPage() {
     return () => window.clearInterval(timer);
   }, [idToken, runs, runsOffset]);
 
-  async function triggerSeed(refresh = false) {
+  async function triggerSeed() {
     if (!idToken) return;
     setBusy(true);
     setMessage(null);
     setError(null);
     try {
-      const res = await api.adminTriggerSeedJob(idToken, refresh
-        ? { refresh: true }
-        : { location: location.trim(), radius_m: radiusM, force });
+      const res = await api.adminTriggerSeedJob(idToken, {
+        location: location.trim(),
+        radius_m: radiusM,
+        force,
+      });
       setMessage(
         res.reused
           ? `Reused recent run ${res.job.id.slice(0, 8)}… (${res.job.status})`
@@ -115,6 +121,56 @@ export function AdminLocationSeedingPage() {
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Seed failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function triggerRefreshAll() {
+    if (!idToken) return;
+    setBusy(true);
+    setMessage(null);
+    setError(null);
+    try {
+      const res = await api.adminTriggerRefreshRuns(idToken);
+      setMessage(
+        `Started ${res.jobs.length} refresh runs (${res.jobs.length - 1} locations + full catalog)`,
+      );
+      setRunsOffset(0);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Refresh failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleLocation(loc: SeedLocation) {
+    if (!idToken) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = await api.adminUpdateSeedLocation(idToken, loc.id, {
+        enabled: !loc.enabled,
+      });
+      setLocations((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Update failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeLocation(loc: SeedLocation) {
+    if (!idToken) return;
+    if (!window.confirm(`Remove "${loc.label}" from refresh locations?`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.adminDeleteSeedLocation(idToken, loc.id);
+      setLocations((prev) => prev.filter((l) => l.id !== loc.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setBusy(false);
     }
@@ -167,7 +223,7 @@ export function AdminLocationSeedingPage() {
               className="admin-seed-form"
               onSubmit={(e) => {
                 e.preventDefault();
-                triggerSeed(false);
+                triggerSeed();
               }}
             >
               <input
@@ -202,11 +258,70 @@ export function AdminLocationSeedingPage() {
             </form>
           </section>
 
+          <section className="admin-panel">
+            <h2>Refresh locations</h2>
+            <p className="muted small">
+              Every successfully seeded area is registered here. The scheduled refresh
+              re-runs all enabled locations, then refreshes every known restaurant
+              regardless of zone via Place Details.
+            </p>
+            <DataTable
+              columns={[
+                { key: "label", label: "Location" },
+                { key: "radius", label: "Radius", align: "right" },
+                { key: "source", label: "Source" },
+                { key: "refreshed", label: "Last refreshed" },
+                { key: "enabled", label: "Enabled" },
+                { key: "actions", label: "" },
+              ]}
+              rows={locations.map((loc) => ({
+                key: loc.id,
+                cells: {
+                  label: (
+                    <div>
+                      <div>{loc.label}</div>
+                      {loc.query && loc.query !== loc.label && (
+                        <div className="muted small">{loc.query}</div>
+                      )}
+                    </div>
+                  ),
+                  radius: `${loc.radius_m / 1000} km`,
+                  source: loc.source,
+                  refreshed: fmtTime(loc.last_refreshed_at),
+                  enabled: (
+                    <input
+                      type="checkbox"
+                      checked={loc.enabled}
+                      disabled={busy}
+                      onChange={() => toggleLocation(loc)}
+                    />
+                  ),
+                  actions: (
+                    <button
+                      type="button"
+                      className="secondary small"
+                      disabled={busy}
+                      onClick={() => removeLocation(loc)}
+                    >
+                      Remove
+                    </button>
+                  ),
+                },
+              }))}
+            />
+            {locations.length === 0 && (
+              <p className="muted small">
+                No locations yet — seed an area above and it will appear here.
+              </p>
+            )}
+          </section>
+
           <section className="admin-panel admin-panel--split">
             <div>
               <h2>Auto-refresh</h2>
               <p className="muted small">
-                Scheduled catalog refresh tombstones venues missing from Places and updates closed status.
+                Scheduled refresh re-seeds all enabled locations and the full catalog,
+                tombstoning venues missing from Places and updating closed status.
               </p>
               <div className="admin-seed-form admin-seed-form--config">
                 <label className="admin-seed-form__check">
@@ -260,7 +375,7 @@ export function AdminLocationSeedingPage() {
                   <button
                     type="button"
                     className="secondary"
-                    onClick={() => triggerSeed(true)}
+                    onClick={triggerRefreshAll}
                     disabled={busy || !config.enabled}
                   >
                     Run refresh now
@@ -290,7 +405,10 @@ export function AdminLocationSeedingPage() {
                     <div>
                       <div>{r.query ?? `${r.lat.toFixed(3)}, ${r.lng.toFixed(3)}`}</div>
                       <div className="muted small">
-                        {r.radius_m / 1000} km{r.refresh ? " · refresh" : ""}
+                        {r.kind === "catalog"
+                          ? "full catalog"
+                          : `${r.radius_m / 1000} km`}
+                        {r.refresh ? " · refresh" : ""}
                       </div>
                     </div>
                   ),

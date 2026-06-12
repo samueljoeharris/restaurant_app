@@ -4,6 +4,7 @@ import type {
   AdminContributorRow,
   AdminObservationRow,
   AdminOverviewStats,
+  AdminRefreshRunResponse,
   AdminRestaurantRow,
   AttributeEntry,
   LocationRefreshConfig,
@@ -16,6 +17,7 @@ import type {
   RestaurantSeedJobResponse,
   RestaurantNote,
   RestaurantSummary,
+  SeedLocation,
   TtfSubmission,
   UserProfile,
 } from "../types";
@@ -190,13 +192,44 @@ export const api = {
       lat?: number;
       lng?: number;
       radius_m?: number;
-      refresh?: boolean;
       force?: boolean;
     },
   ) =>
     request<RestaurantSeedJobResponse>("/v1/admin/seed-jobs", {
       method: "POST",
       body: JSON.stringify(body),
+    }, token),
+
+  adminTriggerRefreshRuns: (token: string) =>
+    request<AdminRefreshRunResponse>("/v1/admin/refresh-runs", {
+      method: "POST",
+    }, token),
+
+  adminSeedLocations: (token: string) =>
+    request<{ items: SeedLocation[] }>("/v1/admin/seed-locations", {}, token),
+
+  adminAddSeedLocation: (
+    token: string,
+    body: { location: string; radius_m?: number },
+  ) =>
+    request<SeedLocation>("/v1/admin/seed-locations", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
+
+  adminUpdateSeedLocation: (
+    token: string,
+    locationId: string,
+    body: Partial<{ enabled: boolean; radius_m: number; label: string }>,
+  ) =>
+    request<SeedLocation>(`/v1/admin/seed-locations/${locationId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }, token),
+
+  adminDeleteSeedLocation: (token: string, locationId: string) =>
+    request<void>(`/v1/admin/seed-locations/${locationId}`, {
+      method: "DELETE",
     }, token),
 
   adminRefreshConfig: (token: string) =>

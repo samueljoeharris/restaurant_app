@@ -213,7 +213,9 @@ def trigger_restaurant_seed_job(
         requested_by=user.firebase_uid,
         force=body.force,
     )
-    if not reused and job["status"] == "pending":
+    # Re-enqueue even when reused: unsticks pending jobs whose original enqueue
+    # was lost (run_seed_job's status guard makes duplicate delivery a no-op).
+    if job["status"] == "pending":
         enqueue_seed_job(job["id"], background_tasks=background_tasks)
     return _seed_job_response(job, reused=reused)
 

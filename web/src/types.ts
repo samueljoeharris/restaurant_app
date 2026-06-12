@@ -23,6 +23,7 @@ export interface RestaurantSeedJob {
   lng: number;
   radius_m: number;
   refresh: boolean;
+  kind: "area" | "catalog";
   status: "pending" | "running" | "succeeded" | "failed" | "skipped";
   requested_by: string | null;
   error: string | null;
@@ -72,6 +73,27 @@ export interface RestaurantChangelogRow {
 export interface RestaurantSeedJobResponse {
   job: RestaurantSeedJob;
   reused: boolean;
+}
+
+export interface AdminRefreshRunResponse {
+  jobs: RestaurantSeedJob[];
+}
+
+export interface SeedLocation {
+  id: string;
+  pilot_city: string;
+  area_key: string;
+  label: string;
+  query: string | null;
+  lat: number;
+  lng: number;
+  radius_m: number;
+  enabled: boolean;
+  source: "seed" | "admin" | "migration";
+  created_by: string | null;
+  last_refreshed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TtfAggregate {
