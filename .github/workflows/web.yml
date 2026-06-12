@@ -98,18 +98,33 @@ jobs:
             ADMIN_APP_URL="$ADMIN_JSON"
           fi
 
-          export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY MAPS_API_KEY ADMIN_APP_URL
+          WEB_PUBLIC_URL=""
+          if WEB_JSON="$(gcloud secrets versions access latest \
+            --secret=ttf-web-public-url \
+            --project="${{ env.PROJECT_ID }}" 2>/dev/null)"; then
+            WEB_PUBLIC_URL="$WEB_JSON"
+          fi
+
+          export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY MAPS_API_KEY ADMIN_APP_URL WEB_PUBLIC_URL
           python3 <<'PY'
           import json, os
+          from urllib.parse import urlparse
+
           cfg = json.loads(os.environ["FIREBASE_JSON"])
           api_url = os.environ["API_URL"]
           recaptcha = os.environ.get("RECAPTCHA_SITE_KEY", "").strip()
           maps_key = os.environ.get("MAPS_API_KEY", "").strip()
           admin_app_url = os.environ.get("ADMIN_APP_URL", "").strip()
+          web_public_url = os.environ.get("WEB_PUBLIC_URL", "").strip()
+          auth_domain = cfg["VITE_FIREBASE_AUTH_DOMAIN"]
+          if web_public_url:
+              host = urlparse(web_public_url).netloc
+              if host:
+                  auth_domain = host
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"api_url={api_url}\n")
               out.write(f"firebase_api_key={cfg['VITE_FIREBASE_API_KEY']}\n")
-              out.write(f"firebase_auth_domain={cfg['VITE_FIREBASE_AUTH_DOMAIN']}\n")
+              out.write(f"firebase_auth_domain={auth_domain}\n")
               out.write(f"firebase_project_id={cfg['VITE_FIREBASE_PROJECT_ID']}\n")
               out.write(f"recaptcha_site_key={recaptcha}\n")
               out.write(f"maps_api_key={maps_key}\n")

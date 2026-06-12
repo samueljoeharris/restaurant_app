@@ -148,11 +148,12 @@ Google for **`app.dev`** is configured in [Firebase Authentication](https://cons
 - `https://app.dev.littlescout.app`
 - `http://localhost:5173`
 
-**Authorized redirect URIs:**
+**Authorized redirect URIs** (both required):
 
-- `https://ttf-restaurant-dev.firebaseapp.com/__/auth/handler`
+- `https://ttf-restaurant-dev.firebaseapp.com/__/auth/handler` (legacy)
+- `https://app.dev.littlescout.app/__/auth/handler` (**required** — app uses `app.dev` as `authDomain` with an nginx proxy to Firebase; without this URI, Google redirect sign-in returns to `/login` with no error on Chrome 115+)
 
-(`authDomain` stays `ttf-restaurant-dev.firebaseapp.com` in the Web SDK — normal. The page origin must be in authorized domains.)
+The public web nginx config proxies `/__/auth` to `ttf-restaurant-dev.firebaseapp.com` so auth storage stays same-origin. See [Firebase redirect best practices](https://firebase.google.com/docs/auth/web/redirect-best-practices).
 
 ### 3. OAuth consent screen branding
 
@@ -172,7 +173,8 @@ Also set **Firebase → Project settings → General → Public-facing name** to
 | Error | Fix |
 |-------|-----|
 | `auth/unauthorized-domain` | Add hostname to Firebase authorized domains |
-| `redirect_uri_mismatch` | Check Web client redirect URI above |
+| `redirect_uri_mismatch` | Check Web client redirect URIs above |
+| Back on `/login`, no error (Chrome) | Add `https://app.dev.littlescout.app/__/auth/handler` to OAuth redirect URIs; redeploy web so `authDomain` is `app.dev.littlescout.app` |
 
 ---
 

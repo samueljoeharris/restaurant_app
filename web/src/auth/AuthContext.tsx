@@ -73,6 +73,17 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const GOOGLE_REDIRECT_PENDING_KEY = "ttf:googleRedirectPending";
+const GOOGLE_USE_POPUP_KEY = "ttf:googleUsePopup";
+
+function shouldUseGooglePopup(): boolean {
+  return (
+    import.meta.env.DEV ||
+    import.meta.env.VITE_USE_AUTH_EMULATOR === "true" ||
+    sessionStorage.getItem(GOOGLE_USE_POPUP_KEY) === "1"
+  );
+}
+
 async function afterCredential(authError: unknown): Promise<void> {
   const resolver = getTotpResolver(auth, authError);
   if (resolver) {
@@ -127,8 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await getRedirectResult(auth);
         if (cancelled) return;
         if (result?.user) {
+          sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
+          sessionStorage.removeItem(GOOGLE_USE_POPUP_KEY);
           setRedirectError(null);
           await syncUser(result.user);
+        } else if (sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY)) {
+          sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
+          sessionStorage.setItem(GOOGLE_USE_POPUP_KEY, "1");
+          setRedirectError(
+            "Google sign-in did not complete. Click Continue with Google again — we will try a popup this time.",
+          );
         }
       } catch (err) {
         if (cancelled) return;
@@ -236,12 +255,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const provider = new GoogleAuthProvider();
           provider.setCustomParameters({ prompt: "select_account" });
           try {
-            if (import.meta.env.VITE_USE_AUTH_EMULATOR === "true") {
+            if (shouldUseGooglePopup()) {
+              sessionStorage.removeItem(GOOGLE_USE_POPUP_KEY);
               await signInWithPopup(auth, provider);
               return;
             }
+            sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, "1");
             await signInWithRedirect(auth, provider);
           } catch (err) {
+            sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
             await afterCredential(err);
           }
         });
