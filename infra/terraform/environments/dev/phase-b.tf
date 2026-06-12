@@ -116,14 +116,10 @@ resource "google_cloud_scheduler_job" "restaurant_refresh" {
 
   http_target {
     http_method = "POST"
-    uri         = "${module.cloud_run[0].service_uri}/v1/internal/scheduled-restaurant-refresh"
+    uri         = "${local.api_origin != "" ? local.api_origin : module.cloud_run[0].service_uri}/v1/internal/scheduled-restaurant-refresh"
 
     headers = {
       X-Internal-Job-Token = random_password.internal_job_secret[0].result
-    }
-
-    oauth_token {
-      service_account_email = module.iam.api_runtime_email
     }
   }
 

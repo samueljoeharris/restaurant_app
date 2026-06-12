@@ -5,6 +5,13 @@ locals {
   restaurant_seed_topic_id   = "projects/${var.project_id}/topics/${local.restaurant_seed_topic_name}"
 }
 
+resource "google_project_service_identity" "pubsub" {
+  count    = var.enable_restaurant_refresh_job ? 1 : 0
+  provider = google-beta
+  project  = var.project_id
+  service  = "pubsub.googleapis.com"
+}
+
 resource "google_pubsub_topic" "restaurant_seed_jobs" {
   count = var.enable_restaurant_refresh_job ? 1 : 0
 
@@ -31,6 +38,8 @@ resource "google_cloud_run_v2_service_iam_member" "pubsub_push_invoker" {
   name     = module.cloud_run[0].service_name
   role     = "roles/run.invoker"
   member   = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+
+  depends_on = [google_project_service_identity.pubsub]
 }
 
 resource "google_pubsub_subscription" "restaurant_seed_worker" {
@@ -43,7 +52,7 @@ resource "google_pubsub_subscription" "restaurant_seed_worker" {
   ack_deadline_seconds = 600
 
   push_config {
-    push_endpoint = "${module.cloud_run[0].service_uri}/v1/internal/pubsub/seed-jobs"
+    push_endpoint = "${local.api_origin != "" ? local.api_origin : module.cloud_run[0].service_uri}/v1/internal/pubsub/seed-jobs"
 
     oidc_token {
       service_account_email = module.iam.api_runtime_email

@@ -10,7 +10,7 @@ github_repository           = "samueljoeharris/restaurant_app"
 # Phase B — Cloud SQL + Cloud Run (~$7-10/mo). Image updates via .github/workflows/api.yml.
 enable_cloud_sql              = true
 enable_cloud_run              = true
-enable_restaurant_refresh_job = true
+enable_restaurant_refresh_job = false
 enable_web_cloud_run          = true
 api_image                     = "us-docker.pkg.dev/cloudrun/container/hello"
 web_image                     = "us-docker.pkg.dev/cloudrun/container/hello"
