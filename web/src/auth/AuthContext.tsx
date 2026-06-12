@@ -75,9 +75,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const GOOGLE_REDIRECT_PENDING_KEY = "ttf:googleRedirectPending";
 
-/** Popup avoids brittle full-page redirect on custom domains; redirect is opt-in. */
-function shouldUseGoogleRedirect(): boolean {
-  return import.meta.env.VITE_GOOGLE_AUTH_USE_REDIRECT === "true";
+/** Redirect is default on custom domains; popup only when explicitly enabled. */
+function shouldUseGooglePopup(): boolean {
+  return import.meta.env.VITE_GOOGLE_AUTH_USE_POPUP === "true";
+}
+
+function googleSignInConfigHint(): string {
+  const domain =
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN?.trim() || window.location.hostname;
+  return `https://${domain}/__/auth/handler`;
 }
 
 async function afterCredential(authError: unknown): Promise<void> {
@@ -256,15 +262,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const provider = new GoogleAuthProvider();
           provider.setCustomParameters({ prompt: "select_account" });
           try {
-            if (shouldUseGoogleRedirect()) {
-              sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, "1");
-              await signInWithRedirect(auth, provider);
+            if (shouldUseGooglePopup()) {
+              const cred = await signInWithPopup(auth, provider);
+              await syncUser(cred.user);
               return;
             }
-            const cred = await signInWithPopup(auth, provider);
-            await syncUser(cred.user);
+            sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, "1");
+            await signInWithRedirect(auth, provider);
           } catch (err) {
             sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
+            if (err && typeof err === "object" && "code" in err) {
+              const code = (err as { code: string }).code;
+              if (
+                code === "auth/invalid-credential" ||
+                code === "auth/internal-error"
+              ) {
+                throw new Error(
+                  `Google sign-in failed. In GCP Credentials → OAuth Web client, add authorized redirect URI: ${googleSignInConfigHint()}`,
+                );
+              }
+            }
             await afterCredential(err);
           }
         });

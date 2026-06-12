@@ -174,7 +174,9 @@ Also set **Firebase → Project settings → General → Public-facing name** to
 |-------|-----|
 | `auth/unauthorized-domain` | Add hostname to Firebase authorized domains |
 | `redirect_uri_mismatch` | Check Web client redirect URIs above |
-| Back on `/login`, no error (Chrome) | Add `https://app.dev.littlescout.app/__/auth/handler` to OAuth redirect URIs; redeploy web so `authDomain` is `app.dev.littlescout.app` |
+| Back on `/login`, no error (Chrome) | Add `https://app.dev.littlescout.app/__/auth/handler` to OAuth redirect URIs; redeploy web |
+| `signInWithIdp` **400** in Network tab | Same — missing `https://app.dev.littlescout.app/__/auth/handler` on the OAuth Web client |
+| `Cross-Origin-Opener-Policy` console warnings | Benign with redirect flow; for popup mode nginx sends `same-origin-allow-popups` |
 
 ---
 

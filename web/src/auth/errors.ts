@@ -22,6 +22,10 @@ const MESSAGES: Record<string, string> = {
   "auth/operation-not-allowed":
     "This action is not allowed. MFA may not be enabled for this project yet.",
   "auth/unverified-email": "Verify your email before signing in.",
+  "auth/internal-error":
+    "Sign-in failed unexpectedly. Check OAuth redirect URIs and Firebase authorized domains.",
+  "auth/app-not-authorized":
+    "This app is not authorized for Firebase Auth on this domain. Add the hostname to Firebase authorized domains.",
 };
 
 export function authErrorMessage(err: unknown): string {
