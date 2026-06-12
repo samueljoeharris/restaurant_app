@@ -1,0 +1,94 @@
+name: Deploy
+
+# Orchestrates dev deploys on push to main with correct ordering:
+# Terraform apply first (when infra/** changed), then service deploys.
+# Service deploys run when their paths changed OR after a successful apply
+# (apply can change env vars / secrets baked into images at build time).
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-dev-main
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      infra: ${{ steps.filter.outputs.infra }}
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            infra:
+              - 'infra/**'
+              - '.github/workflows/terraform.yml'
+              - '.github/workflows/deploy.yml'
+            api:
+              - 'api/**'
+              - '.github/workflows/api.yml'
+              - '.github/workflows/deploy.yml'
+            web:
+              - 'web/**'
+              - '.github/workflows/web.yml'
+              - '.github/workflows/admin-web.yml'
+              - '.github/workflows/deploy.yml'
+
+  terraform:
+    name: Terraform
+    needs: changes
+    if: needs.changes.outputs.infra == 'true'
+    uses: ./.github/workflows/terraform.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+
+  api:
+    name: API
+    needs: [changes, terraform]
+    if: >-
+      always() &&
+      needs.terraform.result != 'failure' &&
+      needs.terraform.result != 'cancelled' &&
+      (needs.changes.outputs.api == 'true' || needs.terraform.result == 'success')
+    uses: ./.github/workflows/api.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+
+  web:
+    name: Web
+    needs: [changes, terraform]
+    if: >-
+      always() &&
+      needs.terraform.result != 'failure' &&
+      needs.terraform.result != 'cancelled' &&
+      (needs.changes.outputs.web == 'true' || needs.terraform.result == 'success')
+    uses: ./.github/workflows/web.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+
+  admin-web:
+    name: Admin Web
+    needs: [changes, terraform]
+    if: >-
+      always() &&
+      needs.terraform.result != 'failure' &&
+      needs.terraform.result != 'cancelled' &&
+      (needs.changes.outputs.web == 'true' || needs.terraform.result == 'success')
+    uses: ./.github/workflows/admin-web.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write

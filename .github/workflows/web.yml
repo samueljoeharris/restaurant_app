@@ -1,12 +1,10 @@
 name: Web
 
+# Called by deploy.yml on push to main (web/** changes or post-terraform apply);
+# manual redeploy via workflow_dispatch.
 on:
+  workflow_call:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "web/**"
-      - ".github/workflows/web.yml"
 
 env:
   PROJECT_ID: ttf-restaurant-dev

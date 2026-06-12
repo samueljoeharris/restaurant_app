@@ -1,12 +1,10 @@
 name: API
 
+# Called by deploy.yml on push to main (api/** changes or post-terraform apply);
+# manual redeploy via workflow_dispatch.
 on:
+  workflow_call:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "api/**"
-      - ".github/workflows/api.yml"
 
 env:
   PROJECT_ID: ttf-restaurant-dev

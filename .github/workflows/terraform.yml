@@ -1,7 +1,8 @@
 name: Terraform
 
-# Solo dev: push to main only. Plan + apply on infra/** changes; manual apply via workflow_dispatch.
+# Called by deploy.yml on push to main (infra/** changes); manual apply via workflow_dispatch.
 on:
+  workflow_call:
   workflow_dispatch:
     inputs:
       apply:
@@ -9,11 +10,6 @@ on:
         required: false
         default: false
         type: boolean
-  push:
-    branches: [main]
-    paths:
-      - "infra/**"
-      - ".github/workflows/terraform.yml"
 
 concurrency:
   group: terraform-dev-${{ github.ref }}
@@ -108,22 +104,3 @@ jobs:
             exit 1
           fi
           terraform apply -auto-approve -input=false -no-color tfplan
-
-  redeploy-dev:
-    name: Redeploy dev services
-    needs: apply
-    if: needs.apply.result == 'success'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-      contents: read
-    steps:
-      - name: Trigger API and Web deploys
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          for workflow in api.yml web.yml admin-web.yml; do
-            echo "Dispatching ${workflow} on main (post-terraform apply)..."
-            gh workflow run "$workflow" --repo "${{ github.repository }}" --ref main
-          done

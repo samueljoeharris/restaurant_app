@@ -1,12 +1,10 @@
 name: Admin Web
 
+# Called by deploy.yml on push to main (web/** changes or post-terraform apply);
+# manual redeploy via workflow_dispatch.
 on:
+  workflow_call:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "web/**"
-      - ".github/workflows/admin-web.yml"
 
 env:
   PROJECT_ID: ttf-restaurant-dev
@@ -85,13 +83,10 @@ jobs:
           export API_URL PUBLIC_APP_URL FIREBASE_JSON
           python3 <<'PY'
           import json, os
-          from urllib.parse import urlparse
           cfg = json.loads(os.environ["FIREBASE_JSON"])
           api_url = os.environ["API_URL"].rstrip("/")
-          api_host = urlparse(api_url).netloc
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"api_url={api_url}\n")
-              out.write(f"api_host={api_host}\n")
               out.write(f"public_app_url={os.environ['PUBLIC_APP_URL']}\n")
               out.write(f"firebase_api_key={cfg['VITE_FIREBASE_API_KEY']}\n")
               out.write(f"firebase_auth_domain={cfg['VITE_FIREBASE_AUTH_DOMAIN']}\n")
@@ -105,8 +100,6 @@ jobs:
             if docker build \
               -f ./web/Dockerfile.admin \
               --build-arg VITE_API_URL="${{ steps.env.outputs.api_url }}" \
-              --build-arg API_UPSTREAM="${{ steps.env.outputs.api_url }}" \
-              --build-arg API_HOST="${{ steps.env.outputs.api_host }}" \
               --build-arg VITE_PUBLIC_APP_URL="${{ steps.env.outputs.public_app_url }}" \
               --build-arg VITE_FIREBASE_API_KEY="${{ steps.env.outputs.firebase_api_key }}" \
               --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ steps.env.outputs.firebase_auth_domain }}" \
