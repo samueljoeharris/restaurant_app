@@ -38,7 +38,7 @@ locals {
       secret  = "ttf-maps-api-key"
       version = "latest"
     }
-  }, var.enable_restaurant_refresh_job ? {
+    }, var.enable_restaurant_refresh_job ? {
     INTERNAL_JOB_SECRET = {
       secret  = "ttf-internal-job-secret"
       version = "latest"
