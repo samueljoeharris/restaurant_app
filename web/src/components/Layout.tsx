@@ -3,10 +3,11 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
 import { BottomNav } from "./BottomNav";
+import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const location = useLocation();
   const hideNav = location.pathname.includes("/submit");
   const isMap = location.pathname === "/map";
@@ -39,7 +40,12 @@ export function Layout({ children }: { children: ReactNode }) {
           <span className="shell__brand-mark">🔭</span>
           Little Scout
         </Link>
-        <span className="shell__tagline">Dedham pilot</span>
+        <div className="shell__header-actions">
+          <span className="shell__tagline">Dedham pilot</span>
+          <Button variant="ghost" size="sm" onClick={() => logout()}>
+            Sign out
+          </Button>
+        </div>
       </header>
       <div className={`shell__main${isMap ? " shell__main--flush" : ""}`}>{children}</div>
       {!hideNav && <BottomNav />}
