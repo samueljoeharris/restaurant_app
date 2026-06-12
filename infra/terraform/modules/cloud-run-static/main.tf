@@ -22,9 +22,8 @@ resource "google_cloud_run_v2_service" "web" {
   }
 
   lifecycle {
-    ignore_changes = [
-      template[0].containers[0].image,
-    ]
+    # Image and runtime template are updated by admin-web.yml / web.yml — not Terraform.
+    ignore_changes = [template]
   }
 }
 
