@@ -128,7 +128,9 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased checklist, account setup |
 | [docs/README.md](docs/README.md) | Documentation index and reading order |
 | [docs/CI.md](docs/CI.md) | Local checks and GitHub Actions behavior |
-| [docs/AUTH.md](docs/AUTH.md) | Google sign-in, MFA, and admin IAP |
+| [docs/WEB_AUTH.md](docs/WEB_AUTH.md) | Public app sign-up, sign-in, Google, MFA |
+| [docs/ADMIN_AUTH.md](docs/ADMIN_AUTH.md) | Operator console — IAP and admin claims |
+| [docs/AUTH.md](docs/AUTH.md) | Auth index |
 | [docs/LITTLESCOUT_DOMAIN.md](docs/LITTLESCOUT_DOMAIN.md) | `littlescout.app` DNS and deploy runbook |
 | [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP configuration |
 
@@ -144,7 +146,7 @@ Cloud agents install Docker through `.cursor/environment.json` + `.cursor/Docker
 
 ### Local full-stack (no cloud Firebase secrets)
 
-Use the Firebase Auth emulator so web sign-in works without `firebase-sa.json` or real `VITE_FIREBASE_API_KEY`:
+Use the Firebase Auth emulator so web sign-in works without `firebase-sa.json` or real `VITE_FIREBASE_API_KEY`. Full steps: [docs/WEB_AUTH.md](docs/WEB_AUTH.md#option-a--firebase-auth-emulator-recommended-in-cloud--no-secrets).
 
 ```bash
 cp .env.example .env

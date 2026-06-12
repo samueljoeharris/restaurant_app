@@ -2,6 +2,8 @@
 
 Browser pilot and admin build for Dedham — Firebase Auth + Cloud Run API.
 
+**Auth docs:** Public sign-up / sign-in → [docs/WEB_AUTH.md](../docs/WEB_AUTH.md). Operator IAP → [docs/ADMIN_AUTH.md](../docs/ADMIN_AUTH.md).
+
 ## Setup
 
 1. Get Firebase Web SDK config from Terraform (after `enable_firebase_web` apply):
@@ -38,7 +40,7 @@ Terraform provisions `ttf-web` (see `infra/terraform/environments/dev/web.tf`). 
 docker compose run --rm terraform -chdir=environments/dev output -raw cloud_run_web_url
 ```
 
-Admin deploys from the same `web/` source tree using `.github/workflows/admin-web.yml` and `web/Dockerfile.admin`, then serves at `https://admin.dev.littlescout.app` behind IAP.
+Admin deploys from the same `web/` source tree using `.github/workflows/admin-web.yml` and `web/Dockerfile.admin`, then serves at `https://admin.dev.littlescout.app` behind IAP. See [docs/ADMIN_AUTH.md](../docs/ADMIN_AUTH.md).
 
 ## Local API instead of Cloud Run
 

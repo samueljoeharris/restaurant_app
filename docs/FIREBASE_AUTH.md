@@ -1,6 +1,8 @@
-# Firebase Auth — Little Scout
+# Firebase Auth — API and clients
 
-Auth flow for API write endpoints and future web/iOS clients.
+**API-side** auth: JWT verification, local dev modes, App Check, and Cloud Run configuration.
+
+For **public web sign-up / sign-in UX**, start with [WEB_AUTH.md](WEB_AUTH.md). For **admin IAP**, see [ADMIN_AUTH.md](ADMIN_AUTH.md). Overview: [AUTH.md](AUTH.md).
 
 ```
 Client (web / iOS)  →  Firebase Auth  →  ID token (JWT)
@@ -40,7 +42,7 @@ Manual setup (if starting fresh):
    - **Email/Password** — easiest for web pilot testing
    - **Google** — optional
    - **Apple** — enable when iOS app exists (requires Apple Developer)
-3. **Settings** → Authorized domains — ensure `localhost`, `app.dev.littlescout.app`, and `admin.dev.littlescout.app` are listed for the web pilot/admin surfaces
+3. **Settings** → Authorized domains — ensure `localhost` and `app.dev.littlescout.app` are listed (admin.dev is added for the operator Firebase session; see [ADMIN_AUTH.md](ADMIN_AUTH.md))
 
 ### Web app (browser SDK)
 
@@ -165,15 +167,7 @@ Write endpoints require Firebase ID token + (when enabled) `X-Firebase-AppCheck`
 
 ---
 
-## 5. Google sign-in + MFA (web)
-
-See **[AUTH.md](AUTH.md)** for enabling Google, enrolling TOTP MFA, and the `/account` security page.
-
-Terraform: `infra/terraform/modules/firebase-auth` (Identity Platform config + optional Google OAuth vars).
-
----
-
-## 6. Client integration
+## 5. Web and iOS clients
 
 ### Web (Firebase JS SDK)
 
@@ -188,6 +182,8 @@ const idToken = await cred.user.getIdToken();
 ```
 
 Connect emulator: `connectAuthEmulator(auth, "http://localhost:9099")` when developing locally.
+
+Public web sign-up vs sign-in, Google OAuth console steps, and MFA enrollment: **[WEB_AUTH.md](WEB_AUTH.md)**.
 
 ### iOS
 

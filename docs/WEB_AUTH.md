@@ -1,0 +1,209 @@
+# Web app auth — public pilot
+
+How parents sign up, sign in, and call the API on **`app.dev.littlescout.app`** (and locally).
+
+This is **one auth system**: Firebase Auth in the browser, Firebase JWT verification on Cloud Run. There is no local `users` table — Postgres stores `firebase_uid` on contributions only.
+
+For the operator console (`admin.dev`), see **[ADMIN_AUTH.md](ADMIN_AUTH.md)** — that is a separate Google IAP wall plus Firebase admin claims.
+
+---
+
+## Mental model
+
+```
+Browser (React)  →  Firebase Auth  →  ID token (JWT)
+                           ↓
+                 Cloud Run API verifies JWT
+                           ↓
+              firebase_uid on TTF / ratings / notes
+```
+
+- **Sign up** and **sign in** are both Firebase Auth operations on the same `/login` page.
+- **Google** always uses “Continue with Google” — Firebase creates the account on first use.
+- The API never distinguishes “new user” vs “returning user”; it only checks a valid JWT on writes.
+
+---
+
+## Sign up vs sign in (public app)
+
+Both live on **`/login`** in the public web build (`web/src/pages/LoginPage.tsx`).
+
+| Action | UI | Firebase call |
+|--------|-----|---------------|
+| **Sign in** (email) | “Sign in” button (default) | `signInWithEmailAndPassword` |
+| **Sign up** (email) | Toggle “Need an account? Sign up” → “Create account” | `createUserWithEmailAndPassword` |
+| **Google** | “Continue with Google” | `signInWithRedirect` (prod) / popup (local) |
+
+After a successful session, the app redirects to `/` (home). MFA, if enrolled, prompts on the same page before redirect.
+
+**Admin build:** production `admin.dev` does **not** use this login form — operators hit the IAP wall first. Email/password on `/login` exists only for **local admin dev** without IAP. See [ADMIN_AUTH.md](ADMIN_AUTH.md).
+
+---
+
+## Sign-in methods
+
+| Method | Status | Notes |
+|--------|--------|-------|
+| Email / password | ✅ | Sign up + sign in toggle on `/login` |
+| Google | ✅ | Console setup below |
+| Apple | Planned (iOS) | Required on iOS when other third-party sign-in is offered |
+| SMS MFA | Later | TOTP preferred for web |
+
+---
+
+## API calls from the web app
+
+1. User signs in via Firebase JS SDK (`web/src/auth/AuthContext.tsx`).
+2. `web/src/api/client.ts` attaches `Authorization: Bearer <id_token>` on authenticated requests.
+3. When App Check is enabled, the client also sends `X-Firebase-AppCheck`.
+4. Cloud Run (`api/ttf_api/auth.py`) verifies the JWT; local dev can use `Bearer dev:<uid>` when `AUTH_DEV_MODE=true`.
+
+Token refresh is handled by the Firebase SDK (~1 hour lifetime).
+
+Public read endpoints do not require auth. All **writes** require a valid Firebase token (plus App Check and rate limits when configured).
+
+---
+
+## Local development
+
+### Option A — Firebase Auth emulator (recommended in cloud / no secrets)
+
+No real Firebase project credentials needed.
+
+```bash
+cp .env.example .env
+cp web/.env.example web/.env.local
+```
+
+In `.env`:
+
+```
+FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+AUTH_DEV_MODE=true
+```
+
+In `web/.env.local`:
+
+```
+VITE_API_URL=http://localhost:8080
+VITE_USE_AUTH_EMULATOR=true
+VITE_FIREBASE_API_KEY=fake-api-key-for-emulator
+VITE_FIREBASE_AUTH_DOMAIN=localhost
+VITE_FIREBASE_PROJECT_ID=ttf-restaurant-dev
+```
+
+```bash
+echo '{}' > firebase-sa.json   # compose bind-mount; unused with emulator
+docker compose --profile emulator up --build -d postgres api firebase-emulator
+cd web && npm install && npm run dev   # http://localhost:5173
+```
+
+Test user (emulator): **`pilot@ttf.test`** / **`pilotpass123`**. Emulator UI: http://localhost:4000.
+
+### Option B — Production Firebase locally
+
+Use when testing real Google sign-in or Cloud SQL with production tokens.
+
+1. Copy Firebase Web SDK config into `web/.env.local` (`VITE_FIREBASE_*`).
+2. Download `firebase-sa.json` (Firebase Console → Service accounts).
+3. Set `AUTH_DEV_MODE=false` and `FIREBASE_SERVICE_ACCOUNT_PATH=firebase-sa.json` in `.env`.
+4. Run `docker compose up -d postgres api` and `cd web && npm run dev`.
+
+See [FIREBASE_AUTH.md](FIREBASE_AUTH.md) for API-side modes (dev tokens, emulator, production).
+
+### Option C — API-only smoke test (no web)
+
+```bash
+docker compose up -d postgres api
+curl -H "Authorization: Bearer dev:pilot-tester-1" http://localhost:8080/v1/me
+```
+
+---
+
+## Enable Google sign-in (Firebase Console)
+
+Google for **`app.dev`** is configured in [Firebase Authentication](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) — not Terraform (`enable_google_sign_in = false` in committed CI tfvars).
+
+1. Enable **Google** provider, set support email, Save.
+2. Firebase auto-creates the **Web client (auto created by Google Service)** in GCP Credentials.
+3. Complete the checklist below.
+
+> This OAuth client is **only for the public app**. Admin IAP uses a separate OAuth client — see [ADMIN_AUTH.md](ADMIN_AUTH.md).
+
+### 1. Firebase authorized domains
+
+[Authentication → Settings → Authorized domains](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/settings)
+
+- `app.dev.littlescout.app`
+- `localhost` (local Vite)
+
+(`admin.dev.littlescout.app` is listed for the admin Firebase session; public-app testing only needs the two above.)
+
+### 2. OAuth Web client — origins and redirect URIs
+
+[GCP → Credentials](https://console.cloud.google.com/apis/credentials?project=ttf-restaurant-dev) → **Web client (auto created by Google Service)**
+
+**Authorized JavaScript origins:**
+
+- `https://app.dev.littlescout.app`
+- `http://localhost:5173`
+
+**Authorized redirect URIs:**
+
+- `https://ttf-restaurant-dev.firebaseapp.com/__/auth/handler`
+
+(`authDomain` stays `ttf-restaurant-dev.firebaseapp.com` in the Web SDK — normal. The page origin must be in authorized domains.)
+
+### 3. OAuth consent screen branding
+
+[GCP → OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent?project=ttf-restaurant-dev)
+
+- **App name:** `Little Scout`
+- **Application home page:** `https://app.dev.littlescout.app`
+
+Also set **Firebase → Project settings → General → Public-facing name** to `Little Scout`.
+
+### 4. Verify
+
+1. Open `https://app.dev.littlescout.app/login`.
+2. **Continue with Google** → account picker shows **Little Scout**.
+3. After choosing an account, brief stop on `/login`, then redirect to `/`.
+
+| Error | Fix |
+|-------|-----|
+| `auth/unauthorized-domain` | Add hostname to Firebase authorized domains |
+| `redirect_uri_mismatch` | Check Web client redirect URI above |
+
+---
+
+## MFA (authenticator app)
+
+Identity Platform MFA is **ENABLED** (opt-in) via Terraform `modules/firebase-auth`. Requires a successful Terraform apply.
+
+- **Enroll:** Sign in → **Account** → **Set up authenticator** → scan QR → enter 6-digit code.
+- **Sign-in:** After password or Google, enter TOTP code when prompted.
+- **Unenroll:** **Account** → **Remove authenticator** (re-auth required).
+
+If you see `auth/operation-not-allowed` for TOTP, MFA is not enabled in GCP yet (Terraform apply pending).
+
+---
+
+## Deployed dev URLs
+
+| Surface | URL |
+|---------|-----|
+| Public web | https://app.dev.littlescout.app |
+| API | https://api.dev.littlescout.app |
+| Health | https://api.dev.littlescout.app/health |
+
+---
+
+## Related docs
+
+| Doc | Purpose |
+|-----|---------|
+| [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | API JWT verification, dev tokens, App Check, Cloud Run env |
+| [ADMIN_AUTH.md](ADMIN_AUTH.md) | Operator console — IAP + admin claims (separate from this doc) |
+| [web/README.md](../web/README.md) | Web repo setup |
+| [api/README.md](../api/README.md) | API endpoints and auth headers |
+| [BEST_PRACTICES.md](BEST_PRACTICES.md) | Session hardening, deletion, trust |

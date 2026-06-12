@@ -30,8 +30,10 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component map, runtime topology, auth/data flows, and CI/CD |
 | [docs/DESIGN.md](docs/DESIGN.md) | Product vision, data model, TTF spec, architecture, naming conventions |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased onboarding checklist |
-| [docs/AUTH.md](docs/AUTH.md) | Google sign-in, MFA, admin IAP, and auth troubleshooting |
-| [docs/FIREBASE_AUTH.md](docs/FIREBASE_AUTH.md) | Firebase Auth modes, emulator flow, API JWT setup |
+| [docs/WEB_AUTH.md](docs/WEB_AUTH.md) | Public app sign-up, sign-in, Google, MFA, and local dev |
+| [docs/ADMIN_AUTH.md](docs/ADMIN_AUTH.md) | Operator console — IAP, admin claims, Firebase SSO |
+| [docs/AUTH.md](docs/AUTH.md) | Auth index — public vs admin |
+| [docs/FIREBASE_AUTH.md](docs/FIREBASE_AUTH.md) | API JWT verification, emulator, App Check |
 | [docs/LITTLESCOUT_DOMAIN.md](docs/LITTLESCOUT_DOMAIN.md) | `littlescout.app` DNS, TLS, and deployment runbook |
 | [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP setup (GitHub, GCP, Postgres) |
 | [docs/CI.md](docs/CI.md) | Local Docker checks and GitHub Actions (dev) |
@@ -61,7 +63,7 @@ restaurant_app/
 
 1. Read [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 2. Configure MCP servers per [docs/MCP_SETUP.md](docs/MCP_SETUP.md) if using Cursor tools
-3. For local full-stack web development, use the Firebase emulator flow in [AGENTS.md](AGENTS.md#local-full-stack-no-cloud-firebase-secrets) or [docs/FIREBASE_AUTH.md](docs/FIREBASE_AUTH.md)
+3. For local full-stack web development, use the Firebase emulator flow in [docs/WEB_AUTH.md](docs/WEB_AUTH.md) or [AGENTS.md](AGENTS.md#local-full-stack-no-cloud-firebase-secrets)
 4. For deployed dev testing, use:
    - Web pilot: `https://app.dev.littlescout.app`
    - API health: `https://api.dev.littlescout.app/health`

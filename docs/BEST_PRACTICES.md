@@ -21,7 +21,7 @@ Operational guidance for auth, account deletion, caching, map search, and rating
 
 ## 1. Auth & sessions
 
-Little Scout uses **Firebase Auth** as the identity provider. Postgres stores `firebase_uid` on contributions; there is no local users table. See [FIREBASE_AUTH.md](FIREBASE_AUTH.md) and [AUTH.md](AUTH.md).
+Little Scout uses **Firebase Auth** as the identity provider. Postgres stores `firebase_uid` on contributions; there is no local users table. See [WEB_AUTH.md](WEB_AUTH.md) and [FIREBASE_AUTH.md](FIREBASE_AUTH.md). Admin: [ADMIN_AUTH.md](ADMIN_AUTH.md).
 
 ### Principles
 
@@ -69,7 +69,7 @@ Verify once per request; cache the decoded token for the request lifetime, not a
 
 ### Sign-in UX
 
-- Google: `signInWithRedirect` in production (see [AUTH.md](AUTH.md) OAuth checklist).
+- Google: `signInWithRedirect` in production (see [WEB_AUTH.md](WEB_AUTH.md) OAuth checklist).
 - Apple Sign-In required when offering other third-party sign-in on iOS (App Store).
 - MFA: TOTP opt-in via Identity Platform (already configured).
 
@@ -363,6 +363,8 @@ Use this as a pre-launch gate. Check off in PRs or project tracking.
 ### Related internal docs
 
 - [DESIGN.md](DESIGN.md) — data model, TTF spec, map/search design
+- [WEB_AUTH.md](WEB_AUTH.md) — public sign-in, Google, MFA
+- [ADMIN_AUTH.md](ADMIN_AUTH.md) — operator IAP and admin claims
 - [FIREBASE_AUTH.md](FIREBASE_AUTH.md) — token verification, App Check, rate limits
-- [AUTH.md](AUTH.md) — Google sign-in, MFA, admin IAP
+- [AUTH.md](AUTH.md) — auth doc index
 - [GETTING_STARTED.md](GETTING_STARTED.md) — phased rollout checklist

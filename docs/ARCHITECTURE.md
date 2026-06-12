@@ -215,6 +215,8 @@ Little Scout intentionally externalizes user identity to Firebase Auth.
 
 ### Public app auth
 
+See **[WEB_AUTH.md](WEB_AUTH.md)** for sign-up vs sign-in on `/login`, Google OAuth setup, MFA, and local emulator flow.
+
 1. The web app signs the user in through Firebase Auth.
 2. The Firebase SDK provides an ID token.
 3. `web/src/api/client.ts` adds `Authorization: Bearer <token>` to authenticated
@@ -233,7 +235,7 @@ chains:
 
 ### Admin auth
 
-Admin access has two layers:
+See **[ADMIN_AUTH.md](ADMIN_AUTH.md)** for the full operator flow. Summary:
 
 1. **IAP layer:** `admin.dev.littlescout.app` is protected by Google Cloud IAP at
    the load balancer/backend level.
@@ -410,13 +412,15 @@ runtime configuration such as API URL and Firebase config from Secret Manager.
 - The production Terraform environment is not fully built out; dev is the active
   environment.
 - Google sign-in configuration includes console-managed pieces, documented in
-  `docs/AUTH.md`.
+  `docs/WEB_AUTH.md`.
 
 ## Reference docs
 
 - Product design: `docs/DESIGN.md`
-- Auth and admin SSO: `docs/AUTH.md`
-- Firebase Auth details: `docs/FIREBASE_AUTH.md`
+- Public web auth: `docs/WEB_AUTH.md`
+- Admin / IAP auth: `docs/ADMIN_AUTH.md`
+- Auth index: `docs/AUTH.md`
+- Firebase API auth: `docs/FIREBASE_AUTH.md`
 - CI/CD: `docs/CI.md`
 - Terraform: `infra/terraform/README.md`
 - Custom domains: `docs/LITTLESCOUT_DOMAIN.md`

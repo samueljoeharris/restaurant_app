@@ -9,8 +9,10 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [README.md](../README.md) | Project overview, current status, and top-level quick start |
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Phase checklist and current build/deploy state |
 | [CI.md](CI.md) | Local Docker checks and GitHub Actions behavior |
-| [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | API auth modes, emulator setup, and Firebase JWT flow |
-| [AUTH.md](AUTH.md) | Google sign-in, MFA, admin IAP, and operator auth notes |
+| [WEB_AUTH.md](WEB_AUTH.md) | **Public app** — sign up, sign in, Google, MFA, local emulator |
+| [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | API JWT verification, dev tokens, App Check, Cloud Run env |
+| [ADMIN_AUTH.md](ADMIN_AUTH.md) | **Operator console** — IAP, admin claims, Firebase SSO bridge |
+| [AUTH.md](AUTH.md) | Auth index — which doc to read for public vs admin |
 | [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) | Current `littlescout.app` DNS, TLS, IAP, and smoke-test runbook |
 | [../api/README.md](../api/README.md) | API local development and endpoint summary |
 | [../web/README.md](../web/README.md) | Web pilot local setup and Cloud Run deploy notes |
@@ -22,9 +24,9 @@ Start here when you are orienting yourself in the Little Scout repo.
 ## Current implementation notes
 
 - Dev custom domains use `littlescout.app`:
-  - `https://app.dev.littlescout.app` -> public web pilot
+  - `https://app.dev.littlescout.app` -> public web pilot (Firebase sign-in)
   - `https://api.dev.littlescout.app` -> API
-  - `https://admin.dev.littlescout.app` -> IAP-protected admin
+  - `https://admin.dev.littlescout.app` -> IAP-protected admin (separate auth path — see [ADMIN_AUTH.md](ADMIN_AUTH.md))
 - The current web pilot and admin app both live under `web/`; separate Cloud Run services are built by `web.yml` and `admin-web.yml`.
 - `CUSTOM_DOMAIN_SETUP.md` is a historical planning document. Use [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) as the live runbook.
 - GitHub Actions are intentionally push-to-`main` for this solo-dev repo; see [CI.md](CI.md) before changing branch protection or workflow triggers.

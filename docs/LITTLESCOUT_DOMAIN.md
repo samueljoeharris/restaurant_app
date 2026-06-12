@@ -311,5 +311,7 @@ Firebase Auth stays on `ttf-restaurant-dev` for dev builds. Use a separate Fireb
 ## Related docs
 
 - [CUSTOM_DOMAIN_SETUP.md](CUSTOM_DOMAIN_SETUP.md) — architecture rationale
-- [FIREBASE_AUTH.md](FIREBASE_AUTH.md) — Auth modes
-- [AUTH.md](AUTH.md) — Admin claims
+- [WEB_AUTH.md](WEB_AUTH.md) — public app auth
+- [ADMIN_AUTH.md](ADMIN_AUTH.md) — admin IAP and claims
+- [AUTH.md](AUTH.md) — auth index
+- [FIREBASE_AUTH.md](FIREBASE_AUTH.md) — API auth modes

@@ -48,13 +48,13 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 
 ---
 
-## Auth (web/admin)
+## Auth (public web)
 
 - [ ] Enable **Google** sign-in in [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) (if not using Terraform OAuth vars)
 - [ ] Test **Continue with Google** and email sign-up on `/login`
 - [ ] Optional: **Account → Set up authenticator** for MFA
 
-Guide: [AUTH.md](AUTH.md)
+Guide: [WEB_AUTH.md](WEB_AUTH.md). Operator console (IAP): [ADMIN_AUTH.md](ADMIN_AUTH.md).
 
 ---
 
@@ -182,8 +182,10 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 | [AGENTS.md](../AGENTS.md) | Guidance for AI coding agents |
 | [docs/README.md](README.md) | Documentation index and reading order |
 | [DESIGN.md](DESIGN.md) | Full product + technical design |
-| [AUTH.md](AUTH.md) | Google sign-in, MFA, and admin IAP |
-| [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | Firebase Auth + emulator |
+| [WEB_AUTH.md](WEB_AUTH.md) | Public app sign-up, sign-in, Google, MFA |
+| [ADMIN_AUTH.md](ADMIN_AUTH.md) | Operator console — IAP and admin claims |
+| [AUTH.md](AUTH.md) | Auth index |
+| [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | Firebase Auth + emulator (API) |
 | [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) | `littlescout.app` DNS, TLS, and deployment runbook |
 | [MCP_SETUP.md](MCP_SETUP.md) | Cursor MCP server configuration |
 | [CI.md](CI.md) | Local checks and GitHub Actions |
