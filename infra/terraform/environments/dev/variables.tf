@@ -49,7 +49,7 @@ variable "enable_cloud_run" {
 
 variable "enable_restaurant_refresh_job" {
   type        = bool
-  description = "Weekly Cloud Run Job + Scheduler to refresh restaurant catalog from Google Places. Requires enable_cloud_run = true."
+  description = "Pub/Sub seed queue + weekly Scheduler → API refresh. Requires enable_cloud_run = true."
   default     = false
 
   validation {

@@ -94,110 +94,14 @@ module "cloud_run" {
   ]
 }
 
-resource "google_cloud_run_v2_job" "restaurant_refresh" {
-  count = var.enable_restaurant_refresh_job ? 1 : 0
-
-  name                = "ttf-restaurant-refresh"
-  project             = var.project_id
-  location            = var.region
-  deletion_protection = false
-
-  template {
-    template {
-      service_account = module.iam.api_runtime_email
-
-      volumes {
-        name = "cloudsql"
-        cloud_sql_instance {
-          instances = [module.cloud_sql[0].connection_name]
-        }
-      }
-
-      dynamic "volumes" {
-        for_each = local.api_file_secret_mounts
-        content {
-          name = volumes.value.volume_name
-          secret {
-            secret = volumes.value.secret_name
-            items {
-              version = "latest"
-              path    = volumes.value.file_name
-            }
-          }
-        }
-      }
-
-      containers {
-        image   = var.api_image
-        command = ["python", "-m", "ttf_api.jobs.refresh_restaurants"]
-
-        volume_mounts {
-          name       = "cloudsql"
-          mount_path = "/cloudsql"
-        }
-
-        dynamic "volume_mounts" {
-          for_each = local.api_file_secret_mounts
-          content {
-            name       = volume_mounts.value.volume_name
-            mount_path = volume_mounts.value.mount_path
-          }
-        }
-
-        env {
-          name = "DATABASE_URL"
-          value_source {
-            secret_key_ref {
-              secret  = "ttf-db-url"
-              version = "latest"
-            }
-          }
-        }
-
-        dynamic "env" {
-          for_each = local.api_container_env
-          content {
-            name  = env.key
-            value = env.value
-          }
-        }
-
-        dynamic "env" {
-          for_each = local.api_secret_env
-          content {
-            name = env.key
-            value_source {
-              secret_key_ref {
-                secret  = env.value.secret
-                version = env.value.version
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+# Legacy Cloud Run Job (ttf-restaurant-refresh) replaced by Scheduler → API.
+# Drop from state without destroy — job may still exist in GCP until manual cleanup.
+removed {
+  from = google_cloud_run_v2_job.restaurant_refresh
 
   lifecycle {
-    ignore_changes = [
-      template[0].template[0].containers[0].image,
-    ]
+    destroy = false
   }
-
-  depends_on = [
-    module.iam,
-    module.cloud_sql,
-    google_secret_manager_secret_version.db_url,
-    google_artifact_registry_repository_iam_member.api_runtime_reader,
-  ]
-}
-
-resource "google_project_iam_member" "api_runtime_run_developer" {
-  count = var.enable_restaurant_refresh_job ? 1 : 0
-
-  project = var.project_id
-  role    = "roles/run.developer"
-  member  = "serviceAccount:${module.iam.api_runtime_email}"
 }
 
 resource "google_cloud_scheduler_job" "restaurant_refresh" {
