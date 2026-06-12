@@ -14,6 +14,7 @@ from google.oauth2 import id_token
 from pydantic import BaseModel
 
 from ttf_api.config import settings
+from ttf_api.gcp_console import seed_job_log_marker
 from ttf_api.pubsub_seed import enqueue_seed_job
 from ttf_api.seed_jobs import create_scheduled_refresh_jobs, run_seed_job
 
@@ -69,6 +70,7 @@ def pubsub_seed_job_handler(
 
     payload = json.loads(base64.b64decode(raw))
     job_id = UUID(payload["job_id"])
+    logger.info("%s pubsub push received", seed_job_log_marker(str(job_id)))
     run_seed_job(job_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

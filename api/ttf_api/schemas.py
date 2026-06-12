@@ -74,6 +74,14 @@ class RestaurantSeedJobRequest(BaseModel):
         return self
 
 
+class GcpConsoleLinks(BaseModel):
+    run_logs_url: str
+    cloud_run_url: str
+    pubsub_subscription_url: str | None = None
+    pubsub_topic_url: str | None = None
+    scheduler_url: str | None = None
+
+
 class RestaurantSeedJob(BaseModel):
     id: UUID
     pilot_city: str
@@ -86,6 +94,7 @@ class RestaurantSeedJob(BaseModel):
     kind: Literal["area", "catalog"] = "area"
     status: Literal["pending", "running", "succeeded", "failed", "skipped"]
     requested_by: str | None = None
+    requested_by_display: str | None = None
     error: str | None = None
     inserted_count: int = 0
     updated_count: int = 0
@@ -100,6 +109,7 @@ class RestaurantSeedJob(BaseModel):
     finished_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
+    gcp_links: GcpConsoleLinks | None = None
 
 
 class RestaurantSeedJobResponse(BaseModel):

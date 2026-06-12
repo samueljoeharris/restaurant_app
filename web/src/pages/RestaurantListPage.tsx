@@ -1,77 +1,93 @@
 import { useCallback, useMemo, useState } from "react";
-import type { FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { api } from "../api/client";
-import { useAuth } from "../auth/AuthContext";
 import { RestaurantListCard } from "../components/RestaurantListCard";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
-import type { RestaurantMapEntry, RestaurantSeedJob } from "../types";
+import {
+  buildExploreFacets,
+  groupRestaurantsByCity,
+  matchesBrowseFilters,
+  matchesExploreSearch,
+  matchesScoutFilter,
+  type ScoutFilter,
+} from "../lib/exploreFacets";
+import type { RestaurantMapEntry } from "../types";
 
-type RestaurantFilter = "all" | "fast-starters" | "parent-data" | "needs-data";
-
-const filterLabels: Record<RestaurantFilter, string> = {
+const scoutFilterLabels: Record<ScoutFilter, string> = {
   all: "All",
   "fast-starters": "Quick starters",
   "parent-data": "Parent-rated",
   "needs-data": "Needs scouting",
 };
 
-const filterSummaries: Record<Exclude<RestaurantFilter, "all">, string> = {
+const scoutFilterSummaries: Record<Exclude<ScoutFilter, "all">, string> = {
   "fast-starters": "Places with starter-speed observations of 10 minutes or less.",
   "parent-data": "Restaurants with at least one parent observation, rating, or note.",
   "needs-data": "Restaurants still waiting for a first parent contribution.",
 };
 
-function getFilter(value: string | null): RestaurantFilter {
+function getScoutFilter(value: string | null): ScoutFilter {
   if (value === "fast-starters" || value === "parent-data" || value === "needs-data") {
     return value;
   }
   return "all";
 }
 
-function hasParentData(restaurant: RestaurantMapEntry) {
-  return (
-    restaurant.ttf.sample_size > 0 ||
-    restaurant.attribute_rating_count > 0 ||
-    restaurant.note_count > 0
-  );
-}
-
-function hasFastStarterData(restaurant: RestaurantMapEntry) {
-  return (
-    restaurant.ttf.sample_size > 0 &&
-    restaurant.ttf.median_minutes !== null &&
-    restaurant.ttf.median_minutes <= 10
-  );
-}
-
-function restaurantFilterUrl(filter: RestaurantFilter, query: string) {
-  const params = new URLSearchParams();
-  if (filter !== "all") params.set("filter", filter);
-  if (query.trim()) params.set("q", query.trim());
-  const qs = params.toString();
-  return qs ? `/restaurants?${qs}` : "/restaurants";
-}
-
 function formatPlaceCount(count: number) {
   return `${count} ${count === 1 ? "place" : "places"}`;
 }
 
+function exploreUrl(params: {
+  filter: ScoutFilter;
+  q: string;
+  city: string | null;
+  zip: string | null;
+  tag: string | null;
+}) {
+  const search = new URLSearchParams();
+  if (params.filter !== "all") search.set("filter", params.filter);
+  if (params.q.trim()) search.set("q", params.q.trim());
+  if (params.city) search.set("city", params.city);
+  if (params.zip) search.set("zip", params.zip);
+  if (params.tag) search.set("tag", params.tag);
+  const qs = search.toString();
+  return qs ? `/restaurants?${qs}` : "/restaurants";
+}
+
+function BrowseChip({
+  label,
+  count,
+  active,
+  to,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  to: string;
+}) {
+  return (
+    <Link
+      className={`explore-filter${active ? " explore-filter--active" : ""}`}
+      to={to}
+    >
+      {label} ({count})
+    </Link>
+  );
+}
+
 export function RestaurantListPage() {
-  const { idToken, isAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeFilter = getFilter(searchParams.get("filter"));
+  const activeFilter = getScoutFilter(searchParams.get("filter"));
   const query = searchParams.get("q") ?? "";
+  const browseCity = searchParams.get("city");
+  const browseZip = searchParams.get("zip");
+  const browseTag = searchParams.get("tag");
   const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
-  const [seedLocation, setSeedLocation] = useState("");
-  const [seedJob, setSeedJob] = useState<RestaurantSeedJob | null>(null);
-  const [seedStatus, setSeedStatus] = useState<string | null>(null);
-  const [seedLoading, setSeedLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -97,160 +113,172 @@ export function RestaurantListPage() {
 
   useRefreshOnNavigate(loadRestaurants, [loadRestaurants]);
 
-  async function pollSeedJob(jobId: string, token: string) {
-    try {
-      const { job } = await api.getRestaurantSeedJob(jobId, token);
-      setSeedJob(job);
-      if (job.status === "pending" || job.status === "running") {
-        window.setTimeout(() => void pollSeedJob(jobId, token), 2000);
-        return;
-      }
+  const urlState = useMemo(
+    () => ({ filter: activeFilter, q: query, city: browseCity, zip: browseZip, tag: browseTag }),
+    [activeFilter, query, browseCity, browseZip, browseTag],
+  );
 
-      setSeedLoading(false);
-      if (job.status === "succeeded") {
-        setSeedStatus(
-          `Search complete: ${job.inserted_count} added, ${job.updated_count} refreshed, ${job.closed_count} closed.`,
-        );
-        loadRestaurants();
-      } else {
-        setSeedStatus(job.error || "Restaurant search did not complete.");
-      }
-    } catch (err) {
-      setSeedLoading(false);
-      setSeedStatus(err instanceof Error ? err.message : "Could not check search status.");
-    }
-  }
+  const facets = useMemo(() => buildExploreFacets(restaurants), [restaurants]);
 
-  async function handleSeedSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const location = seedLocation.trim();
-    if (!location) return;
-    if (!idToken) {
-      setSeedStatus("Sign in to search and seed a new area.");
-      return;
-    }
-
-    setSeedLoading(true);
-    setSeedStatus("Starting restaurant search…");
-    setSeedJob(null);
-    try {
-      const { job, reused } = await api.triggerRestaurantSeed(
-        { location, radius_m: 8000 },
-        idToken,
-      );
-      setSeedJob(job);
-      if (job.status === "succeeded") {
-        setSeedLoading(false);
-        setSeedStatus(
-          reused
-            ? `This area was refreshed recently: ${job.unique_places_count} places found.`
-            : `Search complete: ${job.inserted_count} added, ${job.updated_count} refreshed.`,
-        );
-        loadRestaurants();
-        return;
-      }
-      setSeedStatus(
-        reused ? "A search is already running for this area…" : "Searching Google Places…",
-      );
-      void pollSeedJob(job.id, idToken);
-    } catch (err) {
-      setSeedLoading(false);
-      setSeedStatus(err instanceof Error ? err.message : "Could not start restaurant search.");
-    }
-  }
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return restaurants.filter((r) => {
-      const matchesQuery = !q || r.name.toLowerCase().includes(q);
-      if (!matchesQuery) return false;
-      if (activeFilter === "fast-starters") return hasFastStarterData(r);
-      if (activeFilter === "parent-data") return hasParentData(r);
-      if (activeFilter === "needs-data") return !hasParentData(r);
-      return true;
-    });
-  }, [restaurants, query, activeFilter]);
-
-  const withContributions = useMemo(
+  const filtered = useMemo(
     () =>
       restaurants.filter(
         (r) =>
-          r.ttf.sample_size > 0 ||
-          r.attribute_rating_count > 0 ||
-          r.note_count > 0,
-      ).length,
+          matchesExploreSearch(r, query) &&
+          matchesBrowseFilters(r, browseCity, browseZip, browseTag) &&
+          matchesScoutFilter(r, activeFilter),
+      ),
+    [restaurants, query, browseCity, browseZip, browseTag, activeFilter],
+  );
+
+  const grouped = useMemo(() => {
+    const browsing = browseCity || browseZip || browseTag || query.trim();
+    if (browsing) return null;
+    return groupRestaurantsByCity(filtered);
+  }, [filtered, browseCity, browseZip, browseTag, query]);
+
+  const withContributions = useMemo(
+    () => restaurants.filter((r) => matchesScoutFilter(r, "parent-data")).length,
     [restaurants],
   );
 
+  const subtitle = useMemo(() => {
+    const parts: string[] = [];
+    if (browseCity) parts.push(browseCity);
+    else if (browseZip) parts.push(`ZIP ${browseZip}`);
+    else if (facets.cities.length > 0) {
+      parts.push(`${facets.cities.length} towns`);
+    }
+    parts.push(`${restaurants.length} places`);
+    return parts.join(" · ");
+  }, [browseCity, browseZip, facets.cities.length, restaurants.length]);
+
   const summaryText = useMemo(() => {
-    if (activeFilter !== "all") return filterSummaries[activeFilter];
-    const trimmedQuery = query.trim();
-    if (trimmedQuery) return `Matching "${trimmedQuery}"`;
+    if (activeFilter !== "all") return scoutFilterSummaries[activeFilter];
+    const bits: string[] = [];
+    if (browseTag) bits.push(browseTag);
+    if (browseCity) bits.push(browseCity);
+    if (browseZip) bits.push(`ZIP ${browseZip}`);
+    if (query.trim()) bits.push(`"${query.trim()}"`);
+    if (bits.length > 0) return `Matching ${bits.join(" · ")}`;
     return `${formatPlaceCount(withContributions)} with parent data`;
-  }, [activeFilter, query, withContributions]);
+  }, [activeFilter, browseTag, browseCity, browseZip, query, withContributions]);
+
+  function clearBrowseParam(key: "city" | "zip" | "tag") {
+    const params = new URLSearchParams(searchParams);
+    params.delete(key);
+    setSearchParams(params, { replace: true });
+  }
 
   return (
     <Page
-      title={activeFilter === "all" ? "Explore" : filterLabels[activeFilter]}
-      subtitle="Restaurants in Dedham"
+      title={activeFilter === "all" ? "Explore" : scoutFilterLabels[activeFilter]}
+      subtitle={subtitle}
     >
       <div className="search-input">
         <input
           className="search"
-          placeholder="Search by name…"
+          placeholder="Search name, town, ZIP, or cuisine…"
           value={query}
           onChange={(e) => {
             const nextQuery = e.target.value;
             const params = new URLSearchParams(searchParams);
-            if (nextQuery.trim()) {
-              params.set("q", nextQuery);
-            } else {
-              params.delete("q");
-            }
+            if (nextQuery.trim()) params.set("q", nextQuery);
+            else params.delete("q");
             setSearchParams(params, { replace: true });
           }}
           aria-label="Search restaurants"
         />
       </div>
 
-      <nav className="explore-filters" aria-label="Restaurant filters">
-        {(Object.keys(filterLabels) as RestaurantFilter[]).map((filter) => (
+      {!loading && restaurants.length > 0 && (
+        <>
+          {facets.cities.length > 0 && (
+            <nav className="explore-filters" aria-label="Browse by town">
+              {facets.cities.slice(0, 8).map((facet) => (
+                <BrowseChip
+                  key={facet.key}
+                  label={facet.label}
+                  count={facet.count}
+                  active={browseCity === facet.key}
+                  to={
+                    browseCity === facet.key
+                      ? exploreUrl({ ...urlState, city: null })
+                      : exploreUrl({ ...urlState, city: facet.key, zip: null })
+                  }
+                />
+              ))}
+            </nav>
+          )}
+
+          {facets.zips.length > 1 && (
+            <nav className="explore-filters explore-filters--secondary" aria-label="Browse by ZIP">
+              {facets.zips.slice(0, 8).map((facet) => (
+                <BrowseChip
+                  key={facet.key}
+                  label={facet.label}
+                  count={facet.count}
+                  active={browseZip === facet.key}
+                  to={
+                    browseZip === facet.key
+                      ? exploreUrl({ ...urlState, zip: null })
+                      : exploreUrl({ ...urlState, zip: facet.key, city: null })
+                  }
+                />
+              ))}
+            </nav>
+          )}
+
+          {facets.tags.length > 0 && (
+            <nav className="explore-filters explore-filters--secondary" aria-label="Browse by type">
+              {facets.tags.slice(0, 10).map((facet) => (
+                <BrowseChip
+                  key={facet.key}
+                  label={facet.label}
+                  count={facet.count}
+                  active={browseTag === facet.key}
+                  to={
+                    browseTag === facet.key
+                      ? exploreUrl({ ...urlState, tag: null })
+                      : exploreUrl({ ...urlState, tag: facet.key })
+                  }
+                />
+              ))}
+            </nav>
+          )}
+        </>
+      )}
+
+      <nav className="explore-filters explore-filters--scout" aria-label="Scout quality filters">
+        {(Object.keys(scoutFilterLabels) as ScoutFilter[]).map((filter) => (
           <Link
             key={filter}
             className={`explore-filter${filter === activeFilter ? " explore-filter--active" : ""}`}
-            to={restaurantFilterUrl(filter, query)}
+            to={exploreUrl({ ...urlState, filter })}
           >
-            {filterLabels[filter]}
+            {scoutFilterLabels[filter]}
           </Link>
         ))}
       </nav>
 
-      {isAdmin && (
-        <form className="area-seed-card" onSubmit={handleSeedSubmit}>
-          <div>
-            <label htmlFor="seed-location">Search a new area</label>
-            <p className="muted small">
-              Enter a ZIP or city and Little Scout will seed restaurants in the background.
-            </p>
-          </div>
-          <div className="area-seed-card__controls">
-            <input
-              id="seed-location"
-              value={seedLocation}
-              onChange={(e) => setSeedLocation(e.target.value)}
-              placeholder="02026 or Dedham, MA"
-              disabled={seedLoading}
-            />
-            <button type="submit" disabled={seedLoading || !seedLocation.trim()}>
-              {seedLoading ? "Searching…" : "Seed area"}
+      {(browseCity || browseZip || browseTag) && (
+        <div className="explore-active-browse">
+          {browseCity && (
+            <button type="button" className="explore-active-browse__chip" onClick={() => clearBrowseParam("city")}>
+              {browseCity} ×
             </button>
-          </div>
-          {seedStatus && (
-            <p className={seedJob?.status === "failed" ? "error small" : "muted small"}>
-              {seedStatus}
-            </p>
           )}
-        </form>
+          {browseZip && (
+            <button type="button" className="explore-active-browse__chip" onClick={() => clearBrowseParam("zip")}>
+              ZIP {browseZip} ×
+            </button>
+          )}
+          {browseTag && (
+            <button type="button" className="explore-active-browse__chip" onClick={() => clearBrowseParam("tag")}>
+              {browseTag} ×
+            </button>
+          )}
+        </div>
       )}
 
       {!loading && !error && (
@@ -263,7 +291,27 @@ export function RestaurantListPage() {
       {loading && <SkeletonList count={6} />}
       {error && <p className="error">{error}</p>}
 
-      {!loading && !error && filtered.length > 0 && (
+      {!loading && !error && filtered.length > 0 && grouped && (
+        <div className="explore-groups">
+          {grouped.map(({ city, items }) => (
+            <section key={city} className="explore-group">
+              <header className="explore-group__header">
+                <h2>{city}</h2>
+                <span className="muted small">{formatPlaceCount(items.length)}</span>
+              </header>
+              <ul className="list">
+                {items.map((r) => (
+                  <li key={r.id}>
+                    <RestaurantListCard restaurant={r} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && filtered.length > 0 && !grouped && (
         <ul className="list">
           {filtered.map((r) => (
             <li key={r.id}>
@@ -277,15 +325,15 @@ export function RestaurantListPage() {
         <EmptyState
           emoji="🔎"
           title="No matches"
-          description="Try a different search term or switch filters."
+          description="Try a different search term, town, ZIP, or filter."
         />
       )}
 
       {!loading && !error && restaurants.length === 0 && (
         <EmptyState
           emoji="🔎"
-          title="No restaurants"
-          description="Check back after the next seed run."
+          title="No restaurants yet"
+          description="The catalog is still filling in for this area. Check back soon."
         />
       )}
     </Page>

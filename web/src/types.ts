@@ -26,6 +26,7 @@ export interface RestaurantSeedJob {
   kind: "area" | "catalog";
   status: "pending" | "running" | "succeeded" | "failed" | "skipped";
   requested_by: string | null;
+  requested_by_display: string | null;
   error: string | null;
   inserted_count: number;
   updated_count: number;
@@ -40,6 +41,15 @@ export interface RestaurantSeedJob {
   finished_at: string | null;
   created_at: string;
   updated_at: string;
+  gcp_links?: GcpConsoleLinks | null;
+}
+
+export interface GcpConsoleLinks {
+  run_logs_url: string;
+  cloud_run_url: string;
+  pubsub_subscription_url: string | null;
+  pubsub_topic_url: string | null;
+  scheduler_url: string | null;
 }
 
 export interface LocationRefreshConfig {

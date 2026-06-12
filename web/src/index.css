@@ -861,6 +861,50 @@ input.search,
   margin-top: var(--space-2);
 }
 
+.explore-filters--secondary {
+  margin-top: calc(-1 * var(--space-2));
+}
+
+.explore-filters--scout {
+  margin-top: var(--space-2);
+}
+
+.explore-active-browse {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.explore-active-browse__chip {
+  font: inherit;
+  font-size: var(--text-sm);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.explore-groups {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.explore-group__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.explore-group__header h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
 .explore-summary {
   display: flex;
   align-items: center;
@@ -1793,6 +1837,14 @@ fieldset.field-group {
   font-size: var(--text-2xl);
 }
 
+.admin-filter {
+  display: grid;
+  gap: var(--space-2);
+  min-width: min(100%, 12rem);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
 .admin-search {
   min-width: min(100%, 16rem);
 }
@@ -1925,6 +1977,33 @@ fieldset.field-group {
 .admin-badge--info {
   color: var(--color-brand);
   font-weight: 700;
+}
+
+.admin-gcp-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.admin-gcp-links--inline {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.admin-gcp-link {
+  white-space: nowrap;
+}
+
+.admin-panel--infra {
+  background: var(--color-surface-muted, #f8f9fb);
+}
+
+.admin-panel--infra code {
+  font-size: 0.85em;
 }
 
 .admin-seed-form {

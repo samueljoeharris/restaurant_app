@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     internal_job_secret: str = ""
     gcp_region: str = "us-central1"
     restaurant_refresh_scheduler_job: str = ""
+    cloud_run_api_service: str = "ttf-api"
+    restaurant_seed_pubsub_subscription: str = "ttf-restaurant-seed-worker"
 
     @field_validator("cors_origins", mode="before")
     @classmethod

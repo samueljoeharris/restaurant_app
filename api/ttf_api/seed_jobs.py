@@ -8,6 +8,7 @@ from uuid import UUID
 import httpx
 
 from ttf_api.config import settings
+from ttf_api.gcp_console import seed_job_log_marker
 from ttf_api.db import get_conn
 from ttf_api.places_seed import (
     PlacesSeedError,
@@ -258,9 +259,10 @@ def run_seed_job(job_id: UUID) -> None:
         if not job:
             return
 
+    marker = seed_job_log_marker(str(job_id))
     logger.info(
-        "seed_job %s started (kind=%s area=%s)",
-        job_id,
+        "%s started (kind=%s area=%s)",
+        marker,
         job.get("kind") or "area",
         job["area_key"],
     )
@@ -343,14 +345,14 @@ def run_seed_job(job_id: UUID) -> None:
                 ),
             )
         logger.info(
-            "seed_job %s succeeded (inserted=%s updated=%s tombstoned=%s)",
-            job_id,
+            "%s succeeded (inserted=%s updated=%s tombstoned=%s)",
+            marker,
             result.inserted,
             result.updated,
             result.tombstoned,
         )
     except Exception as exc:
-        logger.exception("seed_job %s failed: %s", job_id, exc)
+        logger.exception("%s failed: %s", marker, exc)
         with get_conn() as conn:
             conn.execute(
                 """

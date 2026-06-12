@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import type {
   AdminAuditLogRow,
+  GcpConsoleLinks,
   LocationRefreshConfig,
   RestaurantChangelogRow,
   RestaurantSeedJob,
@@ -12,30 +14,59 @@ import type {
 } from "../../types";
 
 const PAGE_SIZE = 20;
+const METERS_PER_MILE = 1609.344;
+const DEFAULT_RADIUS_MI = 5;
+const MIN_RADIUS_MI = 0.6; // ~1000 m API floor
+const MAX_RADIUS_MI = 15.5; // ~25000 m API cap
 
-// Seed runs execute inside the ttf-api Cloud Run service (Pub/Sub push), so the
-// GCP view of a run is its Cloud Logging entries filtered by job id + time window.
-const GCP_PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "";
-const API_SERVICE_NAME = "ttf-api";
-const LOG_WINDOW_PAD_MS = 5 * 60_000;
+function milesToMeters(mi: number) {
+  return Math.round(mi * METERS_PER_MILE);
+}
 
-function gcpRunLogsUrl(run: RestaurantSeedJob): string | null {
-  if (!GCP_PROJECT_ID) return null;
-  const query = [
-    'resource.type="cloud_run_revision"',
-    `resource.labels.service_name="${API_SERVICE_NAME}"`,
-    `"${run.id}"`,
-  ].join("\n");
-  const start = new Date(run.started_at ?? run.created_at).getTime() - LOG_WINDOW_PAD_MS;
-  const end = run.finished_at
-    ? new Date(run.finished_at).getTime() + LOG_WINDOW_PAD_MS
-    : Date.now() + LOG_WINDOW_PAD_MS;
-  const params = [
-    `query=${encodeURIComponent(query)}`,
-    `startTime=${new Date(start).toISOString()}`,
-    `endTime=${new Date(end).toISOString()}`,
-  ].join(";");
-  return `https://console.cloud.google.com/logs/query;${params}?project=${GCP_PROJECT_ID}`;
+function metersToMiles(m: number) {
+  return Math.round((m / METERS_PER_MILE) * 10) / 10;
+}
+
+function fmtRadiusMi(radiusM: number) {
+  const mi = radiusM / METERS_PER_MILE;
+  return mi >= 10 ? `${Math.round(mi)} mi` : `${mi.toFixed(1)} mi`;
+}
+
+function GcpLink({
+  href,
+  children,
+  title,
+}: {
+  href: string | null | undefined;
+  children: ReactNode;
+  title?: string;
+}) {
+  if (!href) return null;
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="small admin-gcp-link" title={title}>
+      {children} ↗
+    </a>
+  );
+}
+
+function GcpInfraPanel({ links }: { links: GcpConsoleLinks | null | undefined }) {
+  if (!links) return null;
+  return (
+    <section className="admin-panel admin-panel--infra">
+      <h2>How runs execute in GCP</h2>
+      <p className="muted small">
+        Runs are rows in Postgres, not separate Cloud Run Jobs. Work is queued on Pub/Sub and
+        executed inside the <strong>ttf-api</strong> Cloud Run service. Scheduled refresh uses
+        Cloud Scheduler → API → the same queue.
+      </p>
+      <ul className="admin-gcp-links">
+        <li><GcpLink href={links.cloud_run_url}>Cloud Run · ttf-api logs</GcpLink></li>
+        <li><GcpLink href={links.pubsub_subscription_url}>Pub/Sub · ttf-restaurant-seed-worker</GcpLink></li>
+        <li><GcpLink href={links.pubsub_topic_url}>Pub/Sub · ttf-restaurant-seed-jobs topic</GcpLink></li>
+        <li><GcpLink href={links.scheduler_url}>Cloud Scheduler · weekly refresh</GcpLink></li>
+      </ul>
+    </section>
+  );
 }
 
 function fmtTime(iso: string | null) {
@@ -60,6 +91,21 @@ function actionLabel(action: RestaurantChangelogRow["action"]) {
     outside_area: "Outside area",
   };
   return labels[action];
+}
+
+function reasonLabel(reason: string | null, action: RestaurantChangelogRow["action"]) {
+  if (!reason) {
+    if (action === "added") return "New in Places search";
+    if (action === "updated") return "Fields changed in Places";
+    return "—";
+  }
+  const labels: Record<string, string> = {
+    seen_in_places_sync: "Seen in Places sync",
+    google_places_closed: "Google Places: closed",
+    not_seen_in_places_sync: "Not seen in Places sync",
+    place_no_longer_exists: "Place no longer exists",
+  };
+  return labels[reason] ?? reason;
 }
 
 function auditActionLabel(action: AdminAuditLogRow["action"]) {
@@ -98,7 +144,9 @@ export function AdminLocationSeedingPage() {
   const [changelogAction, setChangelogAction] = useState("");
   const [config, setConfig] = useState<LocationRefreshConfig | null>(null);
   const [locations, setLocations] = useState<SeedLocation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [bootLoading, setBootLoading] = useState(true);
+  const [runsLoading, setRunsLoading] = useState(false);
+  const [changelogLoading, setChangelogLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -107,7 +155,7 @@ export function AdminLocationSeedingPage() {
   const [auditOffset, setAuditOffset] = useState(0);
 
   const [location, setLocation] = useState("");
-  const [radiusM, setRadiusM] = useState(8000);
+  const [radiusMi, setRadiusMi] = useState(DEFAULT_RADIUS_MI);
   const [force, setForce] = useState(false);
 
   const loadAuditLog = useCallback(async (offset = auditOffset) => {
@@ -124,37 +172,75 @@ export function AdminLocationSeedingPage() {
     }
   }, [idToken, auditOffset]);
 
-  const load = useCallback(async () => {
+  const loadRuns = useCallback(async (offset = runsOffset) => {
     if (!idToken) return;
-    setLoading(true);
-    setError(null);
+    setRunsLoading(true);
     try {
-      const [runsData, changelogData, configData, locationsData] = await Promise.all([
-        api.adminSeedJobs(idToken, PAGE_SIZE, runsOffset),
-        api.adminRestaurantChangelog(idToken, {
-          limit: PAGE_SIZE,
-          offset: changelogOffset,
-          action: changelogAction || undefined,
-        }),
-        api.adminRefreshConfig(idToken),
-        api.adminSeedLocations(idToken),
-      ]);
-      setRuns(runsData.items);
-      setRunsTotal(runsData.total);
-      setChangelog(changelogData.items);
-      setChangelogTotal(changelogData.total);
-      setConfig(configData);
-      setLocations(locationsData.items);
+      const data = await api.adminSeedJobs(idToken, PAGE_SIZE, offset);
+      setRuns(data.items);
+      setRunsTotal(data.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Load failed");
+      setError(err instanceof Error ? err.message : "Load runs failed");
     } finally {
-      setLoading(false);
+      setRunsLoading(false);
     }
-  }, [idToken, runsOffset, changelogOffset, changelogAction]);
+  }, [idToken, runsOffset]);
+
+  const loadChangelog = useCallback(async (offset = changelogOffset) => {
+    if (!idToken) return;
+    setChangelogLoading(true);
+    try {
+      const data = await api.adminRestaurantChangelog(idToken, {
+        limit: PAGE_SIZE,
+        offset,
+        action: changelogAction || undefined,
+      });
+      setChangelog(data.items);
+      setChangelogTotal(data.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Load changelog failed");
+    } finally {
+      setChangelogLoading(false);
+    }
+  }, [idToken, changelogOffset, changelogAction]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!idToken) return;
+    let cancelled = false;
+    setBootLoading(true);
+    setError(null);
+    Promise.all([
+      api.adminRefreshConfig(idToken),
+      api.adminSeedLocations(idToken),
+    ])
+      .then(([configData, locationsData]) => {
+        if (!cancelled) {
+          setConfig(configData);
+          setLocations(locationsData.items);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Load failed");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setBootLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [idToken]);
+
+  useEffect(() => {
+    if (!idToken || bootLoading) return;
+    loadRuns();
+  }, [idToken, bootLoading, loadRuns]);
+
+  useEffect(() => {
+    if (!idToken || bootLoading) return;
+    loadChangelog();
+  }, [idToken, bootLoading, loadChangelog]);
 
   useEffect(() => {
     loadAuditLog();
@@ -181,7 +267,7 @@ export function AdminLocationSeedingPage() {
     try {
       const res = await api.adminTriggerSeedJob(idToken, {
         location: location.trim(),
-        radius_m: radiusM,
+        radius_m: milesToMeters(radiusMi),
         force,
       });
       setMessage(
@@ -190,7 +276,7 @@ export function AdminLocationSeedingPage() {
           : `Started run ${res.job.id.slice(0, 8)}…`,
       );
       setRunsOffset(0);
-      await load();
+      await Promise.all([loadRuns(0), loadChangelog(0)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Seed failed");
     } finally {
@@ -209,7 +295,7 @@ export function AdminLocationSeedingPage() {
         `Started ${res.jobs.length} refresh runs (${res.jobs.length - 1} locations + full catalog)`,
       );
       setRunsOffset(0);
-      await load();
+      await Promise.all([loadRuns(0), loadChangelog(0)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Refresh failed");
     } finally {
@@ -290,11 +376,11 @@ export function AdminLocationSeedingPage() {
         </div>
       </header>
 
-      {loading && <p className="muted">Loading…</p>}
+      {bootLoading && <p className="muted">Loading…</p>}
       {error && <p className="error">{error}</p>}
       {message && <p className="muted">{message}</p>}
 
-      {!loading && config && (
+      {!bootLoading && config && (
         <>
           <section className="admin-panel">
             <h2>Seed a new area</h2>
@@ -316,14 +402,14 @@ export function AdminLocationSeedingPage() {
                 required
               />
               <label className="admin-seed-form__field">
-                Radius (m)
+                Radius (mi)
                 <input
                   type="number"
-                  min={1000}
-                  max={25000}
-                  step={500}
-                  value={radiusM}
-                  onChange={(e) => setRadiusM(Number(e.target.value))}
+                  min={MIN_RADIUS_MI}
+                  max={MAX_RADIUS_MI}
+                  step={0.5}
+                  value={radiusMi}
+                  onChange={(e) => setRadiusMi(Number(e.target.value))}
                 />
               </label>
               <label className="admin-seed-form__check">
@@ -367,7 +453,7 @@ export function AdminLocationSeedingPage() {
                       )}
                     </div>
                   ),
-                  radius: `${loc.radius_m / 1000} km`,
+                  radius: fmtRadiusMi(loc.radius_m),
                   source: loc.source,
                   refreshed: fmtTime(loc.last_refreshed_at),
                   enabled: (
@@ -406,6 +492,12 @@ export function AdminLocationSeedingPage() {
                 tombstoning venues missing from Places and updating closed status.
                 Saving updates the Cloud Scheduler job schedule and pause state in GCP.
               </p>
+              <p className="muted small">
+                <strong>Default area</strong> is only used when no refresh locations are
+                enabled — it geocodes the label below and searches Google Places within the
+                radius (pilot default: Dedham, ~5 mi). Once you seed areas above,
+                those replace this fallback.
+              </p>
               <div className="admin-seed-form admin-seed-form--config">
                 <label className="admin-seed-form__check">
                   <input
@@ -432,19 +524,24 @@ export function AdminLocationSeedingPage() {
                 <label className="admin-seed-form__field">
                   Default area
                   <input
+                    placeholder="e.g. Dedham, Massachusetts"
                     value={config.default_location ?? ""}
                     onChange={(e) => setConfig({ ...config, default_location: e.target.value })}
                   />
                 </label>
                 <label className="admin-seed-form__field">
-                  Radius (m)
+                  Default radius (mi)
                   <input
                     type="number"
-                    min={1000}
-                    max={25000}
-                    value={config.default_radius_m}
+                    min={MIN_RADIUS_MI}
+                    max={MAX_RADIUS_MI}
+                    step={0.5}
+                    value={metersToMiles(config.default_radius_m)}
                     onChange={(e) =>
-                      setConfig({ ...config, default_radius_m: Number(e.target.value) })
+                      setConfig({
+                        ...config,
+                        default_radius_m: milesToMeters(Number(e.target.value)),
+                      })
                     }
                   />
                 </label>
@@ -504,8 +601,16 @@ export function AdminLocationSeedingPage() {
             />
           </section>
 
+          <GcpInfraPanel links={runs.find((r) => r.gcp_links)?.gcp_links} />
+
           <section className="admin-panel">
             <h2>Runs</h2>
+            <p className="muted small">
+              Each run is a seed/refresh job. Use <strong>Run logs</strong> for lines tagged{" "}
+              <code>[seed_job:…]</code> on ttf-api. Pending runs have no logs until Pub/Sub delivers
+              the message.
+            </p>
+            {runsLoading && <p className="muted small">Updating…</p>}
             <DataTable
               columns={[
                 { key: "when", label: "Started" },
@@ -527,7 +632,7 @@ export function AdminLocationSeedingPage() {
                       <div className="muted small">
                         {r.kind === "catalog"
                           ? "full catalog"
-                          : `${r.radius_m / 1000} km`}
+                          : fmtRadiusMi(r.radius_m)}
                         {r.refresh ? " · refresh" : ""}
                       </div>
                     </div>
@@ -541,23 +646,17 @@ export function AdminLocationSeedingPage() {
                   added: r.inserted_count,
                   updated: r.updated_count,
                   tombstoned: r.tombstoned_count,
-                  by: r.requested_by ?? "—",
-                  logs: (() => {
-                    const url = gcpRunLogsUrl(r);
-                    return url ? (
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="small"
-                        title="Open this run's logs in Google Cloud Logging"
-                      >
-                        GCP logs ↗
-                      </a>
-                    ) : (
-                      "—"
-                    );
-                  })(),
+                  by: r.requested_by_display ?? r.requested_by ?? "—",
+                  logs: (
+                    <div className="admin-gcp-links admin-gcp-links--inline">
+                      <GcpLink href={r.gcp_links?.run_logs_url} title="Logs for this run">
+                        Run logs
+                      </GcpLink>
+                      {r.status === "pending" && (
+                        <span className="muted small">Queued</span>
+                      )}
+                    </div>
+                  ),
                 },
               }))}
             />
@@ -572,22 +671,26 @@ export function AdminLocationSeedingPage() {
           <section className="admin-panel">
             <header className="admin-page__header">
               <h2>Change log</h2>
-              <select
-                value={changelogAction}
-                onChange={(e) => {
-                  setChangelogOffset(0);
-                  setChangelogAction(e.target.value);
-                }}
-              >
-                <option value="">All actions</option>
-                <option value="added">Added</option>
-                <option value="updated">Updated</option>
-                <option value="tombstoned">Tombstoned</option>
-                <option value="reactivated">Reactivated</option>
-                <option value="closed">Closed</option>
-                <option value="outside_area">Outside area</option>
-              </select>
+              <label className="admin-filter">
+                Action
+                <select
+                  value={changelogAction}
+                  onChange={(e) => {
+                    setChangelogOffset(0);
+                    setChangelogAction(e.target.value);
+                  }}
+                >
+                  <option value="">All actions</option>
+                  <option value="added">Added</option>
+                  <option value="updated">Updated</option>
+                  <option value="tombstoned">Tombstoned</option>
+                  <option value="reactivated">Reactivated</option>
+                  <option value="closed">Closed</option>
+                  <option value="outside_area">Outside area</option>
+                </select>
+              </label>
             </header>
+            {changelogLoading && <p className="muted small">Updating…</p>}
             <DataTable
               columns={[
                 { key: "when", label: "When" },
@@ -610,7 +713,7 @@ export function AdminLocationSeedingPage() {
                     </div>
                   ),
                   restaurant: c.restaurant_name ?? c.google_place_id ?? "—",
-                  reason: c.reason ?? "—",
+                  reason: reasonLabel(c.reason, c.action),
                 },
               }))}
             />

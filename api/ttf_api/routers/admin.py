@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, 
 from firebase_admin import auth as firebase_auth
 
 from ttf_api.admin_audit import list_admin_audit_log, write_admin_audit
+from ttf_api.gcp_console import gcp_links_for_seed_job
 from ttf_api.auth import AuthUser, _init_firebase, require_admin
 from ttf_api.config import settings
 from ttf_api.db import get_conn
@@ -31,6 +32,7 @@ from ttf_api.schemas import (
     AdminRestaurantRow,
     AdminRestaurantsResponse,
     AdminSeedJobRequest,
+    GcpConsoleLinks,
     LocationRefreshConfig,
     LocationRefreshConfigSaveResponse,
     LocationRefreshConfigUpdate,
@@ -180,6 +182,67 @@ def _enrich_firebase_users(rows: list[AdminContributorRow]) -> list[AdminContrib
             )
         )
     return enriched
+
+
+_SYSTEM_REQUESTED_BY = {
+    "scheduled-refresh": "Scheduled refresh",
+}
+
+
+def _requested_by_display(
+    requested_by: str | None,
+    by_uid: dict[str, firebase_auth.UserRecord],
+) -> str | None:
+    if not requested_by:
+        return None
+    if requested_by in _SYSTEM_REQUESTED_BY:
+        return _SYSTEM_REQUESTED_BY[requested_by]
+    fb = by_uid.get(requested_by)
+    if not fb:
+        return requested_by
+    if fb.display_name and fb.email:
+        return f"{fb.display_name} ({fb.email})"
+    return fb.email or fb.display_name or requested_by
+
+
+def _enrich_seed_jobs(jobs: list[RestaurantSeedJob]) -> list[RestaurantSeedJob]:
+    if not jobs:
+        return jobs
+
+    uids = {
+        job.requested_by
+        for job in jobs
+        if job.requested_by and job.requested_by not in _SYSTEM_REQUESTED_BY
+    }
+    by_uid: dict[str, firebase_auth.UserRecord] = {}
+    if uids:
+        try:
+            _init_firebase()
+            result = firebase_auth.get_users(
+                [firebase_auth.UidIdentifier(uid=uid) for uid in uids]
+            )
+            by_uid = {user.uid: user for user in result.users}
+        except Exception:
+            pass
+
+    return [
+        job.model_copy(
+            update={
+                "requested_by_display": _requested_by_display(job.requested_by, by_uid),
+                "gcp_links": GcpConsoleLinks(
+                    **gcp_links_for_seed_job(
+                        {
+                            "id": job.id,
+                            "created_at": job.created_at,
+                            "started_at": job.started_at,
+                            "finished_at": job.finished_at,
+                        }
+                    )
+                ),
+            }
+        )
+        for job in jobs
+    ]
 
 
 @router.get("/stats", response_model=AdminOverviewStats)
@@ -459,8 +522,9 @@ def admin_list_seed_jobs(
 ) -> RestaurantSeedJobsListResponse:
     limit = _clamp_limit(limit)
     rows, total = list_seed_jobs(limit=limit, offset=offset)
+    items = _enrich_seed_jobs([RestaurantSeedJob(**row) for row in rows])
     return RestaurantSeedJobsListResponse(
-        items=[RestaurantSeedJob(**row) for row in rows],
+        items=items,
         total=total,
         limit=limit,
         offset=offset,
@@ -475,7 +539,8 @@ def admin_get_seed_job(
     job = get_seed_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Seed job not found")
-    return RestaurantSeedJobResponse(job=RestaurantSeedJob(**job))
+    enriched = _enrich_seed_jobs([RestaurantSeedJob(**job)])[0]
+    return RestaurantSeedJobResponse(job=enriched)
 
 
 @router.post(
@@ -502,7 +567,8 @@ def admin_trigger_seed_job(
     # was lost (run_seed_job's status guard makes duplicate delivery a no-op).
     if job["status"] == "pending":
         enqueue_seed_job(job["id"])
-    return RestaurantSeedJobResponse(job=RestaurantSeedJob(**job), reused=reused)
+    enriched = _enrich_seed_jobs([RestaurantSeedJob(**job)])[0]
+    return RestaurantSeedJobResponse(job=enriched, reused=reused)
 
 
 @router.post(
@@ -523,7 +589,9 @@ def admin_trigger_refresh_runs(
     for job in jobs:
         if job["status"] == "pending":
             enqueue_seed_job(job["id"])
-    return AdminRefreshRunResponse(jobs=[RestaurantSeedJob(**job) for job in jobs])
+    return AdminRefreshRunResponse(
+        jobs=_enrich_seed_jobs([RestaurantSeedJob(**job) for job in jobs])
+    )
 
 
 @router.get("/seed-locations", response_model=SeedLocationsResponse)
