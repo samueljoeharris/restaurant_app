@@ -97,9 +97,10 @@ module "cloud_run" {
 resource "google_cloud_run_v2_job" "restaurant_refresh" {
   count = var.enable_restaurant_refresh_job ? 1 : 0
 
-  name     = "ttf-restaurant-refresh"
-  project  = var.project_id
-  location = var.region
+  name                = "ttf-restaurant-refresh"
+  project             = var.project_id
+  location            = var.region
+  deletion_protection = false
 
   template {
     template {

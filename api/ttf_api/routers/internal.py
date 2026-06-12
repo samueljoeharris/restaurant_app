@@ -8,7 +8,7 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from pydantic import BaseModel
@@ -53,11 +53,15 @@ class PubSubPushEnvelope(BaseModel):
     subscription: str | None = None
 
 
-@router.post("/pubsub/seed-jobs", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/pubsub/seed-jobs",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
 def pubsub_seed_job_handler(
     envelope: PubSubPushEnvelope,
     _auth: Annotated[None, Depends(_verify_internal_caller)],
-) -> None:
+) -> Response:
     """Process a Pub/Sub push message containing a seed job id."""
     raw = envelope.message.get("data")
     if not raw:
@@ -66,6 +70,7 @@ def pubsub_seed_job_handler(
     payload = json.loads(base64.b64decode(raw))
     job_id = UUID(payload["job_id"])
     run_seed_job(job_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/scheduled-restaurant-refresh", status_code=status.HTTP_202_ACCEPTED)
