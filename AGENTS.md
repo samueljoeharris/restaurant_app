@@ -125,6 +125,7 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 |-----|--------------|
 | [docs/DESIGN.md](docs/DESIGN.md) | Architecture, data model, API sketch, Terraform scope |
 | [docs/BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Auth, account deletion, caching, map search, moderation |
+| [docs/MAP_SEARCH_AND_SEEDING.md](docs/MAP_SEARCH_AND_SEEDING.md) | Map load vs seeding, explore slowness, location-based coverage proposal |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased checklist, account setup |
 | [docs/README.md](docs/README.md) | Documentation index and reading order |
 | [docs/CI.md](docs/CI.md) | Local checks and GitHub Actions behavior |

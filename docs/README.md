@@ -31,6 +31,12 @@ Start here when you are orienting yourself in the Little Scout repo.
 - `CUSTOM_DOMAIN_SETUP.md` is a historical planning document. Use [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) as the live runbook.
 - GitHub Actions are intentionally push-to-`main` for this solo-dev repo; see [CI.md](CI.md) before changing branch protection or workflow triggers.
 
+## Architecture & performance research
+
+| Doc | Area | Summary |
+|------|------|---------|
+| [MAP_SEARCH_AND_SEEDING.md](MAP_SEARCH_AND_SEEDING.md) | API / web / iOS | How map load and client search work today; Places seeding pipeline; slowness root causes; location-based background seeding proposal |
+
 ## Future ideas & backlog
 
 Not scheduled — design notes and product ideas for later phases.
