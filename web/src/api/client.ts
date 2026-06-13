@@ -8,6 +8,7 @@ import type {
   AdminRefreshRunResponse,
   AdminRestaurantRow,
   AttributeEntry,
+  CoverageEnsureResponse,
   LocationRefreshConfig,
   LocationRefreshConfigSaveResponse,
   MetricDefinition,
@@ -101,6 +102,15 @@ export const api = {
 
   getRestaurant: (id: string) =>
     request<RestaurantDetailResponse>(`/v1/restaurants/${id}`),
+
+  ensureCoverage: (
+    body: { lat: number; lng: number; radius_m?: number },
+    token: string,
+  ) =>
+    request<CoverageEnsureResponse>("/v1/coverage/ensure", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
 
   getMe: (token: string) =>
     request<UserProfile>("/v1/me", {}, token),

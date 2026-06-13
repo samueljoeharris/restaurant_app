@@ -74,6 +74,20 @@ class RestaurantSeedJobRequest(BaseModel):
         return self
 
 
+class CoverageEnsureRequest(BaseModel):
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+    radius_m: int = Field(default=8000, ge=1000, le=25000)
+
+
+class CoverageEnsureResponse(BaseModel):
+    status: Literal["queued", "covered", "out_of_area"]
+    restaurant_count: int = 0
+    radius_m: int
+    job_id: UUID | None = None
+    reused: bool = False
+
+
 class GcpConsoleLinks(BaseModel):
     run_logs_url: str
     cloud_run_url: str

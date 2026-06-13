@@ -19,6 +19,7 @@ docker compose up --build api
 | POST | `/v1/restaurants/seed-jobs` | ✅ start background Places seed by ZIP/city/coords |
 | GET | `/v1/restaurants/seed-jobs/{id}` | ✅ poll seed job status |
 | GET | `/v1/restaurants/{id}` | ✅ |
+| POST | `/v1/coverage/ensure` | ✅ signed-in user requests background seeding for their location (guarded) |
 | GET | `/v1/metrics` | ✅ (12 seed metrics) |
 | GET | `/v1/restaurants/{id}/ttf` | ✅ |
 | GET | `/v1/restaurants/{id}/attributes` | ✅ (aggregates w/ min sample) |

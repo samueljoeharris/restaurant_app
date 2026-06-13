@@ -309,7 +309,9 @@ What is missing is **on-demand coverage expansion** when a user is in an under-s
 
 ---
 
-## 6. Location-based background seeding (proposed)
+## 6. Location-based background seeding
+
+**Status:** Web MVP **implemented** (June 2026). `POST /v1/coverage/ensure` plus a "Show restaurants near me" control on the map. iOS (Phase 3) still pending.
 
 ### Goal
 
@@ -319,30 +321,36 @@ Web and iOS request device location (with consent), then kick off a **background
 
 `POST /v1/restaurants/seed-jobs` is admin-only because each area seed costs Google Places API calls. Public clients need a guarded wrapper.
 
-### Proposed API
+### API (implemented)
 
-New endpoint (name TBD), e.g. `POST /v1/coverage/ensure`:
+`POST /v1/coverage/ensure` — `api/ttf_api/routers/coverage.py`:
 
 ```json
 { "lat": 42.24, "lng": -71.17, "radius_m": 8000 }
 ```
 
+Requires a Firebase-authenticated user (plus App Check when enforced). `radius_m`
+defaults to 8000 and is clamped to 1000–25000.
+
 **Behavior:**
 
-1. Validate coordinates inside pilot metro bounding box (`dedham-ma` for MVP).
-2. Check restaurant density in radius (`SELECT COUNT(*) …` with Haversine) — skip Places if already well covered.
-3. Call `create_seed_job()` + `enqueue_seed_job()` (existing code).
-4. Return immediately: `202 { job_id, status: "queued" }` or `200 { status: "covered" }`.
+1. Validate coordinates inside the pilot metro bounding box (`pilot_bbox_*` in `config.py`). Outside → `{ status: "out_of_area" }`.
+2. Check active-restaurant density in radius (Haversine `COUNT(*)`, `coverage.count_active_within`) — if ≥ `coverage_min_restaurants`, return `{ status: "covered", restaurant_count }`, no Places spend.
+3. Enforce per-user daily area cap (`coverage_max_areas_per_day`, distinct `area_key` in last 24h) → `429`.
+4. Call `create_seed_job()` + `enqueue_seed_job()` (existing code), enqueueing only `pending` jobs.
+5. Return `{ status: "queued", job_id, reused }`.
+
+Status is carried in the body (always `200`) so the client switches on `status`.
 
 **Guards:**
 
-| Guard | Rationale |
-|-------|-----------|
-| Per-uid / per-IP rate limit | Prevent abuse |
-| Reuse `area_key` 24h cooldown | Already in `create_seed_job()` |
-| Max new areas per user per day | Cost cap |
-| Pilot metro bbox server-side | Single-metro MVP |
-| Optional Firebase auth | Tie limits to account |
+| Guard | Where |
+|-------|-------|
+| Firebase auth required | `Depends(get_current_user)` + `verify_app_check` |
+| Reuse `area_key` 24h cooldown | `create_seed_job()` (existing) |
+| Max new areas per user per day | `coverage_max_areas_per_day` |
+| Skip when already dense | `coverage_min_restaurants` |
+| Pilot metro bbox server-side | `pilot_bbox_*` |
 
 ### Proposed client flow
 
@@ -367,14 +375,14 @@ sequenceDiagram
     API->>API: upsert restaurants
 ```
 
-### Web
+### Web (implemented)
 
-- Use `navigator.geolocation` only after **explicit user action** (button: “Show restaurants near me” or “Improve coverage here”) — per [BEST_PRACTICES.md](BEST_PRACTICES.md).
-- Fire-and-forget `POST /v1/coverage/ensure`; do not block map render.
-- Optional: soft-refresh map after ~30s or poll job status.
-- Optional CTA when viewport has sparse results: same endpoint.
+- `useNearbyCoverage()` (`web/src/hooks/useNearbyCoverage.ts`) calls `navigator.geolocation` only on the explicit "Show restaurants near me" button on `MapPage` — per [BEST_PRACTICES.md](BEST_PRACTICES.md).
+- Fire-and-forget `POST /v1/coverage/ensure` via `api.ensureCoverage()`; does not block map render.
+- On `queued`, the map soft-refreshes after ~25s (`COVERAGE_REFRESH_DELAY_MS`).
+- Requires sign-in; the control hints to sign in when no `idToken` is present.
 
-Suggested hook name: `useNearbyCoverage()` (not implemented).
+Still open: sparse-viewport CTA, job-status polling instead of a fixed delay.
 
 ### iOS (Phase 3)
 
@@ -405,8 +413,8 @@ Planned stack: Apple MapKit + Core Location per [DESIGN.md](DESIGN.md). No iOS c
 
 ### Fix coverage gaps (Places cost, controlled)
 
-1. New `POST /v1/coverage/ensure` wrapping existing seed jobs.
-2. Web/iOS: location permission → background enqueue.
+1. ✅ `POST /v1/coverage/ensure` wrapping existing seed jobs.
+2. ✅ Web: location permission → background enqueue (`useNearbyCoverage`). iOS pending.
 3. Optional sparse-viewport CTA on map.
 
 ### iOS
@@ -437,6 +445,6 @@ The live system fits a **single-metro pilot with hundreds of venues** but will d
 | How does search work? | Fetch all restaurants + aggregates; filter client-side |
 | Why is it slow? | Heavy `/map` SQL, no cache, refetch on every route |
 | Does viewing a restaurant seed others? | No at view time; yes during area seed (many venues per circle) |
-| Can location trigger background seed? | Not today; feasible via new rate-limited coverage endpoint + existing Pub/Sub pipeline |
+| Can location trigger background seed? | Yes (web) — `POST /v1/coverage/ensure`, rate-limited, reuses the Pub/Sub pipeline |
 | Who can seed today? | Admins, scheduler, CLI only |
 | iOS status? | Planned; no implementation in repo |

@@ -16,6 +16,16 @@ class Settings(BaseSettings):
     restaurant_seed_default_lng: float = -71.1662
     restaurant_seed_default_radius_m: int = 8000
     restaurant_seed_cooldown_hours: int = 24
+    # Public location-based coverage endpoint (POST /v1/coverage/ensure).
+    # Bounding box guards spend to the pilot metro; loose box around Dedham, MA.
+    pilot_bbox_min_lat: float = 41.9
+    pilot_bbox_max_lat: float = 42.6
+    pilot_bbox_min_lng: float = -71.6
+    pilot_bbox_max_lng: float = -70.7
+    # Skip Places seeding when at least this many active venues already sit in radius.
+    coverage_min_restaurants: int = 8
+    # Per-user cap on new coverage areas requested in a rolling 24h window.
+    coverage_max_areas_per_day: int = 5
     restaurant_seed_refresh_queries: list[str] = [
         "restaurants in Dedham Massachusetts",
         "family restaurants Dedham MA",

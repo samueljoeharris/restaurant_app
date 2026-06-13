@@ -112,6 +112,14 @@ export interface AdminRefreshRunResponse {
   jobs: RestaurantSeedJob[];
 }
 
+export interface CoverageEnsureResponse {
+  status: "queued" | "covered" | "out_of_area";
+  restaurant_count: number;
+  radius_m: number;
+  job_id: string | null;
+  reused: boolean;
+}
+
 export interface SeedLocation {
   id: string;
   pilot_city: string;

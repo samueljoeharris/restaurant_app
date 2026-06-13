@@ -5,7 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ttf_api.config import settings
 from ttf_api.db import run_migrations
-from ttf_api.routers import admin, auth_info, health, internal, metrics, restaurants, users
+from ttf_api.routers import (
+    admin,
+    auth_info,
+    coverage,
+    health,
+    internal,
+    metrics,
+    restaurants,
+    users,
+)
 
 
 @asynccontextmanager
@@ -36,4 +45,5 @@ app.include_router(auth_info.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(restaurants.router)
+app.include_router(coverage.router)
 app.include_router(metrics.router)
