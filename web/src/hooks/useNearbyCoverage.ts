@@ -93,7 +93,56 @@ export function useNearbyCoverage(onComplete?: () => void) {
     [onComplete],
   );
 
-  const requestCoverage = useCallback(async () => {
+  const ensureAt = useCallback(
+    async (lat: number, lng: number, radiusM?: number) => {
+      if (!idToken) {
+        setState({
+          status: "error",
+          message: "Sign in to improve restaurant coverage in this area.",
+        });
+        return;
+      }
+      setState({ status: "requesting" });
+      try {
+        const res = await api.ensureCoverage(
+          radiusM ? { lat, lng, radius_m: radiusM } : { lat, lng },
+          idToken,
+        );
+        if (!activeRef.current) return;
+        if (res.status === "queued" && res.job_id) {
+          setState({
+            status: "seeding",
+            message: "Finding restaurants here… this can take a moment.",
+          });
+          await pollJob(res.job_id, idToken);
+        } else if (res.status === "covered" || res.status === "queued") {
+          setState({
+            status: "covered",
+            message: `You're covered — ${res.restaurant_count} restaurants nearby.`,
+          });
+        } else {
+          setState({
+            status: "out_of_area",
+            message: `We're not in this area yet — currently piloting in ${PILOT_LABEL}.`,
+          });
+        }
+      } catch (err) {
+        if (!activeRef.current) return;
+        setState({
+          status: "error",
+          message:
+            err instanceof ApiError && err.status === 429
+              ? "Daily coverage request limit reached. Try again tomorrow."
+              : err instanceof Error
+                ? err.message
+                : "Coverage request failed.",
+        });
+      }
+    },
+    [idToken, pollJob],
+  );
+
+  const requestNearMe = useCallback(async () => {
     if (!idToken) {
       setState({
         status: "error",
@@ -118,47 +167,14 @@ export function useNearbyCoverage(onComplete?: () => void) {
       });
       return;
     }
+    if (!activeRef.current) return;
+    await ensureAt(position.coords.latitude, position.coords.longitude);
+  }, [idToken, ensureAt]);
 
-    setState({ status: "requesting" });
-    try {
-      const res = await api.ensureCoverage(
-        {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        },
-        idToken,
-      );
-      if (!activeRef.current) return;
-      if (res.status === "queued" && res.job_id) {
-        setState({
-          status: "seeding",
-          message: "Finding restaurants near you… this can take a moment.",
-        });
-        await pollJob(res.job_id, idToken);
-      } else if (res.status === "covered" || res.status === "queued") {
-        setState({
-          status: "covered",
-          message: `You're covered — ${res.restaurant_count} restaurants nearby.`,
-        });
-      } else {
-        setState({
-          status: "out_of_area",
-          message: `We're not in your area yet — currently piloting in ${PILOT_LABEL}.`,
-        });
-      }
-    } catch (err) {
-      if (!activeRef.current) return;
-      setState({
-        status: "error",
-        message:
-          err instanceof ApiError && err.status === 429
-            ? "Daily coverage request limit reached. Try again tomorrow."
-            : err instanceof Error
-              ? err.message
-              : "Coverage request failed.",
-      });
-    }
-  }, [idToken, pollJob]);
-
-  return { state, requestCoverage, signedIn: Boolean(idToken) };
+  return {
+    state,
+    requestNearMe,
+    ensureAt,
+    signedIn: Boolean(idToken),
+  };
 }

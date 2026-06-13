@@ -23,7 +23,7 @@ import {
 } from "../lib/ttfTier";
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
-import { ButtonLink } from "./ui/Button";
+import { Button, ButtonLink } from "./ui/Button";
 import { Stat, StatGrid } from "./ui/Stat";
 
 const DEDHAM_CENTER = { lat: 42.2418, lng: -71.1662 };
@@ -69,6 +69,65 @@ function FocusRestaurant({
   }, [map, focusId, restaurants]);
 
   return null;
+}
+
+/** Translucent circle, glued to the viewport center, previewing the seed radius. */
+function SearchRadiusCircle({ radiusM }: { radiusM: number }) {
+  const map = useMap();
+  const maps = useMapsLibrary("maps");
+
+  useEffect(() => {
+    if (!map || !maps) return;
+    const circle = new maps.Circle({
+      map,
+      center: map.getCenter() ?? DEDHAM_CENTER,
+      radius: radiusM,
+      clickable: false,
+      strokeColor: "#2563eb",
+      strokeOpacity: 0.85,
+      strokeWeight: 2,
+      fillColor: "#2563eb",
+      fillOpacity: 0.07,
+    });
+    const sync = () => {
+      const center = map.getCenter();
+      if (center) circle.setCenter(center);
+    };
+    const listener = map.addListener("center_changed", sync);
+    return () => {
+      listener.remove();
+      circle.setMap(null);
+    };
+  }, [map, maps, radiusM]);
+
+  return null;
+}
+
+/** "Search this area" button — seeds the current viewport center. */
+function SearchAreaControl({
+  busy,
+  onSearchArea,
+}: {
+  busy: boolean;
+  onSearchArea: (lat: number, lng: number) => void;
+}) {
+  const map = useMap();
+  return (
+    <div className="map-search-area">
+      <Button
+        size="sm"
+        variant="secondary"
+        className="map-search-area__button"
+        disabled={busy || !map}
+        onClick={() => {
+          const center = map?.getCenter();
+          if (center) onSearchArea(center.lat(), center.lng());
+        }}
+      >
+        {busy ? "Searching…" : "Search this area"}
+      </Button>
+    </div>
+  );
 }
 
 function MapPin({
@@ -312,11 +371,17 @@ export function RestaurantMap({
   focusId,
   loading,
   error,
+  searchRadiusM,
+  searchBusy = false,
+  onSearchArea,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
   loading: boolean;
   error: string | null;
+  searchRadiusM?: number;
+  searchBusy?: boolean;
+  onSearchArea?: (lat: number, lng: number) => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(focusId);
   const selected = restaurants.find((r) => r.id === selectedId) ?? null;
@@ -357,6 +422,9 @@ export function RestaurantMap({
         >
           <FitBounds restaurants={restaurants} skip={!!focusId} />
           <FocusRestaurant restaurants={restaurants} focusId={focusId} />
+          {onSearchArea && (
+            <SearchRadiusCircle radiusM={searchRadiusM ?? 8000} />
+          )}
           {restaurants.map((r) => (
             <MapPin
               key={r.id}
@@ -368,6 +436,10 @@ export function RestaurantMap({
         </Map>
 
         <MapLegend />
+
+        {onSearchArea && (
+          <SearchAreaControl busy={searchBusy} onSearchArea={onSearchArea} />
+        )}
 
         {selected && (
           <MapRestaurantSheet

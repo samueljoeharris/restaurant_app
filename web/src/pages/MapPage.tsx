@@ -8,6 +8,9 @@ import { useNearbyCoverage } from "../hooks/useNearbyCoverage";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import type { RestaurantMapEntry } from "../types";
 
+// Radius (m) previewed by the on-map circle and sent with "Search this area".
+const SEARCH_RADIUS_M = 8000;
+
 export function MapPage() {
   const [searchParams] = useSearchParams();
   const focusId = searchParams.get("focus");
@@ -41,7 +44,7 @@ export function MapPage() {
     };
   }, [loadRestaurants]);
 
-  const { state, requestCoverage, signedIn } = useNearbyCoverage(
+  const { state, requestNearMe, ensureAt, signedIn } = useNearbyCoverage(
     useCallback(() => {
       // Refresh the map once the background seed reports completion.
       void loadRestaurants();
@@ -59,7 +62,7 @@ export function MapPage() {
         <Button
           size="sm"
           className="coverage-control__button"
-          onClick={() => void requestCoverage()}
+          onClick={() => void requestNearMe()}
           disabled={busy}
         >
           {state.status === "locating"
@@ -86,6 +89,9 @@ export function MapPage() {
         focusId={focusId}
         loading={loading}
         error={error}
+        searchRadiusM={SEARCH_RADIUS_M}
+        searchBusy={busy}
+        onSearchArea={(lat, lng) => void ensureAt(lat, lng, SEARCH_RADIUS_M)}
       />
     </div>
   );

@@ -378,7 +378,9 @@ sequenceDiagram
 ### Web (implemented)
 
 - `useNearbyCoverage()` (`web/src/hooks/useNearbyCoverage.ts`) calls `navigator.geolocation` only on the explicit "Show restaurants near me" button on `MapPage` — per [BEST_PRACTICES.md](BEST_PRACTICES.md).
-- Fire-and-forget `POST /v1/coverage/ensure` via `api.ensureCoverage()`; does not block map render.
+- Two entry points, both via `api.ensureCoverage()` (fire-and-forget, no render block):
+  - **"Show restaurants near me"** — `useNearbyCoverage().requestNearMe()` uses `navigator.geolocation`.
+  - **"Search this area"** — `ensureAt(center, SEARCH_RADIUS_M)` seeds the current map viewport center. A translucent circle (`SearchRadiusCircle` in `RestaurantMap.tsx`) previews the seed radius, glued to the viewport center so panning re-aims it.
 - On `queued`, polls `GET /v1/coverage/jobs/{job_id}` (every 4s, 90s cap) and refreshes the map when the seed finishes.
 - Requires sign-in; the control hints to sign in when no `idToken` is present.
 
@@ -386,7 +388,7 @@ sequenceDiagram
 signed-in user, only their own jobs) — distinct from the admin-only
 `/v1/restaurants/seed-jobs/{id}`.
 
-Still open: sparse-viewport CTA.
+Still open: auto-show the CTA only when the viewport is sparse (today it's always available); zoom-derived radius instead of a fixed 8 km.
 
 ### iOS (Phase 3)
 

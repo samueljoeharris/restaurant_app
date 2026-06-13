@@ -1164,6 +1164,21 @@ code {
   border-color: var(--color-danger, #b00020);
 }
 
+.map-search-area {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.map-search-area__button {
+  pointer-events: auto;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
 .map-shell {
   position: relative;
   height: 100%;
