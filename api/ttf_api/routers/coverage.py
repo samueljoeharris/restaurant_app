@@ -7,6 +7,7 @@ existing background seed pipeline.
 """
 
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 
@@ -21,8 +22,12 @@ from ttf_api.coverage import (
 from ttf_api.db import get_conn
 from ttf_api.places_seed import SeedArea
 from ttf_api.pubsub_seed import enqueue_seed_job
-from ttf_api.schemas import CoverageEnsureRequest, CoverageEnsureResponse
-from ttf_api.seed_jobs import create_seed_job
+from ttf_api.schemas import (
+    CoverageEnsureRequest,
+    CoverageEnsureResponse,
+    CoverageJobStatus,
+)
+from ttf_api.seed_jobs import create_seed_job, get_seed_job
 
 router = APIRouter(prefix="/v1/coverage", tags=["coverage"])
 
@@ -77,4 +82,25 @@ def ensure_coverage(
         radius_m=body.radius_m,
         job_id=job["id"],
         reused=reused,
+    )
+
+
+@router.get("/jobs/{job_id}", response_model=CoverageJobStatus)
+def get_coverage_job(
+    job_id: UUID,
+    user: Annotated[AuthUser, Depends(get_current_user)],
+) -> CoverageJobStatus:
+    """Lightweight status poll for a coverage seed the caller requested.
+
+    Scoped to the requesting user so clients can poll without admin rights and
+    job ids can't be enumerated.
+    """
+    job = get_seed_job(job_id)
+    if not job or job.get("requested_by") != user.firebase_uid:
+        raise HTTPException(status_code=404, detail="Coverage job not found")
+    return CoverageJobStatus(
+        job_id=job["id"],
+        status=job["status"],
+        inserted_count=job["inserted_count"],
+        updated_count=job["updated_count"],
     )

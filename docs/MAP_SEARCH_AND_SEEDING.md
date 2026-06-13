@@ -379,10 +379,14 @@ sequenceDiagram
 
 - `useNearbyCoverage()` (`web/src/hooks/useNearbyCoverage.ts`) calls `navigator.geolocation` only on the explicit "Show restaurants near me" button on `MapPage` — per [BEST_PRACTICES.md](BEST_PRACTICES.md).
 - Fire-and-forget `POST /v1/coverage/ensure` via `api.ensureCoverage()`; does not block map render.
-- On `queued`, the map soft-refreshes after ~25s (`COVERAGE_REFRESH_DELAY_MS`).
+- On `queued`, polls `GET /v1/coverage/jobs/{job_id}` (every 4s, 90s cap) and refreshes the map when the seed finishes.
 - Requires sign-in; the control hints to sign in when no `idToken` is present.
 
-Still open: sparse-viewport CTA, job-status polling instead of a fixed delay.
+`GET /v1/coverage/jobs/{job_id}` is a lightweight, user-scoped status poll (any
+signed-in user, only their own jobs) — distinct from the admin-only
+`/v1/restaurants/seed-jobs/{id}`.
+
+Still open: sparse-viewport CTA.
 
 ### iOS (Phase 3)
 

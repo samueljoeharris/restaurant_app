@@ -8,9 +8,6 @@ import { useNearbyCoverage } from "../hooks/useNearbyCoverage";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import type { RestaurantMapEntry } from "../types";
 
-// How long to wait after a seed is queued before pulling fresh map data.
-const COVERAGE_REFRESH_DELAY_MS = 25_000;
-
 export function MapPage() {
   const [searchParams] = useSearchParams();
   const focusId = searchParams.get("focus");
@@ -46,12 +43,15 @@ export function MapPage() {
 
   const { state, requestCoverage, signedIn } = useNearbyCoverage(
     useCallback(() => {
-      // Soft-refresh once the background seed has had time to land.
-      window.setTimeout(() => void loadRestaurants(), COVERAGE_REFRESH_DELAY_MS);
+      // Refresh the map once the background seed reports completion.
+      void loadRestaurants();
     }, [loadRestaurants]),
   );
 
-  const busy = state.status === "locating" || state.status === "requesting";
+  const busy =
+    state.status === "locating" ||
+    state.status === "requesting" ||
+    state.status === "seeding";
 
   return (
     <div className="map-page">
@@ -62,7 +62,11 @@ export function MapPage() {
           onClick={() => void requestCoverage()}
           disabled={busy}
         >
-          {busy ? "Locating…" : "Show restaurants near me"}
+          {state.status === "locating"
+            ? "Locating…"
+            : busy
+              ? "Searching…"
+              : "Show restaurants near me"}
         </Button>
         {"message" in state && state.message && (
           <p

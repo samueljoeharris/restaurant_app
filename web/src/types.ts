@@ -120,6 +120,13 @@ export interface CoverageEnsureResponse {
   reused: boolean;
 }
 
+export interface CoverageJobStatus {
+  job_id: string;
+  status: "pending" | "running" | "succeeded" | "failed" | "skipped";
+  inserted_count: number;
+  updated_count: number;
+}
+
 export interface SeedLocation {
   id: string;
   pilot_city: string;

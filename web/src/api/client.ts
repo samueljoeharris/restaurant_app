@@ -9,6 +9,7 @@ import type {
   AdminRestaurantRow,
   AttributeEntry,
   CoverageEnsureResponse,
+  CoverageJobStatus,
   LocationRefreshConfig,
   LocationRefreshConfigSaveResponse,
   MetricDefinition,
@@ -111,6 +112,9 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }, token),
+
+  getCoverageJob: (jobId: string, token: string) =>
+    request<CoverageJobStatus>(`/v1/coverage/jobs/${jobId}`, {}, token),
 
   getMe: (token: string) =>
     request<UserProfile>("/v1/me", {}, token),

@@ -88,6 +88,13 @@ class CoverageEnsureResponse(BaseModel):
     reused: bool = False
 
 
+class CoverageJobStatus(BaseModel):
+    job_id: UUID
+    status: Literal["pending", "running", "succeeded", "failed", "skipped"]
+    inserted_count: int = 0
+    updated_count: int = 0
+
+
 class GcpConsoleLinks(BaseModel):
     run_logs_url: str
     cloud_run_url: str

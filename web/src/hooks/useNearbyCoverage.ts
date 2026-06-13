@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiError, api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
@@ -7,12 +7,14 @@ export type CoverageState =
   | { status: "idle" }
   | { status: "locating" }
   | { status: "requesting" }
-  | { status: "queued"; message: string }
+  | { status: "seeding"; message: string }
   | { status: "covered"; message: string }
   | { status: "out_of_area"; message: string }
   | { status: "error"; message: string };
 
 const PILOT_LABEL = "Dedham, MA";
+const POLL_INTERVAL_MS = 4_000;
+const POLL_TIMEOUT_MS = 90_000;
 
 function getCurrentPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
@@ -28,13 +30,68 @@ function getCurrentPosition(): Promise<GeolocationPosition> {
   });
 }
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function seededMessage(insertedCount: number): string {
+  if (insertedCount <= 0) return "Coverage is up to date near you.";
+  return `Added ${insertedCount} restaurant${insertedCount === 1 ? "" : "s"} near you.`;
+}
+
 /**
  * Requests the user's location (only on explicit call) and asks the API to
- * ensure that area is seeded. Fire-and-forget: seeding runs in the background.
+ * ensure that area is seeded. When a background seed is queued, polls the job
+ * to completion and calls `onComplete` so the caller can refresh the map.
  */
-export function useNearbyCoverage(onQueued?: () => void) {
+export function useNearbyCoverage(onComplete?: () => void) {
   const { idToken } = useAuth();
   const [state, setState] = useState<CoverageState>({ status: "idle" });
+  // Guards against setState / further polling after the component unmounts.
+  const activeRef = useRef(true);
+  useEffect(() => {
+    activeRef.current = true;
+    return () => {
+      activeRef.current = false;
+    };
+  }, []);
+
+  const pollJob = useCallback(
+    async (jobId: string, token: string) => {
+      const deadline = Date.now() + POLL_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await delay(POLL_INTERVAL_MS);
+        if (!activeRef.current) return;
+        let job;
+        try {
+          job = await api.getCoverageJob(jobId, token);
+        } catch {
+          continue; // transient error — keep polling until the deadline
+        }
+        if (!activeRef.current) return;
+        if (job.status === "succeeded") {
+          setState({ status: "covered", message: seededMessage(job.inserted_count) });
+          onComplete?.();
+          return;
+        }
+        if (job.status === "failed") {
+          setState({
+            status: "error",
+            message: "Coverage update failed. Please try again.",
+          });
+          return;
+        }
+        // pending / running / skipped → keep waiting
+      }
+      // Timed out while still running; refresh anyway in case it just landed.
+      if (activeRef.current) {
+        setState({
+          status: "seeding",
+          message: "Still working — results will appear shortly.",
+        });
+        onComplete?.();
+      }
+    },
+    [onComplete],
+  );
 
   const requestCoverage = useCallback(async () => {
     if (!idToken) {
@@ -50,8 +107,7 @@ export function useNearbyCoverage(onQueued?: () => void) {
     try {
       position = await getCurrentPosition();
     } catch (err) {
-      const denied =
-        typeof err === "object" && err !== null && "code" in err;
+      const denied = typeof err === "object" && err !== null && "code" in err;
       setState({
         status: "error",
         message: denied
@@ -72,13 +128,14 @@ export function useNearbyCoverage(onQueued?: () => void) {
         },
         idToken,
       );
-      if (res.status === "queued") {
+      if (!activeRef.current) return;
+      if (res.status === "queued" && res.job_id) {
         setState({
-          status: "queued",
+          status: "seeding",
           message: "Finding restaurants near you… this can take a moment.",
         });
-        onQueued?.();
-      } else if (res.status === "covered") {
+        await pollJob(res.job_id, idToken);
+      } else if (res.status === "covered" || res.status === "queued") {
         setState({
           status: "covered",
           message: `You're covered — ${res.restaurant_count} restaurants nearby.`,
@@ -90,6 +147,7 @@ export function useNearbyCoverage(onQueued?: () => void) {
         });
       }
     } catch (err) {
+      if (!activeRef.current) return;
       setState({
         status: "error",
         message:
@@ -100,7 +158,7 @@ export function useNearbyCoverage(onQueued?: () => void) {
               : "Coverage request failed.",
       });
     }
-  }, [idToken, onQueued]);
+  }, [idToken, pollJob]);
 
   return { state, requestCoverage, signedIn: Boolean(idToken) };
 }
