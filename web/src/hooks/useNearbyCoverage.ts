@@ -9,10 +9,8 @@ export type CoverageState =
   | { status: "requesting" }
   | { status: "seeding"; message: string }
   | { status: "covered"; message: string }
-  | { status: "out_of_area"; message: string }
   | { status: "error"; message: string };
 
-const PILOT_LABEL = "Dedham, MA";
 const POLL_INTERVAL_MS = 4_000;
 const POLL_TIMEOUT_MS = 90_000;
 
@@ -115,15 +113,10 @@ export function useNearbyCoverage(onComplete?: () => void) {
             message: "Finding restaurants here… this can take a moment.",
           });
           await pollJob(res.job_id, idToken);
-        } else if (res.status === "covered" || res.status === "queued") {
+        } else {
           setState({
             status: "covered",
             message: `You're covered — ${res.restaurant_count} restaurants nearby.`,
-          });
-        } else {
-          setState({
-            status: "out_of_area",
-            message: `We're not in this area yet — currently piloting in ${PILOT_LABEL}.`,
           });
         }
       } catch (err) {

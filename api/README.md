@@ -1,6 +1,6 @@
 # TTF API (Python / FastAPI)
 
-REST API for **Little Scout**. **Pilot city:** Dedham, Massachusetts (`dedham-ma`).
+REST API for **Little Scout** — parent-focused restaurant ratings.
 
 ## Run locally
 
@@ -37,12 +37,12 @@ curl http://localhost:8080/v1/metrics
 curl http://localhost:8080/v1/restaurants
 ```
 
-## Seed Dedham restaurants (Places API)
+## Seed restaurants (Places API)
 
 Requires `MAPS_API_KEY` in repo-root `.env` (same key as `ttf-maps-dev`).
 
 ```bash
-docker compose run --rm api python scripts/seed_dedham.py
+docker compose run --rm api python scripts/seed_restaurants.py
 curl http://localhost:8080/v1/restaurants
 ```
 
@@ -50,7 +50,7 @@ Or pass from Secret Manager (one-off):
 
 ```bash
 export MAPS_API_KEY=$(gcloud secrets versions access latest --secret=ttf-maps-api-key --project=ttf-restaurant-dev)
-docker compose run --rm -e MAPS_API_KEY api python scripts/seed_dedham.py
+docker compose run --rm -e MAPS_API_KEY api python scripts/seed_restaurants.py
 ```
 
 Re-running the script upserts by `google_place_id` and soft-hides closed/out-of-area venues
@@ -124,8 +124,8 @@ curl -X POST http://localhost:8080/v1/restaurants/{id}/ttf \
 | Variable | Default |
 |----------|---------|
 | `DATABASE_URL` | `postgresql://ttf_app:ttf_local@postgres:5432/ttf` |
-| `PILOT_CITY` | `dedham-ma` |
-| `PILOT_DISPLAY_NAME` | `Dedham, Massachusetts` |
+| `PILOT_CITY` | `dedham-ma` (opaque catalog key) |
+| `PILOT_DISPLAY_NAME` | `Little Scout` |
 | `FIREBASE_PROJECT_ID` | `ttf-restaurant-dev` |
 | `AUTH_DEV_MODE` | `true` locally; `false` in Cloud Run |
 | `APP_CHECK_ENFORCE` | `false` locally; `true` when reCAPTCHA configured |
@@ -133,8 +133,8 @@ curl -X POST http://localhost:8080/v1/restaurants/{id}/ttf \
 | `RATE_LIMIT_WINDOW_MINUTES` | Rate limit window (default `60`) |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to service account JSON (prod) |
 | `MAPS_API_KEY` | Server key for Geocoding + Places API |
-| `RESTAURANT_SEED_DEFAULT_LAT` / `RESTAURANT_SEED_DEFAULT_LNG` | Pilot refresh center |
-| `RESTAURANT_SEED_DEFAULT_RADIUS_M` | Pilot refresh radius (default `8000`) |
+| `RESTAURANT_SEED_DEFAULT_LAT` / `RESTAURANT_SEED_DEFAULT_LNG` | Fallback refresh center |
+| `RESTAURANT_SEED_DEFAULT_RADIUS_M` | Fallback refresh radius (default `8000`) |
 | `RESTAURANT_SEED_COOLDOWN_HOURS` | Reuse recent area seed jobs (default `24`) |
 | `RESTAURANT_SEED_REFRESH_QUERIES` | JSON array of Places text queries for scheduled refresh |
 

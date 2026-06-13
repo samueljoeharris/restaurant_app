@@ -57,7 +57,7 @@ export function AdminDashboardPage() {
       <header className="admin-page__header">
         <div>
           <h1>Overview</h1>
-          <p className="muted">{stats.pilot_display_name} pilot</p>
+          <p className="muted">{stats.pilot_display_name}</p>
         </div>
       </header>
 

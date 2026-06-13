@@ -191,7 +191,7 @@ Stored on `restaurant_seed_jobs.kind`:
 
 ### Triggers
 
-1. **CLI** — `api/scripts/seed_dedham.py`, `api/ttf_api/jobs/refresh_restaurants.py` (sync `run_seed_job`)
+1. **CLI** — `api/scripts/seed_restaurants.py`, `api/ttf_api/jobs/refresh_restaurants.py` (sync `run_seed_job`)
 2. **Local bootstrap** — `scripts/start-local.sh` seeds if restaurant count is 0
 3. **Admin UI** — `web/src/pages/admin/AdminLocationSeedingPage.tsx`
 4. **Cloud Scheduler** — weekly (configurable) → `POST /v1/internal/scheduled-restaurant-refresh` → `create_scheduled_refresh_jobs()`
@@ -231,8 +231,8 @@ Pass `force=true` to bypass (admin refresh, scheduled refresh).
 
 ```
 1. TRIGGER
-   ├─ First-time local: start-local.sh → seed_dedham.py
-   ├─ Manual/prod: seed_dedham.py or seed_production.sh
+   ├─ First-time local: start-local.sh → seed_restaurants.py
+   ├─ Manual/prod: seed_restaurants.py or seed_production.sh
    ├─ Admin: POST /v1/admin/seed-jobs { location: "02026", radius_m: 8000 }
    ├─ Admin refresh: POST /v1/admin/refresh-runs
    └─ Scheduled: Cloud Scheduler → /v1/internal/scheduled-restaurant-refresh
@@ -264,7 +264,7 @@ Pass `force=true` to bypass (admin refresh, scheduled refresh).
 |-------|-------|
 | Core logic | `api/ttf_api/places_seed.py`, `api/ttf_api/seed_jobs.py`, `api/ttf_api/pubsub_seed.py` |
 | Routers | `api/ttf_api/routers/restaurants.py`, `admin.py`, `internal.py` |
-| CLI | `api/scripts/seed_dedham.py`, `api/scripts/seed_production.sh` |
+| CLI | `api/scripts/seed_restaurants.py`, `api/scripts/seed_production.sh` |
 | Migrations | `005_restaurant_seed_jobs.sql`, `006_location_seeding.sql`, `007_seed_locations.sql` |
 | Config | `api/ttf_api/config.py` |
 | Admin UI | `web/src/pages/admin/AdminLocationSeedingPage.tsx` |

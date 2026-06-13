@@ -29,7 +29,7 @@ REST_COUNT="$(curl -sf http://localhost:8080/v1/restaurants 2>/dev/null | python
 if [[ "$REST_COUNT" == "0" ]]; then
   echo "Seeding Dedham restaurants (first run)…"
   MAPS_API_KEY="$(gcloud secrets versions access latest --secret=ttf-maps-api-key --project=ttf-restaurant-dev)"
-  docker compose run --rm -e "MAPS_API_KEY=$MAPS_API_KEY" api python scripts/seed_dedham.py
+  docker compose run --rm -e "MAPS_API_KEY=$MAPS_API_KEY" api python scripts/seed_restaurants.py
 fi
 
 echo ""

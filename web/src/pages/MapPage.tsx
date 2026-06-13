@@ -8,9 +8,6 @@ import { useNearbyCoverage } from "../hooks/useNearbyCoverage";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import type { RestaurantMapEntry } from "../types";
 
-// Radius (m) previewed by the on-map circle and sent with "Search this area".
-const SEARCH_RADIUS_M = 8000;
-
 export function MapPage() {
   const [searchParams] = useSearchParams();
   const focusId = searchParams.get("focus");

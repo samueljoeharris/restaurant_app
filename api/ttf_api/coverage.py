@@ -12,16 +12,8 @@ from psycopg import Connection
 from ttf_api.config import settings
 
 
-def within_pilot_bbox(lat: float, lng: float) -> bool:
-    """True when the point sits inside the configured pilot metro bounding box."""
-    return (
-        settings.pilot_bbox_min_lat <= lat <= settings.pilot_bbox_max_lat
-        and settings.pilot_bbox_min_lng <= lng <= settings.pilot_bbox_max_lng
-    )
-
-
 def count_active_within(conn: Connection, lat: float, lng: float, radius_m: int) -> int:
-    """Count active pilot restaurants within `radius_m` of (lat, lng).
+    """Count active restaurants within `radius_m` of (lat, lng).
 
     Uses the Haversine formula inline in SQL — no PostGIS dependency, matching
     the Python-side `distance_meters` used during seeding.

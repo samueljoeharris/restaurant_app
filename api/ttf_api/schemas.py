@@ -81,7 +81,7 @@ class CoverageEnsureRequest(BaseModel):
 
 
 class CoverageEnsureResponse(BaseModel):
-    status: Literal["queued", "covered", "out_of_area"]
+    status: Literal["queued", "covered"]
     restaurant_count: int = 0
     radius_m: int
     job_id: UUID | None = None

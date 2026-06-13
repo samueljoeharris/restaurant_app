@@ -1,9 +1,9 @@
 """Public, rate-limited location coverage endpoint.
 
 A signed-in user can ask Little Scout to make sure their current location is
-seeded. Each request is guarded (pilot bbox, existing density, per-user daily
-cap, 24h area cooldown) before any Google Places spend, then reuses the
-existing background seed pipeline.
+seeded. Each request is guarded (existing density, per-user daily cap, 24h area
+cooldown) before any Google Places spend, then reuses the existing background
+seed pipeline.
 """
 
 from typing import Annotated
@@ -14,11 +14,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request,
 from ttf_api.app_check import verify_app_check
 from ttf_api.auth import AuthUser, get_current_user
 from ttf_api.config import settings
-from ttf_api.coverage import (
-    count_active_within,
-    count_recent_user_areas,
-    within_pilot_bbox,
-)
+from ttf_api.coverage import count_active_within, count_recent_user_areas
 from ttf_api.db import get_conn
 from ttf_api.places_seed import SeedArea
 from ttf_api.pubsub_seed import enqueue_seed_job
@@ -40,9 +36,6 @@ def ensure_coverage(
     user: Annotated[AuthUser, Depends(get_current_user)],
 ) -> CoverageEnsureResponse:
     verify_app_check(request)
-
-    if not within_pilot_bbox(body.lat, body.lng):
-        return CoverageEnsureResponse(status="out_of_area", radius_m=body.radius_m)
 
     with get_conn() as conn:
         nearby = count_active_within(conn, body.lat, body.lng, body.radius_m)

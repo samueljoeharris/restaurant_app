@@ -113,7 +113,7 @@ export interface AdminRefreshRunResponse {
 }
 
 export interface CoverageEnsureResponse {
-  status: "queued" | "covered" | "out_of_area";
+  status: "queued" | "covered";
   restaurant_count: number;
   radius_m: number;
   job_id: string | null;

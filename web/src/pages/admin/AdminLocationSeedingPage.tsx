@@ -396,7 +396,7 @@ export function AdminLocationSeedingPage() {
             >
               <input
                 className="search"
-                placeholder="e.g. 02026, Norwood MA, or Dedham center"
+                placeholder="e.g. 02026, Norwood MA, or a city center"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 required
@@ -495,7 +495,7 @@ export function AdminLocationSeedingPage() {
               <p className="muted small">
                 <strong>Default area</strong> is only used when no refresh locations are
                 enabled — it geocodes the label below and searches Google Places within the
-                radius (pilot default: Dedham, ~5 mi). Once you seed areas above,
+                radius (default ~5 mi). Once you seed areas above,
                 those replace this fallback.
               </p>
               <div className="admin-seed-form admin-seed-form--config">
@@ -524,7 +524,7 @@ export function AdminLocationSeedingPage() {
                 <label className="admin-seed-form__field">
                   Default area
                   <input
-                    placeholder="e.g. Dedham, Massachusetts"
+                    placeholder="e.g. a city or ZIP code"
                     value={config.default_location ?? ""}
                     onChange={(e) => setConfig({ ...config, default_location: e.target.value })}
                   />

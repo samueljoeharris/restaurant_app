@@ -26,7 +26,8 @@ import { Badge } from "./ui/Badge";
 import { Button, ButtonLink } from "./ui/Button";
 import { Stat, StatGrid } from "./ui/Stat";
 
-const DEDHAM_CENTER = { lat: 42.2418, lng: -71.1662 };
+// Neutral fallback center used until restaurants load and the map fits to them.
+const DEFAULT_MAP_CENTER = { lat: 42.2418, lng: -71.1662 };
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 
 function FitBounds({
@@ -71,17 +72,77 @@ function FocusRestaurant({
   return null;
 }
 
-/** Translucent circle, glued to the viewport center, previewing the seed radius. */
-function SearchRadiusCircle({ radiusM }: { radiusM: number }) {
+// Seed radius is derived from the viewport (clamped to the API's accepted range).
+const MIN_SEARCH_RADIUS_M = 1000;
+const MAX_SEARCH_RADIUS_M = 25000;
+const DEFAULT_SEARCH_RADIUS_M = 8000;
+// Show "Search this area" only when the viewport holds this many venues or fewer.
+const SPARSE_VIEWPORT_MAX = 3;
+
+/** Radius (m) that fits within the current viewport, clamped to API limits. */
+function viewportRadiusM(map: google.maps.Map): number {
+  const bounds = map.getBounds();
+  const center = map.getCenter();
+  if (!bounds || !center) return DEFAULT_SEARCH_RADIUS_M;
+  const ne = bounds.getNorthEast();
+  const sw = bounds.getSouthWest();
+  const halfLatM = (Math.abs(ne.lat() - sw.lat()) * 111_320) / 2;
+  const halfLngM =
+    (Math.abs(ne.lng() - sw.lng()) * 111_320 * Math.cos((center.lat() * Math.PI) / 180)) / 2;
+  const radius = Math.min(halfLatM, halfLngM);
+  return Math.round(
+    Math.max(MIN_SEARCH_RADIUS_M, Math.min(MAX_SEARCH_RADIUS_M, radius)),
+  );
+}
+
+function countWithinBounds(
+  map: google.maps.Map,
+  restaurants: RestaurantMapEntry[],
+): number {
+  const bounds = map.getBounds();
+  if (!bounds) return restaurants.length;
+  let count = 0;
+  for (const r of restaurants) {
+    if (bounds.contains({ lat: r.lat, lng: r.lng })) count += 1;
+  }
+  return count;
+}
+
+/**
+ * Shows a "Search this area" button + a viewport-sized radius circle, but only
+ * when the current view is sparse. The circle previews exactly what the button
+ * will seed (center + zoom-derived radius); panning never costs API calls.
+ */
+function SearchArea({
+  restaurants,
+  busy,
+  onSearchArea,
+}: {
+  restaurants: RestaurantMapEntry[];
+  busy: boolean;
+  onSearchArea: (lat: number, lng: number, radiusM: number) => void;
+}) {
   const map = useMap();
   const maps = useMapsLibrary("maps");
+  const [sparse, setSparse] = useState(false);
 
+  // Recompute sparsity whenever the camera settles or the dataset changes.
   useEffect(() => {
-    if (!map || !maps) return;
+    if (!map) return;
+    const update = () =>
+      setSparse(countWithinBounds(map, restaurants) <= SPARSE_VIEWPORT_MAX);
+    const listener = map.addListener("idle", update);
+    update();
+    return () => listener.remove();
+  }, [map, restaurants]);
+
+  // Draw the radius circle only while sparse; keep it glued to the viewport.
+  useEffect(() => {
+    if (!map || !maps || !sparse) return;
     const circle = new maps.Circle({
       map,
-      center: map.getCenter() ?? DEDHAM_CENTER,
-      radius: radiusM,
+      center: map.getCenter() ?? DEFAULT_MAP_CENTER,
+      radius: viewportRadiusM(map),
       clickable: false,
       strokeColor: "#2563eb",
       strokeOpacity: 0.85,
@@ -92,26 +153,17 @@ function SearchRadiusCircle({ radiusM }: { radiusM: number }) {
     const sync = () => {
       const center = map.getCenter();
       if (center) circle.setCenter(center);
+      circle.setRadius(viewportRadiusM(map));
     };
-    const listener = map.addListener("center_changed", sync);
+    const listener = map.addListener("bounds_changed", sync);
     return () => {
       listener.remove();
       circle.setMap(null);
     };
-  }, [map, maps, radiusM]);
+  }, [map, maps, sparse]);
 
-  return null;
-}
+  if (!sparse) return null;
 
-/** "Search this area" button — seeds the current viewport center. */
-function SearchAreaControl({
-  busy,
-  onSearchArea,
-}: {
-  busy: boolean;
-  onSearchArea: (lat: number, lng: number) => void;
-}) {
-  const map = useMap();
   return (
     <div className="map-search-area">
       <Button
@@ -120,8 +172,9 @@ function SearchAreaControl({
         className="map-search-area__button"
         disabled={busy || !map}
         onClick={() => {
-          const center = map?.getCenter();
-          if (center) onSearchArea(center.lat(), center.lng());
+          if (!map) return;
+          const center = map.getCenter();
+          if (center) onSearchArea(center.lat(), center.lng(), viewportRadiusM(map));
         }}
       >
         {busy ? "Searching…" : "Search this area"}
@@ -371,7 +424,6 @@ export function RestaurantMap({
   focusId,
   loading,
   error,
-  searchRadiusM,
   searchBusy = false,
   onSearchArea,
 }: {
@@ -379,9 +431,8 @@ export function RestaurantMap({
   focusId: string | null;
   loading: boolean;
   error: string | null;
-  searchRadiusM?: number;
   searchBusy?: boolean;
-  onSearchArea?: (lat: number, lng: number) => void;
+  onSearchArea?: (lat: number, lng: number, radiusM: number) => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(focusId);
   const selected = restaurants.find((r) => r.id === selectedId) ?? null;
@@ -413,7 +464,7 @@ export function RestaurantMap({
     <APIProvider apiKey={MAPS_KEY}>
       <div className="map-shell">
         <Map
-          defaultCenter={DEDHAM_CENTER}
+          defaultCenter={DEFAULT_MAP_CENTER}
           defaultZoom={13}
           gestureHandling="greedy"
           disableDefaultUI
@@ -422,9 +473,6 @@ export function RestaurantMap({
         >
           <FitBounds restaurants={restaurants} skip={!!focusId} />
           <FocusRestaurant restaurants={restaurants} focusId={focusId} />
-          {onSearchArea && (
-            <SearchRadiusCircle radiusM={searchRadiusM ?? 8000} />
-          )}
           {restaurants.map((r) => (
             <MapPin
               key={r.id}
@@ -438,7 +486,11 @@ export function RestaurantMap({
         <MapLegend />
 
         {onSearchArea && (
-          <SearchAreaControl busy={searchBusy} onSearchArea={onSearchArea} />
+          <SearchArea
+            restaurants={restaurants}
+            busy={searchBusy}
+            onSearchArea={onSearchArea}
+          />
         )}
 
         {selected && (

@@ -115,7 +115,7 @@ export function LoginPage() {
           ) : (
             <>
               <h1 className="auth-hero__title">Little Scout</h1>
-              <p className="muted">Dedham pilot — rate kid-food speed with other parents.</p>
+              <p className="muted">Rate kid-food speed with other parents.</p>
             </>
           )}
         </div>

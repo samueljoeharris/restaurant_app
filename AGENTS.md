@@ -175,4 +175,4 @@ API-only smoke test (no web): `docker compose up -d postgres api` then `curl htt
 
 ### Seed data
 
-`docker compose run --rm api python scripts/seed_dedham.py` needs `MAPS_API_KEY` in `.env`. Without it, create a test restaurant via `POST /v1/restaurants` with a dev token.
+`docker compose run --rm api python scripts/seed_restaurants.py` needs `MAPS_API_KEY` in `.env`. Without it, create a test restaurant via `POST /v1/restaurants` with a dev token.

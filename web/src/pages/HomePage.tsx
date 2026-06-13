@@ -92,8 +92,8 @@ export function HomePage() {
       metric: loading ? undefined : formatPlaceCount(counts.withParentData),
     },
     {
-      title: "Open the Dedham map",
-      description: "Scan the pilot area visually and tap into restaurants near your route.",
+      title: "Open the map",
+      description: "Scan the area visually and tap into restaurants near your route.",
       icon: "🗺️",
       to: "/map",
       metric: loading ? undefined : `${counts.total} mapped`,
@@ -116,7 +116,7 @@ export function HomePage() {
   return (
     <div className="home-page page-enter">
       <section className="home-hero">
-        <div className="home-hero__eyebrow">Dedham pilot</div>
+        <div className="home-hero__eyebrow">Little Scout</div>
         <h1 className="home-hero__title">What are you looking for?</h1>
         <p className="home-hero__subtitle">
           Little Scout helps parents pick restaurants by starter speed, useful kid-friendly details,
@@ -180,7 +180,7 @@ export function HomePage() {
           </div>
           <div>
             <strong>Scout</strong>
-            <span>Add one quick observation after a visit to improve the pilot.</span>
+            <span>Add one quick observation after a visit to help other parents.</span>
           </div>
         </div>
         <ButtonLink to="/restaurants" variant="secondary" fullWidth>

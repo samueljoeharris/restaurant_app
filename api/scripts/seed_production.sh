@@ -75,12 +75,12 @@ export DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${PROXY_PORT}
 export MAPS_API_KEY
 MAPS_API_KEY="$(gcloud secrets versions access latest --secret=ttf-maps-api-key --project="$PROJECT_ID")"
 
-echo "==> Running seed_dedham.py against Cloud SQL"
+echo "==> Running seed_restaurants.py against Cloud SQL"
 API_IMAGE="${API_IMAGE:-restaurant_app-api:latest}"
 docker run --rm --network "$COMPOSE_NETWORK" \
   -e "DATABASE_URL=${DATABASE_URL}" \
   -e "MAPS_API_KEY=${MAPS_API_KEY}" \
   "$API_IMAGE" \
-  python scripts/seed_dedham.py
+  python scripts/seed_restaurants.py
 
 echo "==> Done. Verify: curl https://ttf-api-6ac5e3cakq-uc.a.run.app/v1/restaurants | head"

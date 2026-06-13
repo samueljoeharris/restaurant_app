@@ -51,7 +51,7 @@ export function AdminRestaurantsPage() {
       <header className="admin-page__header">
         <div>
           <h1>Restaurants</h1>
-          <p className="muted">All pilot venues with contribution stats</p>
+          <p className="muted">All venues with contribution stats</p>
         </div>
         <form
           className="admin-search"

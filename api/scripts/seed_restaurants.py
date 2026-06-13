@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seed/refresh Dedham pilot restaurants from Google Places API (New)."""
+"""Seed/refresh restaurants for the default area from Google Places API (New)."""
 
 from __future__ import annotations
 

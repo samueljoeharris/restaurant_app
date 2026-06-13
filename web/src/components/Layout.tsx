@@ -41,7 +41,7 @@ export function Layout({ children }: { children: ReactNode }) {
           Little Scout
         </Link>
         <div className="shell__header-actions">
-          <span className="shell__tagline">Dedham pilot</span>
+          <span className="shell__tagline">Kid-food speed</span>
           <Button variant="ghost" size="sm" onClick={() => logout()}>
             Sign out
           </Button>

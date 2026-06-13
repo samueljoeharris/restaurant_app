@@ -95,7 +95,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [x] Firebase + Maps key — see infra README
 - [x] Scaffold `api/` (FastAPI + migrations + OpenAPI)
 - [x] `docker compose up api` — verify `/health` and `/v1/metrics`
-- [x] Seed Dedham restaurants: `docker compose run --rm api python scripts/seed_dedham.py`
+- [x] Seed Dedham restaurants: `docker compose run --rm api python scripts/seed_restaurants.py`
 - [x] Phase B enabled in `ci.tfvars` — Terraform CI provisions Cloud SQL + Cloud Run
 - [x] GitHub variable `GCP_DEPLOY_SERVICE_ACCOUNT` = `ttf-github-deploy@ttf-restaurant-dev.iam.gserviceaccount.com`
 - [x] API CI (`.github/workflows/api.yml`) — build, push, deploy on `api/**` pushes

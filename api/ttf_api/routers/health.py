@@ -9,7 +9,6 @@ router = APIRouter(tags=["health"])
 
 @router.get("/", response_class=HTMLResponse)
 def root() -> str:
-    pilot = settings.pilot_display_name
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,12 +26,12 @@ def root() -> str:
 </head>
 <body>
   <h1>Little Scout API</h1>
-  <p>Parent-focused restaurant ratings — <strong>{pilot}</strong> pilot.</p>
+  <p>Parent-focused restaurant ratings.</p>
   <ul>
     <li><a href="/health">Health</a> — service status</li>
     <li><a href="/docs">API docs</a> — interactive OpenAPI</li>
     <li><a href="/v1/metrics">Metrics</a> — rating definitions (public)</li>
-    <li><a href="/v1/restaurants">Restaurants</a> — list pilot restaurants (public read)</li>
+    <li><a href="/v1/restaurants">Restaurants</a> — list restaurants (public read)</li>
   </ul>
   <p>Writes (<code>POST</code>, profile) require a Firebase ID token.</p>
 </body>
