@@ -1,0 +1,3 @@
+// Debug API base URL — override in Xcode scheme environment if needed.
+// Example local API from Simulator: http://localhost:8080
+TTF_API_URL = https:/$()/api.dev.littlescout.app
