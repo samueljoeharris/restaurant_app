@@ -143,6 +143,8 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 | Doc | When to read |
 |-----|--------------|
 | [docs/DESIGN.md](docs/DESIGN.md) | Architecture, data model, API sketch, Terraform scope |
+| [docs/IOS_DESIGN.md](docs/IOS_DESIGN.md) | Phase 3 iOS implementation plan and milestones |
+| [ios/TTF/README.md](ios/TTF/README.md) | iOS Xcode setup and local runbook |
 | [docs/BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Auth, account deletion, caching, map search, moderation |
 | [docs/MAP_SEARCH_AND_SEEDING.md](docs/MAP_SEARCH_AND_SEEDING.md) | Map load vs seeding, explore slowness, location-based coverage proposal |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased checklist, account setup |

@@ -2,7 +2,7 @@
 
 Actionable checklist for building the **Little Scout** restaurant app from zero. Internal codename and GCP prefix: **TTF**. For full product and technical detail, see [DESIGN.md](DESIGN.md).
 
-**Current status:** Phase 2 is complete (API + web pilot + admin + Terraform + dev custom domains). Phase 3 iOS is next.
+**Current status:** Phase 2 complete; Phase 3 iOS scaffold on `main` (`ios/TTF/`) — wire Apple Sign-In and TestFlight next.
 
 **Your setup:** Docker, GitHub, GCP/Firebase access, and Apple Developer enrollment. Xcode is only required for Phase 3 iOS work.
 
@@ -77,7 +77,7 @@ Xcode runs natively on your Mac — no cloud Mac rental needed.
 
 - [ ] Install **Xcode** from Mac App Store → `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
 - [ ] Complete [100 Days of SwiftUI](https://www.hackingwithswift.com/100/swiftui) — days 1–14 minimum (optional refresher)
-- [ ] Create Xcode project at `ios/TTF/`
+- [x] Create Xcode project at `ios/TTF/` (on `main` — see [ios/TTF/README.md](../ios/TTF/README.md) and [IOS_DESIGN.md](IOS_DESIGN.md))
   - Bundle ID: `com.samueljoeharris.ttf`
   - Display name: `TTF`
 - [ ] One-time: App Store Connect API key (`.p8`) + provisioning profiles → GitHub Secrets
@@ -139,13 +139,15 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 
 ## Phase 3 — iOS MVP (local Mac + GitHub CI)
 
-- [ ] MapKit restaurant list for pilot city
-- [ ] Restaurant detail with TTF aggregates + Google link-out
-- [ ] TTF submission screen (timer + quality + item type)
-- [ ] Shared attribute rating UI
+See [IOS_DESIGN.md](IOS_DESIGN.md) and [ios/TTF/README.md](../ios/TTF/README.md).
+
+- [x] MapKit restaurant list for pilot city (scaffold — polish ongoing)
+- [x] Restaurant detail with TTF aggregates + Google link-out
+- [x] TTF submission screen (timer + quality + item type) — needs auth to POST
+- [x] Shared attribute rating UI — needs auth to POST
 - [ ] Apple Sign-In via Firebase Auth
-- [ ] Point API base URL at Cloud Run or `host.docker.internal:8080`
-- [ ] Add GitHub Actions iOS workflow → TestFlight
+- [x] Point API base URL at Cloud Run (`https://api.dev.littlescout.app`)
+- [x] Add GitHub Actions iOS workflow skeleton (manual dispatch; TestFlight steps TBD)
 - [ ] TestFlight group: `ttf-pilot-testers`
 
 ---

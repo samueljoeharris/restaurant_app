@@ -19,6 +19,8 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [../infra/terraform/README.md](../infra/terraform/README.md) | Terraform bootstrap, dev stack, and WIF setup |
 | [MCP_SETUP.md](MCP_SETUP.md) | Cursor MCP setup for GitHub, GCP, Postgres, and Firebase |
 | [DESIGN.md](DESIGN.md) | Product design, data model, architecture, and roadmap |
+| [IOS_DESIGN.md](IOS_DESIGN.md) | Phase 3 iOS implementation plan — Cursor/Xcode workflow, architecture, milestones |
+| [../ios/TTF/README.md](../ios/TTF/README.md) | iOS Xcode setup and local runbook |
 | [../AGENTS.md](../AGENTS.md) | AI coding agent guidance for this repository |
 
 ## Current implementation notes
