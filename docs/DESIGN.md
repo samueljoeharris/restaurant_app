@@ -2,7 +2,7 @@
 
 **Public brand:** Little Scout · **Internal codename / GCP prefix:** `ttf` (legacy: Time to Fries)  
 **Status:** Phase 2 complete — API, web pilot, admin surface, Terraform, and dev custom domains are in place; Phase 3 iOS next
-**MVP scope:** Dedham, Massachusetts pilot; native iOS (Swift/SwiftUI); GCP backend; browser pilot for early validation
+**MVP scope:** Single-metro pilot; native iOS (Swift/SwiftUI); GCP backend; browser pilot for early validation
 **Agents:** See [AGENTS.md](../AGENTS.md) for AI coding agent guidance
 
 ---
@@ -104,7 +104,7 @@ Little Scout is a social restaurant rating app focused on **parents dining with 
 
 - Fast contribution loop (submit TTF in under 60 seconds during a meal)
 - Trustworthy aggregates with sample size and recency
-- Map-first discovery in a pilot metro area
+- Map-first discovery
 - Link-out to Google for supplemental context (no scraping)
 
 ### Non-Goals (v1)
@@ -117,7 +117,7 @@ Little Scout is a social restaurant rating app focused on **parents dining with 
 
 ### Audience
 
-Parents and caregivers dining out with children in a single metro area pilot.
+Parents and caregivers dining out with children.
 
 ---
 
@@ -343,13 +343,13 @@ Operational guidance for caching, auth, deletion, and trust controls: [BEST_PRAC
 - **Apple MapKit** for discovery, pins, and directions
 - Pins colored by TTF tier (see Section 5)
 - User location via Core Location
-- Pilot city bounding box filters results
+- Area radius filters results
 
 ### Search
 
 - Name and cuisine text search
 - Attribute filters: "high chairs", "TTF under 10 min", "changing table"
-- Geo radius within pilot metro
+- Geo radius search
 
 ### Google Link-Out
 
@@ -390,7 +390,7 @@ flowchart LR
 | Database | Cloud SQL PostgreSQL | Relational fit for metrics + aggregations |
 | Auth | Firebase Auth (Apple Sign-In) | Native iOS integration |
 | Media | Cloud Storage (`ttf-uploads-*`) | TTF photos |
-| Geocoding | Google Maps Platform | Place ID, geocoding for pilot city |
+| Geocoding | Google Maps Platform | Place ID, geocoding for restaurant seeding |
 | Secrets | Secret Manager | API keys, DB credentials |
 | Infrastructure | Terraform | Reproducible, version-controlled |
 | CI/CD | GitHub Actions | Path-filtered workflows |
@@ -703,7 +703,7 @@ All write endpoints require Firebase Auth JWT (Apple Sign-In). Read endpoints pu
 
 | Feature | v1 | Later |
 |---------|----|----|
-| Map + search (pilot city) | Yes | — |
+| Map + search | Yes | — |
 | Restaurant detail + Google link | Yes | — |
 | TTF submission + aggregate display | Yes | — |
 | Shared parent attributes (curated set) | Yes | — |
@@ -739,7 +739,7 @@ flowchart TD
 | 3 — iOS MVP | Local Mac / macOS CI | Xcode project, signing certs |
 | 4 — TestFlight | GitHub Actions + App Store Connect | Paid Apple Developer Program |
 
-**Key insight:** Backend-first via Docker. Seed pilot-city data before touching Xcode.
+**Key insight:** Backend-first via Docker. Seed restaurant data before touching Xcode.
 
 ---
 
@@ -747,7 +747,7 @@ flowchart TD
 
 ### Open Questions
 
-- **Pilot city:** Dedham, MA for MVP; design supports expanding beyond one metro later
+- **Coverage:** Design supports any area; spend is guarded by density skip, per-user daily cap, and 24h cooldown
 - **Moderation policy:** How to handle spam or bad-faith TTF submissions?
 - **Verification:** Honor system vs check-in (GPS proximity)?
 - **Monetization:** None planned for MVP

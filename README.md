@@ -6,7 +6,7 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 
 ## Status
 
-**Phase 2 complete** — API, web pilot, admin surface, Terraform, and dev custom domains are in place. **Phase 3 iOS is next.** Pilot city: Dedham, MA (`dedham-ma`).
+**Phase 2 complete** — API, web pilot, admin surface, Terraform, and dev custom domains are in place. **Phase 3 iOS is next.**
 
 ## Stack
 

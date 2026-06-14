@@ -193,7 +193,7 @@ From [Google Maps Platform Service Specific Terms](https://cloud.google.com/maps
 - Debounce viewport changes (300–500 ms).
 - Cluster pins at low zoom; show individual venues when zoomed in.
 - Request only fields needed for pins: `id`, `name`, `lat`, `lng`, `ttf_median`, `sample_size`, `tier`.
-- Pilot-city bounding box enforced server-side (`pilot_city = dedham-ma`).
+- Viewport bbox can be passed as query params for server-side filtering.
 
 ### API (PostGIS when scale requires)
 
@@ -204,16 +204,16 @@ WHERE geom && ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 4326)
 ```
 
 - Index: `GIST` on `geometry`/`geography` column.
-- Compound index when filtering by attributes + bbox: `(pilot_city, geom)`.
+- Compound index when filtering by attributes + bbox: `(pilot_city, geom)` (where `pilot_city` is the catalog key).
 - **Avoid `OFFSET` pagination** on map results; use cursor/keyset on `(id)` or spatial sort key.
 - For proximity: KNN with `<->` operator and GiST.
 
 ### Cache keys for map search
 
-Normalize bbox to grid or geohash (precision 6–7 for metro search) so nearby pans hit the same cache entry:
+Normalize bbox to grid or geohash (precision 6–7 for area search) so nearby pans hit the same cache entry:
 
 ```
-restaurants:dedham-ma:u4ez:{filters=v1}
+restaurants:{pilot_city}:u4ez:{filters=v1}
 ```
 
 ### Aggregates on map
@@ -281,7 +281,7 @@ Little Scout is crowd-sourced, not verified-purchase. Trust comes from structure
 ### Web
 
 - Use browser geolocation only after explicit user action (button), not on page load.
-- Fall back to pilot-city default center (Dedham).
+- Fall back to the default map center (`DEFAULT_MAP_CENTER`) when no location is available.
 
 ### Regulatory alignment
 
@@ -327,7 +327,7 @@ Use this as a pre-launch gate. Check off in PRs or project tracking.
 - [ ] Pin clustering at low zoom
 - [ ] PostGIS GiST index (when restaurant count warrants)
 - [ ] Cursor pagination for list endpoints
-- [ ] Pilot-city bbox enforced server-side
+- [ ] Server-side bbox/radius enforced on map queries
 
 ### Trust & moderation
 

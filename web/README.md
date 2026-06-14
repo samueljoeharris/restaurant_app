@@ -1,6 +1,6 @@
 # Little Scout Web POC
 
-Browser pilot and admin build for Dedham — Firebase Auth + Cloud Run API.
+Browser pilot and admin build — Firebase Auth + Cloud Run API.
 
 **Auth docs:** Public sign-up / sign-in → [docs/WEB_AUTH.md](../docs/WEB_AUTH.md). Operator IAP → [docs/ADMIN_AUTH.md](../docs/ADMIN_AUTH.md).
 

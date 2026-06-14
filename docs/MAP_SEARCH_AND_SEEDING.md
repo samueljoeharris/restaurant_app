@@ -55,7 +55,7 @@ URL params on `/restaurants` (`q`, `filter`, `city`, `zip`, `tag`) are applied c
 `web/src/components/RestaurantMap.tsx`:
 
 - Google Maps JS via `@vis.gl/react-google-maps` (`VITE_GOOGLE_MAPS_API_KEY`)
-- Fixed center: Dedham (`DEDHAM_CENTER`)
+- Fixed center: `DEFAULT_MAP_CENTER` (42.2418, -71.1662)
 - `FitBounds` fits all pins; no viewport-based API query
 - `FocusRestaurant` pans to `?focus=<id>` from URL
 - Pin styling: `web/src/lib/mapPin.ts`, `web/src/lib/ttfTier.ts`
@@ -151,7 +151,7 @@ Defined in `api/ttf_api/places_seed.py` as `SeedArea`:
 - `label` (human-readable area name)
 - `area_key`: `"{round(lat,3)}:{round(lng,3)}:{radius_m}"` — dedupes nearby geocodes
 
-Default center: Dedham `42.2418, -71.1662` (`api/ttf_api/config.py`). Pilot city: `dedham-ma`.
+Default center: `42.2418, -71.1662` (`api/ttf_api/config.py`). Catalog key: `dedham-ma` (opaque).
 
 Results are filtered with Haversine `within_area()` — places outside the circle are skipped (`out_of_area`).
 
@@ -178,7 +178,7 @@ Initial area seed runs four Text Search queries, e.g.:
 - `"pizza near {label}"`
 - `"breakfast near {label}"`
 
-Scheduled refresh uses `RESTAURANT_SEED_REFRESH_QUERIES` (Dedham-specific defaults in config).
+Scheduled refresh uses `RESTAURANT_SEED_REFRESH_QUERIES` (configurable in config/env).
 
 ### Job kinds
 
@@ -289,7 +289,7 @@ Text filtering is instant once data is loaded. If typing feels slow, the initial
 
 ### B. Coverage gaps (feels like bad search)
 
-Users outside the default ~8 km Dedham seed circle (e.g. adjacent towns) may see few or no restaurants. That is missing catalog data, not slow filtering.
+Users outside any seeded area may see few or no restaurants. That is missing catalog data, not slow filtering. Use "Search this area" on the map to seed a new area.
 
 The map reads the full seeded catalog for `dedham-ma`; it does not trigger or scope seeding.
 
@@ -334,13 +334,12 @@ defaults to 8000 and is clamped to 1000–25000.
 
 **Behavior:**
 
-1. Validate coordinates inside the pilot metro bounding box (`pilot_bbox_*` in `config.py`). Outside → `{ status: "out_of_area" }`.
-2. Check active-restaurant density in radius (Haversine `COUNT(*)`, `coverage.count_active_within`) — if ≥ `coverage_min_restaurants`, return `{ status: "covered", restaurant_count }`, no Places spend.
-3. Enforce per-user daily area cap (`coverage_max_areas_per_day`, distinct `area_key` in last 24h) → `429`.
-4. Call `create_seed_job()` + `enqueue_seed_job()` (existing code), enqueueing only `pending` jobs.
-5. Return `{ status: "queued", job_id, reused }`.
+1. Check active-restaurant density in radius (Haversine `COUNT(*)`, `coverage.count_active_within`) — if ≥ `coverage_min_restaurants`, return `{ status: "covered", restaurant_count }`, no Places spend.
+2. Enforce per-user daily area cap (`coverage_max_areas_per_day`, distinct `area_key` in last 24h) → `429`.
+3. Call `create_seed_job()` + `enqueue_seed_job()` (existing code), enqueueing only `pending` jobs.
+4. Return `{ status: "queued", job_id, reused }`.
 
-Status is carried in the body (always `200`) so the client switches on `status`.
+Status is carried in the body (always `200`) so the client switches on `status`. No geographic bounding box restriction — search works anywhere.
 
 **Guards:**
 
@@ -350,7 +349,6 @@ Status is carried in the body (always `200`) so the client switches on `status`.
 | Reuse `area_key` 24h cooldown | `create_seed_job()` (existing) |
 | Max new areas per user per day | `coverage_max_areas_per_day` |
 | Skip when already dense | `coverage_min_restaurants` |
-| Pilot metro bbox server-side | `pilot_bbox_*` |
 
 ### Proposed client flow
 
@@ -363,7 +361,7 @@ sequenceDiagram
 
     Client->>Client: User taps "Near me" or grants location
     Client->>API: POST /v1/coverage/ensure { lat, lng }
-    API->>API: Inside pilot? Already seeded? Density OK?
+    API->>API: Already dense? Per-user cap OK?
     alt needs seed
         API->>PS: enqueue area seed job
         API-->>Client: 202 queued
@@ -388,7 +386,7 @@ sequenceDiagram
 signed-in user, only their own jobs) — distinct from the admin-only
 `/v1/restaurants/seed-jobs/{id}`.
 
-Still open: auto-show the CTA only when the viewport is sparse (today it's always available); zoom-derived radius instead of a fixed 8 km.
+The CTA only renders when the viewport has ≤ 3 restaurants (sparse check). The seed radius is derived from the actual map bounds (zoom-adaptive, clamped 1–25 km) — not a fixed 8 km.
 
 ### iOS (Phase 3)
 

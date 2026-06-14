@@ -64,7 +64,7 @@ Requires Docker Desktop on local machines. Cursor Cloud Agents install Docker vi
 ### Local stack (API + Postgres)
 
 ```bash
-./scripts/start-local.sh          # postgres + api on :8080, seeds Dedham if empty
+./scripts/start-local.sh          # postgres + api on :8080, seeds restaurants if empty
 curl http://localhost:8080/health
 cd web && npm run dev             # http://localhost:5173
 ```

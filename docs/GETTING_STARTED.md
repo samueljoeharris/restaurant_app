@@ -6,7 +6,7 @@ Actionable checklist for building the **Little Scout** restaurant app from zero.
 
 **Your setup:** Docker, GitHub, GCP/Firebase access, and Apple Developer enrollment. Xcode is only required for Phase 3 iOS work.
 
-**Pilot city:** Dedham, Massachusetts (`dedham-ma`)
+**Pilot city catalog key:** `dedham-ma` (opaque catalog key)
 
 **Live dev surfaces:** web `https://app.dev.littlescout.app`, API `https://api.dev.littlescout.app`, admin `https://admin.dev.littlescout.app` (IAP-protected).
 
@@ -95,7 +95,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [x] Firebase + Maps key — see infra README
 - [x] Scaffold `api/` (FastAPI + migrations + OpenAPI)
 - [x] `docker compose up api` — verify `/health` and `/v1/metrics`
-- [x] Seed Dedham restaurants: `docker compose run --rm api python scripts/seed_restaurants.py`
+- [x] Seed restaurants: `docker compose run --rm api python scripts/seed_restaurants.py`
 - [x] Phase B enabled in `ci.tfvars` — Terraform CI provisions Cloud SQL + Cloud Run
 - [x] GitHub variable `GCP_DEPLOY_SERVICE_ACCOUNT` = `ttf-github-deploy@ttf-restaurant-dev.iam.gserviceaccount.com`
 - [x] API CI (`.github/workflows/api.yml`) — build, push, deploy on `api/**` pushes
@@ -104,7 +104,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [ ] Test real JWT against **production** Firebase (see below)
 - [x] Terraform CI (WIF): green on `main`
 - [x] Set `GCP_DEPLOY_SERVICE_ACCOUNT` repo variable + run API workflow after Phase B apply
-- [x] Seed **production** Cloud SQL: `./api/scripts/seed_production.sh` (115 Dedham venues)
+- [x] Seed **production** Cloud SQL: `./api/scripts/seed_production.sh` (115+ venues)
 - [ ] (Optional) GitHub environment `dev` with approval gate for apply on `main`
 
 ### Phase A resources (default apply)
@@ -152,7 +152,7 @@ docker compose run --rm api python scripts/get_emulator_token.py --email pilot@t
 
 ## Phase 4 — Pilot Launch
 
-- [x] Seed restaurants for pilot metro area (Dedham — 115+ venues; exact count may change as Google Places results are refreshed)
+- [x] Seed restaurants for pilot metro area (115+ venues; exact count may change as Google Places results are refreshed)
 - [ ] Invite beta testers via TestFlight
 - [ ] Gather TTF observations from real visits
 - [ ] Iterate on aggregates and UX

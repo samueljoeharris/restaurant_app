@@ -7,7 +7,7 @@ Guidance for AI coding agents working in this repository.
 **Little Scout** — social restaurant rating app for parents and caregivers dining with children. Internal codename and GCP prefix: **TTF**.
 
 - **Flagship metric:** TTF = time from order to kid-friendly starter on the table, plus item type and quality (1–5)
-- **Status:** Phase 2 complete (API + web pilot + admin + Terraform + dev custom domains); Phase 3 iOS next; pilot city Dedham, MA (`dedham-ma`); single-metro MVP
+- **Status:** Phase 2 complete (API + web pilot + admin + Terraform + dev custom domains); Phase 3 iOS next; catalog key `dedham-ma` (opaque, no migration needed); search works anywhere
 - **Repo:** Monorepo `samueljoeharris/restaurant_app` — do not split unless explicitly requested
 
 Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.
@@ -90,6 +90,25 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 4. **Solo dev CI:** push directly to `main` — workflows do not run on pull requests ([docs/CI.md](docs/CI.md))
 5. Use path-filtered CI awareness: `api/**`, `web/**`, `infra/**`, and future `ios/**` drive which pipeline jobs run
 6. MCP servers available: GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
+
+### Agent orchestration
+
+Claude (Opus) acts as orchestrator for complex tasks. Delegate to sub-agents rather than doing everything in one context:
+
+| Task type | Sub-agent model | When to spawn |
+|-----------|----------------|---------------|
+| Codebase research (find files, trace call chains, audit for a pattern) | `sonnet` | When a question spans >3 files or requires multiple greps |
+| Quick single-file lookup | `haiku` | Symbol definition, line count, a specific value |
+| Parallel independent work | `sonnet` (×N) | When two areas of the codebase need separate changes with no shared state |
+| Design / plan review | `sonnet` | Reviewing a doc or architecture decision before committing |
+
+**Sub-agent prompting rules:**
+- Sub-agents have no conversation history — brief them completely: file paths, what was already tried, the goal
+- Tell each sub-agent whether to **research only** (read, grep, report back) or **write code** (edit files, report what changed)
+- After a sub-agent returns, the orchestrator synthesizes results and decides next steps — never blindly forward sub-agent output to the user without review
+- Use `isolation: "worktree"` in the Agent tool for sub-agents that make file changes, so failures don't dirty the working tree
+
+**Model override:** Pass `model: "sonnet"` or `model: "haiku"` in the Agent tool call. Example: research and code sub-agents both use `"sonnet"`; fast single-lookup agents use `"haiku"`.
 
 ## Pull requests
 

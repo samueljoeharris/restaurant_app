@@ -3,14 +3,14 @@
 This document describes the current Little Scout system: its components, runtime
 topology, data model, auth boundaries, and deployment flows.
 
-Little Scout is a parent-focused restaurant rating app for the Dedham,
-Massachusetts pilot. The flagship metric is TTF: how long it takes for
-kid-friendly food to reach the table, plus what arrived and how good it was.
+Little Scout is a parent-focused restaurant rating app. The flagship metric is
+TTF: how long it takes for kid-friendly food to reach the table, plus what
+arrived and how good it was.
 
 ## Current state
 
 - **Phase:** Phase 2 complete: API, infrastructure, and web POC are present.
-- **Pilot city:** `dedham-ma`.
+- **Pilot city catalog key:** `dedham-ma` (opaque catalog key; value is not changed).
 - **Primary runtime:** GCP dev project `ttf-restaurant-dev`.
 - **Current clients:** Public web POC and admin web console.
 - **Planned client:** Native iOS app in Phase 3. The `ios/` project is not yet
@@ -83,7 +83,7 @@ flowchart TB
 ### Public web app
 
 The public web app is a React 19 + Vite single-page application in `web/`.
-It is the browser pilot for Dedham and covers:
+It is the browser pilot and covers:
 
 - home, restaurant list, map, and restaurant detail routes;
 - TTF submission;
@@ -164,7 +164,7 @@ Core tables:
 
 | Table | Purpose |
 | --- | --- |
-| `restaurants` | Pilot-city restaurant records, address/location, cuisine tags, and Google link-out fields. |
+| `restaurants` | Restaurant records, address/location, cuisine tags, and Google link-out fields. |
 | `metric_definitions` | Curated parent-friendly attributes such as high chairs, noise, and stroller access. |
 | `ttf_observations` | Structured TTF submissions: elapsed time, item type, quality, daypart, party context, optional photo URL. |
 | `restaurant_attribute_ratings` | User submissions for curated shared attributes. Values are JSONB because metric types vary. |
