@@ -14,6 +14,23 @@ Native **SwiftUI + MapKit + MVVM** client for the Dedham pilot. Connects to the 
 open ios/TTF/TTF.xcodeproj
 ```
 
+**Important:** The iOS app lives on branch `cursor/ios-scaffold-9c9f` until merged to `main`. If you are on `main`, run `git checkout cursor/ios-scaffold-9c9f` first.
+
+### Troubleshooting “project is damaged”
+
+The checked-in `project.pbxproj` must use **comma-separated** UUID lists (valid Xcode plist syntax). If Xcode refuses to open the project after adding files, regenerate it:
+
+```bash
+python3 scripts/regenerate-ios-xcodeproj.py
+```
+
+Or, with [XcodeGen](https://github.com/yonaskolb/XcodeGen) installed:
+
+```bash
+brew install xcodegen
+./ios/TTF/generate-xcodeproj.sh
+```
+
 1. Select the **TTF** scheme and an iPhone simulator.
 2. Set your **Development Team** in the TTF target → Signing & Capabilities.
 3. Build and run (⌘R).

@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "42F168DA07796762D443256F"
+               BlueprintIdentifier = "9B0C46A6B42C50EF132B8E39"
                BuildableName = "Little Scout.app"
                BlueprintName = "TTF"
                ReferencedContainer = "container:TTF.xcodeproj">
@@ -42,7 +42,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "42F168DA07796762D443256F"
+            BlueprintIdentifier = "9B0C46A6B42C50EF132B8E39"
             BuildableName = "Little Scout.app"
             BlueprintName = "TTF"
             ReferencedContainer = "container:TTF.xcodeproj">
@@ -59,7 +59,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "42F168DA07796762D443256F"
+            BlueprintIdentifier = "9B0C46A6B42C50EF132B8E39"
             BuildableName = "Little Scout.app"
             BlueprintName = "TTF"
             ReferencedContainer = "container:TTF.xcodeproj">
