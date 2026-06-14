@@ -1,0 +1,31 @@
+# Xcode
+DerivedData/
+*.xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods / Carthage (future)
+Pods/
+Carthage/Build/
+
+# Fastlane (future TestFlight automation)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Firebase config (never commit secrets)
+GoogleService-Info.plist
+
+# macOS
+.DS_Store
