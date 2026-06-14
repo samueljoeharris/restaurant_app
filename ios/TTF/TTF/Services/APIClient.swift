@@ -11,7 +11,7 @@ final class APIClient {
     init(
         baseURL: URL = AppConfig.apiBaseURL,
         authService: AuthService,
-        session: URLSession = .shared
+        session: URLSession = APIClient.defaultSession
     ) {
         self.baseURL = baseURL
         self.authService = authService
@@ -84,6 +84,15 @@ final class APIClient {
     func getMe() async throws -> UserProfile {
         try await request(path: "/v1/me", authenticated: true)
     }
+
+    static let defaultSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        config.waitsForConnectivity = true
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        return URLSession(configuration: config)
+    }()
 
     // MARK: - Private
 

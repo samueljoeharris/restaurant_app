@@ -4,6 +4,7 @@ import SwiftUI
 struct TTFApp: App {
     @State private var authService = AuthService()
     @State private var apiClient: APIClient
+    @State private var restaurantStore = RestaurantStore()
 
     init() {
         let auth = AuthService()
@@ -16,6 +17,7 @@ struct TTFApp: App {
             RootTabView()
                 .environment(authService)
                 .environment(apiClient)
+                .environment(restaurantStore)
         }
     }
 }

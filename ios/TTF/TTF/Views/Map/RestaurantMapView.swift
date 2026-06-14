@@ -3,7 +3,8 @@ import SwiftUI
 
 struct RestaurantMapView: View {
     @Environment(APIClient.self) private var api
-    @State private var viewModel = MapViewModel()
+    @Environment(RestaurantStore.self) private var store
+    @State private var selectedRestaurantID: UUID?
     @State private var cameraPosition = MapCameraPosition.region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(
@@ -16,29 +17,27 @@ struct RestaurantMapView: View {
 
     var body: some View {
         Group {
-            if viewModel.isLoading && viewModel.entries.isEmpty {
-                ProgressView("Loading map…")
-            } else if let error = viewModel.errorMessage, viewModel.entries.isEmpty {
+            if store.isLoading && store.isEmpty {
+                ProgressView("Loading restaurants…")
+            } else if let error = store.errorMessage, store.isEmpty {
                 ContentUnavailableView {
                     Label("Could not load map", systemImage: "wifi.exclamationmark")
                 } description: {
                     Text(error)
                 } actions: {
                     Button("Retry") {
-                        Task { await viewModel.load(api: api) }
+                        Task { await store.refresh(api: api) }
                     }
                 }
             } else {
-                Map(position: $cameraPosition) {
-                    ForEach(viewModel.entries) { entry in
-                        Annotation(entry.name, coordinate: entry.coordinate) {
-                            NavigationLink {
-                                RestaurantDetailView(restaurantID: entry.id)
-                            } label: {
-                                MapPinView(entry: entry)
-                            }
-                            .buttonStyle(.plain)
-                        }
+                Map(position: $cameraPosition, selection: $selectedRestaurantID) {
+                    ForEach(store.mapEntries) { entry in
+                        Marker(
+                            entry.name,
+                            coordinate: entry.coordinate
+                        )
+                        .tint(TtfTierLogic.tier(for: entry.ttf).color)
+                        .tag(entry.id)
                     }
                 }
                 .mapControls {
@@ -51,38 +50,32 @@ struct RestaurantMapView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task { await viewModel.load(api: api) }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
+                if store.isRefreshing {
+                    ProgressView()
+                } else {
+                    Button {
+                        Task { await store.refresh(api: api) }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
                 }
-                .disabled(viewModel.isLoading)
             }
         }
         .safeAreaInset(edge: .bottom) {
             MapLegendView()
         }
-        .task {
-            await viewModel.load(api: api)
+        .navigationDestination(item: $selectedRestaurantID) { restaurantID in
+            RestaurantDetailView(restaurantID: restaurantID)
         }
-    }
-}
-
-private struct MapPinView: View {
-    let entry: RestaurantMapEntry
-
-    var body: some View {
-        let tier = TtfTierLogic.tier(for: entry.ttf)
-        VStack(spacing: 2) {
-            Circle()
-                .fill(tier.color)
-                .frame(width: 14, height: 14)
-                .overlay(Circle().stroke(.white, lineWidth: 2))
-            Text(entry.name)
-                .font(.caption2)
-                .lineLimit(1)
-                .padding(.horizontal, 4)
-                .background(.ultraThinMaterial, in: Capsule())
+        .overlay(alignment: .top) {
+            if !store.isEmpty, let loaded = store.lastLoadedAt {
+                Text("\(store.mapEntries.count) places · updated \(loaded.formatted(date: .omitted, time: .shortened))")
+                    .font(.caption2)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(.top, 4)
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 struct RootTabView: View {
     @Environment(AuthService.self) private var auth
     @Environment(APIClient.self) private var api
+    @Environment(RestaurantStore.self) private var store
 
     var body: some View {
         TabView {
@@ -29,6 +30,7 @@ struct RootTabView: View {
         }
         .task {
             auth.bootstrapDevTokenIfNeeded()
+            await store.load(api: api)
             if auth.isSignedIn, auth.profile == nil {
                 let viewModel = AuthViewModel()
                 await viewModel.refreshProfile(api: api, auth: auth)
