@@ -11,17 +11,7 @@ final class RestaurantStore {
     private(set) var lastLoadedAt: Date?
 
     var summaries: [RestaurantSummary] {
-        mapEntries.map { entry in
-            RestaurantSummary(
-                id: entry.id,
-                name: entry.name,
-                address: entry.address,
-                lat: entry.lat,
-                lng: entry.lng,
-                cuisineTags: entry.cuisineTags,
-                pilotCity: entry.pilotCity
-            )
-        }
+        mapEntries.map(RestaurantSummary.init(from:))
     }
 
     var isEmpty: Bool { mapEntries.isEmpty }
