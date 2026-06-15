@@ -7,6 +7,23 @@
 
 > This is a **review**, not a change set. Each finding cites the file it's about, says what's fine for the pilot today, and what will break as the catalog grows. Code snippets are illustrative and match the repo's existing idioms (`@Observable`, `async/await`, SwiftUI `Map`).
 
+> **Update — June 2026:** the P0 map→coverage feature and several P1 items below have since been implemented (iOS + backend). See **Implementation status** next.
+
+## Implementation status (June 2026)
+
+**Done — iOS**
+- **P0** — `onMapCameraChange(.onEnded)` camera tracking; `ensureCoverage` / `getCoverageJob` on `APIClient`; `CoverageModel` (job polling + latest-wins cancellation); sparse-viewport **"Search this area"** button (sign-in gated) with a radius preview circle. (`Views/Map/RestaurantMapView.swift`, `Services/CoverageModel.swift`)
+- **P1** — markers filtered to the visible region; `URLSession` switched to `.useProtocolCachePolicy` + a real `URLCache`; URLs built with `URLComponents`/`URLQueryItem`; dead `MapViewModel` / `RestaurantListViewModel` deleted; list search widened to name + address + cuisine; `summaries` cached on load; `@MainActor` hoisted to `RestaurantStore`.
+
+**Done — backend (benefits web too)**
+- `ETag` + `Cache-Control: …stale-while-revalidate` + `304 Not Modified` on the cacheable GET reads (`/v1/restaurants/map`, `/v1/restaurants`, `/v1/metrics`) via `ETagMiddleware` — so the new iOS `URLCache` (and browsers) revalidate cheaply.
+- Optional `min_lat/max_lat/min_lng/max_lng` bbox params on `/v1/restaurants/map` (all-or-nothing, backward compatible). `openapi.yaml` updated; unit tests under `api/tests/`.
+
+**Still open (future)**
+- **P2** — `MKLocalSearchCompleter` autocomplete (§4); pin clustering once counts climb (§2).
+- iOS unit-test target (coverage client `URLProtocol` stubs per §7) — not yet added; backend has `api/tests/`.
+- Wire the iOS/web map *reads* to actually send the new bbox params + add geohash/SWR server caching as the catalog grows (§1 end, §9).
+
 ---
 
 ## TL;DR scorecard

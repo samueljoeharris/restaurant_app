@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ttf_api.config import settings
 from ttf_api.db import run_migrations
+from ttf_api.http_cache import ETagMiddleware
 from ttf_api.routers import (
     admin,
     auth_info,
@@ -29,6 +30,11 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# ETag/Cache-Control on cacheable GETs. add_middleware adds to the outside of
+# the stack (last-added runs first/outermost), so register this BEFORE CORS to
+# keep CORS as the outermost layer.
+app.add_middleware(ETagMiddleware)
 
 if settings.cors_origins:
     app.add_middleware(

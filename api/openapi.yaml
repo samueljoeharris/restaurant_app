@@ -44,12 +44,17 @@ paths:
       responses:
         "200":
           description: Restaurant list
+          headers:
+            ETag: { $ref: "#/components/headers/ETag" }
+            Cache-Control: { $ref: "#/components/headers/CacheControl" }
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/RestaurantSummary"
+        "304":
+          $ref: "#/components/responses/NotModified"
     post:
       tags: [restaurants]
       summary: Add restaurant (authenticated)
@@ -57,6 +62,48 @@ paths:
       responses:
         "501":
           description: Not implemented — Firebase Auth required
+
+  /v1/restaurants/map:
+    get:
+      tags: [restaurants]
+      summary: Map entries with TTF/note/attribute counts
+      description: |
+        Returns restaurants with aggregated stats for the map view. An optional
+        viewport bounding box narrows results; all four bounds must be supplied
+        together (or none, for the whole pilot city).
+      parameters:
+        - name: min_lat
+          in: query
+          schema: { type: number, format: double, minimum: -90, maximum: 90 }
+          description: South edge of viewport (requires all four bounds)
+        - name: max_lat
+          in: query
+          schema: { type: number, format: double, minimum: -90, maximum: 90 }
+          description: North edge of viewport (requires all four bounds)
+        - name: min_lng
+          in: query
+          schema: { type: number, format: double, minimum: -180, maximum: 180 }
+          description: West edge of viewport (requires all four bounds)
+        - name: max_lng
+          in: query
+          schema: { type: number, format: double, minimum: -180, maximum: 180 }
+          description: East edge of viewport (requires all four bounds)
+      responses:
+        "200":
+          description: Map entries
+          headers:
+            ETag: { $ref: "#/components/headers/ETag" }
+            Cache-Control: { $ref: "#/components/headers/CacheControl" }
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RestaurantMapEntry"
+        "304":
+          $ref: "#/components/responses/NotModified"
+        "422":
+          description: Invalid bbox (partial bounds or min not less than max)
 
   /v1/restaurants/seed-jobs:
     post:
@@ -185,12 +232,18 @@ paths:
       summary: List MetricDefinition seed schema
       responses:
         "200":
+          description: Metric definitions
+          headers:
+            ETag: { $ref: "#/components/headers/ETag" }
+            Cache-Control: { $ref: "#/components/headers/CacheControl" }
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/MetricDefinition"
+        "304":
+          $ref: "#/components/responses/NotModified"
 
 components:
   securitySchemes:
@@ -208,6 +261,25 @@ components:
       schema:
         type: string
         format: uuid
+
+  headers:
+    ETag:
+      description: Strong validator for conditional requests (If-None-Match).
+      schema: { type: string }
+      example: '"3a7bd3e2360a3d2a..."'
+    CacheControl:
+      description: Caching policy for clients and shared caches.
+      schema: { type: string }
+      example: "public, max-age=30, stale-while-revalidate=300"
+
+  responses:
+    NotModified:
+      description: |
+        Cached copy is still fresh. Returned when If-None-Match matches the
+        current ETag. Empty body; ETag and Cache-Control are repeated.
+      headers:
+        ETag: { $ref: "#/components/headers/ETag" }
+        Cache-Control: { $ref: "#/components/headers/CacheControl" }
 
   schemas:
     HealthResponse:
@@ -252,6 +324,15 @@ components:
       properties:
         restaurant: { $ref: "#/components/schemas/RestaurantDetail" }
         ttf: { $ref: "#/components/schemas/TtfAggregate" }
+
+    RestaurantMapEntry:
+      allOf:
+        - $ref: "#/components/schemas/RestaurantSummary"
+        - type: object
+          properties:
+            ttf: { $ref: "#/components/schemas/TtfAggregate" }
+            note_count: { type: integer, default: 0 }
+            attribute_rating_count: { type: integer, default: 0 }
 
     RestaurantSeedJobRequest:
       type: object

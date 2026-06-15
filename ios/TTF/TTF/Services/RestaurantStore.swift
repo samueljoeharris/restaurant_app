@@ -3,23 +3,27 @@ import Observation
 
 /// Shared restaurant cache — one network fetch for map + list tabs.
 @Observable
+@MainActor
 final class RestaurantStore {
     private(set) var mapEntries: [RestaurantMapEntry] = []
+    /// Derived from `mapEntries` once per load (rather than recomputed on every
+    /// access) so list filtering doesn't re-map the whole catalog per keystroke.
+    private(set) var summaries: [RestaurantSummary] = []
     private(set) var isLoading = false
     private(set) var isRefreshing = false
     private(set) var errorMessage: String?
     private(set) var lastLoadedAt: Date?
-
-    var summaries: [RestaurantSummary] {
-        mapEntries.map(RestaurantSummary.init(from:))
-    }
 
     var isEmpty: Bool { mapEntries.isEmpty }
 
     func filteredSummaries(matching query: String) -> [RestaurantSummary] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return summaries }
-        return summaries.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
+        return summaries.filter { summary in
+            summary.name.localizedCaseInsensitiveContains(trimmed)
+                || summary.address.localizedCaseInsensitiveContains(trimmed)
+                || summary.cuisineTags.contains { $0.localizedCaseInsensitiveContains(trimmed) }
+        }
     }
 
     func entry(for id: UUID) -> RestaurantMapEntry? {
@@ -27,7 +31,6 @@ final class RestaurantStore {
     }
 
     /// Load once and reuse across tabs. Pass `force: true` to pull fresh data.
-    @MainActor
     func load(api: APIClient, force: Bool = false) async {
         if isLoading { return }
         if !force, !mapEntries.isEmpty { return }
@@ -50,6 +53,7 @@ final class RestaurantStore {
             async let fetch = api.listRestaurantsForMap()
             _ = await warm
             mapEntries = try await fetch
+            summaries = mapEntries.map(RestaurantSummary.init(from:))
             lastLoadedAt = Date()
         } catch {
             if mapEntries.isEmpty {
@@ -58,7 +62,6 @@ final class RestaurantStore {
         }
     }
 
-    @MainActor
     func refresh(api: APIClient) async {
         await load(api: api, force: true)
     }

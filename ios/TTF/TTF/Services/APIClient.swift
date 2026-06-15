@@ -23,12 +23,11 @@ final class APIClient {
     }
 
     func listRestaurants(query: String? = nil) async throws -> [RestaurantSummary] {
-        var path = "/v1/restaurants"
+        var items: [URLQueryItem] = []
         if let query, !query.isEmpty {
-            let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-            path += "?q=\(encoded)"
+            items.append(URLQueryItem(name: "q", value: query))
         }
-        return try await request(path: path)
+        return try await request(path: "/v1/restaurants", queryItems: items)
     }
 
     func listRestaurantsForMap() async throws -> [RestaurantMapEntry] {
@@ -85,12 +84,37 @@ final class APIClient {
         try await request(path: "/v1/me", authenticated: true)
     }
 
+    /// Ask the backend to make sure the given area is seeded. Auth-gated and
+    /// rate-limited server-side (density check, daily cap, 24h area cooldown).
+    func ensureCoverage(lat: Double, lng: Double, radiusM: Int) async throws -> CoverageEnsureResponse {
+        try await request(
+            path: "/v1/coverage/ensure",
+            method: "POST",
+            body: CoverageEnsureRequest(lat: lat, lng: lng, radiusM: radiusM),
+            authenticated: true
+        )
+    }
+
+    /// Poll the status of a coverage seed job created by `ensureCoverage`.
+    func getCoverageJob(id: UUID) async throws -> CoverageJobStatus {
+        try await request(
+            path: "/v1/coverage/jobs/\(id.uuidString.lowercased())",
+            authenticated: true
+        )
+    }
+
     static let defaultSession: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
         config.waitsForConnectivity = true
-        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        // Honor the server's ETag / Cache-Control (304 Not Modified) so repeat
+        // map/list reads come from cache instead of refetching the full payload.
+        config.requestCachePolicy = .useProtocolCachePolicy
+        config.urlCache = URLCache(
+            memoryCapacity: 8 * 1024 * 1024,
+            diskCapacity: 64 * 1024 * 1024
+        )
         return URLSession(configuration: config)
     }()
 
@@ -113,10 +137,18 @@ final class APIClient {
     private func request<T: Decodable>(
         path: String,
         method: String = "GET",
+        queryItems: [URLQueryItem] = [],
         body: (any Encodable)? = nil,
         authenticated: Bool = false
     ) async throws -> T {
-        guard let url = URL(string: path, relativeTo: baseURL) else {
+        guard let resolved = URL(string: path, relativeTo: baseURL),
+              var components = URLComponents(url: resolved, resolvingAgainstBaseURL: true) else {
+            throw APIError.invalidURL
+        }
+        if !queryItems.isEmpty {
+            components.queryItems = queryItems
+        }
+        guard let url = components.url else {
             throw APIError.invalidURL
         }
 

@@ -10,6 +10,7 @@ from ttf_api.auth import AuthUser, require_admin
 from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
+from ttf_api.map_query import build_bbox_filter
 from ttf_api.places_seed import PlacesSeedError
 from ttf_api.pubsub_seed import enqueue_seed_job
 from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area
@@ -128,9 +129,19 @@ def list_restaurants(
 
 
 @router.get("/map", response_model=list[RestaurantMapEntry])
-def list_restaurants_for_map() -> list[RestaurantMapEntry]:
+def list_restaurants_for_map(
+    min_lat: float | None = Query(None, ge=-90, le=90),
+    max_lat: float | None = Query(None, ge=-90, le=90),
+    min_lng: float | None = Query(None, ge=-180, le=180),
+    max_lng: float | None = Query(None, ge=-180, le=180),
+) -> list[RestaurantMapEntry]:
     pilot = settings.pilot_city
-    sql = """
+    # Optional viewport bbox (all-or-nothing); empty fragment when omitted.
+    try:
+        bbox_sql, bbox_params = build_bbox_filter(min_lat, max_lat, min_lng, max_lng)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    sql = f"""
         SELECT
             r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
             COALESCE(t.sample_size, 0)::int AS sample_size,
@@ -159,11 +170,13 @@ def list_restaurants_for_map() -> list[RestaurantMapEntry]:
             FROM restaurant_attribute_ratings
             WHERE restaurant_id = r.id
         ) a ON true
-        WHERE r.pilot_city = %s AND r.status = 'active'
+        WHERE r.pilot_city = %s AND r.status = 'active'{bbox_sql}
         ORDER BY r.name
     """
+    params: list[object] = [pilot]
+    params.extend(bbox_params)
     with get_conn() as conn:
-        rows = conn.execute(sql, (pilot,)).fetchall()
+        rows = conn.execute(sql, params).fetchall()
 
     results: list[RestaurantMapEntry] = []
     for row in rows:

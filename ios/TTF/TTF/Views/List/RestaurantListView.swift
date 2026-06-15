@@ -41,7 +41,7 @@ struct RestaurantListView: View {
             }
         }
         .navigationTitle("Restaurants")
-        .searchable(text: $searchQuery, prompt: "Search by name")
+        .searchable(text: $searchQuery, prompt: "Search name, address, or cuisine")
         .overlay {
             if !store.isEmpty, displayedRestaurants.isEmpty {
                 ContentUnavailableView.search(text: searchQuery)
