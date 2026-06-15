@@ -90,7 +90,6 @@ final class APIClient {
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
         config.waitsForConnectivity = true
-        config.requestCachePolicy = .reloadIgnoringLocalCacheData
         return URLSession(configuration: config)
     }()
 
