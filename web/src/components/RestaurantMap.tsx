@@ -114,6 +114,30 @@ function FocusRestaurant({
   return null;
 }
 
+function PanToLocation({ location }: { location: { lat: number; lng: number } | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !location) return;
+    map.panTo(location);
+    const zoom = map.getZoom() ?? 13;
+    if (zoom < 14) map.setZoom(14);
+  }, [map, location]);
+
+  return null;
+}
+
+function UserLocationMarker({ location }: { location: { lat: number; lng: number } }) {
+  return (
+    <AdvancedMarker position={location} zIndex={1000}>
+      <div className="map-user-location" aria-hidden="true">
+        <span className="map-user-location__dot" />
+        <span className="map-user-location__pulse" />
+      </div>
+    </AdvancedMarker>
+  );
+}
+
 // Seed radius is derived from the viewport (clamped to the API's accepted range).
 const MIN_SEARCH_RADIUS_M = 1000;
 const MAX_SEARCH_RADIUS_M = 25000;
@@ -151,9 +175,7 @@ function countWithinBounds(
 }
 
 /**
- * Shows a "Search this area" button + a viewport-sized radius circle, but only
- * when the current view is sparse. The circle previews exactly what the button
- * will seed (center + zoom-derived radius); panning never costs API calls.
+ * Floating “Search this area” pill when the viewport is sparse — no radius circle overlay.
  */
 function SearchArea({
   restaurants,
@@ -165,10 +187,8 @@ function SearchArea({
   onSearchArea: (lat: number, lng: number, radiusM: number) => void;
 }) {
   const map = useMap();
-  const maps = useMapsLibrary("maps");
   const [sparse, setSparse] = useState(false);
 
-  // Recompute sparsity whenever the camera settles or the dataset changes.
   useEffect(() => {
     if (!map) return;
     const update = () =>
@@ -177,32 +197,6 @@ function SearchArea({
     update();
     return () => listener.remove();
   }, [map, restaurants]);
-
-  // Draw the radius circle only while sparse; keep it glued to the viewport.
-  useEffect(() => {
-    if (!map || !maps || !sparse) return;
-    const circle = new maps.Circle({
-      map,
-      center: map.getCenter() ?? DEFAULT_MAP_CENTER,
-      radius: viewportRadiusM(map),
-      clickable: false,
-      strokeColor: "#2563eb",
-      strokeOpacity: 0.85,
-      strokeWeight: 2,
-      fillColor: "#2563eb",
-      fillOpacity: 0.07,
-    });
-    const sync = () => {
-      const center = map.getCenter();
-      if (center) circle.setCenter(center);
-      circle.setRadius(viewportRadiusM(map));
-    };
-    const listener = map.addListener("bounds_changed", sync);
-    return () => {
-      listener.remove();
-      circle.setMap(null);
-    };
-  }, [map, maps, sparse]);
 
   if (!sparse) return null;
 
@@ -219,7 +213,15 @@ function SearchArea({
           if (center) onSearchArea(center.lat(), center.lng(), viewportRadiusM(map));
         }}
       >
-        {busy ? "Searching…" : "Search this area"}
+        <span className="map-search-area__label">
+          <svg className="map-search-area__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z"
+            />
+          </svg>
+          {busy ? "Searching…" : "Search this area"}
+        </span>
       </Button>
     </div>
   );
@@ -467,6 +469,7 @@ export function RestaurantMap({
   loading,
   error,
   searchBusy = false,
+  userLocation = null,
   onSearchArea,
   onViewportChange,
 }: {
@@ -475,6 +478,7 @@ export function RestaurantMap({
   loading: boolean;
   error: string | null;
   searchBusy?: boolean;
+  userLocation?: { lat: number; lng: number } | null;
   onSearchArea?: (lat: number, lng: number, radiusM: number) => void;
   onViewportChange?: (bbox: {
     minLat: number;
@@ -521,8 +525,10 @@ export function RestaurantMap({
           mapId="DEMO_MAP_ID"
           className="map-canvas"
         >
-          <FitBounds restaurants={restaurants} skip={!!focusId} />
+          <FitBounds restaurants={restaurants} skip={!!focusId || !!userLocation} />
           <FocusRestaurant restaurants={restaurants} focusId={focusId} />
+          <PanToLocation location={userLocation} />
+          {userLocation && <UserLocationMarker location={userLocation} />}
           {onViewportChange && (
             <ViewportWatcher onViewportChange={onViewportChange} />
           )}

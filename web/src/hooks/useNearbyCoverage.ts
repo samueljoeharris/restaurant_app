@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiError, api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { geolocationErrorMessage, getCurrentPosition } from "../lib/geolocation";
 
 export type CoverageState =
   | { status: "idle" }
@@ -13,20 +14,6 @@ export type CoverageState =
 
 const POLL_INTERVAL_MS = 4_000;
 const POLL_TIMEOUT_MS = 90_000;
-
-function getCurrentPosition(): Promise<GeolocationPosition> {
-  return new Promise((resolve, reject) => {
-    if (!("geolocation" in navigator)) {
-      reject(new Error("Location isn't available in this browser."));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: false,
-      timeout: 10_000,
-      maximumAge: 60_000,
-    });
-  });
-}
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -43,7 +30,6 @@ function seededMessage(insertedCount: number): string {
 export function useNearbyCoverage(onComplete?: () => void) {
   const { idToken } = useAuth();
   const [state, setState] = useState<CoverageState>({ status: "idle" });
-  // Guards against setState / further polling after the component unmounts.
   const activeRef = useRef(true);
   useEffect(() => {
     activeRef.current = true;
@@ -62,11 +48,9 @@ export function useNearbyCoverage(onComplete?: () => void) {
         try {
           job = await api.getCoverageJob(jobId, token);
         } catch {
-          continue; // transient error — keep polling until the deadline
+          continue;
         }
         if (!activeRef.current) return;
-        // "skipped" means the area was already covered by the time the worker
-        // ran — terminal, treat the same as success.
         if (job.status === "succeeded" || job.status === "skipped") {
           setState({ status: "covered", message: seededMessage(job.inserted_count) });
           onComplete?.();
@@ -79,9 +63,7 @@ export function useNearbyCoverage(onComplete?: () => void) {
           });
           return;
         }
-        // pending / running → keep waiting
       }
-      // Timed out while still running; refresh anyway in case it just landed.
       if (activeRef.current) {
         setState({
           status: "seeding",
@@ -98,7 +80,7 @@ export function useNearbyCoverage(onComplete?: () => void) {
       if (!idToken) {
         setState({
           status: "error",
-          message: "Sign in to improve restaurant coverage in this area.",
+          message: "Sign in to find more restaurants in this area.",
         });
         return;
       }
@@ -112,7 +94,7 @@ export function useNearbyCoverage(onComplete?: () => void) {
         if (res.status === "queued" && res.job_id) {
           setState({
             status: "seeding",
-            message: "Finding restaurants here… this can take a moment.",
+            message: "Finding restaurants here…",
           });
           await pollJob(res.job_id, idToken);
         } else {
@@ -120,6 +102,7 @@ export function useNearbyCoverage(onComplete?: () => void) {
             status: "covered",
             message: `You're covered — ${res.restaurant_count} restaurants nearby.`,
           });
+          onComplete?.();
         }
       } catch (err) {
         if (!activeRef.current) return;
@@ -134,41 +117,51 @@ export function useNearbyCoverage(onComplete?: () => void) {
         });
       }
     },
-    [idToken, pollJob],
+    [idToken, pollJob, onComplete],
+  );
+
+  /** Center the map on the device location; optionally seed when signed in. */
+  const locateNearMe = useCallback(
+    async (opts?: { seed?: boolean }) => {
+      setState({ status: "locating" });
+      try {
+        const position = await getCurrentPosition();
+        if (!activeRef.current) return null;
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        if (opts?.seed !== false && idToken) {
+          await ensureAt(lat, lng);
+        } else {
+          setState({ status: "idle" });
+        }
+        return { lat, lng };
+      } catch (err) {
+        if (!activeRef.current) return null;
+        setState({
+          status: "error",
+          message: geolocationErrorMessage(err),
+        });
+        return null;
+      }
+    },
+    [idToken, ensureAt],
   );
 
   const requestNearMe = useCallback(async () => {
     if (!idToken) {
       setState({
         status: "error",
-        message: "Sign in to improve restaurant coverage near you.",
+        message: "Sign in to find more restaurants near you.",
       });
-      return;
+      return null;
     }
-
-    setState({ status: "locating" });
-    let position: GeolocationPosition;
-    try {
-      position = await getCurrentPosition();
-    } catch (err) {
-      const denied = typeof err === "object" && err !== null && "code" in err;
-      setState({
-        status: "error",
-        message: denied
-          ? "Location permission denied or unavailable."
-          : err instanceof Error
-            ? err.message
-            : "Could not get your location.",
-      });
-      return;
-    }
-    if (!activeRef.current) return;
-    await ensureAt(position.coords.latitude, position.coords.longitude);
-  }, [idToken, ensureAt]);
+    return locateNearMe({ seed: true });
+  }, [idToken, locateNearMe]);
 
   return {
     state,
     requestNearMe,
+    locateNearMe,
     ensureAt,
     signedIn: Boolean(idToken),
   };

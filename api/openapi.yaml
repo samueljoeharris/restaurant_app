@@ -543,6 +543,16 @@ components:
           type: string
           nullable: true
           description: Supporting text (address or region)
+        lat:
+          type: number
+          format: double
+          nullable: true
+          description: Restaurant latitude (set when type=restaurant)
+        lng:
+          type: number
+          format: double
+          nullable: true
+          description: Restaurant longitude (set when type=restaurant)
 
     AutocompleteResponse:
       type: object

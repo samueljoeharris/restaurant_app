@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { api } from "../api/client";
+import { useAuth } from "../auth/useAuth";
 import { PlaceSearchBox } from "../components/PlaceSearchBox";
 import { RestaurantListCard } from "../components/RestaurantListCard";
 import { Badge } from "../components/ui/Badge";
@@ -9,7 +10,9 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { useAreaCoverage } from "../hooks/useAreaCoverage";
+import { usePlaceSearchHandlers } from "../hooks/usePlaceSearchHandlers";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import { DEFAULT_SEARCH_RADIUS_M } from "../lib/searchNavigation";
 import {
   buildExploreFacets,
   groupRestaurantsByCity,
@@ -18,7 +21,7 @@ import {
   matchesScoutFilter,
   type ScoutFilter,
 } from "../lib/exploreFacets";
-import type { PlaceResolveResponse, RestaurantMapEntry } from "../types";
+import type { RestaurantMapEntry } from "../types";
 
 const scoutFilterLabels: Record<ScoutFilter, string> = {
   all: "All",
@@ -84,18 +87,23 @@ function BrowseChip({
 
 export function RestaurantListPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { idToken } = useAuth();
+  const { handleSelectPlace, handleSelectRestaurant } = usePlaceSearchHandlers();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Radius-search params (new)
+  // Radius-search params
   const paramLat = searchParams.get("lat");
   const paramLng = searchParams.get("lng");
   const paramRadius = searchParams.get("radius");
   const paramPlace = searchParams.get("place");
+  const paramPlaceId = searchParams.get("place_id");
 
   const radiusLat = paramLat ? parseFloat(paramLat) : null;
   const radiusLng = paramLng ? parseFloat(paramLng) : null;
-  const radiusM = paramRadius ? parseInt(paramRadius, 10) : 8000;
+  const radiusM = paramRadius ? parseInt(paramRadius, 10) : DEFAULT_SEARCH_RADIUS_M;
   const isRadiusMode = radiusLat !== null && radiusLng !== null && !isNaN(radiusLat) && !isNaN(radiusLng);
+  const isPendingPlaceMode = Boolean(paramPlaceId && !isRadiusMode);
 
   // Existing explore params
   const activeFilter = getScoutFilter(searchParams.get("filter"));
@@ -110,10 +118,12 @@ export function RestaurantListPage() {
 
   // ——— Load: radius mode vs default mode ———
   const loadRadiusResults = useCallback(
-    (lat: number, lng: number, radius: number) => {
+    (lat: number, lng: number, radius: number, opts?: { silent?: boolean }) => {
       let cancelled = false;
-      setLoading(true);
-      setError(null);
+      if (!opts?.silent) {
+        setLoading(true);
+        setError(null);
+      }
       api
         .searchRestaurants({ lat, lng, radius_m: radius })
         .then((data) => {
@@ -156,12 +166,45 @@ export function RestaurantListPage() {
   const { state: coverageState, ensureArea } = useAreaCoverage(
     useCallback(() => {
       if (isRadiusMode && radiusLat !== null && radiusLng !== null) {
-        loadRadiusResults(radiusLat, radiusLng, radiusM);
+        loadRadiusResults(radiusLat, radiusLng, radiusM, { silent: true });
       }
     }, [isRadiusMode, radiusLat, radiusLng, radiusM, loadRadiusResults]),
   );
 
-  // Initial load & reload on param change
+  // Pending place: navigate immediately, resolve coords on this page, then show radius results.
+  useEffect(() => {
+    if (!isPendingPlaceMode || !paramPlaceId || !idToken) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      const sessionToken =
+        (location.state as { placeSessionToken?: string } | null)?.placeSessionToken ??
+        crypto.randomUUID();
+
+      api
+        .resolvePlace(paramPlaceId, sessionToken, idToken)
+        .then((resolved) => {
+          if (cancelled) return;
+          const params = new URLSearchParams();
+          params.set("lat", String(resolved.lat));
+          params.set("lng", String(resolved.lng));
+          params.set("radius", String(radiusM));
+          params.set("place", resolved.label);
+          navigate(`/restaurants?${params.toString()}`, { replace: true });
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setError(err instanceof Error ? err.message : "Could not resolve place");
+          }
+        });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [isPendingPlaceMode, paramPlaceId, idToken, location.state, navigate, radiusM]);
+
+  // Radius mode: show catalog hits immediately, seed more venues in the background.
   useEffect(() => {
     if (!(isRadiusMode && radiusLat !== null && radiusLng !== null)) return;
     let cancel: (() => void) | undefined;
@@ -179,25 +222,11 @@ export function RestaurantListPage() {
   // Default mode: refresh on navigate
   useRefreshOnNavigate(
     useCallback(() => {
-      if (!isRadiusMode) return loadAllRestaurants();
+      if (!isRadiusMode && !isPendingPlaceMode) return loadAllRestaurants();
       return () => {};
-    }, [isRadiusMode, loadAllRestaurants]),
-    [isRadiusMode, loadAllRestaurants],
+    }, [isRadiusMode, isPendingPlaceMode, loadAllRestaurants]),
+    [isRadiusMode, isPendingPlaceMode, loadAllRestaurants],
   );
-
-  // ——— PlaceSearchBox callbacks ———
-  function handleSelectPlace(resolved: PlaceResolveResponse) {
-    const params = new URLSearchParams();
-    params.set("lat", String(resolved.lat));
-    params.set("lng", String(resolved.lng));
-    params.set("radius", "8000");
-    params.set("place", resolved.label);
-    navigate(`/restaurants?${params.toString()}`);
-  }
-
-  function handleSelectRestaurant(id: string) {
-    navigate(`/restaurants/${id}`);
-  }
 
   function clearRadiusMode() {
     navigate("/restaurants");
@@ -233,6 +262,9 @@ export function RestaurantListPage() {
   );
 
   const subtitle = useMemo(() => {
+    if (isPendingPlaceMode) {
+      return paramPlace ? `Near ${paramPlace} · locating area` : "Locating area";
+    }
     if (isRadiusMode) {
       const km = Math.round(radiusM / 1000);
       return paramPlace ? `Near ${paramPlace} · ${km} km` : `${km} km radius`;
@@ -245,9 +277,10 @@ export function RestaurantListPage() {
     }
     parts.push(`${restaurants.length} places`);
     return parts.join(" · ");
-  }, [isRadiusMode, radiusM, paramPlace, browseCity, browseZip, facets.cities.length, restaurants.length]);
+  }, [isPendingPlaceMode, isRadiusMode, radiusM, paramPlace, browseCity, browseZip, facets.cities.length, restaurants.length]);
 
   const summaryText = useMemo(() => {
+    if (isPendingPlaceMode) return "Locating area…";
     if (isRadiusMode) {
       if (coverageState.status === "seeding") return "finding more nearby…";
       return `${formatPlaceCount(filtered.length)} sorted by distance`;
@@ -260,7 +293,7 @@ export function RestaurantListPage() {
     if (query.trim()) bits.push(`"${query.trim()}"`);
     if (bits.length > 0) return `Matching ${bits.join(" · ")}`;
     return `${formatPlaceCount(withContributions)} with parent data`;
-  }, [isRadiusMode, coverageState.status, filtered.length, activeFilter, browseTag, browseCity, browseZip, query, withContributions]);
+  }, [isPendingPlaceMode, isRadiusMode, coverageState.status, filtered.length, activeFilter, browseTag, browseCity, browseZip, query, withContributions]);
 
   function clearBrowseParam(key: "city" | "zip" | "tag") {
     const params = new URLSearchParams(searchParams);
@@ -268,7 +301,8 @@ export function RestaurantListPage() {
     setSearchParams(params, { replace: true });
   }
 
-  const seeding = isRadiusMode && coverageState.status === "seeding";
+  const seeding = (isRadiusMode || isPendingPlaceMode) && coverageState.status === "seeding";
+  const showListLoading = loading || isPendingPlaceMode;
 
   return (
     <Page
@@ -282,13 +316,17 @@ export function RestaurantListPage() {
         placeholder="Search by name, place, or neighborhood…"
       />
 
-      {/* Radius mode: banner + optional seeding indicator */}
-      {isRadiusMode && (
+      {/* Radius / pending-place banner */}
+      {(isRadiusMode || isPendingPlaceMode) && (
         <div className="radius-banner">
           <span className="radius-banner__text">
             {paramPlace
-              ? `Places near ${paramPlace} · within ${Math.round(radiusM / 1000)} km`
-              : `Within ${Math.round(radiusM / 1000)} km`}
+              ? isPendingPlaceMode
+                ? `Places near ${paramPlace} · locating area`
+                : `Places near ${paramPlace} · within ${Math.round(radiusM / 1000)} km`
+              : isPendingPlaceMode
+                ? "Locating area…"
+                : `Within ${Math.round(radiusM / 1000)} km`}
           </span>
           {seeding && (
             <span className="radius-banner__seeding">finding more nearby…</span>
@@ -304,7 +342,7 @@ export function RestaurantListPage() {
       )}
 
       {/* Default mode: facet chips */}
-      {!isRadiusMode && !loading && restaurants.length > 0 && (
+      {!isRadiusMode && !isPendingPlaceMode && !showListLoading && restaurants.length > 0 && (
         <>
           {facets.cities.length > 0 && (
             <nav className="explore-filters" aria-label="Browse by town">
@@ -363,7 +401,7 @@ export function RestaurantListPage() {
       )}
 
       {/* Scout quality filters — only in default mode */}
-      {!isRadiusMode && (
+      {!isRadiusMode && !isPendingPlaceMode && (
         <nav className="explore-filters explore-filters--scout" aria-label="Scout quality filters">
           {(Object.keys(scoutFilterLabels) as ScoutFilter[]).map((filter) => (
             <Link
@@ -377,7 +415,7 @@ export function RestaurantListPage() {
         </nav>
       )}
 
-      {!isRadiusMode && (browseCity || browseZip || browseTag) && (
+      {!isRadiusMode && !isPendingPlaceMode && (browseCity || browseZip || browseTag) && (
         <div className="explore-active-browse">
           {browseCity && (
             <button type="button" className="explore-active-browse__chip" onClick={() => clearBrowseParam("city")}>
@@ -397,17 +435,17 @@ export function RestaurantListPage() {
         </div>
       )}
 
-      {!loading && !error && (
+      {!showListLoading && !error && (
         <div className="explore-summary">
           <Badge tone="brand">{formatPlaceCount(filtered.length)}</Badge>
           <span className="muted small">{summaryText}</span>
         </div>
       )}
 
-      {loading && <SkeletonList count={6} />}
+      {showListLoading && <SkeletonList count={6} />}
       {error && <p className="error">{error}</p>}
 
-      {!loading && !error && filtered.length > 0 && grouped && (
+      {!showListLoading && !error && filtered.length > 0 && grouped && (
         <div className="explore-groups">
           {grouped.map(({ city, items }) => (
             <section key={city} className="explore-group">
@@ -427,7 +465,7 @@ export function RestaurantListPage() {
         </div>
       )}
 
-      {!loading && !error && filtered.length > 0 && !grouped && (
+      {!showListLoading && !error && filtered.length > 0 && !grouped && (
         <ul className="list">
           {filtered.map((r) => (
             <li key={r.id}>
@@ -437,24 +475,24 @@ export function RestaurantListPage() {
         </ul>
       )}
 
-      {!loading && !error && filtered.length === 0 && restaurants.length > 0 && (
+      {!showListLoading && !error && filtered.length === 0 && restaurants.length > 0 && (
         <EmptyState
           emoji="🔎"
           title="No matches"
           description={
-            isRadiusMode
+            isRadiusMode || isPendingPlaceMode
               ? "No restaurants found in this area. Try a larger radius."
               : "Try a different search term, town, ZIP, or filter."
           }
         />
       )}
 
-      {!loading && !error && restaurants.length === 0 && (
+      {!showListLoading && !error && restaurants.length === 0 && (
         <EmptyState
           emoji="🔎"
           title="No restaurants yet"
           description={
-            isRadiusMode
+            isRadiusMode || isPendingPlaceMode
               ? "No restaurants found in this area yet. Check back soon — we may still be scouting it."
               : "The catalog is still filling in for this area. Check back soon."
           }

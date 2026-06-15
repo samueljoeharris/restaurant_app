@@ -4,11 +4,11 @@ struct RestaurantListView: View {
     @Environment(APIClient.self) private var api
     @Environment(RestaurantStore.self) private var store
 
+    @Bindable var placeSearchVM: PlaceSearchViewModel
     @State private var searchText = ""
-    @State private var placeSearchVM: PlaceSearchViewModel?
 
     private var isAreaMode: Bool {
-        placeSearchVM?.areaLabel != nil
+        placeSearchVM.areaLabel != nil
     }
 
     var body: some View {
@@ -29,31 +29,25 @@ struct RestaurantListView: View {
                 mainContent
             }
         }
-        .navigationTitle("Restaurants")
-        .searchable(text: $searchText, prompt: "Search places or restaurants")
+        .navigationTitle("Explore")
+        .searchable(text: $searchText, prompt: "Search by name, place, or neighborhood")
         .onChange(of: searchText) { _, newValue in
-            placeSearchVM?.queryChanged(newValue)
-        }
-        .onAppear {
-            if placeSearchVM == nil {
-                placeSearchVM = PlaceSearchViewModel(api: api)
-            }
+            placeSearchVM.queryChanged(newValue)
         }
         .overlay(alignment: .top) {
-            if let vm = placeSearchVM, !vm.suggestions.isEmpty {
-                PlaceSearchSuggestionsView(suggestions: vm.suggestions) { suggestion in
-                    vm.select(suggestion)
-                    searchText = ""
+            if !placeSearchVM.suggestions.isEmpty {
+                PlaceSearchSuggestionsView(suggestions: placeSearchVM.suggestions) { suggestion in
+                    placeSearchVM.select(suggestion)
+                    searchText = suggestion.primaryText
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 4)
                 .zIndex(1)
             }
         }
-        // Programmatic navigation when a restaurant suggestion is picked.
         .navigationDestination(item: Binding(
-            get: { placeSearchVM?.selectedRestaurantID },
-            set: { _ in placeSearchVM?.clearSelectedRestaurant() }
+            get: { placeSearchVM.selectedRestaurantID },
+            set: { _ in placeSearchVM.clearSelectedRestaurant() }
         )) { restaurantID in
             RestaurantDetailView(restaurantID: restaurantID)
         }
@@ -61,40 +55,40 @@ struct RestaurantListView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        if let vm = placeSearchVM, let label = vm.areaLabel {
-            areaSearchContent(vm: vm, label: label)
+        if let label = placeSearchVM.areaLabel {
+            areaSearchContent(label: label)
         } else {
             defaultListContent
         }
     }
 
-    // MARK: - Area mode (place selected)
-
     @ViewBuilder
-    private func areaSearchContent(vm: PlaceSearchViewModel, label: String) -> some View {
+    private func areaSearchContent(label: String) -> some View {
         let radiusKm = 8
         List {
-            // Context banner
             Section {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Near \(label)")
+                        Text(placeSearchVM.isPendingPlaceMode ? "Places near \(label)" : "Near \(label)")
                             .font(.subheadline.bold())
-                        Text("Within \(radiusKm) km")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Text(
+                            placeSearchVM.isPendingPlaceMode
+                                ? "Locating area…"
+                                : "Within \(radiusKm) km"
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Button("Clear") {
-                        vm.clearAreaSearch()
+                        placeSearchVM.clearAreaSearch()
                         searchText = ""
                     }
                     .font(.subheadline)
-                    .foregroundStyle(.accentColor)
                 }
                 .padding(.vertical, 4)
 
-                if vm.seedState == .seeding {
+                if placeSearchVM.seedState == .seeding {
                     HStack(spacing: 8) {
                         ProgressView()
                             .scaleEffect(0.8)
@@ -105,8 +99,16 @@ struct RestaurantListView: View {
                 }
             }
 
-            // Radius results
-            if vm.isSearching && vm.radiusResults.isEmpty {
+            if placeSearchVM.isPendingPlaceMode {
+                Section {
+                    HStack {
+                        Spacer()
+                        ProgressView("Locating area…")
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+            } else if placeSearchVM.isSearching && placeSearchVM.radiusResults.isEmpty {
                 Section {
                     HStack {
                         Spacer()
@@ -115,7 +117,7 @@ struct RestaurantListView: View {
                     }
                     .padding(.vertical, 8)
                 }
-            } else if vm.radiusResults.isEmpty {
+            } else if placeSearchVM.radiusResults.isEmpty {
                 Section {
                     ContentUnavailableView(
                         "No restaurants found",
@@ -125,7 +127,7 @@ struct RestaurantListView: View {
                 }
             } else {
                 Section {
-                    ForEach(vm.radiusResults) { entry in
+                    ForEach(placeSearchVM.radiusResults) { entry in
                         let summary = RestaurantSummary(from: entry)
                         NavigationLink {
                             RestaurantDetailView(restaurantID: entry.id)
@@ -138,8 +140,6 @@ struct RestaurantListView: View {
         }
         .listStyle(.plain)
     }
-
-    // MARK: - Default mode (store-backed list)
 
     @ViewBuilder
     private var defaultListContent: some View {
@@ -169,8 +169,6 @@ struct RestaurantListView: View {
         }
     }
 }
-
-// MARK: - Restaurant row
 
 private struct RestaurantRowView: View {
     let restaurant: RestaurantSummary

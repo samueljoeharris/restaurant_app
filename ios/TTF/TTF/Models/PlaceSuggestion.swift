@@ -5,7 +5,9 @@ struct PlaceSuggestion: Codable, Identifiable, Hashable {
     let placeId: String?
     let restaurantId: String?
     let primaryText: String
-    let secondaryText: String
+    let secondaryText: String?
+    let lat: Double?
+    let lng: Double?
 
     /// Stable identity for SwiftUI lists.
     var id: String {
@@ -20,6 +22,8 @@ struct PlaceSuggestion: Codable, Identifiable, Hashable {
         case restaurantId = "restaurant_id"
         case primaryText = "primary_text"
         case secondaryText = "secondary_text"
+        case lat
+        case lng
     }
 }
 

@@ -38,7 +38,7 @@ struct PlaceSearchSuggestionsView: View {
                     .font(.body)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
-                Text(suggestion.secondaryText)
+                Text(suggestion.secondaryText ?? "")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

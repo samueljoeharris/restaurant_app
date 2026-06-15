@@ -455,6 +455,8 @@ class PlaceSuggestion(BaseModel):
     restaurant_id: UUID | None = None
     primary_text: str
     secondary_text: str | None = None
+    lat: float | None = None
+    lng: float | None = None
 
 
 class AutocompleteResponse(BaseModel):

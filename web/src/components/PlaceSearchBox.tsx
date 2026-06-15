@@ -1,13 +1,11 @@
 import { useEffect, useId, useRef, useState } from "react";
 
-import { api } from "../api/client";
-import { useAuth } from "../auth/useAuth";
 import { usePlacesAutocomplete } from "../hooks/usePlacesAutocomplete";
-import type { PlaceResolveResponse } from "../types";
+import type { PlaceSearchPending, RestaurantSearchSelection } from "../lib/searchNavigation";
 
 interface PlaceSearchBoxProps {
-  onSelectPlace: (resolved: PlaceResolveResponse) => void;
-  onSelectRestaurant: (id: string) => void;
+  onSelectPlace: (pending: PlaceSearchPending) => void;
+  onSelectRestaurant: (selection: RestaurantSearchSelection) => void;
   placeholder?: string;
   lat?: number;
   lng?: number;
@@ -20,11 +18,8 @@ export function PlaceSearchBox({
   lat,
   lng,
 }: PlaceSearchBoxProps) {
-  const { idToken } = useAuth();
   const [inputValue, setInputValue] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [resolving, setResolving] = useState(false);
-  const [resolveError, setResolveError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const menuId = useId();
@@ -38,45 +33,42 @@ export function PlaceSearchBox({
     const val = e.target.value;
     setInputValue(val);
     setActiveIndex(-1);
-    setResolveError(null);
     search(val);
   }
 
   function clearInput() {
     setInputValue("");
     setActiveIndex(-1);
-    setResolveError(null);
     search("");
     inputRef.current?.focus();
   }
 
-  async function selectSuggestion(index: number) {
+  function selectSuggestion(index: number) {
     const s = suggestions[index];
     if (!s) return;
 
     if (s.type === "restaurant" && s.restaurant_id) {
       setInputValue(s.primary_text);
-      search(""); // collapse dropdown
-      onSelectRestaurant(s.restaurant_id);
+      search("");
+      onSelectRestaurant({
+        restaurant_id: s.restaurant_id,
+        lat: s.lat,
+        lng: s.lng,
+        name: s.primary_text,
+      });
       return;
     }
 
     if (s.type === "place" && s.place_id) {
-      if (!idToken) return; // shouldn't happen: autocomplete is sign-in gated
       setInputValue(s.primary_text);
-      search(""); // collapse dropdown
-      setResolving(true);
-      setResolveError(null);
-      try {
-        const resolved = await api.resolvePlace(s.place_id, sessionToken.current, idToken);
-        resetSessionToken();
-        onSelectPlace(resolved);
-      } catch (err) {
-        setResolveError(err instanceof Error ? err.message : "Could not resolve place");
-        setInputValue(""); // let user retry
-      } finally {
-        setResolving(false);
-      }
+      search("");
+      const token = sessionToken.current;
+      resetSessionToken();
+      onSelectPlace({
+        place_id: s.place_id,
+        label: s.primary_text,
+        session_token: token,
+      });
     }
   }
 
@@ -92,16 +84,15 @@ export function PlaceSearchBox({
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex >= 0) {
-        void selectSuggestion(activeIndex);
+        selectSuggestion(activeIndex);
       }
     } else if (e.key === "Escape") {
       e.preventDefault();
       setActiveIndex(-1);
-      search(""); // clear suggestions
+      search("");
     }
   }
 
-  // Scroll active item into view
   useEffect(() => {
     if (activeIndex >= 0 && listRef.current) {
       const item = listRef.current.children[activeIndex] as HTMLElement | null;
@@ -130,12 +121,11 @@ export function PlaceSearchBox({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           autoComplete="off"
-          disabled={resolving}
         />
-        {(loading || resolving) && (
+        {loading && (
           <span className="place-search__spinner" aria-hidden="true" />
         )}
-        {inputValue && !loading && !resolving && (
+        {inputValue && !loading && (
           <button
             className="place-search__clear"
             type="button"
@@ -146,10 +136,6 @@ export function PlaceSearchBox({
           </button>
         )}
       </div>
-
-      {resolveError && (
-        <p className="place-search__error error">{resolveError}</p>
-      )}
 
       {requiresSignIn && inputValue.trim().length > 0 && !loading && (
         <p className="place-search__sign-in-hint muted small">
@@ -173,10 +159,9 @@ export function PlaceSearchBox({
               aria-selected={i === activeIndex}
               className={`place-search__option${i === activeIndex ? " place-search__option--active" : ""} place-search__option--${s.type}`}
               onMouseDown={(e) => {
-                // mousedown fires before blur; prevent it from closing the list
                 e.preventDefault();
               }}
-              onClick={() => void selectSuggestion(i)}
+              onClick={() => selectSuggestion(i)}
               onMouseEnter={() => setActiveIndex(i)}
             >
               <span className="place-search__option-icon" aria-hidden="true">

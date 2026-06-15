@@ -5,27 +5,46 @@ struct RootTabView: View {
     @Environment(APIClient.self) private var api
     @Environment(RestaurantStore.self) private var store
 
+    @State private var selectedTab: AppTab = .home
+    @State private var placeSearchVM: PlaceSearchViewModel?
+
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
+            NavigationStack {
+                if let placeSearchVM {
+                    HomeView(placeSearchVM: placeSearchVM, selectedTab: $selectedTab)
+                } else {
+                    ProgressView()
+                }
+            }
+            .tabItem { Label("Home", systemImage: "house") }
+            .tag(AppTab.home)
+
             NavigationStack {
                 RestaurantMapView()
             }
-            .tabItem {
-                Label("Map", systemImage: "map")
-            }
+            .tabItem { Label("Map", systemImage: "map") }
+            .tag(AppTab.map)
 
             NavigationStack {
-                RestaurantListView()
+                if let placeSearchVM {
+                    RestaurantListView(placeSearchVM: placeSearchVM)
+                } else {
+                    ProgressView()
+                }
             }
-            .tabItem {
-                Label("List", systemImage: "list.bullet")
-            }
+            .tabItem { Label("Explore", systemImage: "magnifyingglass") }
+            .tag(AppTab.list)
 
             NavigationStack {
                 AccountView()
             }
-            .tabItem {
-                Label("Account", systemImage: "person.crop.circle")
+            .tabItem { Label("Account", systemImage: "person.crop.circle") }
+            .tag(AppTab.account)
+        }
+        .onAppear {
+            if placeSearchVM == nil {
+                placeSearchVM = PlaceSearchViewModel(api: api)
             }
         }
         .task {

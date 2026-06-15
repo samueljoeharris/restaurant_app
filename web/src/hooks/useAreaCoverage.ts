@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiError, api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { pollCoverageJob } from "../lib/backgroundCoverage";
 
 export type AreaCoverageState =
   | { status: "idle" }
@@ -9,11 +10,6 @@ export type AreaCoverageState =
   | { status: "seeding" }
   | { status: "done" }
   | { status: "error"; message: string };
-
-const POLL_INTERVAL_MS = 4_000;
-const POLL_TIMEOUT_MS = 90_000;
-
-const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
  * Shared polling helper. Returns a function that polls a job to completion
@@ -30,33 +26,14 @@ export function usePollCoverageJob(
       token: string,
       setState: (s: AreaCoverageState) => void,
     ) => {
-      const deadline = Date.now() + POLL_TIMEOUT_MS;
-      while (Date.now() < deadline) {
-        await delay(POLL_INTERVAL_MS);
-        if (!activeRef.current) return;
-        let job;
-        try {
-          job = await api.getCoverageJob(jobId, token);
-        } catch {
-          continue; // transient — keep polling until deadline
-        }
-        if (!activeRef.current) return;
-        if (job.status === "succeeded") {
-          setState({ status: "done" });
-          onComplete?.();
-          return;
-        }
-        if (job.status === "failed") {
-          setState({ status: "error", message: "Coverage update failed. Please try again." });
-          return;
-        }
-        // pending / running / skipped → keep waiting
+      const outcome = await pollCoverageJob(jobId, token);
+      if (!activeRef.current) return;
+      if (outcome === "failed") {
+        setState({ status: "error", message: "Coverage update failed. Please try again." });
+        return;
       }
-      // Timed out; trigger a refresh anyway in case results just landed.
-      if (activeRef.current) {
-        setState({ status: "done" });
-        onComplete?.();
-      }
+      setState({ status: "done" });
+      onComplete?.();
     },
     [activeRef, onComplete],
   );

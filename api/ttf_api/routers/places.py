@@ -40,7 +40,7 @@ def _catalog_restaurant_hits(conn, q: str) -> list[PlaceSuggestion]:
     pilot = settings.pilot_city
     rows = conn.execute(
         """
-        SELECT id, name, address
+        SELECT id, name, address, lat, lng
         FROM restaurants
         WHERE pilot_city = %s
           AND status = 'active'
@@ -56,6 +56,8 @@ def _catalog_restaurant_hits(conn, q: str) -> list[PlaceSuggestion]:
             restaurant_id=row["id"],
             primary_text=row["name"],
             secondary_text=row["address"],
+            lat=float(row["lat"]),
+            lng=float(row["lng"]),
         )
         for row in rows
     ]

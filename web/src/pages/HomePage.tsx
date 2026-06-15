@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
 import { PlaceSearchBox } from "../components/PlaceSearchBox";
 import { ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Skeleton } from "../components/ui/Skeleton";
+import { usePlaceSearchHandlers } from "../hooks/usePlaceSearchHandlers";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
-import type { PlaceResolveResponse, RestaurantMapEntry } from "../types";
+import type { RestaurantMapEntry } from "../types";
 
 type LandingOption = {
   title: string;
@@ -38,7 +39,7 @@ function formatPlaceCount(count: number) {
 }
 
 export function HomePage() {
-  const navigate = useNavigate();
+  const { handleSelectPlace, handleSelectRestaurant } = usePlaceSearchHandlers();
   const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,19 +106,6 @@ export function HomePage() {
       metric: loading ? undefined : `${counts.needsData} to scout`,
     },
   ];
-
-  function handleSelectPlace(resolved: PlaceResolveResponse) {
-    const params = new URLSearchParams();
-    params.set("lat", String(resolved.lat));
-    params.set("lng", String(resolved.lng));
-    params.set("radius", "8000");
-    params.set("place", resolved.label);
-    navigate(`/restaurants?${params.toString()}`);
-  }
-
-  function handleSelectRestaurant(id: string) {
-    navigate(`/restaurants/${id}`);
-  }
 
   return (
     <div className="home-page page-enter">

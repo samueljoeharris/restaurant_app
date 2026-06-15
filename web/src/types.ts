@@ -300,6 +300,8 @@ export interface PlaceSuggestion {
   restaurant_id?: string;
   primary_text: string;
   secondary_text: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface PlaceResolveResponse {
