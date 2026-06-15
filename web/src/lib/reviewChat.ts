@@ -28,10 +28,13 @@ function getModels() {
     extractModel = getGenerativeModel(ai, {
       model: MODEL_NAME,
       generationConfig: {
-        temperature: 0.2,
+        temperature: 0.1,
         maxOutputTokens: 2048,
         responseMimeType: "application/json",
         responseSchema: buildExtractionSchema(),
+        // Structured extraction doesn't need extended thinking — it was consuming
+        // the output budget and truncating JSON (finishReason: MAX_TOKENS).
+        thinkingConfig: { thinkingBudget: 0 },
       },
     });
   }
@@ -80,9 +83,8 @@ function buildExtractionSchema() {
         nullable: true,
       }),
       missing_required: Schema.array({ items: Schema.string() }),
-      summary: Schema.string(),
     },
-    required: ["attributes", "missing_required", "summary"],
+    required: ["attributes", "missing_required"],
   });
 }
 
@@ -165,8 +167,38 @@ type RawExtraction = {
   }>;
   note?: { text: string; tags?: string[] } | null;
   missing_required?: string[];
-  summary?: string;
 };
+
+function buildExtractionSummary(draft: ContributionDraft): string {
+  const parts: string[] = [];
+  if (draft.ttf) {
+    parts.push(
+      `kid food speed (${draft.ttf.elapsed_minutes ?? "?"} min, ${draft.ttf.item_type ?? "?"})`,
+    );
+  }
+  if (draft.attributes && draft.attributes.length > 0) {
+    parts.push(
+      `${draft.attributes.length} parent rating${draft.attributes.length === 1 ? "" : "s"}`,
+    );
+  }
+  if (draft.note?.text) {
+    parts.push("a visit note");
+  }
+  if (parts.length === 0) {
+    return "We couldn't extract structured data yet — try adding a bit more detail.";
+  }
+  return `Ready to submit: ${parts.join(", ")}.`;
+}
+
+function parseExtractionJson(raw: string): RawExtraction {
+  try {
+    return JSON.parse(raw) as RawExtraction;
+  } catch {
+    throw new Error(
+      "Could not parse the review into structured data. Try Preview again — if it keeps failing, add one more detail in chat first.",
+    );
+  }
+}
 
 function coerceAttributeValue(raw: string, schema: ContributionSchema): boolean | number | string {
   const metric = schema.attributes.metrics[raw as keyof typeof schema.attributes.metrics];
@@ -204,22 +236,29 @@ export async function extractContributionDraft(
 
   const prompt = `Extract structured Little Scout contributions from this review conversation.
 
-Schema:
-${JSON.stringify(schema, null, 2)}
-
 Conversation:
 ${transcript}
+
+Metric keys and TTF enums (use exact strings):
+${JSON.stringify({
+    ttf_enums: {
+      item_type: ["fries", "apple_slices", "bread", "kids_meal", "other"],
+      portion_size: ["kid", "regular", "shareable"],
+      daypart: ["breakfast", "lunch", "dinner", "late"],
+    },
+    attribute_metrics: Object.keys(schema.attributes.metrics),
+  })}
 
 Rules:
 - Only include fields clearly stated or strongly implied in the conversation.
 - Omit unknown TTF fields rather than guessing.
-- For attributes, use exact metric_key strings from the schema; encode value as a string (we coerce types server-side).
-- Include a note if the parent shared freeform tips not captured elsewhere.
-- List missing required TTF fields in missing_required when partial TTF data exists.
-- summary: one short paragraph for the parent confirming what will be submitted.`;
+- For attributes, use exact metric_key strings; encode value as a string.
+- Include a note only for freeform tips not captured in TTF or attributes.
+- Keep note.text concise (under 400 characters).
+- List missing required TTF fields in missing_required when partial TTF data exists.`;
 
   const result = await model.generateContent(prompt);
-  const parsed = JSON.parse(result.response.text()) as RawExtraction;
+  const parsed = parseExtractionJson(result.response.text());
 
   const draft: ContributionDraft = {
     attributes: (parsed.attributes ?? []).map((attr) => ({
@@ -241,6 +280,6 @@ Rules:
   return {
     draft,
     missing_required: parsed.missing_required ?? [],
-    summary: parsed.summary ?? "Here's what we captured from your review.",
+    summary: buildExtractionSummary(draft),
   };
 }
