@@ -12,6 +12,7 @@ from ttf_api.routers import (
     health,
     internal,
     metrics,
+    places,
     restaurants,
     users,
 )
@@ -45,5 +46,6 @@ app.include_router(auth_info.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(restaurants.router)
+app.include_router(places.router)
 app.include_router(coverage.router)
 app.include_router(metrics.router)

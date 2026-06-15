@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
-import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { api } from "../api/client";
+import { PlaceSearchBox } from "../components/PlaceSearchBox";
 import { ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Skeleton } from "../components/ui/Skeleton";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
-import type { RestaurantMapEntry } from "../types";
+import type { PlaceResolveResponse, RestaurantMapEntry } from "../types";
 
 type LandingOption = {
   title: string;
@@ -40,7 +40,6 @@ function formatPlaceCount(count: number) {
 export function HomePage() {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
-  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -107,10 +106,17 @@ export function HomePage() {
     },
   ];
 
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmed = query.trim();
-    navigate(trimmed ? `/restaurants?q=${encodeURIComponent(trimmed)}` : "/restaurants");
+  function handleSelectPlace(resolved: PlaceResolveResponse) {
+    const params = new URLSearchParams();
+    params.set("lat", String(resolved.lat));
+    params.set("lng", String(resolved.lng));
+    params.set("radius", "8000");
+    params.set("place", resolved.label);
+    navigate(`/restaurants?${params.toString()}`);
+  }
+
+  function handleSelectRestaurant(id: string) {
+    navigate(`/restaurants/${id}`);
   }
 
   return (
@@ -122,23 +128,16 @@ export function HomePage() {
           Little Scout helps parents pick restaurants by starter speed, useful kid-friendly details,
           and real notes from other caregivers.
         </p>
-        <form className="home-search" onSubmit={handleSearch}>
-          <label className="home-search__label" htmlFor="home-search">
-            Search by restaurant name
+        <div className="home-search">
+          <label className="home-search__label" htmlFor="home-place-search">
+            Search by restaurant name or place
           </label>
-          <div className="home-search__row">
-            <input
-              id="home-search"
-              className="search"
-              placeholder="Try pizza, cafe, or a place name"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-            <button className="home-search__button" type="submit">
-              Search
-            </button>
-          </div>
-        </form>
+          <PlaceSearchBox
+            onSelectPlace={handleSelectPlace}
+            onSelectRestaurant={handleSelectRestaurant}
+            placeholder="Try a restaurant name, city, or neighborhood"
+          />
+        </div>
       </section>
 
       <section className="home-options" aria-label="Ways to explore restaurants">

@@ -14,6 +14,8 @@ import type {
   LocationRefreshConfigSaveResponse,
   MetricDefinition,
   Paginated,
+  PlaceResolveResponse,
+  PlaceSuggestion,
   RestaurantChangelogRow,
   RestaurantDetailResponse,
   RestaurantMapEntry,
@@ -296,5 +298,42 @@ export const api = {
       {},
       token,
     );
+  },
+
+  placesAutocomplete: (
+    q: string,
+    opts: { sessionToken: string; lat?: number; lng?: number },
+    token: string,
+  ) => {
+    const params = new URLSearchParams({ q, session_token: opts.sessionToken });
+    if (opts.lat != null) params.set("lat", String(opts.lat));
+    if (opts.lng != null) params.set("lng", String(opts.lng));
+    return request<{ suggestions: PlaceSuggestion[] }>(
+      `/v1/places/autocomplete?${params}`,
+      {},
+      token,
+    );
+  },
+
+  resolvePlace: (placeId: string, sessionToken: string, token: string) => {
+    const params = new URLSearchParams({ place_id: placeId, session_token: sessionToken });
+    return request<PlaceResolveResponse>(`/v1/places/resolve?${params}`, {}, token);
+  },
+
+  searchRestaurants: (opts: {
+    lat: number;
+    lng: number;
+    radius_m?: number;
+    q?: string;
+    limit?: number;
+  }) => {
+    const params = new URLSearchParams({
+      lat: String(opts.lat),
+      lng: String(opts.lng),
+    });
+    if (opts.radius_m != null) params.set("radius_m", String(opts.radius_m));
+    if (opts.q) params.set("q", opts.q);
+    if (opts.limit != null) params.set("limit", String(opts.limit));
+    return request<RestaurantMapEntry[]>(`/v1/restaurants/search?${params}`);
   },
 };

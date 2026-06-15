@@ -444,3 +444,25 @@ class AdminActivityDay(BaseModel):
 
 class AdminActivityResponse(BaseModel):
     days: list[AdminActivityDay]
+
+
+# --- Places autocomplete & resolve ---
+
+
+class PlaceSuggestion(BaseModel):
+    type: Literal["place", "restaurant"]
+    place_id: str | None = None
+    restaurant_id: UUID | None = None
+    primary_text: str
+    secondary_text: str | None = None
+
+
+class AutocompleteResponse(BaseModel):
+    suggestions: list[PlaceSuggestion]
+
+
+class PlaceResolveResponse(BaseModel):
+    place_id: str
+    lat: float
+    lng: float
+    label: str

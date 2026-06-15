@@ -43,6 +43,86 @@ final class APIClient {
         try await request(path: "/v1/metrics")
     }
 
+    // MARK: - Place Search
+
+    /// Autocomplete suggestions for a partial query. Requires sign-in (metered Google spend).
+    func placesAutocomplete(
+        query: String,
+        sessionToken: String,
+        near coordinate: (lat: Double, lng: Double)? = nil
+    ) async throws -> [PlaceSuggestion] {
+        var components = URLComponents()
+        components.queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "session_token", value: sessionToken),
+        ]
+        if let coord = coordinate {
+            components.queryItems?.append(URLQueryItem(name: "lat", value: "\(coord.lat)"))
+            components.queryItems?.append(URLQueryItem(name: "lng", value: "\(coord.lng)"))
+        }
+        let queryString = components.percentEncodedQuery.map { "?\($0)" } ?? ""
+        let response: AutocompleteResponse = try await request(
+            path: "/v1/places/autocomplete\(queryString)",
+            authenticated: true
+        )
+        return response.suggestions
+    }
+
+    /// Resolve a Google place_id to coordinates + label. Requires sign-in.
+    func resolvePlace(placeId: String, sessionToken: String) async throws -> PlaceResolveResponse {
+        let encodedId = placeId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? placeId
+        let encodedToken = sessionToken.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sessionToken
+        return try await request(
+            path: "/v1/places/resolve?place_id=\(encodedId)&session_token=\(encodedToken)",
+            authenticated: true
+        )
+    }
+
+    /// Radius-based restaurant search around a point. Public — no auth required.
+    func searchRestaurants(
+        lat: Double,
+        lng: Double,
+        radiusM: Int = 8000,
+        q: String? = nil
+    ) async throws -> [RestaurantMapEntry] {
+        var path = "/v1/restaurants/search?lat=\(lat)&lng=\(lng)&radius_m=\(radiusM)"
+        if let q, !q.isEmpty {
+            let encoded = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q
+            path += "&q=\(encoded)"
+        }
+        return try await request(path: path)
+    }
+
+    // MARK: - Coverage
+
+    /// Trigger a coverage seed job for the given location. Requires sign-in.
+    func ensureCoverage(lat: Double, lng: Double, radiusM: Int = 8000) async throws -> CoverageEnsureResponse {
+        struct Body: Encodable {
+            let lat: Double
+            let lng: Double
+            let radiusM: Int
+            enum CodingKeys: String, CodingKey {
+                case lat, lng
+                case radiusM = "radius_m"
+            }
+        }
+        return try await request(
+            path: "/v1/coverage/ensure",
+            method: "POST",
+            body: Body(lat: lat, lng: lng, radiusM: radiusM),
+            authenticated: true
+        )
+    }
+
+    /// Poll a coverage seed job by ID. Requires sign-in.
+    func coverageJob(id: String) async throws -> CoverageJobStatus {
+        let encoded = id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? id
+        return try await request(
+            path: "/v1/coverage/jobs/\(encoded)",
+            authenticated: true
+        )
+    }
+
     func getAttributes(restaurantID: UUID) async throws -> [AttributeEntry] {
         let response: AttributesResponse = try await request(
             path: "/v1/restaurants/\(restaurantID.uuidString.lowercased())/attributes"
