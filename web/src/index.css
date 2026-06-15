@@ -456,7 +456,7 @@ h3 {
 }
 
 /* Legacy .button aliases — exclude custom choice/star controls */
-button:not(.ui-btn):not(.linkish):not(.bottom-nav__item):not(.star-btn):not(.choice-chip):not(.map-sheet__close),
+button:not(.ui-btn):not(.linkish):not(.bottom-nav__item):not(.star-btn):not(.choice-chip):not(.map-sheet__close):not(.map-sidebar__handle),
 .button:not(.ui-btn) {
   display: inline-flex;
   align-items: center;
@@ -2438,4 +2438,135 @@ fieldset.field-group {
 .radius-banner__clear:hover {
   background: var(--color-brand);
   color: var(--color-text-inverse);
+}
+
+/* ——— Combined map + search overlay ——— */
+
+/* Root container — mirrors .map-page */
+.explore-map-page {
+  position: relative;
+  height: calc(100dvh - var(--header-height) - var(--bottom-nav-height));
+}
+
+/* ——— Sidebar: mobile-first bottom sheet ——— */
+.map-sidebar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Expanded: reveal body and constrain max height so the map stays visible */
+.map-sidebar--expanded {
+  max-height: 78dvh;
+}
+
+/* ——— Handle (mobile-only toggle bar) ——— */
+.map-sidebar__handle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* Extra top padding makes room for the absolute-positioned grip pill */
+  padding: calc(var(--space-3) + 10px) var(--space-4) var(--space-3);
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  color: var(--color-text);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
+/* Grip pill: centered at the very top of the handle */
+.map-sidebar__grip {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2.25rem;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+}
+
+.map-sidebar__handle-label {
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.map-sidebar__handle-action {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* ——— Body (scrollable content area) ——— */
+.map-sidebar__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+/* Collapsed state (mobile only): hide body so only the handle peeks at the bottom */
+@media (max-width: 767px) {
+  .map-sidebar:not(.map-sidebar--expanded) .map-sidebar__body {
+    display: none;
+  }
+}
+
+/* ——— Restaurant card variants ——— */
+
+/* Button-reset so <button> result cards look identical to link cards and fill the column */
+.restaurant-card--button {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Highlight the card matching the current map selection */
+.restaurant-card--active {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 2px var(--color-brand-soft);
+}
+
+/* ——— Desktop: convert bottom sheet → left panel, always open ——— */
+@media (min-width: 768px) {
+  .map-sidebar {
+    top: var(--space-3);
+    left: var(--space-3);
+    bottom: var(--space-3);
+    right: auto;
+    width: min(24rem, 32vw);
+    max-height: none;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Always show body on desktop regardless of the expanded class */
+  .map-sidebar__body {
+    display: block;
+  }
+
+  /* Handle is only needed on mobile */
+  .map-sidebar__handle {
+    display: none;
+  }
+
+  /* Push the legend right so it doesn't hide behind the sidebar */
+  .map-shell--with-sidebar .map-legend {
+    left: calc(min(24rem, 32vw) + var(--space-3) * 2);
+  }
 }
