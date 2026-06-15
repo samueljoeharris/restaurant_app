@@ -1,18 +1,30 @@
+import { forwardRef } from "react";
 import { Link } from "react-router-dom";
 
 import { formatTtfMedian, ttfTier, ttfTierColor } from "../lib/ttfTier";
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
 
-export function RestaurantListCard({ restaurant: r }: { restaurant: RestaurantMapEntry }) {
-  const hasTtf = r.ttf.sample_size > 0;
-  const hasRatings = r.attribute_rating_count > 0;
-  const hasNotes = r.note_count > 0;
-  const hasData = hasTtf || hasRatings || hasNotes;
+interface RestaurantListCardProps {
+  restaurant: RestaurantMapEntry;
+  /** When provided, the card focuses the entry on the map instead of navigating to detail. */
+  onSelect?: () => void;
+  /** Highlights the card when it matches the active map selection. */
+  active?: boolean;
+}
 
-  return (
-    <Link to={`/restaurants/${r.id}`} className="restaurant-card">
-      <div className="restaurant-card__head">
+export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProps>(
+  function RestaurantListCard({ restaurant: r, onSelect, active = false }, ref) {
+    const hasTtf = r.ttf.sample_size > 0;
+    const hasRatings = r.attribute_rating_count > 0;
+    const hasNotes = r.note_count > 0;
+    const hasData = hasTtf || hasRatings || hasNotes;
+
+    const className = `restaurant-card${active ? " restaurant-card--active" : ""}`;
+
+    const body = (
+      <>
+        <div className="restaurant-card__head">
         <span className="restaurant-card__name">{r.name}</span>
         {hasTtf && (
           <span
@@ -44,6 +56,27 @@ export function RestaurantListCard({ restaurant: r }: { restaurant: RestaurantMa
       ) : (
         <span className="restaurant-card__empty muted small">Be the first to contribute</span>
       )}
-    </Link>
-  );
-}
+      </>
+    );
+
+    if (onSelect) {
+      return (
+        <button
+          ref={ref as React.Ref<HTMLButtonElement>}
+          type="button"
+          className={`${className} restaurant-card--button`}
+          aria-pressed={active}
+          onClick={onSelect}
+        >
+          {body}
+        </button>
+      );
+    }
+
+    return (
+      <Link ref={ref as React.Ref<HTMLAnchorElement>} to={`/restaurants/${r.id}`} className={className}>
+        {body}
+      </Link>
+    );
+  },
+);

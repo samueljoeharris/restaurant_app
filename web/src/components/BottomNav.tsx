@@ -2,8 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 
 const tabs = [
   { to: "/", label: "Home", icon: "🏠" },
-  { to: "/restaurants", label: "Explore", icon: "🔍" },
-  { to: "/map", label: "Map", icon: "🗺️" },
+  { to: "/map", label: "Explore", icon: "🗺️" },
   { to: "/account", label: "You", icon: "👤" },
 ] as const;
 
@@ -12,7 +11,8 @@ export function BottomNav() {
 
   function isActive(path: string) {
     if (path === "/") return pathname === "/";
-    if (path === "/restaurants") return pathname.startsWith("/restaurants");
+    // Explore now spans the combined map + search experience (/map and /restaurants).
+    if (path === "/map") return pathname === "/map" || pathname.startsWith("/restaurants");
     return pathname === path;
   }
 

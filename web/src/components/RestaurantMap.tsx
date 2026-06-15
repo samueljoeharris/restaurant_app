@@ -32,26 +32,30 @@ const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 
 function FitBounds({
   restaurants,
+  fitKey,
   skip,
 }: {
   restaurants: RestaurantMapEntry[];
+  /** Re-fit whenever this key changes (e.g. catalog → radius search). */
+  fitKey: string;
   skip: boolean;
 }) {
   const map = useMap();
   const core = useMapsLibrary("core");
-  // Fit to data only once; later viewport refetches must not re-fit (would loop).
-  const fittedRef = useRef(false);
+  // Re-fit only when the search context (fitKey) changes, never on plain
+  // data refreshes — otherwise a background reload would yank the camera.
+  const lastFitKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (fittedRef.current || skip || !map || !core || restaurants.length === 0)
-      return;
+    if (skip || !map || !core || restaurants.length === 0) return;
+    if (lastFitKeyRef.current === fitKey) return;
     const bounds = new core.LatLngBounds();
     for (const r of restaurants) {
       bounds.extend({ lat: r.lat, lng: r.lng });
     }
     map.fitBounds(bounds, { top: 48, right: 24, bottom: 24, left: 24 });
-    fittedRef.current = true;
-  }, [map, core, restaurants, skip]);
+    lastFitKeyRef.current = fitKey;
+  }, [map, core, restaurants, fitKey, skip]);
 
   return null;
 }
@@ -466,19 +470,30 @@ function previewTtfTierFromEntry(entry: RestaurantMapEntry): TtfTier {
 export function RestaurantMap({
   restaurants,
   focusId,
+  selectedId,
+  onSelectChange,
   loading,
   error,
   searchBusy = false,
   userLocation = null,
+  withSidebar = false,
+  fitKey = "all",
   onSearchArea,
   onViewportChange,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
+  /** Controlled selection — drives the highlighted pin and detail sheet. */
+  selectedId: string | null;
+  onSelectChange: (id: string | null) => void;
   loading: boolean;
   error: string | null;
   searchBusy?: boolean;
   userLocation?: { lat: number; lng: number } | null;
+  /** Offsets map overlays (legend) to clear the left search sidebar. */
+  withSidebar?: boolean;
+  /** Camera re-fits whenever this changes (catalog vs radius search center). */
+  fitKey?: string;
   onSearchArea?: (lat: number, lng: number, radiusM: number) => void;
   onViewportChange?: (bbox: {
     minLat: number;
@@ -487,12 +502,6 @@ export function RestaurantMap({
     maxLng: number;
   }) => void;
 }) {
-  const [selectedId, setSelectedId] = useState<string | null>(focusId);
-  const [prevFocusId, setPrevFocusId] = useState(focusId);
-  if (focusId !== prevFocusId) {
-    setPrevFocusId(focusId);
-    if (focusId) setSelectedId(focusId);
-  }
   const selected = restaurants.find((r) => r.id === selectedId) ?? null;
 
   if (!MAPS_KEY) {
@@ -516,7 +525,7 @@ export function RestaurantMap({
 
   return (
     <APIProvider apiKey={MAPS_KEY}>
-      <div className="map-shell">
+      <div className={`map-shell${withSidebar ? " map-shell--with-sidebar" : ""}`}>
         <Map
           defaultCenter={DEFAULT_MAP_CENTER}
           defaultZoom={13}
@@ -525,7 +534,11 @@ export function RestaurantMap({
           mapId="DEMO_MAP_ID"
           className="map-canvas"
         >
-          <FitBounds restaurants={restaurants} skip={!!focusId || !!userLocation} />
+          <FitBounds
+            restaurants={restaurants}
+            fitKey={fitKey}
+            skip={!!focusId || !!userLocation}
+          />
           <FocusRestaurant restaurants={restaurants} focusId={focusId} />
           <PanToLocation location={userLocation} />
           {userLocation && <UserLocationMarker location={userLocation} />}
@@ -537,7 +550,7 @@ export function RestaurantMap({
               key={r.id}
               restaurant={r}
               selected={selectedId === r.id}
-              onSelect={() => setSelectedId(r.id)}
+              onSelect={() => onSelectChange(r.id)}
             />
           ))}
         </Map>
@@ -555,7 +568,7 @@ export function RestaurantMap({
         {selected && (
           <MapRestaurantSheet
             entry={selected}
-            onClose={() => setSelectedId(null)}
+            onClose={() => onSelectChange(null)}
           />
         )}
       </div>

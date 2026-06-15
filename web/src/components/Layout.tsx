@@ -10,7 +10,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const { user, loading, logout } = useAuth();
   const location = useLocation();
   const hideNav = location.pathname.includes("/submit");
-  const isMap = location.pathname === "/map";
+  // The combined map + search view renders full-bleed on both routes.
+  const isMap = location.pathname === "/map" || location.pathname === "/restaurants";
 
   if (loading) {
     return (

@@ -4,11 +4,10 @@ import { AuthProvider } from "./auth/AuthContext";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
 import { Layout } from "./components/Layout";
 import { AccountPage } from "./pages/AccountPage";
+import { ExploreMapPage } from "./pages/ExploreMapPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
-import { RestaurantListPage } from "./pages/RestaurantListPage";
-import { MapPage } from "./pages/MapPage";
 import { RateAttributesPage } from "./pages/RateAttributesPage";
 import { TtfSubmitPage } from "./pages/TtfSubmitPage";
 
@@ -30,7 +29,7 @@ export default function App() {
             path="/restaurants"
             element={
               <Layout>
-                <RestaurantListPage />
+                <ExploreMapPage />
               </Layout>
             }
           />
@@ -46,7 +45,7 @@ export default function App() {
             path="/map"
             element={
               <Layout>
-                <MapPage />
+                <ExploreMapPage />
               </Layout>
             }
           />
