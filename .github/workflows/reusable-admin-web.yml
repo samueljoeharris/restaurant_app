@@ -90,6 +90,7 @@ jobs:
               out.write(f"firebase_api_key={cfg['VITE_FIREBASE_API_KEY']}\n")
               out.write(f"firebase_auth_domain={cfg['VITE_FIREBASE_AUTH_DOMAIN']}\n")
               out.write(f"firebase_project_id={cfg['VITE_FIREBASE_PROJECT_ID']}\n")
+              out.write(f"firebase_app_id={cfg.get('VITE_FIREBASE_APP_ID', '')}\n")
           PY
 
       - name: Build image
@@ -103,6 +104,7 @@ jobs:
               --build-arg VITE_FIREBASE_API_KEY="${{ steps.env.outputs.firebase_api_key }}" \
               --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ steps.env.outputs.firebase_auth_domain }}" \
               --build-arg VITE_FIREBASE_PROJECT_ID="${{ steps.env.outputs.firebase_project_id }}" \
+              --build-arg VITE_FIREBASE_APP_ID="${{ steps.env.outputs.firebase_app_id }}" \
               -t "${IMAGE_BASE}:${{ github.sha }}" \
               -t "${IMAGE_BASE}:latest" \
               ./web; then
