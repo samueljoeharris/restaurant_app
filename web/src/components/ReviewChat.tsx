@@ -146,10 +146,16 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
     return (
       <Card title="Review assistant" subtitle="Freeform review → structured ratings">
         <p className="muted small">
-          Enable review chat via Terraform (<code>VITE_ENABLE_REVIEW_CHAT</code> in{" "}
-          <code>ttf-firebase-web-env</code>) or set{" "}
-          <code>VITE_ENABLE_REVIEW_CHAT=true</code> in <code>web/.env.local</code>. Run{" "}
-          <code>web/scripts/sync-env-from-terraform.sh</code> after Terraform apply.
+          Enable AI Logic in the{" "}
+          <a
+            href="https://console.firebase.google.com/project/ttf-restaurant-dev/ailogic"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Firebase console
+          </a>
+          , then set <code>VITE_ENABLE_REVIEW_CHAT=true</code> in{" "}
+          <code>web/.env.local</code>.
         </p>
       </Card>
     );

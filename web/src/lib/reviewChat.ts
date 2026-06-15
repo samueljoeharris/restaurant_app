@@ -3,7 +3,7 @@ import { getAI, getGenerativeModel, GoogleAIBackend, Schema } from "firebase/ai"
 import { firebaseApp } from "../firebase";
 import type { ContributionDraft, ContributionSchema } from "../types";
 
-const MODEL_NAME = "gemini-2.5-flash";
+const MODEL_NAME = "gemini-3.5-flash";
 
 let chatModel: ReturnType<typeof getGenerativeModel> | null = null;
 let extractModel: ReturnType<typeof getGenerativeModel> | null = null;
