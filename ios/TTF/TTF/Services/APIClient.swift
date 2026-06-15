@@ -42,6 +42,77 @@ final class APIClient {
         try await request(path: "/v1/metrics")
     }
 
+    // MARK: - Place Search
+
+    /// Autocomplete suggestions for a partial query. Requires sign-in (metered Google spend).
+    func placesAutocomplete(
+        query: String,
+        sessionToken: String,
+        near coordinate: (lat: Double, lng: Double)? = nil
+    ) async throws -> [PlaceSuggestion] {
+        var components = URLComponents()
+        components.queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "session_token", value: sessionToken),
+        ]
+        if let coord = coordinate {
+            components.queryItems?.append(URLQueryItem(name: "lat", value: "\(coord.lat)"))
+            components.queryItems?.append(URLQueryItem(name: "lng", value: "\(coord.lng)"))
+        }
+        let queryString = components.percentEncodedQuery.map { "?\($0)" } ?? ""
+        let response: AutocompleteResponse = try await request(
+            path: "/v1/places/autocomplete\(queryString)",
+            authenticated: true
+        )
+        return response.suggestions
+    }
+
+    /// Resolve a Google place_id to coordinates + label. Requires sign-in.
+    func resolvePlace(placeId: String, sessionToken: String) async throws -> PlaceResolveResponse {
+        let encodedId = placeId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? placeId
+        let encodedToken = sessionToken.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sessionToken
+        return try await request(
+            path: "/v1/places/resolve?place_id=\(encodedId)&session_token=\(encodedToken)",
+            authenticated: true
+        )
+    }
+
+    /// Radius-based restaurant search around a point. Public — no auth required.
+    func searchRestaurants(
+        lat: Double,
+        lng: Double,
+        radiusM: Int = 8000,
+        q: String? = nil
+    ) async throws -> [RestaurantMapEntry] {
+        var path = "/v1/restaurants/search?lat=\(lat)&lng=\(lng)&radius_m=\(radiusM)"
+        if let q, !q.isEmpty {
+            let encoded = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q
+            path += "&q=\(encoded)"
+        }
+        return try await request(path: path)
+    }
+
+    // MARK: - Coverage
+
+    /// Ask the backend to make sure the given area is seeded. Auth-gated and
+    /// rate-limited server-side (density check, daily cap, 24h area cooldown).
+    func ensureCoverage(lat: Double, lng: Double, radiusM: Int = 8000) async throws -> CoverageEnsureResponse {
+        try await request(
+            path: "/v1/coverage/ensure",
+            method: "POST",
+            body: CoverageEnsureRequest(lat: lat, lng: lng, radiusM: radiusM),
+            authenticated: true
+        )
+    }
+
+    /// Poll the status of a coverage seed job created by `ensureCoverage`.
+    func getCoverageJob(id: UUID) async throws -> CoverageJobStatus {
+        try await request(
+            path: "/v1/coverage/jobs/\(id.uuidString.lowercased())",
+            authenticated: true
+        )
+    }
+
     func getAttributes(restaurantID: UUID) async throws -> [AttributeEntry] {
         let response: AttributesResponse = try await request(
             path: "/v1/restaurants/\(restaurantID.uuidString.lowercased())/attributes"
@@ -82,25 +153,6 @@ final class APIClient {
 
     func getMe() async throws -> UserProfile {
         try await request(path: "/v1/me", authenticated: true)
-    }
-
-    /// Ask the backend to make sure the given area is seeded. Auth-gated and
-    /// rate-limited server-side (density check, daily cap, 24h area cooldown).
-    func ensureCoverage(lat: Double, lng: Double, radiusM: Int) async throws -> CoverageEnsureResponse {
-        try await request(
-            path: "/v1/coverage/ensure",
-            method: "POST",
-            body: CoverageEnsureRequest(lat: lat, lng: lng, radiusM: radiusM),
-            authenticated: true
-        )
-    }
-
-    /// Poll the status of a coverage seed job created by `ensureCoverage`.
-    func getCoverageJob(id: UUID) async throws -> CoverageJobStatus {
-        try await request(
-            path: "/v1/coverage/jobs/\(id.uuidString.lowercased())",
-            authenticated: true
-        )
     }
 
     static let defaultSession: URLSession = {

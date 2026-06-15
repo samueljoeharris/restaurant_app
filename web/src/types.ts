@@ -293,3 +293,18 @@ export interface RestaurantNote {
   tags: string[];
   created_at: string;
 }
+
+export interface PlaceSuggestion {
+  type: "place" | "restaurant";
+  place_id?: string;
+  restaurant_id?: string;
+  primary_text: string;
+  secondary_text: string;
+}
+
+export interface PlaceResolveResponse {
+  place_id: string;
+  lat: number;
+  lng: number;
+  label: string;
+}
