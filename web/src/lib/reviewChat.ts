@@ -1,6 +1,6 @@
-import { getAI, getGenerativeModel, GoogleAIBackend, Schema } from "firebase/ai";
+import { getGenerativeModel, Schema } from "firebase/ai";
 
-import { firebaseApp } from "../firebase";
+import { firebaseAI } from "../firebase";
 import type { ContributionDraft, ContributionSchema } from "../types";
 
 const MODEL_NAME = "gemini-3.5-flash";
@@ -17,7 +17,7 @@ function getModels() {
     throw new Error("Review chat is not enabled. Set VITE_ENABLE_REVIEW_CHAT=true.");
   }
   if (!chatModel || !extractModel) {
-    const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
+    const ai = firebaseAI;
     chatModel = getGenerativeModel(ai, {
       model: MODEL_NAME,
       generationConfig: {

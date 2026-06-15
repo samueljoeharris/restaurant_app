@@ -23,6 +23,7 @@ VITE_CI_ARGS=(
   --build-arg "VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN:-ci.example.com}"
   --build-arg "VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID:-ci-project}"
   --build-arg "VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY:-}"
+  --build-arg "VITE_ENABLE_REVIEW_CHAT=${VITE_ENABLE_REVIEW_CHAT:-true}"
 )
 
 usage() {
