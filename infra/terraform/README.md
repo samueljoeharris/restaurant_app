@@ -119,7 +119,7 @@ Key outputs: `cloud_run_url`, `cloud_run_web_url`, `api_image_target`, `load_bal
 
 ## CI (GitHub Actions)
 
-Workflow: [`.github/workflows/reusable/terraform.yml`](../../.github/workflows/reusable/terraform.yml) (called by [`deploy.yml`](../../.github/workflows/deploy.yml) on `infra/**` pushes)
+Workflow: [`.github/workflows/reusable-terraform.yml`](../../.github/workflows/reusable-terraform.yml) (called by [`deploy.yml`](../../.github/workflows/deploy.yml) on `infra/**` pushes)
 
 | Event | Job |
 |-------|-----|
@@ -158,7 +158,7 @@ Repository variables (Actions → Variables):
 | `GCP_TERRAFORM_SERVICE_ACCOUNT` | `ttf-github-terraform@...` |
 | `GCP_DEPLOY_SERVICE_ACCOUNT` | `ttf-github-deploy@...` |
 
-### API deploy (`.github/workflows/reusable/api.yml`)
+### API deploy (`.github/workflows/reusable-api.yml`)
 
 On push to `main` (`api/**`): build image → Artifact Registry → `gcloud run services update` (when Phase B service exists). Terraform creates Cloud SQL + Cloud Run; **api.yml owns image updates** (`lifecycle.ignore_changes` on image). Manual redeploy: Actions → **API** → Run workflow.
 

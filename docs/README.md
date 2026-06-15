@@ -29,7 +29,7 @@ Start here when you are orienting yourself in the Little Scout repo.
   - `https://app.dev.littlescout.app` -> public web pilot (Firebase sign-in)
   - `https://api.dev.littlescout.app` -> API
   - `https://admin.dev.littlescout.app` -> IAP-protected admin (separate auth path — see [ADMIN_AUTH.md](ADMIN_AUTH.md))
-- The current web pilot and admin app both live under `web/`; separate Cloud Run services are built by `web.yml` and `admin-web.yml`.
+- The current web pilot and admin app both live under `web/`; separate Cloud Run services are built by `reusable-web.yml` and `reusable-admin-web.yml`.
 - `CUSTOM_DOMAIN_SETUP.md` is a historical planning document. Use [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) as the live runbook.
 - GitHub Actions are intentionally push-to-`main` for this solo-dev repo; see [CI.md](CI.md) before changing branch protection or workflow triggers.
 

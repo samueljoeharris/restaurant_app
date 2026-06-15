@@ -1,7 +1,7 @@
 name: CI/CD
 
-# Entry-point pipeline (push to main). Reusable deploy modules live in
-# reusable/; manual-only ops workflows live in tools/ — see .github/workflows/README.md.
+# Entry-point pipeline (push to main). Reusable deploy modules use the
+# reusable-* prefix; manual ops use tool-* — see .github/workflows/README.md.
 #
 # Single pipeline on push to main: checks -> terraform -> build+deploy.
 # Fast checks (typecheck, lint, app-import smoke, terraform fmt) gate the
@@ -33,16 +33,16 @@ jobs:
           filters: |
             infra:
               - 'infra/**'
-              - '.github/workflows/reusable/terraform.yml'
+              - '.github/workflows/reusable-terraform.yml'
               - '.github/workflows/deploy.yml'
             api:
               - 'api/**'
-              - '.github/workflows/reusable/api.yml'
+              - '.github/workflows/reusable-api.yml'
               - '.github/workflows/deploy.yml'
             web:
               - 'web/**'
-              - '.github/workflows/reusable/web.yml'
-              - '.github/workflows/reusable/admin-web.yml'
+              - '.github/workflows/reusable-web.yml'
+              - '.github/workflows/reusable-admin-web.yml'
               - '.github/workflows/deploy.yml'
 
   ci:
@@ -109,7 +109,7 @@ jobs:
     name: Terraform
     needs: [changes, ci]
     if: needs.ci.result == 'success' && needs.changes.outputs.infra == 'true'
-    uses: ./.github/workflows/reusable/terraform.yml
+    uses: ./.github/workflows/reusable-terraform.yml
     secrets: inherit
     permissions:
       contents: read
@@ -124,7 +124,7 @@ jobs:
       needs.terraform.result != 'failure' &&
       needs.terraform.result != 'cancelled' &&
       (needs.changes.outputs.api == 'true' || needs.terraform.result == 'success')
-    uses: ./.github/workflows/reusable/api.yml
+    uses: ./.github/workflows/reusable-api.yml
     secrets: inherit
     permissions:
       contents: read
@@ -139,7 +139,7 @@ jobs:
       needs.terraform.result != 'failure' &&
       needs.terraform.result != 'cancelled' &&
       (needs.changes.outputs.web == 'true' || needs.terraform.result == 'success')
-    uses: ./.github/workflows/reusable/web.yml
+    uses: ./.github/workflows/reusable-web.yml
     secrets: inherit
     permissions:
       contents: read
@@ -154,7 +154,7 @@ jobs:
       needs.terraform.result != 'failure' &&
       needs.terraform.result != 'cancelled' &&
       (needs.changes.outputs.web == 'true' || needs.terraform.result == 'success')
-    uses: ./.github/workflows/reusable/admin-web.yml
+    uses: ./.github/workflows/reusable-admin-web.yml
     secrets: inherit
     permissions:
       contents: read

@@ -1,6 +1,6 @@
 name: API
 
-# Reusable deploy module — called by ../deploy.yml; manual redeploy via workflow_dispatch.
+# Reusable deploy module — called by deploy.yml; manual redeploy via workflow_dispatch.
 on:
   workflow_call:
   workflow_dispatch:

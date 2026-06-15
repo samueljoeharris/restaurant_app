@@ -7,7 +7,7 @@ uploads_bucket_name         = "ttf-uploads-dev"
 terraform_state_bucket_name = "ttf-tfstate-dev"
 github_repository           = "samueljoeharris/restaurant_app"
 
-# Phase B — Cloud SQL + Cloud Run (~$7-10/mo). Image updates via reusable/api.yml (deploy pipeline).
+# Phase B — Cloud SQL + Cloud Run (~$7-10/mo). Image updates via reusable-api.yml (deploy pipeline).
 enable_cloud_sql              = true
 enable_cloud_run              = true
 enable_restaurant_refresh_job = true

@@ -98,7 +98,7 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [x] Seed restaurants: `docker compose run --rm api python scripts/seed_restaurants.py`
 - [x] Phase B enabled in `ci.tfvars` — Terraform CI provisions Cloud SQL + Cloud Run
 - [x] GitHub variable `GCP_DEPLOY_SERVICE_ACCOUNT` = `ttf-github-deploy@ttf-restaurant-dev.iam.gserviceaccount.com`
-- [x] API CI (`reusable/api.yml` via `deploy.yml`) — build, push, deploy when `api/**` changes on `main`
+- [x] API CI (`reusable-api.yml` via `deploy.yml`) — build, push, deploy when `api/**` changes on `main`
 - [x] Firebase Auth on API — see [FIREBASE_AUTH.md](FIREBASE_AUTH.md)
 - [x] Enable Email/Password in Firebase (`ttf-restaurant-dev`)
 - [ ] Test real JWT against **production** Firebase (see below)

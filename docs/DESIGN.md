@@ -515,7 +515,7 @@ docker compose run terraform plan
 docker compose run terraform apply
 ```
 
-### CI/CD — `.github/workflows/reusable/terraform.yml`
+### CI/CD — `.github/workflows/reusable-terraform.yml`
 
 - **Push to main:** called by the `deploy.yml` pipeline when `infra/**` changes — `terraform plan` + `terraform apply` for `dev`, then service deploys run
 - **Manual dispatch:** plan/apply on demand (does not redeploy services)
@@ -555,7 +555,7 @@ restaurant_app/
 ├── infra/terraform/   # IaC (Phase 2)
 ├── ios/TTF/           # Xcode project (Phase 3)
 ├── scripts/           # Local CI and helper scripts
-└── .github/workflows/ # deploy.yml + reusable/ + tools/ (see workflows/README.md)
+└── .github/workflows/ # deploy.yml + reusable-* + tool-* (see workflows/README.md)
 ```
 
 ### Path-Aware Deploy Pipeline
@@ -565,11 +565,11 @@ restaurant_app/
 
 | Pipeline job | Runs when |
 |--------------|-----------|
-| Terraform (`reusable/terraform.yml`) | `infra/**` changed |
-| API (`reusable/api.yml`) | `api/**` changed, or after Terraform apply |
-| Web (`reusable/web.yml`) | `web/**` changed, or after Terraform apply |
-| Admin Web (`reusable/admin-web.yml`) | `web/**` changed, or after Terraform apply |
-| iOS (`tools/ios.yml`) | Manual `workflow_dispatch` today; path-filtered push when Phase 3 CI is added |
+| Terraform (`reusable-terraform.yml`) | `infra/**` changed |
+| API (`reusable-api.yml`) | `api/**` changed, or after Terraform apply |
+| Web (`reusable-web.yml`) | `web/**` changed, or after Terraform apply |
+| Admin Web (`reusable-admin-web.yml`) | `web/**` changed, or after Terraform apply |
+| iOS (`tool-ios.yml`) | Manual `workflow_dispatch` today; path-filtered push when Phase 3 CI is added |
 
 ### When to Split
 
