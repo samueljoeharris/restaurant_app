@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   APIProvider,
   Map,
@@ -39,15 +39,57 @@ function FitBounds({
 }) {
   const map = useMap();
   const core = useMapsLibrary("core");
+  // Fit to data only once; later viewport refetches must not re-fit (would loop).
+  const fittedRef = useRef(false);
 
   useEffect(() => {
-    if (skip || !map || !core || restaurants.length === 0) return;
+    if (fittedRef.current || skip || !map || !core || restaurants.length === 0)
+      return;
     const bounds = new core.LatLngBounds();
     for (const r of restaurants) {
       bounds.extend({ lat: r.lat, lng: r.lng });
     }
     map.fitBounds(bounds, { top: 48, right: 24, bottom: 24, left: 24 });
+    fittedRef.current = true;
   }, [map, core, restaurants, skip]);
+
+  return null;
+}
+
+/**
+ * Reports the visible viewport bounds whenever the camera settles ("idle").
+ * The map's "idle" event only fires once panning/zooming stops, so this is
+ * naturally debounced — no extra throttling needed.
+ */
+function ViewportWatcher({
+  onViewportChange,
+}: {
+  onViewportChange: (bbox: {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+  }) => void;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+    const handle = () => {
+      const bounds = map.getBounds();
+      if (!bounds) return;
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+      onViewportChange({
+        minLat: sw.lat(),
+        maxLat: ne.lat(),
+        minLng: sw.lng(),
+        maxLng: ne.lng(),
+      });
+    };
+    const listener = map.addListener("idle", handle);
+    return () => listener.remove();
+  }, [map, onViewportChange]);
 
   return null;
 }
@@ -426,6 +468,7 @@ export function RestaurantMap({
   error,
   searchBusy = false,
   onSearchArea,
+  onViewportChange,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
@@ -433,6 +476,12 @@ export function RestaurantMap({
   error: string | null;
   searchBusy?: boolean;
   onSearchArea?: (lat: number, lng: number, radiusM: number) => void;
+  onViewportChange?: (bbox: {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+  }) => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(focusId);
   const selected = restaurants.find((r) => r.id === selectedId) ?? null;
@@ -473,6 +522,9 @@ export function RestaurantMap({
         >
           <FitBounds restaurants={restaurants} skip={!!focusId} />
           <FocusRestaurant restaurants={restaurants} focusId={focusId} />
+          {onViewportChange && (
+            <ViewportWatcher onViewportChange={onViewportChange} />
+          )}
           {restaurants.map((r) => (
             <MapPin
               key={r.id}

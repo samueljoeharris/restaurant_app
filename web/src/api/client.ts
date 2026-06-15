@@ -80,14 +80,30 @@ export const api = {
     return request<RestaurantSummary[]>(`/v1/restaurants${params}`);
   },
 
-  listRestaurantsForMap: () =>
-    request<RestaurantMapEntry[]>("/v1/restaurants/map").then((rows) =>
+  listRestaurantsForMap: (bbox?: {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+  }) => {
+    let path = "/v1/restaurants/map";
+    if (bbox) {
+      const params = new URLSearchParams({
+        min_lat: String(bbox.minLat),
+        max_lat: String(bbox.maxLat),
+        min_lng: String(bbox.minLng),
+        max_lng: String(bbox.maxLng),
+      });
+      path += `?${params}`;
+    }
+    return request<RestaurantMapEntry[]>(path).then((rows) =>
       rows.map((r) => ({
         ...r,
         note_count: r.note_count ?? 0,
         attribute_rating_count: r.attribute_rating_count ?? 0,
       })),
-    ),
+    );
+  },
 
   triggerRestaurantSeed: (
     body: { location: string; radius_m?: number; force?: boolean },

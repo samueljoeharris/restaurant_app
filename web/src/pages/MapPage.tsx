@@ -15,6 +15,9 @@ export function MapPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const cancelledRef = useRef(false);
+  // Latest-wins guard for viewport refetches: only the most recent request
+  // may apply its results, so out-of-order responses can't clobber the map.
+  const viewportReqRef = useRef(0);
 
   const loadRestaurants = useCallback(() => {
     setError(null);
@@ -29,6 +32,27 @@ export function MapPage() {
         }
       });
   }, []);
+
+  const loadForViewport = useCallback(
+    (bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }) => {
+      // No loading flag here: keep existing markers until fresh data arrives
+      // (avoids flicker while panning/zooming).
+      const reqId = ++viewportReqRef.current;
+      return api
+        .listRestaurantsForMap(bbox)
+        .then((data) => {
+          if (cancelledRef.current) return;
+          // Drop stale responses; only the latest request may apply.
+          if (reqId !== viewportReqRef.current) return;
+          setRestaurants(data);
+        })
+        .catch(() => {
+          // Ignore transient viewport-fetch errors; leave existing markers in
+          // place rather than blanking the map.
+        });
+    },
+    [],
+  );
 
   useRefreshOnNavigate(() => {
     cancelledRef.current = false;
@@ -86,9 +110,9 @@ export function MapPage() {
         focusId={focusId}
         loading={loading}
         error={error}
-        searchRadiusM={SEARCH_RADIUS_M}
         searchBusy={busy}
-        onSearchArea={(lat, lng) => void ensureAt(lat, lng, SEARCH_RADIUS_M)}
+        onSearchArea={(lat, lng, radiusM) => void ensureAt(lat, lng, radiusM)}
+        onViewportChange={(bbox) => void loadForViewport(bbox)}
       />
     </div>
   );

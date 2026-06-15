@@ -65,7 +65,9 @@ export function useNearbyCoverage(onComplete?: () => void) {
           continue; // transient error — keep polling until the deadline
         }
         if (!activeRef.current) return;
-        if (job.status === "succeeded") {
+        // "skipped" means the area was already covered by the time the worker
+        // ran — terminal, treat the same as success.
+        if (job.status === "succeeded" || job.status === "skipped") {
           setState({ status: "covered", message: seededMessage(job.inserted_count) });
           onComplete?.();
           return;
@@ -77,7 +79,7 @@ export function useNearbyCoverage(onComplete?: () => void) {
           });
           return;
         }
-        // pending / running / skipped → keep waiting
+        // pending / running → keep waiting
       }
       // Timed out while still running; refresh anyway in case it just landed.
       if (activeRef.current) {
