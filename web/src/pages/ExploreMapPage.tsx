@@ -19,6 +19,7 @@ import {
   buildPendingPlaceParams,
   DEFAULT_SEARCH_RADIUS_M,
   RESTAURANT_SEED_RADIUS_M,
+  type MapFocusState,
   type PlaceSearchPending,
   type RestaurantSearchSelection,
 } from "../lib/searchNavigation";
@@ -124,6 +125,9 @@ export function ExploreMapPage() {
   const browseCity = searchParams.get("city");
   const browseZip = searchParams.get("zip");
   const browseTag = searchParams.get("tag");
+
+  const focusState = location.state as MapFocusState | null;
+  const focusLocation = focusState?.focusLocation ?? null;
 
   const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -291,16 +295,32 @@ export function ExploreMapPage() {
       if (idToken && selection.lat != null && selection.lng != null) {
         runBackgroundCoverage(selection.lat, selection.lng, RESTAURANT_SEED_RADIUS_M, idToken);
       }
+      const params = new URLSearchParams(searchParams);
+      params.set("focus", selection.restaurant_id);
+      const state: MapFocusState | undefined =
+        selection.lat != null && selection.lng != null
+          ? { focusLocation: { lat: selection.lat, lng: selection.lng } }
+          : undefined;
+      navigate(`${basePath}?${params.toString()}`, { replace: true, state });
       setSelectedId(selection.restaurant_id);
       setFocusId(selection.restaurant_id);
     },
-    [idToken],
+    [idToken, searchParams, navigate, basePath],
   );
 
   // ——— Map control handlers ———
-  const handleMapSelectChange = useCallback((id: string | null) => {
-    setSelectedId(id);
-  }, []);
+  const handleMapSelectChange = useCallback(
+    (id: string | null) => {
+      setSelectedId(id);
+      if (!id && focusParam) {
+        const params = new URLSearchParams(searchParams);
+        params.delete("focus");
+        setSearchParams(params, { replace: true });
+        setFocusId(null);
+      }
+    },
+    [focusParam, searchParams, setSearchParams],
+  );
 
   const handleListSelect = useCallback((id: string) => {
     setSelectedId(id);
@@ -455,6 +475,7 @@ export function ExploreMapPage() {
       <RestaurantMap
         restaurants={filtered}
         focusId={focusId}
+        focusLocation={focusLocation}
         selectedId={selectedId}
         onSelectChange={handleMapSelectChange}
         loading={loading}

@@ -26,7 +26,6 @@ import { Badge } from "./ui/Badge";
 import { Button, ButtonLink } from "./ui/Button";
 import { Stat, StatGrid } from "./ui/Stat";
 
-// Neutral fallback center used until restaurants load and the map fits to them.
 const DEFAULT_MAP_CENTER = { lat: 42.2418, lng: -71.1662 };
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 
@@ -36,14 +35,11 @@ function FitBounds({
   skip,
 }: {
   restaurants: RestaurantMapEntry[];
-  /** Re-fit whenever this key changes (e.g. catalog → radius search). */
   fitKey: string;
   skip: boolean;
 }) {
   const map = useMap();
   const core = useMapsLibrary("core");
-  // Re-fit only when the search context (fitKey) changes, never on plain
-  // data refreshes — otherwise a background reload would yank the camera.
   const lastFitKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -60,11 +56,6 @@ function FitBounds({
   return null;
 }
 
-/**
- * Reports the visible viewport bounds whenever the camera settles ("idle").
- * The map's "idle" event only fires once panning/zooming stops, so this is
- * naturally debounced — no extra throttling needed.
- */
 function ViewportWatcher({
   onViewportChange,
 }: {
@@ -101,19 +92,24 @@ function ViewportWatcher({
 function FocusRestaurant({
   restaurants,
   focusId,
+  focusLocation,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
+  focusLocation?: { lat: number; lng: number } | null;
 }) {
   const map = useMap();
 
   useEffect(() => {
     if (!map || !focusId) return;
     const target = restaurants.find((r) => r.id === focusId);
-    if (!target) return;
-    map.panTo({ lat: target.lat, lng: target.lng });
+    const coords = target
+      ? { lat: target.lat, lng: target.lng }
+      : focusLocation ?? null;
+    if (!coords) return;
+    map.panTo(coords);
     map.setZoom(15);
-  }, [map, focusId, restaurants]);
+  }, [map, focusId, focusLocation, restaurants]);
 
   return null;
 }
@@ -142,14 +138,11 @@ function UserLocationMarker({ location }: { location: { lat: number; lng: number
   );
 }
 
-// Seed radius is derived from the viewport (clamped to the API's accepted range).
 const MIN_SEARCH_RADIUS_M = 1000;
 const MAX_SEARCH_RADIUS_M = 25000;
 const DEFAULT_SEARCH_RADIUS_M = 8000;
-// Show "Search this area" only when the viewport holds this many venues or fewer.
 const SPARSE_VIEWPORT_MAX = 3;
 
-/** Radius (m) that fits within the current viewport, clamped to API limits. */
 function viewportRadiusM(map: google.maps.Map): number {
   const bounds = map.getBounds();
   const center = map.getCenter();
@@ -178,9 +171,6 @@ function countWithinBounds(
   return count;
 }
 
-/**
- * Floating “Search this area” pill when the viewport is sparse — no radius circle overlay.
- */
 function SearchArea({
   restaurants,
   busy,
@@ -470,12 +460,14 @@ function previewTtfTierFromEntry(entry: RestaurantMapEntry): TtfTier {
 export function RestaurantMap({
   restaurants,
   focusId,
+  focusLocation = null,
   selectedId,
   onSelectChange,
   loading,
   error,
   searchBusy = false,
   userLocation = null,
+  cameraTarget = null,
   withSidebar = false,
   fitKey = "all",
   onSearchArea,
@@ -483,16 +475,15 @@ export function RestaurantMap({
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
-  /** Controlled selection — drives the highlighted pin and detail sheet. */
+  focusLocation?: { lat: number; lng: number } | null;
   selectedId: string | null;
   onSelectChange: (id: string | null) => void;
   loading: boolean;
   error: string | null;
   searchBusy?: boolean;
   userLocation?: { lat: number; lng: number } | null;
-  /** Offsets map overlays (legend) to clear the left search sidebar. */
+  cameraTarget?: { lat: number; lng: number } | null;
   withSidebar?: boolean;
-  /** Camera re-fits whenever this changes (catalog vs radius search center). */
   fitKey?: string;
   onSearchArea?: (lat: number, lng: number, radiusM: number) => void;
   onViewportChange?: (bbox: {
@@ -502,7 +493,7 @@ export function RestaurantMap({
     maxLng: number;
   }) => void;
 }) {
-  const selected = restaurants.find((r) => r.id === selectedId) ?? null;
+  const sheetEntry = selectedId ? restaurants.find((r) => r.id === selectedId) : null;
 
   if (!MAPS_KEY) {
     return (
@@ -537,10 +528,14 @@ export function RestaurantMap({
           <FitBounds
             restaurants={restaurants}
             fitKey={fitKey}
-            skip={!!focusId || !!userLocation}
+            skip={!!focusId || !!userLocation || !!cameraTarget}
           />
-          <FocusRestaurant restaurants={restaurants} focusId={focusId} />
-          <PanToLocation location={userLocation} />
+          <FocusRestaurant
+            restaurants={restaurants}
+            focusId={focusId}
+            focusLocation={focusLocation}
+          />
+          <PanToLocation location={userLocation ?? cameraTarget} />
           {userLocation && <UserLocationMarker location={userLocation} />}
           {onViewportChange && (
             <ViewportWatcher onViewportChange={onViewportChange} />
@@ -565,11 +560,16 @@ export function RestaurantMap({
           />
         )}
 
-        {selected && (
-          <MapRestaurantSheet
-            entry={selected}
-            onClose={() => onSelectChange(null)}
-          />
+        {selectedId && sheetEntry && (
+          <MapRestaurantSheet entry={sheetEntry} onClose={() => onSelectChange(null)} />
+        )}
+
+        {selectedId && !sheetEntry && (
+          <aside className="map-sheet map-sheet--loading" aria-busy="true" aria-label="Loading restaurant">
+            <div className="map-sheet__scroll">
+              <p className="muted">Loading restaurant…</p>
+            </div>
+          </aside>
         )}
       </div>
     </APIProvider>

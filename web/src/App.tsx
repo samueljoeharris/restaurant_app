@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
+import { DesktopOnlyGate } from "./components/DesktopOnlyGate";
 import { Layout } from "./components/Layout";
 import { AccountPage } from "./pages/AccountPage";
 import { ExploreMapPage } from "./pages/ExploreMapPage";
@@ -15,6 +16,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <DesktopOnlyGate>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -76,6 +78,7 @@ export default function App() {
           <Route path="/admin/*" element={<AdminSiteRedirect />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </DesktopOnlyGate>
       </BrowserRouter>
     </AuthProvider>
   );

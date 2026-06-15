@@ -4,22 +4,23 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { runBackgroundCoverage } from "../lib/backgroundCoverage";
 import {
-  buildPendingPlaceParams,
+  buildMapFocusPath,
+  buildMapPendingPlacePath,
   RESTAURANT_SEED_RADIUS_M,
+  type MapFocusState,
   type PlaceSearchPending,
   type RestaurantSearchSelection,
 } from "../lib/searchNavigation";
 
-/** Navigate to explore or restaurant detail; seed coverage in the background when we have coords. */
+/** Navigate to the map; seed coverage in the background when we have coords. */
 export function usePlaceSearchHandlers() {
   const navigate = useNavigate();
   const { idToken } = useAuth();
 
   const handleSelectPlace = useCallback(
     (pending: PlaceSearchPending) => {
-      const params = buildPendingPlaceParams(pending);
-      navigate(`/restaurants?${params.toString()}`, {
-        state: { placeSessionToken: pending.session_token },
+      navigate(buildMapPendingPlacePath(pending), {
+        state: { placeSessionToken: pending.session_token } satisfies MapFocusState,
       });
     },
     [navigate],
@@ -30,7 +31,11 @@ export function usePlaceSearchHandlers() {
       if (idToken && selection.lat != null && selection.lng != null) {
         runBackgroundCoverage(selection.lat, selection.lng, RESTAURANT_SEED_RADIUS_M, idToken);
       }
-      navigate(`/restaurants/${selection.restaurant_id}`);
+      const state: MapFocusState | undefined =
+        selection.lat != null && selection.lng != null
+          ? { focusLocation: { lat: selection.lat, lng: selection.lng } }
+          : undefined;
+      navigate(buildMapFocusPath(selection), { state });
     },
     [navigate, idToken],
   );

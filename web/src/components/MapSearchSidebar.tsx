@@ -1,40 +1,20 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface MapSearchSidebarProps {
-  /** Count shown on the mobile drag handle. */
   resultCount: number;
   children: ReactNode;
 }
 
-/**
- * Overlay shell for search + filters + results on top of the map.
- *
- * - Desktop (≥768px): a fixed left panel, always open.
- * - Mobile: a bottom sheet with a drag handle; collapsed to a peek by default
- *   and expanded on tap so the map stays usable.
- */
+/** Fixed left panel for search, filters, and results (desktop pilot). */
 export function MapSearchSidebar({ resultCount, children }: MapSearchSidebarProps) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
-    <aside
-      className={`map-sidebar${expanded ? " map-sidebar--expanded" : ""}`}
-      aria-label="Search restaurants"
-    >
-      <button
-        type="button"
-        className="map-sidebar__handle"
-        aria-expanded={expanded}
-        onClick={() => setExpanded((open) => !open)}
-      >
-        <span className="map-sidebar__grip" aria-hidden />
-        <span className="map-sidebar__handle-label">
+    <aside className="map-sidebar map-sidebar--desktop" aria-label="Search restaurants">
+      <header className="map-sidebar__head">
+        <h2 className="map-sidebar__title">Explore</h2>
+        <p className="map-sidebar__count muted small">
           {resultCount} {resultCount === 1 ? "place" : "places"}
-        </span>
-        <span className="map-sidebar__handle-action">
-          {expanded ? "Hide list" : "Show list"}
-        </span>
-      </button>
+        </p>
+      </header>
       <div className="map-sidebar__body">{children}</div>
     </aside>
   );

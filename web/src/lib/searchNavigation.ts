@@ -32,3 +32,18 @@ export function buildPendingPlaceParams(pending: PlaceSearchPending): URLSearchP
   params.set("place", pending.label);
   return params;
 }
+
+export function buildMapFocusPath(selection: RestaurantSearchSelection): string {
+  const params = new URLSearchParams();
+  params.set("focus", selection.restaurant_id);
+  return `/map?${params.toString()}`;
+}
+
+export function buildMapPendingPlacePath(pending: PlaceSearchPending): string {
+  return `/map?${buildPendingPlaceParams(pending).toString()}`;
+}
+
+export interface MapFocusState {
+  focusLocation?: { lat: number; lng: number };
+  placeSessionToken?: string;
+}
