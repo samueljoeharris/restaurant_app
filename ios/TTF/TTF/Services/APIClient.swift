@@ -23,12 +23,11 @@ final class APIClient {
     }
 
     func listRestaurants(query: String? = nil) async throws -> [RestaurantSummary] {
-        var path = "/v1/restaurants"
+        var items: [URLQueryItem] = []
         if let query, !query.isEmpty {
-            let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-            path += "?q=\(encoded)"
+            items.append(URLQueryItem(name: "q", value: query))
         }
-        return try await request(path: path)
+        return try await request(path: "/v1/restaurants", queryItems: items)
     }
 
     func listRestaurantsForMap() async throws -> [RestaurantMapEntry] {
@@ -41,6 +40,77 @@ final class APIClient {
 
     func listMetrics() async throws -> [MetricDefinition] {
         try await request(path: "/v1/metrics")
+    }
+
+    // MARK: - Place Search
+
+    /// Autocomplete suggestions for a partial query. Requires sign-in (metered Google spend).
+    func placesAutocomplete(
+        query: String,
+        sessionToken: String,
+        near coordinate: (lat: Double, lng: Double)? = nil
+    ) async throws -> [PlaceSuggestion] {
+        var components = URLComponents()
+        components.queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "session_token", value: sessionToken),
+        ]
+        if let coord = coordinate {
+            components.queryItems?.append(URLQueryItem(name: "lat", value: "\(coord.lat)"))
+            components.queryItems?.append(URLQueryItem(name: "lng", value: "\(coord.lng)"))
+        }
+        let queryString = components.percentEncodedQuery.map { "?\($0)" } ?? ""
+        let response: AutocompleteResponse = try await request(
+            path: "/v1/places/autocomplete\(queryString)",
+            authenticated: true
+        )
+        return response.suggestions
+    }
+
+    /// Resolve a Google place_id to coordinates + label. Requires sign-in.
+    func resolvePlace(placeId: String, sessionToken: String) async throws -> PlaceResolveResponse {
+        let encodedId = placeId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? placeId
+        let encodedToken = sessionToken.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sessionToken
+        return try await request(
+            path: "/v1/places/resolve?place_id=\(encodedId)&session_token=\(encodedToken)",
+            authenticated: true
+        )
+    }
+
+    /// Radius-based restaurant search around a point. Public — no auth required.
+    func searchRestaurants(
+        lat: Double,
+        lng: Double,
+        radiusM: Int = 8000,
+        q: String? = nil
+    ) async throws -> [RestaurantMapEntry] {
+        var path = "/v1/restaurants/search?lat=\(lat)&lng=\(lng)&radius_m=\(radiusM)"
+        if let q, !q.isEmpty {
+            let encoded = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q
+            path += "&q=\(encoded)"
+        }
+        return try await request(path: path)
+    }
+
+    // MARK: - Coverage
+
+    /// Ask the backend to make sure the given area is seeded. Auth-gated and
+    /// rate-limited server-side (density check, daily cap, 24h area cooldown).
+    func ensureCoverage(lat: Double, lng: Double, radiusM: Int = 8000) async throws -> CoverageEnsureResponse {
+        try await request(
+            path: "/v1/coverage/ensure",
+            method: "POST",
+            body: CoverageEnsureRequest(lat: lat, lng: lng, radiusM: radiusM),
+            authenticated: true
+        )
+    }
+
+    /// Poll the status of a coverage seed job created by `ensureCoverage`.
+    func getCoverageJob(id: UUID) async throws -> CoverageJobStatus {
+        try await request(
+            path: "/v1/coverage/jobs/\(id.uuidString.lowercased())",
+            authenticated: true
+        )
     }
 
     func getAttributes(restaurantID: UUID) async throws -> [AttributeEntry] {
@@ -74,6 +144,16 @@ final class APIClient {
         )
     }
 
+    func submitNote(restaurantID: UUID, text: String, tags: [String] = []) async throws {
+        let body = NoteSubmission(text: text, tags: tags)
+        let _: RestaurantNote = try await request(
+            path: "/v1/restaurants/\(restaurantID.uuidString.lowercased())/notes",
+            method: "POST",
+            body: body,
+            authenticated: true
+        )
+    }
+
     func listNotes(restaurantID: UUID) async throws -> [RestaurantNote] {
         let response: NotesResponse = try await request(
             path: "/v1/restaurants/\(restaurantID.uuidString.lowercased())/notes"
@@ -90,7 +170,13 @@ final class APIClient {
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
         config.waitsForConnectivity = true
-        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        // Honor the server's ETag / Cache-Control (304 Not Modified) so repeat
+        // map/list reads come from cache instead of refetching the full payload.
+        config.requestCachePolicy = .useProtocolCachePolicy
+        config.urlCache = URLCache(
+            memoryCapacity: 8 * 1024 * 1024,
+            diskCapacity: 64 * 1024 * 1024
+        )
         return URLSession(configuration: config)
     }()
 
@@ -113,10 +199,18 @@ final class APIClient {
     private func request<T: Decodable>(
         path: String,
         method: String = "GET",
+        queryItems: [URLQueryItem] = [],
         body: (any Encodable)? = nil,
         authenticated: Bool = false
     ) async throws -> T {
-        guard let url = URL(string: path, relativeTo: baseURL) else {
+        guard let resolved = URL(string: path, relativeTo: baseURL),
+              var components = URLComponents(url: resolved, resolvingAgainstBaseURL: true) else {
+            throw APIError.invalidURL
+        }
+        if !queryItems.isEmpty {
+            components.queryItems = queryItems
+        }
+        guard let url = components.url else {
             throw APIError.invalidURL
         }
 
@@ -125,9 +219,7 @@ final class APIClient {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         if authenticated {
-            guard let token = authService.idToken else {
-                throw APIError.unauthorized
-            }
+            let token = try await authService.freshIDToken()
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

@@ -26,6 +26,7 @@ docker compose up --build api
 | POST | `/v1/restaurants/{id}/attributes` | ✅ |
 | POST | write endpoints | ✅ Firebase JWT (dev mode below) |
 | GET | `/v1/me` | ✅ Authenticated profile |
+| POST | `/v1/me/delete-account` | ✅ Delete account + contributions (recent sign-in) |
 
 Interactive docs: http://localhost:8080/docs
 

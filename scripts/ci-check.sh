@@ -22,7 +22,9 @@ VITE_CI_ARGS=(
   --build-arg "VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY:-ci-dummy}"
   --build-arg "VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN:-ci.example.com}"
   --build-arg "VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID:-ci-project}"
+  --build-arg "VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID:-1:000000000000:web:ci-dummy}"
   --build-arg "VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY:-}"
+  --build-arg "VITE_ENABLE_REVIEW_CHAT=${VITE_ENABLE_REVIEW_CHAT:-true}"
 )
 
 usage() {
@@ -105,12 +107,12 @@ if [[ "$MODE" != "all" ]]; then
   if echo "$changed" | grep -qE '^web/'; then RUN_WEB=true; fi
   if echo "$changed" | grep -qE '^api/'; then RUN_API=true; fi
   if echo "$changed" | grep -qE '^infra/terraform/'; then RUN_INFRA=true; fi
-  if echo "$changed" | grep -qE '^\.github/workflows/deploy\.yml'; then
+  if echo "$changed" | grep -qE '^\.github/workflows/(deploy\.yml|reusable-)'; then
     RUN_WEB=true
     RUN_API=true
     RUN_INFRA=true
   fi
-  if echo "$changed" | grep -qE '^\.github/workflows/terraform\.yml'; then
+  if echo "$changed" | grep -qE '^\.github/workflows/reusable-terraform\.yml'; then
     RUN_INFRA=true
   fi
 fi

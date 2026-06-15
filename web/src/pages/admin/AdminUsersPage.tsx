@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 
 import { api } from "../../api/client";
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import type { AdminContributorRow } from "../../types";
 
@@ -28,7 +28,7 @@ export function AdminUsersPage() {
   useEffect(() => {
     if (!idToken) return;
     let cancelled = false;
-    setLoading(true);
+    startTransition(() => setLoading(true));
     api
       .adminUsers(idToken, PAGE_SIZE, offset)
       .then((data) => {

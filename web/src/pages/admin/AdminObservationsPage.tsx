@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../../api/client";
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import type { AdminObservationRow } from "../../types";
 
@@ -28,7 +28,7 @@ export function AdminObservationsPage() {
   useEffect(() => {
     if (!idToken) return;
     let cancelled = false;
-    setLoading(true);
+    startTransition(() => setLoading(true));
     api
       .adminObservations(idToken, PAGE_SIZE, offset)
       .then((data) => {

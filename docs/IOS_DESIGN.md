@@ -404,7 +404,7 @@ Run locally with `⌘U` or `xcodebuild test -scheme TTF -destination 'platform=i
 
 ## 12. CI/CD — iOS Workflow
 
-New path-filtered workflow `.github/workflows/ios.yml` (slot already planned in DESIGN.md §10):
+Manual iOS build workflow `.github/workflows/tool-ios.yml` (`workflow_dispatch` only today; slot already planned in DESIGN.md §10):
 
 | Stage | Trigger | Runner | Steps |
 |-------|---------|--------|-------|
@@ -413,7 +413,7 @@ New path-filtered workflow `.github/workflows/ios.yml` (slot already planned in 
 
 Notes:
 
-- macOS runners burn minutes ~10× Linux — keep the build job out of `ci.yml` and path-filter strictly. `./scripts/ci-check.sh` stays Docker-only and ignores `ios/**`.
+- macOS runners burn minutes ~10× Linux — keep the build job out of `deploy.yml` until signing secrets exist; path-filter when wired. `./scripts/ci-check.sh` stays Docker-only and ignores `ios/**`.
 - Signing assets (App Store Connect API key, distribution cert) are the one-time Mac setup item from GETTING_STARTED Phase 1; store as GitHub Secrets, never in repo.
 
 ---
@@ -425,7 +425,7 @@ Ordered so every milestone produces something runnable in the simulator; M1–M3
 | # | Milestone | Contents | Done when |
 |---|-----------|----------|-----------|
 | **M0** | Scaffold | Xcode project at `ios/TTF/` per §4; commit; `.gitignore` entries; placeholder app boots | ✅ on `main` — see [`ios/TTF/README.md`](../ios/TTF/README.md) |
-| **M1** | Read-only browse + CI | Models, `APIClient`, list + search, restaurant detail with TTF badge against dev API; `ios.yml` build+test | ✅ browse in simulator; CI workflow is manual `workflow_dispatch` until signing secrets exist |
+| **M1** | Read-only browse + CI | Models, `APIClient`, list + search, restaurant detail with TTF badge against dev API; `tool-ios.yml` build+test | ✅ browse in simulator; CI workflow is manual `workflow_dispatch` until signing secrets exist |
 | **M2** | Map | Map tab, tier-colored pins, pin → detail, Core Location recenter | ✅ Markers + `RestaurantStore` cache on `main`; polish ongoing |
 | **M3** | Auth | Firebase SDK, email/password sign-in, `/v1/me` profile tab, emulator support | Sign in on simulator; profile shows contribution count |
 | **M4** | Contribute | TTF timer flow, attribute rating, notes — all writes with Bearer token | Submit from simulator; aggregates refresh; rows visible in admin console |

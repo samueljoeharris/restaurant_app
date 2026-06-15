@@ -24,6 +24,11 @@ configs:
 configFiles:
   Debug: Config/Debug.xcconfig
   Release: Config/Release.xcconfig
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk.git
+    from: "11.0.0"
+
 targets:
   TTF:
     type: application
@@ -34,6 +39,9 @@ targets:
           - Resources/Info.plist
     resources:
       - path: TTF/Resources/Assets.xcassets
+    dependencies:
+      - package: Firebase
+        product: FirebaseAuth
     settings:
       base:
         PRODUCT_NAME: Little Scout

@@ -1,7 +1,6 @@
 name: iOS
 
-# Manual TestFlight / archive builds until signing secrets and Firebase iOS config are in place.
-# Does not run on push yet — wire into deploy.yml when ios/** CI is ready.
+# Manual build tool (workflow_dispatch only) — wire into deploy.yml when ios/** CI is ready.
 on:
   workflow_dispatch:
     inputs:
@@ -33,6 +32,16 @@ jobs:
 
       - name: Show Xcode version
         run: xcodebuild -version
+
+      - name: Write GoogleService-Info.plist
+        env:
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ]; then
+            echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > TTF/GoogleService-Info.plist
+          else
+            echo "Warning: IOS_GOOGLE_SERVICE_INFO_PLIST secret not set — Firebase Auth will not be configured" >&2
+          fi
 
       - name: Resolve Swift packages
         run: xcodebuild -resolvePackageDependencies -project TTF.xcodeproj -scheme TTF

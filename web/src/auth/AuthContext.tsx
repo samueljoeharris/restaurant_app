@@ -10,9 +10,7 @@ import {
 } from "firebase/auth";
 import type { MultiFactorResolver, User } from "firebase/auth";
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -22,6 +20,7 @@ import type { ReactNode } from "react";
 
 import { auth } from "../firebase";
 import { isAdminSite } from "../buildTarget";
+import { AuthContext, type AuthContextValue } from "./context";
 import { consumeHandoffToken, signInFromHandoffToken } from "./handoff";
 import { bootstrapFirebaseFromIapSession } from "./iapSession";
 import { authErrorMessage } from "./errors";
@@ -36,47 +35,8 @@ import {
   unenrollTotp,
   userHasTotpMfa,
 } from "./mfa";
-import type { TotpEnrollment } from "./mfa";
-
-interface AuthContextValue {
-  user: User | null;
-  loading: boolean;
-  iapAccessDenied: boolean;
-  idToken: string | null;
-  role: string | null;
-  isAdmin: boolean;
-  mfaResolver: MultiFactorResolver | null;
-  hasTotpMfa: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  redirectError: string | null;
-  clearRedirectError: () => void;
-  completeMfa: (code: string) => Promise<void>;
-  cancelMfa: () => void;
-  beginTotpEnrollment: () => Promise<TotpEnrollment>;
-  confirmTotpEnrollment: (
-    enrollment: TotpEnrollment,
-    code: string,
-  ) => Promise<void>;
-  removeTotpMfa: () => Promise<void>;
-  reauthenticate: (options: {
-    password?: string;
-    google?: boolean;
-  }) => Promise<"ok" | "mfa-required">;
-  reauthMfaResolver: MultiFactorResolver | null;
-  completeReauthMfa: (code: string) => Promise<void>;
-  cancelReauthMfa: () => void;
-  logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
-  refreshClaims: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
 
 const GOOGLE_REDIRECT_PENDING_KEY = "ttf:googleRedirectPending";
-
-/** Redirect is default on custom domains; popup only when explicitly enabled. */
 function shouldUseGooglePopup(): boolean {
   return import.meta.env.VITE_GOOGLE_AUTH_USE_POPUP === "true";
 }
@@ -99,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [idToken, setIdToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [iapBootstrapDone, setIapBootstrapDone] = useState(!isAdminSite);
   const [iapAccessDenied, setIapAccessDenied] = useState(false);
   const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(
@@ -224,9 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [syncUser]);
 
-  useEffect(() => {
-    setLoading(!(redirectReady && authListenerReady && iapBootstrapDone));
-  }, [redirectReady, authListenerReady, iapBootstrapDone]);
+  const loading = !(redirectReady && authListenerReady && iapBootstrapDone);
 
   const runSignIn = async (fn: () => Promise<void>) => {
     setMfaResolver(null);
@@ -307,6 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               ) {
                 throw new Error(
                   `Google sign-in failed. In GCP Credentials → OAuth Web client, add authorized redirect URI: ${googleSignInConfigHint()}`,
+                  { cause: err },
                 );
               }
             }
@@ -391,11 +349,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
-}
-
-export { authErrorMessage };

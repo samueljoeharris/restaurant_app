@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../auth/useAuth";
 import { AdminAccessDeniedPage } from "../../pages/admin/AdminAccessDeniedPage";
 import { Skeleton } from "../ui/Skeleton";
 

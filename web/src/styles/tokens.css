@@ -61,11 +61,15 @@
   --shadow-md: 0 4px 12px rgb(28 25 23 / 8%);
   --shadow-lg: 0 12px 32px rgb(28 25 23 / 10%);
 
-  /* Layout */
-  --header-height: 3.25rem;
-  --bottom-nav-height: 4rem;
-  --page-max-width: 40rem;
-  --page-narrow: 28rem;
+  /* Layout — desktop pilot */
+  --app-sidebar-width: 14rem;
+  --app-sidebar-width-collapsed: 4.25rem;
+  --desktop-min-width: 64rem;
+  --page-max-width: 72rem;
+  --page-narrow: 40rem;
+  --map-search-width: 22rem;
+  --map-panel-width: 22rem;
+  --explore-sidebar-width: 21rem;
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);

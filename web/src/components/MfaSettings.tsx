@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { FormEvent as FormEventType } from "react";
 
-import { useAuth, authErrorMessage } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
+import { authErrorMessage } from "../auth/errors";
 import type { TotpEnrollment } from "../auth/mfa";
 import {
   isRequiresRecentLogin,
@@ -9,7 +10,7 @@ import {
   userHasPasswordProvider,
 } from "../auth/mfa";
 import { Button } from "./ui/Button";
-import { useToast } from "./ui/Toast";
+import { useToast } from "./ui/useToast";
 
 type UnenrollStep = "idle" | "confirm" | "reauth" | "reauth-mfa";
 

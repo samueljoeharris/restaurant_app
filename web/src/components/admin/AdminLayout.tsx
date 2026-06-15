@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { api } from "../../api/client";
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../auth/useAuth";
 import { publicAppHandoffUrl } from "../../auth/handoff";
 import { PUBLIC_APP_URL } from "../../buildTarget";
 

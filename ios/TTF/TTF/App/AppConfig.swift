@@ -19,4 +19,13 @@ enum AppConfig {
         }
         return URL(string: "https://api.dev.littlescout.app")!
     }
+
+    /// True when Debug.xcconfig has TTF_USE_AUTH_EMULATOR = YES.
+    /// Connects AuthService to the local Firebase Auth emulator on port 9099.
+    static var useAuthEmulator: Bool {
+        if let plist = Bundle.main.object(forInfoDictionaryKey: "TTFUseAuthEmulator") as? String {
+            return plist.uppercased() == "YES"
+        }
+        return ProcessInfo.processInfo.environment["TTF_USE_AUTH_EMULATOR"] == "YES"
+    }
 }

@@ -29,6 +29,8 @@
 	<dict/>
 	<key>TTFAPIURL</key>
 	<string>$(TTF_API_URL)</string>
+	<key>TTFUseAuthEmulator</key>
+	<string>$(TTF_USE_AUTH_EMULATOR)</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

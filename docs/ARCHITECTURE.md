@@ -74,7 +74,7 @@ flowchart TB
 | `web/` | Public web POC and admin console, both built from one React/Vite app tree. |
 | `api/` | FastAPI service, migrations, OpenAPI sketch, and operational scripts. |
 | `infra/terraform/` | GCP infrastructure for dev, reusable Terraform modules, and bootstrap config. |
-| `.github/workflows/` | CI, Terraform, API deploy, public web deploy, and admin web deploy workflows. |
+| `.github/workflows/` | CI/CD pipeline (`deploy.yml`), reusable-* deploy modules and tool-* utilities. |
 | `docker-compose.yml` | Local Postgres, API, Terraform, and optional Firebase Auth emulator. |
 | `docs/` | Product, auth, CI, domain, onboarding, and architecture documentation. |
 
@@ -385,10 +385,12 @@ Workflow responsibilities:
 | Workflow | Purpose |
 | --- | --- |
 | `.github/workflows/deploy.yml` | CI/CD pipeline on push to `main`: checks, then Terraform, then service deploys. |
-| `.github/workflows/terraform.yml` | Terraform plan/apply for dev infrastructure (reusable + manual dispatch). |
-| `.github/workflows/api.yml` | Build, push, and deploy `ttf-api` (reusable + manual dispatch). |
-| `.github/workflows/web.yml` | Build, push, and deploy `ttf-web` (reusable + manual dispatch). |
-| `.github/workflows/admin-web.yml` | Build, push, and deploy `ttf-admin-web` (reusable + manual dispatch). |
+| `.github/workflows/reusable-terraform.yml` | Terraform plan/apply for dev infrastructure (reusable + manual dispatch). |
+| `.github/workflows/reusable-api.yml` | Build, push, and deploy `ttf-api` (reusable + manual dispatch). |
+| `.github/workflows/reusable-web.yml` | Build, push, and deploy `ttf-web` (reusable + manual dispatch). |
+| `.github/workflows/reusable-admin-web.yml` | Build, push, and deploy `ttf-admin-web` (reusable + manual dispatch). |
+| `.github/workflows/tool-debug-logs.yml` | Manual Cloud Logging fetch for ops debugging. |
+| `.github/workflows/tool-ios.yml` | Manual iOS build (`workflow_dispatch`). |
 
 Deploy workflows use GitHub Workload Identity Federation to authenticate to GCP,
 then build images into Artifact Registry and update Cloud Run. Web builds bake in

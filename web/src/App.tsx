@@ -2,20 +2,24 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
+import { DesktopOnlyGate } from "./components/DesktopOnlyGate";
 import { Layout } from "./components/Layout";
 import { AccountPage } from "./pages/AccountPage";
+import { ExploreMapPage } from "./pages/ExploreMapPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
+import { MyContributionsPage } from "./pages/MyContributionsPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
-import { RestaurantListPage } from "./pages/RestaurantListPage";
-import { MapPage } from "./pages/MapPage";
 import { RateAttributesPage } from "./pages/RateAttributesPage";
+import { ReviewChatPage } from "./pages/ReviewChatPage";
+import { TtfContributionEditPage } from "./pages/TtfContributionEditPage";
 import { TtfSubmitPage } from "./pages/TtfSubmitPage";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <DesktopOnlyGate>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -30,7 +34,7 @@ export default function App() {
             path="/restaurants"
             element={
               <Layout>
-                <RestaurantListPage />
+                <ExploreMapPage />
               </Layout>
             }
           />
@@ -46,7 +50,7 @@ export default function App() {
             path="/map"
             element={
               <Layout>
-                <MapPage />
+                <ExploreMapPage />
               </Layout>
             }
           />
@@ -59,10 +63,34 @@ export default function App() {
             }
           />
           <Route
+            path="/account/contributions"
+            element={
+              <Layout>
+                <MyContributionsPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/account/contributions/ttf/:observationId/edit"
+            element={
+              <Layout>
+                <TtfContributionEditPage />
+              </Layout>
+            }
+          />
+          <Route
             path="/restaurants/:id/rate"
             element={
               <Layout>
                 <RateAttributesPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/restaurants/:id/review"
+            element={
+              <Layout>
+                <ReviewChatPage />
               </Layout>
             }
           />
@@ -77,6 +105,7 @@ export default function App() {
           <Route path="/admin/*" element={<AdminSiteRedirect />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </DesktopOnlyGate>
       </BrowserRouter>
     </AuthProvider>
   );

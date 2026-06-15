@@ -104,7 +104,7 @@ brew install xcodegen
 
 ## TestFlight CI (skeleton)
 
-`.github/workflows/ios.yml` is a manual `workflow_dispatch` job for macOS builds. Before using it, add GitHub secrets:
+`.github/workflows/tool-ios.yml` is a manual `workflow_dispatch` job for macOS builds. Before using it, add GitHub secrets:
 
 | Secret | Purpose |
 |--------|---------|

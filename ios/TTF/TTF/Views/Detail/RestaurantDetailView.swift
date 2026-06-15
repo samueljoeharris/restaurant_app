@@ -2,9 +2,11 @@ import SwiftUI
 
 struct RestaurantDetailView: View {
     @Environment(APIClient.self) private var api
+    @Environment(AuthService.self) private var auth
     let restaurantID: UUID
 
     @State private var viewModel: RestaurantDetailViewModel
+    @State private var showSignIn = false
 
     init(restaurantID: UUID) {
         self.restaurantID = restaurantID
@@ -86,21 +88,31 @@ struct RestaurantDetailView: View {
     @ViewBuilder
     private var actionLinks: some View {
         VStack(spacing: 12) {
-            NavigationLink {
-                TtfSubmitView(restaurantID: restaurantID)
-            } label: {
-                Label("Submit TTF", systemImage: "plus.circle.fill")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
+            if auth.isSignedIn {
+                NavigationLink {
+                    TtfSubmitView(restaurantID: restaurantID)
+                } label: {
+                    Label("Submit TTF", systemImage: "plus.circle.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
 
-            NavigationLink {
-                RateAttributesView(restaurantID: restaurantID)
-            } label: {
-                Label("Rate parent attributes", systemImage: "hand.thumbsup")
-                    .frame(maxWidth: .infinity)
+                NavigationLink {
+                    RateAttributesView(restaurantID: restaurantID)
+                } label: {
+                    Label("Rate parent attributes", systemImage: "hand.thumbsup")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            } else {
+                Button {
+                    showSignIn = true
+                } label: {
+                    Label("Sign in to contribute", systemImage: "person.crop.circle.badge.plus")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.bordered)
 
             if let urlString = viewModel.detail?.restaurant.googleMapsUrl,
                let url = URL(string: urlString) {
@@ -110,6 +122,21 @@ struct RestaurantDetailView: View {
                 }
                 .buttonStyle(.bordered)
             }
+        }
+        .sheet(isPresented: $showSignIn) {
+            NavigationStack {
+                SignInView()
+                    .navigationTitle("Sign in")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") { showSignIn = false }
+                        }
+                    }
+            }
+        }
+        .onChange(of: auth.isSignedIn) { _, signedIn in
+            if signedIn { showSignIn = false }
         }
     }
 

@@ -1,0 +1,387 @@
+import { useEffect, useMemo, useState, startTransition } from "react";
+import { Link } from "react-router-dom";
+
+import { api } from "../api/client";
+import { useAuth } from "../auth/useAuth";
+import { AttributeInput } from "../components/AttributeInput";
+import { Badge } from "../components/ui/Badge";
+import { Button, ButtonLink } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { EmptyState } from "../components/ui/EmptyState";
+import { Page } from "../components/ui/Page";
+import { useToast } from "../components/ui/useToast";
+import type {
+  MetricDefinition,
+  UserAttributeContribution,
+  UserContribution,
+  UserNoteContribution,
+} from "../types";
+
+type KindFilter = "all" | "ttf" | "attribute" | "note";
+
+const FILTERS: { value: KindFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "ttf", label: "Speed" },
+  { value: "attribute", label: "Ratings" },
+  { value: "note", label: "Notes" },
+];
+
+const KIND_LABELS: Record<UserContribution["kind"], string> = {
+  ttf: "Speed",
+  attribute: "Rating",
+  note: "Note",
+};
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatItemType(value: string): string {
+  return value.replace(/_/g, " ");
+}
+
+function formatAttributeValue(value: boolean | number | string): string {
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return String(value);
+  return value.replace(/_/g, " ");
+}
+
+function contributionSummary(item: UserContribution): string {
+  if (item.kind === "ttf") {
+    return `${item.elapsed_minutes} min · ${formatItemType(item.item_type)} · ${item.item_quality}/5`;
+  }
+  if (item.kind === "attribute") {
+    return `${item.metric_label}: ${formatAttributeValue(item.value)}`;
+  }
+  const preview = item.text.length > 120 ? `${item.text.slice(0, 120)}…` : item.text;
+  return preview;
+}
+
+export function MyContributionsPage() {
+  const { idToken } = useAuth();
+  const { toast } = useToast();
+  const [filter, setFilter] = useState<KindFilter>("all");
+  const [items, setItems] = useState<UserContribution[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editNoteText, setEditNoteText] = useState("");
+  const [editAttributeValue, setEditAttributeValue] = useState<boolean | number | string | undefined>();
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!idToken) return;
+    let cancelled = false;
+    startTransition(() => setLoading(true));
+    const kind = filter === "all" ? undefined : filter;
+    api
+      .listMyContributions(idToken, { kind, limit: 100 })
+      .then((data) => {
+        if (!cancelled) {
+          setItems(data.items);
+          setTotal(data.total);
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not load contributions");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filter, idToken]);
+
+  useEffect(() => {
+    if (!idToken) return;
+    let cancelled = false;
+    api
+      .listMetrics()
+      .then((metricList) => {
+        if (!cancelled) setMetrics(metricList);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [idToken]);
+
+  async function reload() {
+    if (!idToken) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const kind = filter === "all" ? undefined : filter;
+      const data = await api.listMyContributions(idToken, { kind, limit: 100 });
+      setItems(data.items);
+      setTotal(data.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load contributions");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const metricsByKey = useMemo(
+    () => new Map(metrics.map((m) => [m.key, m])),
+    [metrics],
+  );
+
+  function startEditNote(item: UserNoteContribution) {
+    setEditingId(item.id);
+    setEditNoteText(item.text);
+    setEditAttributeValue(undefined);
+  }
+
+  function startEditAttribute(item: UserAttributeContribution) {
+    setEditingId(item.id);
+    setEditAttributeValue(item.value);
+    setEditNoteText("");
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditNoteText("");
+    setEditAttributeValue(undefined);
+  }
+
+  async function saveNote(item: UserNoteContribution) {
+    if (!idToken || !editNoteText.trim()) return;
+    setBusyId(item.id);
+    try {
+      await api.updateMyNote(item.id, editNoteText.trim(), idToken, item.tags);
+      toast("Note updated", "success");
+      cancelEdit();
+      await reload();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Update failed", "error");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function saveAttribute(item: UserAttributeContribution) {
+    if (!idToken || editAttributeValue === undefined) return;
+    setBusyId(item.id);
+    try {
+      await api.updateMyAttribute(item.id, editAttributeValue, idToken);
+      toast("Rating updated", "success");
+      cancelEdit();
+      await reload();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Update failed", "error");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handleDelete(item: UserContribution) {
+    if (!idToken) return;
+    const label = KIND_LABELS[item.kind].toLowerCase();
+    if (!window.confirm(`Delete this ${label}? This cannot be undone.`)) return;
+    setBusyId(item.id);
+    try {
+      if (item.kind === "ttf") await api.deleteMyTtf(item.id, idToken);
+      else if (item.kind === "attribute") await api.deleteMyAttribute(item.id, idToken);
+      else await api.deleteMyNote(item.id, idToken);
+      toast(`${KIND_LABELS[item.kind]} deleted`, "success");
+      if (editingId === item.id) cancelEdit();
+      await reload();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Delete failed", "error");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <Page
+      title="Your contributions"
+      subtitle="View, edit, or remove your speed observations, ratings, and notes."
+      back={
+        <Link to="/account" className="back-link">
+          ← Account
+        </Link>
+      }
+    >
+      <div className="contribution-filters">
+        {FILTERS.map((opt) => (
+          <Button
+            key={opt.value}
+            type="button"
+            size="sm"
+            variant={filter === opt.value ? "primary" : "secondary"}
+            onClick={() => setFilter(opt.value)}
+          >
+            {opt.label}
+          </Button>
+        ))}
+      </div>
+
+      {loading && <p className="muted">Loading…</p>}
+      {error && <p className="error">{error}</p>}
+
+      {!loading && !error && items.length === 0 && (
+        <EmptyState
+          emoji="📝"
+          title="Nothing here yet"
+          description="Your speed observations, parent ratings, and notes will show up here."
+          action={
+            <ButtonLink to="/map" variant="secondary">
+              Explore restaurants
+            </ButtonLink>
+          }
+        />
+      )}
+
+      {!loading && !error && items.length > 0 && (
+        <p className="muted small">
+          {total} contribution{total === 1 ? "" : "s"}
+          {filter !== "all" ? ` · filtered` : ""}
+        </p>
+      )}
+
+      <ul className="contributions-list stack">
+        {items.map((item) => {
+          const isEditing = editingId === item.id;
+          const isBusy = busyId === item.id;
+
+          return (
+            <li key={`${item.kind}-${item.id}`}>
+              <Card>
+                <div className="contribution-row">
+                  <div className="contribution-row__main">
+                    <div className="contribution-row__header">
+                      <Badge tone="neutral">{KIND_LABELS[item.kind]}</Badge>
+                      <time className="muted small">{fmtDate(item.submitted_at)}</time>
+                    </div>
+                    <Link
+                      to={`/restaurants/${item.restaurant_id}`}
+                      className="contribution-row__restaurant linkish"
+                    >
+                      {item.restaurant_name}
+                    </Link>
+                    {!isEditing && (
+                      <p className="contribution-row__summary">{contributionSummary(item)}</p>
+                    )}
+                  </div>
+
+                  <div className="contribution-row__actions">
+                    {item.kind === "ttf" && !isEditing && (
+                      <ButtonLink
+                        to={`/account/contributions/ttf/${item.id}/edit`}
+                        size="sm"
+                        variant="secondary"
+                      >
+                        Edit
+                      </ButtonLink>
+                    )}
+                    {item.kind === "attribute" && !isEditing && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => startEditAttribute(item)}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    {item.kind === "note" && !isEditing && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => startEditNote(item)}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    {!isEditing && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={isBusy}
+                        onClick={() => handleDelete(item)}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {isEditing && item.kind === "note" && (
+                  <form
+                    className="stack contribution-edit"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveNote(item);
+                    }}
+                  >
+                    <label>
+                      Edit note
+                      <textarea
+                        value={editNoteText}
+                        onChange={(e) => setEditNoteText(e.target.value)}
+                        rows={4}
+                        maxLength={2000}
+                        required
+                      />
+                    </label>
+                    <div className="row-actions">
+                      <Button type="submit" disabled={isBusy || !editNoteText.trim()}>
+                        {isBusy ? "Saving…" : "Save"}
+                      </Button>
+                      <Button type="button" variant="ghost" onClick={cancelEdit}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
+                {isEditing && item.kind === "attribute" && (
+                  <div className="stack contribution-edit">
+                    <p className="small">
+                      <strong>{item.metric_label}</strong>
+                    </p>
+                    {metricsByKey.get(item.metric_key) ? (
+                      <AttributeInput
+                        metric={metricsByKey.get(item.metric_key)!}
+                        value={editAttributeValue}
+                        onChange={setEditAttributeValue}
+                      />
+                    ) : (
+                      <p className="muted small">This metric is no longer available.</p>
+                    )}
+                    <div className="row-actions">
+                      <Button
+                        type="button"
+                        disabled={isBusy || editAttributeValue === undefined}
+                        onClick={() => saveAttribute(item)}
+                      >
+                        {isBusy ? "Saving…" : "Save"}
+                      </Button>
+                      <Button type="button" variant="ghost" onClick={cancelEdit}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </li>
+          );
+        })}
+      </ul>
+    </Page>
+  );
+}

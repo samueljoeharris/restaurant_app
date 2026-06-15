@@ -178,6 +178,48 @@ export interface UserProfile {
   role?: string | null;
 }
 
+export interface UserTtfContribution {
+  kind: "ttf";
+  id: string;
+  restaurant_id: string;
+  restaurant_name: string;
+  submitted_at: string;
+  elapsed_minutes: number;
+  item_type: TtfSubmission["item_type"];
+  item_quality: number;
+  portion_size: TtfSubmission["portion_size"];
+  daypart: TtfSubmission["daypart"];
+  party_size_kids: number;
+  wait_context?: string | null;
+}
+
+export interface UserAttributeContribution {
+  kind: "attribute";
+  id: string;
+  restaurant_id: string;
+  restaurant_name: string;
+  submitted_at: string;
+  metric_key: string;
+  metric_label: string;
+  value: boolean | number | string;
+  visit_context?: string | null;
+}
+
+export interface UserNoteContribution {
+  kind: "note";
+  id: string;
+  restaurant_id: string;
+  restaurant_name: string;
+  submitted_at: string;
+  text: string;
+  tags: string[];
+}
+
+export type UserContribution =
+  | UserTtfContribution
+  | UserAttributeContribution
+  | UserNoteContribution;
+
 export interface AdminOverviewStats {
   pilot_city: string;
   pilot_display_name: string;
@@ -292,4 +334,63 @@ export interface RestaurantNote {
   text: string;
   tags: string[];
   created_at: string;
+}
+
+export interface PlaceSuggestion {
+  type: "place" | "restaurant";
+  place_id?: string;
+  restaurant_id?: string;
+  primary_text: string;
+  secondary_text: string;
+  lat?: number;
+  lng?: number;
+}
+
+export interface PlaceResolveResponse {
+  place_id: string;
+  lat: number;
+  lng: number;
+  label: string;
+}
+
+export interface ContributionSchema {
+  version: number;
+  description: string;
+  ttf: Record<string, unknown>;
+  note: Record<string, unknown>;
+  attributes: {
+    description: string;
+    required_fields: string[];
+    optional_fields: string[];
+    metrics: Record<
+      string,
+      {
+        type: string;
+        label: string;
+        category: string;
+        input_widget: string;
+        values?: string[];
+        min?: number;
+        max?: number;
+      }
+    >;
+  };
+}
+
+export interface ContributionDraft {
+  ttf?: Partial<TtfSubmission>;
+  attributes?: Array<{
+    metric_key: string;
+    value: boolean | number | string;
+    visit_context?: string;
+  }>;
+  note?: { text: string; tags?: string[] };
+}
+
+export interface ContributionPreviewResponse {
+  valid: boolean;
+  errors: string[];
+  missing_required: string[];
+  draft: ContributionDraft;
+  ready_to_submit: boolean;
 }

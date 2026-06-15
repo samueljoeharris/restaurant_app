@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { ADMIN_APP_URL } from "../buildTarget";
+import { DeleteAccountSettings } from "../components/DeleteAccountSettings";
 import { MfaSettings } from "../components/MfaSettings";
 import { api } from "../api/client";
-import { Button } from "../components/ui/Button";
+import { Button, ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Page } from "../components/ui/Page";
 import { Stat, StatGrid } from "../components/ui/Stat";
@@ -54,6 +55,9 @@ export function AccountPage() {
             />
           </StatGrid>
         )}
+        <ButtonLink to="/account/contributions" variant="secondary" fullWidth>
+          View your contributions
+        </ButtonLink>
         <Button variant="ghost" onClick={() => logout()}>
           Sign out
         </Button>
@@ -61,6 +65,10 @@ export function AccountPage() {
 
       <Card title="Security" subtitle="Protect your account">
         <MfaSettings />
+      </Card>
+
+      <Card title="Delete account" subtitle="Permanent and cannot be undone">
+        <DeleteAccountSettings />
       </Card>
     </Page>
   );

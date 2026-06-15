@@ -10,6 +10,7 @@ from ttf_api.auth import AuthUser, require_admin
 from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
+from ttf_api.map_query import build_bbox_filter
 from ttf_api.places_seed import PlacesSeedError
 from ttf_api.pubsub_seed import enqueue_seed_job
 from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area
@@ -31,7 +32,67 @@ from ttf_api.schemas import (
     TtfSubmissionResponse,
 )
 
+# Haversine distance expression (metres).  Parametrised by %(lat)s / %(lng)s.
+_HAVERSINE_EXPR = """
+    2 * 6371000 * asin(sqrt(
+        power(sin(radians(r.lat - %(lat)s) / 2), 2)
+        + cos(radians(%(lat)s)) * cos(radians(r.lat))
+          * power(sin(radians(r.lng - %(lng)s) / 2), 2)
+    ))
+"""
+
+# Core SELECT shared between /map and /search (no trailing WHERE / ORDER / LIMIT).
+_MAP_SELECT = """
+    SELECT
+        r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
+        COALESCE(t.sample_size, 0)::int AS sample_size,
+        t.median_minutes,
+        t.avg_quality,
+        t.last_updated,
+        COALESCE(n.note_count, 0)::int AS note_count,
+        COALESCE(a.attribute_rating_count, 0)::int AS attribute_rating_count
+    FROM restaurants r
+    LEFT JOIN LATERAL (
+        SELECT
+            COUNT(*)::int AS sample_size,
+            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY elapsed_minutes) AS median_minutes,
+            AVG(item_quality)::float AS avg_quality,
+            MAX(created_at) AS last_updated
+        FROM ttf_observations
+        WHERE restaurant_id = r.id
+    ) t ON true
+    LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS note_count
+        FROM restaurant_notes
+        WHERE restaurant_id = r.id
+    ) n ON true
+    LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS attribute_rating_count
+        FROM restaurant_attribute_ratings
+        WHERE restaurant_id = r.id
+    ) a ON true
+"""
+
 router = APIRouter(prefix="/v1/restaurants", tags=["restaurants"])
+
+
+def _row_to_map_entry(row: dict) -> RestaurantMapEntry:
+    summary = _row_to_summary(row)
+    if row["sample_size"] == 0:
+        ttf = TtfAggregate()
+    else:
+        ttf = TtfAggregate(
+            sample_size=row["sample_size"],
+            median_minutes=float(row["median_minutes"]) if row["median_minutes"] is not None else None,
+            avg_quality=float(row["avg_quality"]) if row["avg_quality"] is not None else None,
+            last_updated=row["last_updated"],
+        )
+    return RestaurantMapEntry(
+        **summary.model_dump(),
+        ttf=ttf,
+        note_count=row["note_count"],
+        attribute_rating_count=row["attribute_rating_count"],
+    )
 
 
 def _row_to_summary(row: dict) -> RestaurantSummary:
@@ -128,68 +189,63 @@ def list_restaurants(
 
 
 @router.get("/map", response_model=list[RestaurantMapEntry])
-def list_restaurants_for_map() -> list[RestaurantMapEntry]:
+def list_restaurants_for_map(
+    min_lat: float | None = Query(None, ge=-90, le=90),
+    max_lat: float | None = Query(None, ge=-90, le=90),
+    min_lng: float | None = Query(None, ge=-180, le=180),
+    max_lng: float | None = Query(None, ge=-180, le=180),
+) -> list[RestaurantMapEntry]:
     pilot = settings.pilot_city
-    sql = """
-        SELECT
-            r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
-            COALESCE(t.sample_size, 0)::int AS sample_size,
-            t.median_minutes,
-            t.avg_quality,
-            t.last_updated,
-            COALESCE(n.note_count, 0)::int AS note_count,
-            COALESCE(a.attribute_rating_count, 0)::int AS attribute_rating_count
-        FROM restaurants r
-        LEFT JOIN LATERAL (
-            SELECT
-                COUNT(*)::int AS sample_size,
-                PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY elapsed_minutes) AS median_minutes,
-                AVG(item_quality)::float AS avg_quality,
-                MAX(created_at) AS last_updated
-            FROM ttf_observations
-            WHERE restaurant_id = r.id
-        ) t ON true
-        LEFT JOIN LATERAL (
-            SELECT COUNT(*)::int AS note_count
-            FROM restaurant_notes
-            WHERE restaurant_id = r.id
-        ) n ON true
-        LEFT JOIN LATERAL (
-            SELECT COUNT(*)::int AS attribute_rating_count
-            FROM restaurant_attribute_ratings
-            WHERE restaurant_id = r.id
-        ) a ON true
-        WHERE r.pilot_city = %s AND r.status = 'active'
-        ORDER BY r.name
-    """
+    # Optional viewport bbox (all-or-nothing); empty fragment when omitted.
+    try:
+        bbox_sql, bbox_params = build_bbox_filter(min_lat, max_lat, min_lng, max_lng)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    sql = _MAP_SELECT + f"WHERE r.pilot_city = %s AND r.status = 'active'{bbox_sql}\nORDER BY r.name"
+    params: list[object] = [pilot]
+    params.extend(bbox_params)
     with get_conn() as conn:
-        rows = conn.execute(sql, (pilot,)).fetchall()
+        rows = conn.execute(sql, params).fetchall()
+    return [_row_to_map_entry(row) for row in rows]
 
-    results: list[RestaurantMapEntry] = []
-    for row in rows:
-        summary = _row_to_summary(row)
-        if row["sample_size"] == 0:
-            ttf = TtfAggregate()
-        else:
-            ttf = TtfAggregate(
-                sample_size=row["sample_size"],
-                median_minutes=float(row["median_minutes"])
-                if row["median_minutes"] is not None
-                else None,
-                avg_quality=float(row["avg_quality"])
-                if row["avg_quality"] is not None
-                else None,
-                last_updated=row["last_updated"],
-            )
-        results.append(
-            RestaurantMapEntry(
-                **summary.model_dump(),
-                ttf=ttf,
-                note_count=row["note_count"],
-                attribute_rating_count=row["attribute_rating_count"],
-            )
-        )
-    return results
+
+@router.get("/search", response_model=list[RestaurantMapEntry])
+def search_restaurants(
+    lat: float = Query(..., description="Center latitude"),
+    lng: float = Query(..., description="Center longitude"),
+    radius_m: int = Query(default=8000, description="Search radius in metres (500–25000)"),
+    q: str | None = Query(None, description="Optional name filter (ILIKE)"),
+    limit: int = Query(default=100, description="Max results (1–250)"),
+) -> list[RestaurantMapEntry]:
+    """Radius query returning RestaurantMapEntry rows sorted by distance ascending.
+
+    Public — no auth required (read-only, no Google spend).
+    """
+    radius_m = max(500, min(radius_m, 25000))
+    limit = max(1, min(limit, 250))
+    pilot = settings.pilot_city
+
+    where_clauses = [
+        "r.pilot_city = %(pilot)s",
+        "r.status = 'active'",
+        f"{_HAVERSINE_EXPR} <= %(radius_m)s",
+    ]
+    params: dict = {"pilot": pilot, "lat": lat, "lng": lng, "radius_m": radius_m, "limit": limit}
+
+    if q:
+        where_clauses.append("r.name ILIKE %(q)s")
+        params["q"] = f"%{q}%"
+
+    where = " AND ".join(where_clauses)
+    sql = (
+        _MAP_SELECT
+        + f"WHERE {where}\n"
+        + f"ORDER BY {_HAVERSINE_EXPR} ASC\n"
+        + "LIMIT %(limit)s"
+    )
+    with get_conn() as conn:
+        rows = conn.execute(sql, params).fetchall()
+    return [_row_to_map_entry(row) for row in rows]
 
 
 @router.post(

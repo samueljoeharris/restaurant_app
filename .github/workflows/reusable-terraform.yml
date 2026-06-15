@@ -1,6 +1,6 @@
 name: Terraform
 
-# Called by deploy.yml on push to main (infra/** changes); manual apply via workflow_dispatch.
+# Reusable deploy module — called by deploy.yml; manual apply via workflow_dispatch.
 on:
   workflow_call:
   workflow_dispatch:

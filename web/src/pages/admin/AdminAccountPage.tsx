@@ -1,4 +1,4 @@
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../auth/useAuth";
 import { MfaSettings } from "../../components/MfaSettings";
 import { Card } from "../../components/ui/Card";
 import { Page } from "../../components/ui/Page";

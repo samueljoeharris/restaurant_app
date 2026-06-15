@@ -8,12 +8,17 @@ import type {
   AdminRefreshRunResponse,
   AdminRestaurantRow,
   AttributeEntry,
+  ContributionDraft,
+  ContributionPreviewResponse,
+  ContributionSchema,
   CoverageEnsureResponse,
   CoverageJobStatus,
   LocationRefreshConfig,
   LocationRefreshConfigSaveResponse,
   MetricDefinition,
   Paginated,
+  PlaceResolveResponse,
+  PlaceSuggestion,
   RestaurantChangelogRow,
   RestaurantDetailResponse,
   RestaurantMapEntry,
@@ -23,7 +28,9 @@ import type {
   RestaurantSummary,
   SeedLocation,
   TtfSubmission,
+  UserContribution,
   UserProfile,
+  UserTtfContribution,
 } from "../types";
 
 // In dev, Vite proxies /v1 → VITE_API_URL so any localhost port avoids CORS.
@@ -80,14 +87,30 @@ export const api = {
     return request<RestaurantSummary[]>(`/v1/restaurants${params}`);
   },
 
-  listRestaurantsForMap: () =>
-    request<RestaurantMapEntry[]>("/v1/restaurants/map").then((rows) =>
+  listRestaurantsForMap: (bbox?: {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+  }) => {
+    let path = "/v1/restaurants/map";
+    if (bbox) {
+      const params = new URLSearchParams({
+        min_lat: String(bbox.minLat),
+        max_lat: String(bbox.maxLat),
+        min_lng: String(bbox.minLng),
+        max_lng: String(bbox.maxLng),
+      });
+      path += `?${params}`;
+    }
+    return request<RestaurantMapEntry[]>(path).then((rows) =>
       rows.map((r) => ({
         ...r,
         note_count: r.note_count ?? 0,
         attribute_rating_count: r.attribute_rating_count ?? 0,
       })),
-    ),
+    );
+  },
 
   triggerRestaurantSeed: (
     body: { location: string; radius_m?: number; force?: boolean },
@@ -119,6 +142,61 @@ export const api = {
   getMe: (token: string) =>
     request<UserProfile>("/v1/me", {}, token),
 
+  listMyContributions: (
+    token: string,
+    opts: { limit?: number; offset?: number; kind?: "ttf" | "attribute" | "note" } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    if (opts.kind) params.set("kind", opts.kind);
+    return request<Paginated<UserContribution>>(`/v1/me/contributions?${params}`, {}, token);
+  },
+
+  getMyTtf: (observationId: string, token: string) =>
+    request<UserTtfContribution>(`/v1/me/ttf/${observationId}`, {}, token),
+
+  updateMyTtf: (observationId: string, body: TtfSubmission, token: string) =>
+    request(`/v1/me/ttf/${observationId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }, token),
+
+  deleteMyTtf: (observationId: string, token: string) =>
+    request<void>(`/v1/me/ttf/${observationId}`, { method: "DELETE" }, token),
+
+  updateMyAttribute: (
+    ratingId: string,
+    value: boolean | number | string,
+    token: string,
+  ) =>
+    request(`/v1/me/attributes/${ratingId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ value }),
+    }, token),
+
+  deleteMyAttribute: (ratingId: string, token: string) =>
+    request<void>(`/v1/me/attributes/${ratingId}`, { method: "DELETE" }, token),
+
+  updateMyNote: (noteId: string, text: string, token: string, tags: string[] = []) =>
+    request<RestaurantNote>(`/v1/me/notes/${noteId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ text, tags }),
+    }, token),
+
+  deleteMyNote: (noteId: string, token: string) =>
+    request<void>(`/v1/me/notes/${noteId}`, { method: "DELETE" }, token),
+
+  deleteAccount: (token: string) =>
+    request<void>(
+      "/v1/me/delete-account",
+      {
+        method: "POST",
+        body: JSON.stringify({ confirm: true }),
+      },
+      token,
+    ),
+
   authHandoff: (token: string) =>
     request<{ custom_token: string }>("/v1/auth/handoff", { method: "POST" }, token),
 
@@ -129,6 +207,22 @@ export const api = {
     }, token),
 
   listMetrics: () => request<MetricDefinition[]>("/v1/metrics"),
+
+  getContributionSchema: () =>
+    request<ContributionSchema>("/v1/contribution-schema"),
+
+  previewContributions: (id: string, body: ContributionDraft, token: string) =>
+    request<ContributionPreviewResponse>(
+      `/v1/restaurants/${id}/contributions/preview`,
+      { method: "POST", body: JSON.stringify(body) },
+      token,
+    ),
+
+  submitContributions: (id: string, body: ContributionDraft, token: string) =>
+    request(`/v1/restaurants/${id}/contributions`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
 
   getAttributes: (id: string) =>
     request<{ attributes: Record<string, AttributeEntry> }>(
@@ -296,5 +390,42 @@ export const api = {
       {},
       token,
     );
+  },
+
+  placesAutocomplete: (
+    q: string,
+    opts: { sessionToken: string; lat?: number; lng?: number },
+    token: string,
+  ) => {
+    const params = new URLSearchParams({ q, session_token: opts.sessionToken });
+    if (opts.lat != null) params.set("lat", String(opts.lat));
+    if (opts.lng != null) params.set("lng", String(opts.lng));
+    return request<{ suggestions: PlaceSuggestion[] }>(
+      `/v1/places/autocomplete?${params}`,
+      {},
+      token,
+    );
+  },
+
+  resolvePlace: (placeId: string, sessionToken: string, token: string) => {
+    const params = new URLSearchParams({ place_id: placeId, session_token: sessionToken });
+    return request<PlaceResolveResponse>(`/v1/places/resolve?${params}`, {}, token);
+  },
+
+  searchRestaurants: (opts: {
+    lat: number;
+    lng: number;
+    radius_m?: number;
+    q?: string;
+    limit?: number;
+  }) => {
+    const params = new URLSearchParams({
+      lat: String(opts.lat),
+      lng: String(opts.lng),
+    });
+    if (opts.radius_m != null) params.set("radius_m", String(opts.radius_m));
+    if (opts.q) params.set("q", opts.q);
+    if (opts.limit != null) params.set("limit", String(opts.limit));
+    return request<RestaurantMapEntry[]>(`/v1/restaurants/search?${params}`);
   },
 };

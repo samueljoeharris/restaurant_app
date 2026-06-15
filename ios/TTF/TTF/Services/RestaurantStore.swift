@@ -3,31 +3,38 @@ import Observation
 
 /// Shared restaurant cache — one network fetch for map + list tabs.
 @Observable
+@MainActor
 final class RestaurantStore {
-    private(set) var mapEntries: [RestaurantMapEntry] = []
+    private(set) var mapEntries: [RestaurantMapEntry] = [] {
+        didSet {
+            entriesByID = Dictionary(uniqueKeysWithValues: mapEntries.map { ($0.id, $0) })
+            summaries = mapEntries.map(RestaurantSummary.init(from:))
+        }
+    }
+    private var entriesByID: [UUID: RestaurantMapEntry] = [:]
+    private(set) var summaries: [RestaurantSummary] = []
     private(set) var isLoading = false
     private(set) var isRefreshing = false
     private(set) var errorMessage: String?
     private(set) var lastLoadedAt: Date?
-
-    var summaries: [RestaurantSummary] {
-        mapEntries.map(RestaurantSummary.init(from:))
-    }
 
     var isEmpty: Bool { mapEntries.isEmpty }
 
     func filteredSummaries(matching query: String) -> [RestaurantSummary] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return summaries }
-        return summaries.filter { $0.name.localizedCaseInsensitiveContains(trimmed) }
+        return summaries.filter { summary in
+            summary.name.localizedCaseInsensitiveContains(trimmed)
+                || summary.address.localizedCaseInsensitiveContains(trimmed)
+                || summary.cuisineTags.contains { $0.localizedCaseInsensitiveContains(trimmed) }
+        }
     }
 
     func entry(for id: UUID) -> RestaurantMapEntry? {
-        mapEntries.first { $0.id == id }
+        entriesByID[id]
     }
 
     /// Load once and reuse across tabs. Pass `force: true` to pull fresh data.
-    @MainActor
     func load(api: APIClient, force: Bool = false) async {
         if isLoading { return }
         if !force, !mapEntries.isEmpty { return }
@@ -45,11 +52,8 @@ final class RestaurantStore {
         }
 
         do {
-            // Warm Cloud Run while fetching (helps first-launch cold starts).
-            async let warm = try? await api.health()
-            async let fetch = api.listRestaurantsForMap()
-            _ = await warm
-            mapEntries = try await fetch
+            Task { try? await api.health() }
+            mapEntries = try await api.listRestaurantsForMap()
             lastLoadedAt = Date()
         } catch {
             if mapEntries.isEmpty {
@@ -58,7 +62,6 @@ final class RestaurantStore {
         }
     }
 
-    @MainActor
     func refresh(api: APIClient) async {
         await load(api: api, force: true)
     }

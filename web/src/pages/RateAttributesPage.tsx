@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
-import { useAuth, authErrorMessage } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
+import { authErrorMessage } from "../auth/errors";
 import { AttributeInput } from "../components/AttributeInput";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Page } from "../components/ui/Page";
-import { useToast } from "../components/ui/Toast";
+import { useToast } from "../components/ui/useToast";
 import type { MetricDefinition } from "../types";
 
 const CATEGORY_LABELS: Record<string, string> = {

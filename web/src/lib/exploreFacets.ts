@@ -110,6 +110,38 @@ export function buildExploreFacets(restaurants: RestaurantMapEntry[]) {
   };
 }
 
+export function filterExploreRestaurants(
+  restaurants: RestaurantMapEntry[],
+  opts: {
+    scoutFilter: ScoutFilter;
+    query: string;
+    city: string | null;
+    zip: string | null;
+    tag: string | null;
+  },
+) {
+  return restaurants.filter(
+    (r) =>
+      matchesExploreSearch(r, opts.query) &&
+      matchesBrowseFilters(r, opts.city, opts.zip, opts.tag) &&
+      matchesScoutFilter(r, opts.scoutFilter),
+  );
+}
+
+export const SCOUT_FILTER_LABELS: Record<ScoutFilter, string> = {
+  all: "All",
+  "fast-starters": "Quick starters",
+  "parent-data": "Parent-rated",
+  "needs-data": "Needs scouting",
+};
+
+export function parseScoutFilter(value: string | null): ScoutFilter {
+  if (value === "fast-starters" || value === "parent-data" || value === "needs-data") {
+    return value;
+  }
+  return "all";
+}
+
 export function groupRestaurantsByCity(restaurants: RestaurantMapEntry[]) {
   const groups = new Map<string, RestaurantMapEntry[]>();
   for (const restaurant of restaurants) {

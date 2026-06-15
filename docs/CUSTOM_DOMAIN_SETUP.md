@@ -60,7 +60,7 @@ This document captured the original custom-domain investigation before the `litt
 | REST API | Cloud Run `ttf-api` | `https://ttf-api-….run.app` | `infra/terraform/environments/dev/phase-b.tf`, `api/` |
 | Firebase project | Same GCP project ID | `ttf-restaurant-dev` | `infra/terraform/modules/firebase-web/` |
 
-The web container is a static nginx build. `VITE_API_URL` and Firebase SDK values are **baked in at Docker build time** (`.github/workflows/web.yml`, `web/Dockerfile`).
+The web container is a static nginx build. `VITE_API_URL` and Firebase SDK values are **baked in at Docker build time** (`.github/workflows/reusable-web.yml`, `web/Dockerfile`).
 
 ### Firebase Auth
 
@@ -195,8 +195,8 @@ Minimum bar:
 | Piece | Change |
 |-------|--------|
 | `web/` | Split entry: `web/src/admin-main.tsx` + Vite multi-page build, **or** `web-admin/` package |
-| `web/Dockerfile` | Second target `Dockerfile.admin` → image `ttf-admin-web` |
-| `.github/workflows/web.yml` | Split or add `admin-web.yml` deploy job |
+| `web/Dockerfile` | Public image `ttf-web`; `Dockerfile.admin` → `ttf-admin-web` |
+| `.github/workflows/reusable-web.yml` + `reusable-admin-web.yml` | Deploy jobs (called by `deploy.yml` or manual dispatch) |
 | `infra/terraform/.../admin-web.tf` | New `cloud-run-static` module instance for `ttf-admin-web` |
 | Firebase | Add `admin.dev.<DOMAIN>` to authorized domains; separate reCAPTCHA key optional (admin may skip Maps) |
 | API CORS | Add `https://admin.dev.<DOMAIN>`; public app origin unchanged |
@@ -291,8 +291,8 @@ When dev hostnames go live, update **every** row (prod hostnames mirror without 
 | Cloud Run services | `ttf-web`, `ttf-api`, `ttf-admin-web` | 2 services | 3 services; ingress via LB |
 | Firebase authorized domains | Sign-in origins | `firebase-auth.tf` | `app.dev.<DOMAIN>`, `admin.dev.<DOMAIN>` |
 | API CORS | Browser origins | `phase-b.tf` | `https://app.dev.<DOMAIN>`, `https://admin.dev.<DOMAIN>` |
-| Web `VITE_API_URL` | Public build | `web.yml` | `https://api.dev.<DOMAIN>` |
-| Admin `VITE_API_URL` | Admin build | `admin-web.yml` (new) | `https://api.dev.<DOMAIN>` |
+| Web `VITE_API_URL` | Public build | `reusable-web.yml` | `https://api.dev.<DOMAIN>` |
+| Admin `VITE_API_URL` | Admin build | `reusable-admin-web.yml` | `https://api.dev.<DOMAIN>` |
 | Maps web key referrers | Public app only | `maps-web.tf` | `https://app.dev.<DOMAIN>/*` (not admin) |
 | reCAPTCHA / App Check | Public app | Console + Terraform | `app.dev.<DOMAIN>` |
 | Google OAuth JS origins | Sign-in | Console | `app.dev.<DOMAIN>`, `admin.dev.<DOMAIN>` |
@@ -396,7 +396,7 @@ Store in Secret Manager (Terraform-managed):
 - `ttf-api-public-url` → `https://${local.api_fqdn}`
 - `ttf-web-public-url` → `https://${local.web_fqdn}`
 
-`web.yml` and `admin-web.yml` read secrets instead of `gcloud run services describe`.
+`reusable-web.yml` and `reusable-admin-web.yml` read secrets instead of `gcloud run services describe`.
 
 ### Optional: `google_dns_managed_zone`
 
@@ -421,8 +421,8 @@ Use if DNS moves to **Cloud DNS**; otherwise output LB IPs and record table for 
 
 | Workflow | Deploys |
 |----------|---------|
-| `web.yml` | `ttf-web` → `app.dev.<DOMAIN>` |
-| `admin-web.yml` *(new)* | `ttf-admin-web` → `admin.dev.<DOMAIN>` |
+| `reusable-web.yml` | `ttf-web` → `app.dev.<DOMAIN>` |
+| `reusable-admin-web.yml` | `ttf-admin-web` → `admin.dev.<DOMAIN>` |
 | `api.yml` | `ttf-api` (unchanged image path; ingress via LB) |
 | `terraform.yml` | VPC, SQL private IP, LB, IAP, secrets |
 
@@ -466,13 +466,13 @@ Use if DNS moves to **Cloud DNS**; otherwise output LB IPs and record table for 
 ### Phase 3 — Split admin site
 
 - [ ] Admin-only Vite build + `ttf-admin-web` Terraform
-- [ ] `admin-web.yml` CI
+- [ ] `reusable-admin-web.yml` CI
 - [ ] Firebase authorized domains + CORS for admin origin
 - [ ] Remove `/admin` from public `ttf-web` bundle
 
 ### Phase 4 — Public app on dev hostname
 
-- [ ] `web.yml` uses `https://api.dev.<DOMAIN>`
+- [ ] `reusable-web.yml` uses `https://api.dev.<DOMAIN>`
 - [ ] Maps + App Check for `app.dev.<DOMAIN>` only
 - [ ] End-to-end pilot on dev segment
 

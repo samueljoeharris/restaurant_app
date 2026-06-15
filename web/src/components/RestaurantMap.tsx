@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   APIProvider,
   Map,
@@ -26,28 +26,65 @@ import { Badge } from "./ui/Badge";
 import { Button, ButtonLink } from "./ui/Button";
 import { Stat, StatGrid } from "./ui/Stat";
 
-// Neutral fallback center used until restaurants load and the map fits to them.
 const DEFAULT_MAP_CENTER = { lat: 42.2418, lng: -71.1662 };
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 
 function FitBounds({
   restaurants,
+  fitKey,
   skip,
 }: {
   restaurants: RestaurantMapEntry[];
+  fitKey: string;
   skip: boolean;
 }) {
   const map = useMap();
   const core = useMapsLibrary("core");
+  const lastFitKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (skip || !map || !core || restaurants.length === 0) return;
+    if (lastFitKeyRef.current === fitKey) return;
     const bounds = new core.LatLngBounds();
     for (const r of restaurants) {
       bounds.extend({ lat: r.lat, lng: r.lng });
     }
     map.fitBounds(bounds, { top: 48, right: 24, bottom: 24, left: 24 });
-  }, [map, core, restaurants, skip]);
+    lastFitKeyRef.current = fitKey;
+  }, [map, core, restaurants, fitKey, skip]);
+
+  return null;
+}
+
+function ViewportWatcher({
+  onViewportChange,
+}: {
+  onViewportChange: (bbox: {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+  }) => void;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+    const handle = () => {
+      const bounds = map.getBounds();
+      if (!bounds) return;
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+      onViewportChange({
+        minLat: sw.lat(),
+        maxLat: ne.lat(),
+        minLng: sw.lng(),
+        maxLng: ne.lng(),
+      });
+    };
+    const listener = map.addListener("idle", handle);
+    return () => listener.remove();
+  }, [map, onViewportChange]);
 
   return null;
 }
@@ -55,31 +92,60 @@ function FitBounds({
 function FocusRestaurant({
   restaurants,
   focusId,
+  focusLocation,
+  focusPulse = 0,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
+  focusLocation?: { lat: number; lng: number } | null;
+  focusPulse?: number;
 }) {
   const map = useMap();
 
   useEffect(() => {
     if (!map || !focusId) return;
     const target = restaurants.find((r) => r.id === focusId);
-    if (!target) return;
-    map.panTo({ lat: target.lat, lng: target.lng });
-    map.setZoom(15);
-  }, [map, focusId, restaurants]);
+    const coords = target
+      ? { lat: target.lat, lng: target.lng }
+      : focusLocation ?? null;
+    if (!coords) return;
+    map.panTo(coords);
+    const zoom = map.getZoom() ?? 13;
+    if (zoom < 15) map.setZoom(15);
+  }, [map, focusId, focusLocation, restaurants, focusPulse]);
 
   return null;
 }
 
-// Seed radius is derived from the viewport (clamped to the API's accepted range).
+function PanToLocation({ location }: { location: { lat: number; lng: number } | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !location) return;
+    map.panTo(location);
+    const zoom = map.getZoom() ?? 13;
+    if (zoom < 14) map.setZoom(14);
+  }, [map, location]);
+
+  return null;
+}
+
+function UserLocationMarker({ location }: { location: { lat: number; lng: number } }) {
+  return (
+    <AdvancedMarker position={location} zIndex={1000}>
+      <div className="map-user-location" aria-hidden="true">
+        <span className="map-user-location__dot" />
+        <span className="map-user-location__pulse" />
+      </div>
+    </AdvancedMarker>
+  );
+}
+
 const MIN_SEARCH_RADIUS_M = 1000;
 const MAX_SEARCH_RADIUS_M = 25000;
 const DEFAULT_SEARCH_RADIUS_M = 8000;
-// Show "Search this area" only when the viewport holds this many venues or fewer.
 const SPARSE_VIEWPORT_MAX = 3;
 
-/** Radius (m) that fits within the current viewport, clamped to API limits. */
 function viewportRadiusM(map: google.maps.Map): number {
   const bounds = map.getBounds();
   const center = map.getCenter();
@@ -108,11 +174,6 @@ function countWithinBounds(
   return count;
 }
 
-/**
- * Shows a "Search this area" button + a viewport-sized radius circle, but only
- * when the current view is sparse. The circle previews exactly what the button
- * will seed (center + zoom-derived radius); panning never costs API calls.
- */
 function SearchArea({
   restaurants,
   busy,
@@ -123,10 +184,8 @@ function SearchArea({
   onSearchArea: (lat: number, lng: number, radiusM: number) => void;
 }) {
   const map = useMap();
-  const maps = useMapsLibrary("maps");
   const [sparse, setSparse] = useState(false);
 
-  // Recompute sparsity whenever the camera settles or the dataset changes.
   useEffect(() => {
     if (!map) return;
     const update = () =>
@@ -135,32 +194,6 @@ function SearchArea({
     update();
     return () => listener.remove();
   }, [map, restaurants]);
-
-  // Draw the radius circle only while sparse; keep it glued to the viewport.
-  useEffect(() => {
-    if (!map || !maps || !sparse) return;
-    const circle = new maps.Circle({
-      map,
-      center: map.getCenter() ?? DEFAULT_MAP_CENTER,
-      radius: viewportRadiusM(map),
-      clickable: false,
-      strokeColor: "#2563eb",
-      strokeOpacity: 0.85,
-      strokeWeight: 2,
-      fillColor: "#2563eb",
-      fillOpacity: 0.07,
-    });
-    const sync = () => {
-      const center = map.getCenter();
-      if (center) circle.setCenter(center);
-      circle.setRadius(viewportRadiusM(map));
-    };
-    const listener = map.addListener("bounds_changed", sync);
-    return () => {
-      listener.remove();
-      circle.setMap(null);
-    };
-  }, [map, maps, sparse]);
 
   if (!sparse) return null;
 
@@ -177,7 +210,15 @@ function SearchArea({
           if (center) onSearchArea(center.lat(), center.lng(), viewportRadiusM(map));
         }}
       >
-        {busy ? "Searching…" : "Search this area"}
+        <span className="map-search-area__label">
+          <svg className="map-search-area__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z"
+            />
+          </svg>
+          {busy ? "Searching…" : "Search this area"}
+        </span>
       </Button>
     </div>
   );
@@ -422,24 +463,42 @@ function previewTtfTierFromEntry(entry: RestaurantMapEntry): TtfTier {
 export function RestaurantMap({
   restaurants,
   focusId,
+  focusLocation = null,
+  focusPulse = 0,
+  selectedId,
+  onSelectChange,
   loading,
   error,
   searchBusy = false,
+  userLocation = null,
+  cameraTarget = null,
+  withSidebar = false,
+  fitKey = "all",
   onSearchArea,
+  onViewportChange,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
+  focusLocation?: { lat: number; lng: number } | null;
+  focusPulse?: number;
+  selectedId: string | null;
+  onSelectChange: (id: string | null) => void;
   loading: boolean;
   error: string | null;
   searchBusy?: boolean;
+  userLocation?: { lat: number; lng: number } | null;
+  cameraTarget?: { lat: number; lng: number } | null;
+  withSidebar?: boolean;
+  fitKey?: string;
   onSearchArea?: (lat: number, lng: number, radiusM: number) => void;
+  onViewportChange?: (bbox: {
+    minLat: number;
+    maxLat: number;
+    minLng: number;
+    maxLng: number;
+  }) => void;
 }) {
-  const [selectedId, setSelectedId] = useState<string | null>(focusId);
-  const selected = restaurants.find((r) => r.id === selectedId) ?? null;
-
-  useEffect(() => {
-    if (focusId) setSelectedId(focusId);
-  }, [focusId]);
+  const sheetEntry = selectedId ? restaurants.find((r) => r.id === selectedId) : null;
 
   if (!MAPS_KEY) {
     return (
@@ -456,13 +515,13 @@ export function RestaurantMap({
     return <p className="error map-fallback">{error}</p>;
   }
 
-  if (loading) {
+  if (loading && restaurants.length === 0) {
     return <p className="muted map-fallback">Loading map…</p>;
   }
 
   return (
     <APIProvider apiKey={MAPS_KEY}>
-      <div className="map-shell">
+      <div className={`map-shell${withSidebar ? " map-shell--with-sidebar" : ""}`}>
         <Map
           defaultCenter={DEFAULT_MAP_CENTER}
           defaultZoom={13}
@@ -471,14 +530,28 @@ export function RestaurantMap({
           mapId="DEMO_MAP_ID"
           className="map-canvas"
         >
-          <FitBounds restaurants={restaurants} skip={!!focusId} />
-          <FocusRestaurant restaurants={restaurants} focusId={focusId} />
+          <FitBounds
+            restaurants={restaurants}
+            fitKey={fitKey}
+            skip={!!focusId || !!userLocation || !!cameraTarget}
+          />
+          <FocusRestaurant
+            restaurants={restaurants}
+            focusId={focusId}
+            focusLocation={focusLocation}
+            focusPulse={focusPulse}
+          />
+          <PanToLocation location={userLocation ?? cameraTarget} />
+          {userLocation && <UserLocationMarker location={userLocation} />}
+          {onViewportChange && (
+            <ViewportWatcher onViewportChange={onViewportChange} />
+          )}
           {restaurants.map((r) => (
             <MapPin
               key={r.id}
               restaurant={r}
               selected={selectedId === r.id}
-              onSelect={() => setSelectedId(r.id)}
+              onSelect={() => onSelectChange(r.id)}
             />
           ))}
         </Map>
@@ -493,11 +566,16 @@ export function RestaurantMap({
           />
         )}
 
-        {selected && (
-          <MapRestaurantSheet
-            entry={selected}
-            onClose={() => setSelectedId(null)}
-          />
+        {selectedId && sheetEntry && (
+          <MapRestaurantSheet entry={sheetEntry} onClose={() => onSelectChange(null)} />
+        )}
+
+        {selectedId && !sheetEntry && (
+          <aside className="map-sheet map-sheet--loading" aria-busy="true" aria-label="Loading restaurant">
+            <div className="map-sheet__scroll">
+              <p className="muted">Loading restaurant…</p>
+            </div>
+          </aside>
         )}
       </div>
     </APIProvider>
