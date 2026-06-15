@@ -1,7 +1,6 @@
 name: iOS
 
-# Manual TestFlight / archive builds until signing secrets and Firebase iOS config are in place.
-# Does not run on push yet — wire into deploy.yml when ios/** CI is ready.
+# Manual build tool (workflow_dispatch only) — wire into deploy.yml when ios/** CI is ready.
 on:
   workflow_dispatch:
     inputs:

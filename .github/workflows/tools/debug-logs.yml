@@ -1,5 +1,6 @@
 name: Debug Logs
 
+# Manual ops tool (workflow_dispatch only) — not called by the CI/CD pipeline.
 # Fetch recent Cloud Run / API logs (e.g. admin firebase-session 500s).
 # Uses the deploy service account — requires roles/logging.viewer (see iam module).
 on:

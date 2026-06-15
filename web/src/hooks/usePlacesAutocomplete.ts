@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "../api/client";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import type { PlaceSuggestion } from "../types";
 
 const DEBOUNCE_MS = 250;
@@ -40,6 +40,8 @@ export function usePlacesAutocomplete(opts?: { lat?: number; lng?: number }) {
 
       setLoading(true);
       const ticket = ++cancelRef.current;
+      const lat = opts?.lat;
+      const lng = opts?.lng;
 
       debounceRef.current = setTimeout(async () => {
         try {
@@ -47,8 +49,8 @@ export function usePlacesAutocomplete(opts?: { lat?: number; lng?: number }) {
             q,
             {
               sessionToken: sessionTokenRef.current,
-              lat: opts?.lat,
-              lng: opts?.lng,
+              lat,
+              lng,
             },
             idToken,
           );
@@ -64,7 +66,7 @@ export function usePlacesAutocomplete(opts?: { lat?: number; lng?: number }) {
         }
       }, DEBOUNCE_MS);
     },
-    [idToken, opts?.lat, opts?.lng],
+    [idToken, opts],
   );
 
   /** Call after a successful resolvePlace to start a new billing session. */
@@ -74,9 +76,11 @@ export function usePlacesAutocomplete(opts?: { lat?: number; lng?: number }) {
 
   /** Cancel any in-flight debounce on unmount. */
   useEffect(() => {
+    const debounce = debounceRef;
+    const cancel = cancelRef;
     return () => {
-      if (debounceRef.current != null) clearTimeout(debounceRef.current);
-      cancelRef.current++;
+      if (debounce.current != null) clearTimeout(debounce.current);
+      cancel.current++;
     };
   }, []);
 

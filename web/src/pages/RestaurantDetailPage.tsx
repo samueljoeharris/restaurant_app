@@ -2,7 +2,8 @@ import { type FormEvent, useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
-import { useAuth, authErrorMessage } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
+import { authErrorMessage } from "../auth/errors";
 import { AttributeSummary } from "../components/AttributeSummary";
 import { Badge } from "../components/ui/Badge";
 import { Button, ButtonAnchor, ButtonLink } from "../components/ui/Button";
@@ -10,7 +11,7 @@ import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
-import { useToast } from "../components/ui/Toast";
+import { useToast } from "../components/ui/useToast";
 import { Stat, StatGrid } from "../components/ui/Stat";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";

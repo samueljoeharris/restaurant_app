@@ -105,12 +105,12 @@ if [[ "$MODE" != "all" ]]; then
   if echo "$changed" | grep -qE '^web/'; then RUN_WEB=true; fi
   if echo "$changed" | grep -qE '^api/'; then RUN_API=true; fi
   if echo "$changed" | grep -qE '^infra/terraform/'; then RUN_INFRA=true; fi
-  if echo "$changed" | grep -qE '^\.github/workflows/deploy\.yml'; then
+  if echo "$changed" | grep -qE '^\.github/workflows/(deploy\.yml|reusable/)'; then
     RUN_WEB=true
     RUN_API=true
     RUN_INFRA=true
   fi
-  if echo "$changed" | grep -qE '^\.github/workflows/terraform\.yml'; then
+  if echo "$changed" | grep -qE '^\.github/workflows/reusable/terraform\.yml'; then
     RUN_INFRA=true
   fi
 fi

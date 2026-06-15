@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 
 import { api } from "../../api/client";
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../auth/useAuth";
 import { ActivityChart } from "../../components/admin/ActivityChart";
 import { Stat, StatGrid } from "../../components/ui/Stat";
 import type { AdminActivityDay, AdminOverviewStats } from "../../types";
@@ -24,7 +24,7 @@ export function AdminDashboardPage() {
       return;
     }
     let cancelled = false;
-    setLoading(true);
+    startTransition(() => setLoading(true));
     Promise.all([api.adminStats(idToken), api.adminActivity(idToken, 14)])
       .then(([s, a]) => {
         if (!cancelled) {

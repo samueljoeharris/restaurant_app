@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { ADMIN_APP_URL } from "../buildTarget";
 import { MfaSettings } from "../components/MfaSettings";
 import { api } from "../api/client";

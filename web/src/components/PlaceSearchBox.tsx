@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { api } from "../api/client";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { usePlacesAutocomplete } from "../hooks/usePlacesAutocomplete";
 import type { PlaceResolveResponse } from "../types";
 

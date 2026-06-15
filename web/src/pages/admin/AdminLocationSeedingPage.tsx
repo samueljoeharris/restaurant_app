@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, startTransition } from "react";
 import type { ReactNode } from "react";
 
 import { api } from "../../api/client";
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import type {
   AdminAuditLogRow,
@@ -207,8 +207,10 @@ export function AdminLocationSeedingPage() {
   useEffect(() => {
     if (!idToken) return;
     let cancelled = false;
-    setBootLoading(true);
-    setError(null);
+    startTransition(() => {
+      setBootLoading(true);
+      setError(null);
+    });
     Promise.all([
       api.adminRefreshConfig(idToken),
       api.adminSeedLocations(idToken),
@@ -234,16 +236,19 @@ export function AdminLocationSeedingPage() {
 
   useEffect(() => {
     if (!idToken || bootLoading) return;
-    loadRuns();
+    const timer = window.setTimeout(() => void loadRuns(), 0);
+    return () => window.clearTimeout(timer);
   }, [idToken, bootLoading, loadRuns]);
 
   useEffect(() => {
     if (!idToken || bootLoading) return;
-    loadChangelog();
+    const timer = window.setTimeout(() => void loadChangelog(), 0);
+    return () => window.clearTimeout(timer);
   }, [idToken, bootLoading, loadChangelog]);
 
   useEffect(() => {
-    loadAuditLog();
+    const timer = window.setTimeout(() => void loadAuditLog(), 0);
+    return () => window.clearTimeout(timer);
   }, [loadAuditLog]);
 
   useEffect(() => {

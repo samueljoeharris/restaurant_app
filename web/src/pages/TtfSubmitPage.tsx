@@ -3,13 +3,13 @@ import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { ChoiceChip, ChoiceChipGroup } from "../components/ui/ChoiceChip";
 import { Page } from "../components/ui/Page";
 import { StarRating } from "../components/ui/StarRating";
-import { useToast } from "../components/ui/Toast";
+import { useToast } from "../components/ui/useToast";
 import type { RestaurantDetailResponse, TtfSubmission } from "../types";
 
 const ITEM_TYPES: { value: TtfSubmission["item_type"]; label: string; emoji: string }[] = [
@@ -65,7 +65,7 @@ export function TtfSubmitPage() {
   const [busy, setBusy] = useState(false);
   const [timerStart, setTimerStart] = useState<number | null>(null);
   const [timerStopped, setTimerStopped] = useState<number | null>(null);
-  const [timerNow, setTimerNow] = useState(Date.now());
+  const [timerNow, setTimerNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (!id) return;

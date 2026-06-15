@@ -1,5 +1,8 @@
 name: CI/CD
 
+# Entry-point pipeline (push to main). Reusable deploy modules live in
+# reusable/; manual-only ops workflows live in tools/ — see .github/workflows/README.md.
+#
 # Single pipeline on push to main: checks -> terraform -> build+deploy.
 # Fast checks (typecheck, lint, app-import smoke, terraform fmt) gate the
 # expensive jobs; each Docker image is built exactly once, in its deploy job,
@@ -24,22 +27,22 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
             infra:
               - 'infra/**'
-              - '.github/workflows/terraform.yml'
+              - '.github/workflows/reusable/terraform.yml'
               - '.github/workflows/deploy.yml'
             api:
               - 'api/**'
-              - '.github/workflows/api.yml'
+              - '.github/workflows/reusable/api.yml'
               - '.github/workflows/deploy.yml'
             web:
               - 'web/**'
-              - '.github/workflows/web.yml'
-              - '.github/workflows/admin-web.yml'
+              - '.github/workflows/reusable/web.yml'
+              - '.github/workflows/reusable/admin-web.yml'
               - '.github/workflows/deploy.yml'
 
   ci:
@@ -67,11 +70,9 @@ jobs:
         working-directory: web
         run: npx tsc -b
 
-      # TODO: make blocking once the pre-existing eslint errors on main are fixed.
-      - name: Web lint (non-blocking)
+      - name: Web lint
         if: needs.changes.outputs.web == 'true'
         working-directory: web
-        continue-on-error: true
         run: npm run lint
 
       # --- API: compile + import the app (catches startup-time failures) ---
@@ -108,7 +109,7 @@ jobs:
     name: Terraform
     needs: [changes, ci]
     if: needs.ci.result == 'success' && needs.changes.outputs.infra == 'true'
-    uses: ./.github/workflows/terraform.yml
+    uses: ./.github/workflows/reusable/terraform.yml
     secrets: inherit
     permissions:
       contents: read
@@ -123,7 +124,7 @@ jobs:
       needs.terraform.result != 'failure' &&
       needs.terraform.result != 'cancelled' &&
       (needs.changes.outputs.api == 'true' || needs.terraform.result == 'success')
-    uses: ./.github/workflows/api.yml
+    uses: ./.github/workflows/reusable/api.yml
     secrets: inherit
     permissions:
       contents: read
@@ -138,7 +139,7 @@ jobs:
       needs.terraform.result != 'failure' &&
       needs.terraform.result != 'cancelled' &&
       (needs.changes.outputs.web == 'true' || needs.terraform.result == 'success')
-    uses: ./.github/workflows/web.yml
+    uses: ./.github/workflows/reusable/web.yml
     secrets: inherit
     permissions:
       contents: read
@@ -153,7 +154,7 @@ jobs:
       needs.terraform.result != 'failure' &&
       needs.terraform.result != 'cancelled' &&
       (needs.changes.outputs.web == 'true' || needs.terraform.result == 'success')
-    uses: ./.github/workflows/admin-web.yml
+    uses: ./.github/workflows/reusable/admin-web.yml
     secrets: inherit
     permissions:
       contents: read

@@ -484,11 +484,12 @@ export function RestaurantMap({
   }) => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(focusId);
-  const selected = restaurants.find((r) => r.id === selectedId) ?? null;
-
-  useEffect(() => {
+  const [prevFocusId, setPrevFocusId] = useState(focusId);
+  if (focusId !== prevFocusId) {
+    setPrevFocusId(focusId);
     if (focusId) setSelectedId(focusId);
-  }, [focusId]);
+  }
+  const selected = restaurants.find((r) => r.id === selectedId) ?? null;
 
   if (!MAPS_KEY) {
     return (

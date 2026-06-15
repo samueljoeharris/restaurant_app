@@ -9,11 +9,11 @@
 
 **`deploy.yml` is the single pipeline on push** — there is no separate CI workflow. Stages:
 
-1. **CI checks** (fast, no Docker): web `tsc` typecheck + eslint (non-blocking until pre-existing errors are fixed), API `compileall` + **app import smoke** (catches Cloud Run boot crashes), `terraform fmt -check`. Required check name: **CI/CD / CI**.
+1. **CI checks** (fast, no Docker): web `tsc` typecheck + eslint, API `compileall` + **app import smoke** (catches Cloud Run boot crashes), `terraform fmt -check`. Required check name: **CI/CD / CI**.
 2. **Terraform** plan + apply, only when `infra/**` changed.
 3. **API / Web / Admin Web**: build the real image once (prod build args from Secret Manager), push to Artifact Registry, update Cloud Run.
 
-Nothing is built twice: checks don't build images, and each deploy job builds exactly one image. `terraform.yml`, `api.yml`, `web.yml`, and `admin-web.yml` are reusable workflows called by the pipeline; each keeps `workflow_dispatch` for manual runs.
+Nothing is built twice: checks don't build images, and each deploy job builds exactly one image. `reusable/terraform.yml`, `reusable/api.yml`, `reusable/web.yml`, and `reusable/admin-web.yml` are called by the pipeline; each keeps `workflow_dispatch` for manual runs. See [`.github/workflows/README.md`](../.github/workflows/README.md).
 
 Service deploys run when their paths changed **or** after a successful Terraform apply (apply can change env vars / secrets baked into images). Failed checks block everything; a failed Terraform apply blocks all service deploys for that push.
 
@@ -74,10 +74,12 @@ cd web && npm run dev             # http://localhost:5173
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | **CI/CD** (`deploy.yml`) | Push to `main` | CI checks, then Terraform → API / Web / Admin Web in order |
-| **Terraform** | Called by CI/CD, or workflow_dispatch | Plan + apply dev GCP |
-| **API** | Called by CI/CD, or workflow_dispatch | Deploy `ttf-api` |
-| **Web** | Called by CI/CD, or workflow_dispatch | Deploy `ttf-web` |
-| **Admin Web** | Called by CI/CD, or workflow_dispatch | Deploy `ttf-admin-web` |
+| **Terraform** (`reusable/terraform.yml`) | Called by CI/CD, or workflow_dispatch | Plan + apply dev GCP |
+| **API** (`reusable/api.yml`) | Called by CI/CD, or workflow_dispatch | Deploy `ttf-api` |
+| **Web** (`reusable/web.yml`) | Called by CI/CD, or workflow_dispatch | Deploy `ttf-web` |
+| **Admin Web** (`reusable/admin-web.yml`) | Called by CI/CD, or workflow_dispatch | Deploy `ttf-admin-web` |
+| **Debug Logs** (`tools/debug-logs.yml`) | workflow_dispatch | Fetch Cloud Run logs |
+| **iOS** (`tools/ios.yml`) | workflow_dispatch | Manual iOS build |
 
 Jobs are **path-aware** inside the pipeline — skipped jobs mean those paths didn't change in the push (and Terraform didn't apply).
 

@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 
-import { useAuth, authErrorMessage } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
+import { authErrorMessage } from "../auth/errors";
 import { defaultAuthedPath, isAdminSite, PUBLIC_APP_URL } from "../buildTarget";
 import { MfaChallengeForm } from "../components/MfaChallengeForm";
 import { Button, ButtonAnchor } from "../components/ui/Button";

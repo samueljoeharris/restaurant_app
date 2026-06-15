@@ -30,7 +30,7 @@ Open http://localhost:5173 (or the next free port if 5173 is busy).
 
 ## Deploy to Cloud Run (dev)
 
-Terraform provisions `ttf-web` (see `infra/terraform/environments/dev/web.tf`). CI builds the Vite app with Firebase + API URLs baked in and deploys via `.github/workflows/web.yml`.
+Terraform provisions `ttf-web` (see `infra/terraform/environments/dev/web.tf`). CI builds the Vite app with Firebase + API URLs baked in and deploys via `.github/workflows/reusable/web.yml` (called by `deploy.yml` on push to `main`).
 
 1. Merge to `main` so **Terraform** applies `enable_web_cloud_run` (updates API CORS + Firebase authorized domains).
 2. Run the **Web** workflow (or push `web/` changes).
@@ -40,7 +40,7 @@ Terraform provisions `ttf-web` (see `infra/terraform/environments/dev/web.tf`). 
 docker compose run --rm terraform -chdir=environments/dev output -raw cloud_run_web_url
 ```
 
-Admin deploys from the same `web/` source tree using `.github/workflows/admin-web.yml` and `web/Dockerfile.admin`, then serves at `https://admin.dev.littlescout.app` behind IAP. See [docs/ADMIN_AUTH.md](../docs/ADMIN_AUTH.md).
+Admin deploys from the same `web/` source tree using `.github/workflows/reusable/admin-web.yml` and `web/Dockerfile.admin`, then serves at `https://admin.dev.littlescout.app` behind IAP. See [docs/ADMIN_AUTH.md](../docs/ADMIN_AUTH.md).
 
 ## Local API instead of Cloud Run
 

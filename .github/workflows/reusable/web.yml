@@ -1,7 +1,6 @@
 name: Web
 
-# Called by deploy.yml on push to main (web/** changes or post-terraform apply);
-# manual redeploy via workflow_dispatch.
+# Reusable deploy module — called by ../deploy.yml; manual redeploy via workflow_dispatch.
 on:
   workflow_call:
   workflow_dispatch:

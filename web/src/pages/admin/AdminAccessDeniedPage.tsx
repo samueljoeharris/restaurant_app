@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-import { useAuth } from "../../auth/AuthContext";
+import { useAuth } from "../../auth/useAuth";
 import { PUBLIC_APP_URL } from "../../buildTarget";
 import { Button, ButtonAnchor } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";

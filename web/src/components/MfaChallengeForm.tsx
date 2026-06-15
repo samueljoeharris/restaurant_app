@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 
-import { useAuth, authErrorMessage } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
+import { authErrorMessage } from "../auth/errors";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 

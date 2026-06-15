@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/useAuth";
 import { BottomNav } from "./BottomNav";
 import { Button } from "./ui/Button";
 import { Skeleton } from "./ui/Skeleton";

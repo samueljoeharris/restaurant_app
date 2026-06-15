@@ -163,11 +163,16 @@ export function RestaurantListPage() {
 
   // Initial load & reload on param change
   useEffect(() => {
-    if (isRadiusMode && radiusLat !== null && radiusLng !== null) {
-      const cancel = loadRadiusResults(radiusLat, radiusLng, radiusM);
+    if (!(isRadiusMode && radiusLat !== null && radiusLng !== null)) return;
+    let cancel: (() => void) | undefined;
+    const timer = window.setTimeout(() => {
+      cancel = loadRadiusResults(radiusLat, radiusLng, radiusM);
       void ensureArea(radiusLat, radiusLng, radiusM);
-      return cancel;
-    }
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      cancel?.();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRadiusMode, radiusLat, radiusLng, radiusM]);
 
