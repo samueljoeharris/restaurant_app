@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, startTransition } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -41,19 +41,34 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api.getContributionSchema().then(setSchema).catch((err) => {
-      setError(err instanceof Error ? err.message : "Could not load review schema.");
-    });
+    let cancelled = false;
+    api
+      .getContributionSchema()
+      .then((data) => {
+        if (!cancelled) setSchema(data);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          startTransition(() => {
+            setError(err instanceof Error ? err.message : "Could not load review schema.");
+          });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    if (!schema || chatRef.current) return;
-    try {
-      const prompt = buildReviewSystemPrompt(restaurantName, schema);
-      chatRef.current = startReviewChat(prompt);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Review chat unavailable.");
+    chatRef.current = null;
+  }, [schema, restaurantName]);
+
+  const ensureChat = useCallback(() => {
+    if (!schema) return null;
+    if (!chatRef.current) {
+      chatRef.current = startReviewChat(buildReviewSystemPrompt(restaurantName, schema));
     }
+    return chatRef.current;
   }, [schema, restaurantName]);
 
   useEffect(() => {
@@ -62,7 +77,16 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
-    if (!text || busy || !chatRef.current) return;
+    if (!text || busy) return;
+    let chat: ReturnType<typeof startReviewChat>;
+    try {
+      const session = ensureChat();
+      if (!session) return;
+      chat = session;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Review chat unavailable.");
+      return;
+    }
     setInput("");
     setBusy(true);
     setError(null);
@@ -70,14 +94,14 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
     setExtractSummary(null);
     setMessages((prev) => [...prev, { role: "user", text }]);
     try {
-      const reply = await sendReviewChatMessage(chatRef.current, text);
+      const reply = await sendReviewChatMessage(chat, text);
       setMessages((prev) => [...prev, { role: "assistant", text: reply }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chat failed.");
     } finally {
       setBusy(false);
     }
-  }, [input, busy]);
+  }, [input, busy, ensureChat]);
 
   async function handlePreview() {
     if (!schema || !idToken || messages.length < 2) return;
@@ -122,8 +146,10 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
     return (
       <Card title="Review assistant" subtitle="Freeform review → structured ratings">
         <p className="muted small">
-          Enable <code>VITE_ENABLE_REVIEW_CHAT=true</code> and run{" "}
-          <code>npx firebase-tools init ailogic</code> on your Firebase project to use the assistant.
+          Enable review chat via Terraform (<code>VITE_ENABLE_REVIEW_CHAT</code> in{" "}
+          <code>ttf-firebase-web-env</code>) or set{" "}
+          <code>VITE_ENABLE_REVIEW_CHAT=true</code> in <code>web/.env.local</code>. Run{" "}
+          <code>web/scripts/sync-env-from-terraform.sh</code> after Terraform apply.
         </p>
       </Card>
     );
