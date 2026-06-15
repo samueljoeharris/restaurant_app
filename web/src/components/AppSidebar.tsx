@@ -8,7 +8,15 @@ const tabs = [
   { to: "/account", label: "You", icon: "👤" },
 ] as const;
 
-export function AppSidebar({ onLogout }: { onLogout: () => void }) {
+export function AppSidebar({
+  collapsed,
+  onToggleCollapsed,
+  onLogout,
+}: {
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  onLogout: () => void;
+}) {
   const { pathname } = useLocation();
 
   function isActive(path: string) {
@@ -20,16 +28,31 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
   }
 
   return (
-    <aside className="app-sidebar" aria-label="App navigation">
-      <Link to="/" className="app-sidebar__brand">
-        <span className="app-sidebar__brand-mark" aria-hidden>
-          🔭
-        </span>
-        <span className="app-sidebar__brand-text">
-          <span className="app-sidebar__brand-name">Little Scout</span>
-          <span className="app-sidebar__brand-tagline">Kid-food speed</span>
-        </span>
-      </Link>
+    <aside
+      className={`app-sidebar${collapsed ? " app-sidebar--collapsed" : ""}`}
+      aria-label="App navigation"
+    >
+      <div className="app-sidebar__brand-row">
+        <Link to="/" className="app-sidebar__brand">
+          <span className="app-sidebar__brand-mark" aria-hidden>
+            🔭
+          </span>
+          <span className="app-sidebar__brand-text">
+            <span className="app-sidebar__brand-name">Little Scout</span>
+            <span className="app-sidebar__brand-tagline">Kid-food speed</span>
+          </span>
+        </Link>
+        <button
+          type="button"
+          className="app-sidebar__toggle"
+          onClick={onToggleCollapsed}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+          title={collapsed ? "Expand navigation" : "Collapse navigation"}
+        >
+          <span aria-hidden>{collapsed ? "›" : "‹"}</span>
+        </button>
+      </div>
 
       <nav className="app-sidebar__nav" aria-label="Main">
         {tabs.map((tab) => (
@@ -40,6 +63,7 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
               "app-sidebar__link",
               isActive(tab.to) ? "app-sidebar__link--active" : "",
             ].join(" ")}
+            title={collapsed ? tab.label : undefined}
           >
             <span className="app-sidebar__link-icon" aria-hidden>
               {tab.icon}
@@ -50,8 +74,14 @@ export function AppSidebar({ onLogout }: { onLogout: () => void }) {
       </nav>
 
       <div className="app-sidebar__footer">
-        <Button variant="ghost" size="sm" fullWidth onClick={onLogout}>
-          Sign out
+        <Button
+          variant="ghost"
+          size="sm"
+          fullWidth
+          onClick={onLogout}
+          title={collapsed ? "Sign out" : undefined}
+        >
+          {collapsed ? "Out" : "Sign out"}
         </Button>
       </div>
     </aside>

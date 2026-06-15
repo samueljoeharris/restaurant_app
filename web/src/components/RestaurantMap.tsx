@@ -93,10 +93,12 @@ function FocusRestaurant({
   restaurants,
   focusId,
   focusLocation,
+  focusPulse = 0,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
   focusLocation?: { lat: number; lng: number } | null;
+  focusPulse?: number;
 }) {
   const map = useMap();
 
@@ -108,8 +110,9 @@ function FocusRestaurant({
       : focusLocation ?? null;
     if (!coords) return;
     map.panTo(coords);
-    map.setZoom(15);
-  }, [map, focusId, focusLocation, restaurants]);
+    const zoom = map.getZoom() ?? 13;
+    if (zoom < 15) map.setZoom(15);
+  }, [map, focusId, focusLocation, restaurants, focusPulse]);
 
   return null;
 }
@@ -461,6 +464,7 @@ export function RestaurantMap({
   restaurants,
   focusId,
   focusLocation = null,
+  focusPulse = 0,
   selectedId,
   onSelectChange,
   loading,
@@ -476,6 +480,7 @@ export function RestaurantMap({
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
   focusLocation?: { lat: number; lng: number } | null;
+  focusPulse?: number;
   selectedId: string | null;
   onSelectChange: (id: string | null) => void;
   loading: boolean;
@@ -510,7 +515,7 @@ export function RestaurantMap({
     return <p className="error map-fallback">{error}</p>;
   }
 
-  if (loading) {
+  if (loading && restaurants.length === 0) {
     return <p className="muted map-fallback">Loading map…</p>;
   }
 
@@ -534,6 +539,7 @@ export function RestaurantMap({
             restaurants={restaurants}
             focusId={focusId}
             focusLocation={focusLocation}
+            focusPulse={focusPulse}
           />
           <PanToLocation location={userLocation ?? cameraTarget} />
           {userLocation && <UserLocationMarker location={userLocation} />}

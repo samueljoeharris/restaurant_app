@@ -33,9 +33,37 @@ export function buildPendingPlaceParams(pending: PlaceSearchPending): URLSearchP
   return params;
 }
 
+export function appendRestaurantFocusToParams(
+  params: URLSearchParams,
+  selection: RestaurantSearchSelection,
+): void {
+  params.set("focus", selection.restaurant_id);
+  if (selection.lat != null && selection.lng != null) {
+    params.set("flat", String(selection.lat));
+    params.set("flng", String(selection.lng));
+  } else {
+    params.delete("flat");
+    params.delete("flng");
+  }
+}
+
+export function readFocusLocationFromParams(
+  params: URLSearchParams,
+  state: MapFocusState | null | undefined,
+): { lat: number; lng: number } | null {
+  if (state?.focusLocation) return state.focusLocation;
+  const flat = params.get("flat");
+  const flng = params.get("flng");
+  if (!flat || !flng) return null;
+  const lat = parseFloat(flat);
+  const lng = parseFloat(flng);
+  if (isNaN(lat) || isNaN(lng)) return null;
+  return { lat, lng };
+}
+
 export function buildMapFocusPath(selection: RestaurantSearchSelection): string {
   const params = new URLSearchParams();
-  params.set("focus", selection.restaurant_id);
+  appendRestaurantFocusToParams(params, selection);
   return `/map?${params.toString()}`;
 }
 
