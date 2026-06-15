@@ -9,6 +9,7 @@ from ttf_api.http_cache import ETagMiddleware
 from ttf_api.routers import (
     admin,
     auth_info,
+    contributions,
     coverage,
     health,
     internal,
@@ -55,3 +56,4 @@ app.include_router(restaurants.router)
 app.include_router(places.router)
 app.include_router(coverage.router)
 app.include_router(metrics.router)
+app.include_router(contributions.router)

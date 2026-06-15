@@ -106,6 +106,22 @@ export function RestaurantDetailPage() {
         </div>
       )}
 
+      <Card
+        title="Share your visit"
+        subtitle="Describe your meal in your own words"
+        accent
+      >
+        {idToken ? (
+          <ButtonLink to={`/restaurants/${r.id}/review`} fullWidth>
+            Chat through your review
+          </ButtonLink>
+        ) : (
+          <p className="muted small">
+            <Link to="/login">Sign in</Link> to use the review assistant.
+          </p>
+        )}
+      </Card>
+
       <Card title="Kid food speed" subtitle="How fast did kid food arrive?" accent>
         {ttf.sample_size === 0 ? (
           <EmptyState

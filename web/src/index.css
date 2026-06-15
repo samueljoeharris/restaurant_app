@@ -2046,6 +2046,62 @@ code {
   margin: 0 0 var(--space-1);
 }
 
+.contribution-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.contributions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.contribution-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.contribution-row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.contribution-row__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.contribution-row__restaurant {
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.contribution-row__summary {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.contribution-row__actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-2);
+}
+
+.contribution-edit {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
 .rate-section {
   display: grid;
   gap: var(--space-3);
@@ -2977,6 +3033,81 @@ fieldset.field-group {
 .restaurant-card--active {
   border-color: var(--color-brand);
   box-shadow: 0 0 0 2px var(--color-brand-soft);
+}
+
+/* ——— Review chat assistant ——— */
+
+.review-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.review-chat__messages {
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.review-chat__bubble {
+  max-width: 92%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  white-space: pre-wrap;
+}
+
+.review-chat__bubble--assistant {
+  align-self: flex-start;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.review-chat__bubble--user {
+  align-self: flex-end;
+  background: var(--color-brand-soft);
+  border: 1px solid color-mix(in srgb, var(--color-brand) 25%, transparent);
+}
+
+.review-chat__composer textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.review-chat__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.review-chat__preview,
+.review-chat__preview-summary {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  font-size: var(--text-sm);
+}
+
+.review-chat__preview-title {
+  margin: 0 0 var(--space-2);
+  font-weight: 600;
+}
+
+.review-chat__missing,
+.review-chat__errors,
+.review-chat__draft-summary {
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-4);
+}
+
+.review-chat__errors {
+  color: var(--color-danger);
 }
 
 /* Push map overlays right of the search sidebar */

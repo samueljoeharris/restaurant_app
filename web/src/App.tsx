@@ -8,8 +8,11 @@ import { AccountPage } from "./pages/AccountPage";
 import { ExploreMapPage } from "./pages/ExploreMapPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
+import { MyContributionsPage } from "./pages/MyContributionsPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { RateAttributesPage } from "./pages/RateAttributesPage";
+import { ReviewChatPage } from "./pages/ReviewChatPage";
+import { TtfContributionEditPage } from "./pages/TtfContributionEditPage";
 import { TtfSubmitPage } from "./pages/TtfSubmitPage";
 
 export default function App() {
@@ -60,10 +63,34 @@ export default function App() {
             }
           />
           <Route
+            path="/account/contributions"
+            element={
+              <Layout>
+                <MyContributionsPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/account/contributions/ttf/:observationId/edit"
+            element={
+              <Layout>
+                <TtfContributionEditPage />
+              </Layout>
+            }
+          />
+          <Route
             path="/restaurants/:id/rate"
             element={
               <Layout>
                 <RateAttributesPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/restaurants/:id/review"
+            element={
+              <Layout>
+                <ReviewChatPage />
               </Layout>
             }
           />

@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import HTTPException, Request, status
 from firebase_admin import app_check as firebase_app_check
 
-from ttf_api.auth import _init_firebase
+from ttf_api.firebase_init import init_firebase
 from ttf_api.config import settings
 
 APP_CHECK_HEADER = "X-Firebase-AppCheck"
@@ -22,7 +22,7 @@ def verify_app_check(request: Request) -> None:
             detail="App Check token required",
         )
 
-    _init_firebase()
+    init_firebase()
     try:
         firebase_app_check.verify_token(token)
     except ValueError as exc:

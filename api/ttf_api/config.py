@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     app_check_enforce: bool = False
     rate_limit_max_writes: int = 60
     rate_limit_window_minutes: int = 60
+    account_delete_recent_login_minutes: int = 5
     # IAP JWT audience for /v1/admin/firebase-session (numeric backend id resolved at runtime).
     iap_jwt_audience: str = ""
     iap_admin_backend_service: str = ""

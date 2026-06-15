@@ -8,6 +8,9 @@ import type {
   AdminRefreshRunResponse,
   AdminRestaurantRow,
   AttributeEntry,
+  ContributionDraft,
+  ContributionPreviewResponse,
+  ContributionSchema,
   CoverageEnsureResponse,
   CoverageJobStatus,
   LocationRefreshConfig,
@@ -25,7 +28,9 @@ import type {
   RestaurantSummary,
   SeedLocation,
   TtfSubmission,
+  UserContribution,
   UserProfile,
+  UserTtfContribution,
 } from "../types";
 
 // In dev, Vite proxies /v1 → VITE_API_URL so any localhost port avoids CORS.
@@ -137,6 +142,61 @@ export const api = {
   getMe: (token: string) =>
     request<UserProfile>("/v1/me", {}, token),
 
+  listMyContributions: (
+    token: string,
+    opts: { limit?: number; offset?: number; kind?: "ttf" | "attribute" | "note" } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    if (opts.kind) params.set("kind", opts.kind);
+    return request<Paginated<UserContribution>>(`/v1/me/contributions?${params}`, {}, token);
+  },
+
+  getMyTtf: (observationId: string, token: string) =>
+    request<UserTtfContribution>(`/v1/me/ttf/${observationId}`, {}, token),
+
+  updateMyTtf: (observationId: string, body: TtfSubmission, token: string) =>
+    request(`/v1/me/ttf/${observationId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }, token),
+
+  deleteMyTtf: (observationId: string, token: string) =>
+    request<void>(`/v1/me/ttf/${observationId}`, { method: "DELETE" }, token),
+
+  updateMyAttribute: (
+    ratingId: string,
+    value: boolean | number | string,
+    token: string,
+  ) =>
+    request(`/v1/me/attributes/${ratingId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ value }),
+    }, token),
+
+  deleteMyAttribute: (ratingId: string, token: string) =>
+    request<void>(`/v1/me/attributes/${ratingId}`, { method: "DELETE" }, token),
+
+  updateMyNote: (noteId: string, text: string, token: string, tags: string[] = []) =>
+    request<RestaurantNote>(`/v1/me/notes/${noteId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ text, tags }),
+    }, token),
+
+  deleteMyNote: (noteId: string, token: string) =>
+    request<void>(`/v1/me/notes/${noteId}`, { method: "DELETE" }, token),
+
+  deleteAccount: (token: string) =>
+    request<void>(
+      "/v1/me/delete-account",
+      {
+        method: "POST",
+        body: JSON.stringify({ confirm: true }),
+      },
+      token,
+    ),
+
   authHandoff: (token: string) =>
     request<{ custom_token: string }>("/v1/auth/handoff", { method: "POST" }, token),
 
@@ -147,6 +207,22 @@ export const api = {
     }, token),
 
   listMetrics: () => request<MetricDefinition[]>("/v1/metrics"),
+
+  getContributionSchema: () =>
+    request<ContributionSchema>("/v1/contribution-schema"),
+
+  previewContributions: (id: string, body: ContributionDraft, token: string) =>
+    request<ContributionPreviewResponse>(
+      `/v1/restaurants/${id}/contributions/preview`,
+      { method: "POST", body: JSON.stringify(body) },
+      token,
+    ),
+
+  submitContributions: (id: string, body: ContributionDraft, token: string) =>
+    request(`/v1/restaurants/${id}/contributions`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
 
   getAttributes: (id: string) =>
     request<{ attributes: Record<string, AttributeEntry> }>(

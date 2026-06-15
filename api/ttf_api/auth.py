@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
-import os
+import time
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Annotated
 
-import firebase_admin
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth as firebase_auth
-from firebase_admin import credentials
 
 from ttf_api.config import settings
+from ttf_api.firebase_init import init_firebase, using_emulator
+
+# Backward-compatible aliases for internal callers.
+_init_firebase = init_firebase
+_using_emulator = using_emulator
 
 
 def dev_admin_uids() -> set[str]:
@@ -22,7 +24,6 @@ def dev_admin_uids() -> set[str]:
     return {part.strip() for part in settings.auth_dev_admin_uids.split(",") if part.strip()}
 
 _bearer = HTTPBearer(auto_error=False)
-_firebase_initialized = False
 
 
 @dataclass(frozen=True)
@@ -37,42 +38,10 @@ class AuthUser:
         return self.role == "admin"
 
 
-def _using_emulator() -> bool:
-    return bool(settings.firebase_auth_emulator_host)
-
-
-def _init_firebase() -> None:
-    global _firebase_initialized
-    if _firebase_initialized:
-        return
-
-    if settings.firebase_auth_emulator_host:
-        os.environ["FIREBASE_AUTH_EMULATOR_HOST"] = settings.firebase_auth_emulator_host
-
-    options = {"projectId": settings.firebase_project_id}
-
-    if _using_emulator():
-        try:
-            firebase_admin.get_app()
-        except ValueError:
-            firebase_admin.initialize_app(options=options)
-    elif settings.firebase_service_account_path:
-        path = Path(settings.firebase_service_account_path)
-        if not path.is_file():
-            raise RuntimeError(f"Firebase service account not found: {path}")
-        cred = credentials.Certificate(str(path))
-        try:
-            firebase_admin.get_app()
-        except ValueError:
-            firebase_admin.initialize_app(cred, options)
-    else:
-        cred = credentials.ApplicationDefault()
-        try:
-            firebase_admin.get_app()
-        except ValueError:
-            firebase_admin.initialize_app(cred, options)
-
-    _firebase_initialized = True
+@dataclass(frozen=True)
+class AccountDeletionAuth:
+    user: AuthUser
+    skip_firebase_delete: bool
 
 
 def _verify_firebase_token(token: str) -> dict:
@@ -149,3 +118,48 @@ async def require_admin(
             detail="Admin access required",
         )
     return user
+
+
+def _is_dev_token(token: str) -> bool:
+    return settings.auth_dev_mode and token.startswith("dev:")
+
+
+def _require_recent_login(token: str) -> None:
+    claims = _verify_firebase_token(token)
+    auth_time = claims.get("auth_time")
+    if auth_time is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Recent sign-in required. Confirm your identity and try again.",
+        )
+    max_age = settings.account_delete_recent_login_minutes * 60
+    if time.time() - int(auth_time) > max_age:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Recent sign-in required. Confirm your identity and try again.",
+        )
+
+
+async def require_account_deletion(
+    request: Request,
+    creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> AccountDeletionAuth:
+    """Authenticated user with recent sign-in — required before account deletion."""
+    from ttf_api.app_check import verify_app_check
+
+    verify_app_check(request)
+    if creds is None or creds.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization Bearer token required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = creds.credentials
+    user = resolve_user_from_token(token)
+    skip_firebase = _is_dev_token(token)
+
+    if not skip_firebase and not _using_emulator():
+        _require_recent_login(token)
+
+    return AccountDeletionAuth(user=user, skip_firebase_delete=skip_firebase)

@@ -280,6 +280,71 @@ class UserProfile(BaseModel):
     role: str | None = None
 
 
+class DeleteAccountRequest(BaseModel):
+    confirm: bool = Field(
+        ...,
+        description="Must be true to confirm permanent account deletion.",
+    )
+
+    @model_validator(mode="after")
+    def require_confirm(self) -> "DeleteAccountRequest":
+        if not self.confirm:
+            raise ValueError("confirm must be true")
+        return self
+
+
+class UserTtfContribution(BaseModel):
+    kind: Literal["ttf"] = "ttf"
+    id: UUID
+    restaurant_id: UUID
+    restaurant_name: str
+    submitted_at: datetime
+    elapsed_minutes: int
+    item_type: str
+    item_quality: int
+    portion_size: str
+    daypart: str
+    party_size_kids: int
+    wait_context: str | None = None
+
+
+class UserAttributeContribution(BaseModel):
+    kind: Literal["attribute"] = "attribute"
+    id: UUID
+    restaurant_id: UUID
+    restaurant_name: str
+    submitted_at: datetime
+    metric_key: str
+    metric_label: str
+    value: Any
+    visit_context: str | None = None
+
+
+class UserNoteContribution(BaseModel):
+    kind: Literal["note"] = "note"
+    id: UUID
+    restaurant_id: UUID
+    restaurant_name: str
+    submitted_at: datetime
+    text: str
+    tags: list[str] = Field(default_factory=list)
+
+
+UserContribution = UserTtfContribution | UserAttributeContribution | UserNoteContribution
+
+
+class UserContributionsResponse(BaseModel):
+    items: list[UserTtfContribution | UserAttributeContribution | UserNoteContribution]
+    total: int
+    limit: int
+    offset: int
+
+
+class AttributeUpdateRequest(BaseModel):
+    value: Any
+    visit_context: str | None = Field(None, max_length=500)
+
+
 class CreateRestaurantRequest(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     address: str = Field(min_length=1, max_length=500)
