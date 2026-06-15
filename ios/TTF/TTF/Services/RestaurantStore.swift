@@ -5,9 +5,13 @@ import Observation
 @Observable
 @MainActor
 final class RestaurantStore {
-    private(set) var mapEntries: [RestaurantMapEntry] = []
-    /// Derived from `mapEntries` once per load (rather than recomputed on every
-    /// access) so list filtering doesn't re-map the whole catalog per keystroke.
+    private(set) var mapEntries: [RestaurantMapEntry] = [] {
+        didSet {
+            entriesByID = Dictionary(uniqueKeysWithValues: mapEntries.map { ($0.id, $0) })
+            summaries = mapEntries.map(RestaurantSummary.init(from:))
+        }
+    }
+    private var entriesByID: [UUID: RestaurantMapEntry] = [:]
     private(set) var summaries: [RestaurantSummary] = []
     private(set) var isLoading = false
     private(set) var isRefreshing = false
@@ -27,7 +31,7 @@ final class RestaurantStore {
     }
 
     func entry(for id: UUID) -> RestaurantMapEntry? {
-        mapEntries.first { $0.id == id }
+        entriesByID[id]
     }
 
     /// Load once and reuse across tabs. Pass `force: true` to pull fresh data.
@@ -48,12 +52,8 @@ final class RestaurantStore {
         }
 
         do {
-            // Warm Cloud Run while fetching (helps first-launch cold starts).
-            async let warm = try? await api.health()
-            async let fetch = api.listRestaurantsForMap()
-            _ = await warm
-            mapEntries = try await fetch
-            summaries = mapEntries.map(RestaurantSummary.init(from:))
+            Task { try? await api.health() }
+            mapEntries = try await api.listRestaurantsForMap()
             lastLoadedAt = Date()
         } catch {
             if mapEntries.isEmpty {
