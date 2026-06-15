@@ -1,3 +1,6 @@
 // Debug API base URL — override in Xcode scheme environment if needed.
 // Example local API from Simulator: http://localhost:8080
 TTF_API_URL = https:/$()/api.dev.littlescout.app
+// Set to YES for full-stack local dev with docker-compose auth emulator.
+// Requires: docker compose up (firebase auth emulator on localhost:9099).
+TTF_USE_AUTH_EMULATOR = NO

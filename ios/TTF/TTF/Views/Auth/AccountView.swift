@@ -25,53 +25,7 @@ struct AccountView: View {
 
     @ViewBuilder
     private var signedOutContent: some View {
-        List {
-            Section {
-                Label("Browse without signing in", systemImage: "map")
-                Text("Map and list work for everyone. Sign in is only required to submit TTF observations and rate parent attributes.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section("Sign in") {
-                Button {
-                    Task {
-                        await auth.signInWithApple()
-                        if auth.isSignedIn {
-                            await viewModel.refreshProfile(api: api, auth: auth)
-                        }
-                    }
-                } label: {
-                    Label("Sign in with Apple", systemImage: "apple.logo")
-                }
-                .disabled(auth.isLoading)
-
-                if auth.isLoading || viewModel.isRefreshingProfile {
-                    ProgressView()
-                }
-
-                if let error = auth.errorMessage ?? viewModel.profileError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                } else {
-                    Text("Apple Sign-In is not wired up yet — coming in the next iOS milestone.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            apiSection
-
-            Section("Developer testing") {
-                Text("To test submit flows before Apple Sign-In works, add a scheme environment variable `TTF_DEV_TOKEN` with a Firebase emulator or dev token.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text("Generate one: docker compose run --rm api python scripts/get_emulator_token.py")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        SignInView()
     }
 
     @ViewBuilder

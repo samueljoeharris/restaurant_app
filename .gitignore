@@ -32,6 +32,7 @@ node_modules/
 web/.env.local
 
 # iOS / Xcode (phase 3)
+ios/**/GoogleService-Info.plist
 ios/**/DerivedData/
 ios/**/*.xcuserstate
 ios/**/xcuserdata/

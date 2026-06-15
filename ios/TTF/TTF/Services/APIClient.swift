@@ -144,6 +144,16 @@ final class APIClient {
         )
     }
 
+    func submitNote(restaurantID: UUID, text: String, tags: [String] = []) async throws {
+        let body = NoteSubmission(text: text, tags: tags)
+        let _: RestaurantNote = try await request(
+            path: "/v1/restaurants/\(restaurantID.uuidString.lowercased())/notes",
+            method: "POST",
+            body: body,
+            authenticated: true
+        )
+    }
+
     func listNotes(restaurantID: UUID) async throws -> [RestaurantNote] {
         let response: NotesResponse = try await request(
             path: "/v1/restaurants/\(restaurantID.uuidString.lowercased())/notes"
@@ -209,9 +219,7 @@ final class APIClient {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         if authenticated {
-            guard let token = authService.idToken else {
-                throw APIError.unauthorized
-            }
+            let token = try await authService.freshIDToken()
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
