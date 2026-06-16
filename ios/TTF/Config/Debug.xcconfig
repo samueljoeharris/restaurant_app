@@ -4,3 +4,5 @@ TTF_API_URL = https:/$()/api.dev.littlescout.app
 // Set to YES for full-stack local dev with docker-compose auth emulator.
 // Requires: docker compose up (firebase auth emulator on localhost:9099).
 TTF_USE_AUTH_EMULATOR = NO
+// Set to YES after registering the iOS app in Firebase App Check (App Attest / debug token).
+TTF_APP_CHECK_ENABLED = NO

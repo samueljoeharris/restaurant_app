@@ -96,6 +96,7 @@ struct RestaurantDetailView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .accessibilityHint("Opens the TTF submission form for this restaurant")
 
                 NavigationLink {
                     RateAttributesView(restaurantID: restaurantID)
@@ -104,6 +105,7 @@ struct RestaurantDetailView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .accessibilityHint("Rate kid-friendly attributes like high chairs and noise level")
             } else {
                 Button {
                     showSignIn = true
@@ -112,6 +114,7 @@ struct RestaurantDetailView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .accessibilityHint("Sign in to submit TTF observations and rate attributes")
             }
 
             if let urlString = viewModel.detail?.restaurant.googleMapsUrl,

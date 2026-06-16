@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 struct SignInView: View {
@@ -10,76 +11,114 @@ struct SignInView: View {
     @State private var isCreatingAccount = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "fork.knife.circle.fill")
-                .font(.system(size: 64))
-                .foregroundStyle(.tint)
+        ScrollView {
+            VStack(spacing: 20) {
+                Image(systemName: "fork.knife.circle.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
 
-            Text("Little Scout")
-                .font(.largeTitle.bold())
+                Text("Little Scout")
+                    .font(.largeTitle.bold())
+                    .accessibilityAddTraits(.isHeader)
 
-            Text(isCreatingAccount
-                 ? "Create an account to submit TTF observations and rate restaurants."
-                 : "Sign in to submit TTF observations and rate restaurants in \(AppConfig.pilotDisplayName).")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-
-            VStack(spacing: 12) {
-                TextField("Email", text: $email)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .textFieldStyle(.roundedBorder)
-
-                SecureField("Password", text: $password)
-                    .textContentType(isCreatingAccount ? .newPassword : .password)
-                    .textFieldStyle(.roundedBorder)
-            }
-
-            if let error = auth.errorMessage {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
+                Text(isCreatingAccount
+                     ? "Create an account to submit TTF observations and rate restaurants."
+                     : "Sign in to submit TTF observations and rate restaurants in \(AppConfig.pilotDisplayName).")
                     .multilineTextAlignment(.center)
-            }
+                    .foregroundStyle(.secondary)
 
-            Button {
-                Task {
-                    if isCreatingAccount {
-                        await auth.signUp(email: email, password: password)
-                    } else {
-                        await auth.signIn(email: email, password: password)
-                    }
-                    if auth.isSignedIn {
-                        await viewModel.refreshProfile(api: api, auth: auth)
+                SignInWithAppleButton(.signIn) { request in
+                    auth.prepareAppleSignIn(request: request)
+                } onCompletion: { result in
+                    Task {
+                        await auth.handleAppleSignIn(result)
+                        if auth.isSignedIn {
+                            await viewModel.refreshProfile(api: api, auth: auth)
+                        }
                     }
                 }
-            } label: {
-                Text(isCreatingAccount ? "Create account" : "Sign in")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(auth.isLoading || email.isEmpty || password.isEmpty)
+                .signInWithAppleButtonStyle(.black)
+                .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .accessibilityLabel("Sign in with Apple")
 
-            if auth.isLoading || viewModel.isRefreshingProfile {
-                ProgressView()
-            }
+                dividerLabel("or use email")
 
-            Button {
-                isCreatingAccount.toggle()
-            } label: {
-                Text(isCreatingAccount ? "Already have an account? Sign in" : "No account? Create one")
-                    .font(.footnote)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.tint)
+                VStack(spacing: 12) {
+                    TextField("Email", text: $email)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .textFieldStyle(.roundedBorder)
+                        .accessibilityLabel("Email")
 
-            #if DEBUG
-            devTokenHint
-            #endif
+                    SecureField("Password", text: $password)
+                        .textContentType(isCreatingAccount ? .newPassword : .password)
+                        .textFieldStyle(.roundedBorder)
+                        .accessibilityLabel("Password")
+                }
+
+                if let error = auth.errorMessage ?? viewModel.profileError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .accessibilityLabel("Error: \(error)")
+                }
+
+                Button {
+                    Task {
+                        if isCreatingAccount {
+                            await auth.signUp(email: email, password: password)
+                        } else {
+                            await auth.signIn(email: email, password: password)
+                        }
+                        if auth.isSignedIn {
+                            await viewModel.refreshProfile(api: api, auth: auth)
+                        }
+                    }
+                } label: {
+                    Text(isCreatingAccount ? "Create account" : "Sign in with email")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(auth.isLoading || email.isEmpty || password.isEmpty)
+                .accessibilityHint(isCreatingAccount ? "Creates a new account with email and password" : "Signs in with email and password")
+
+                if auth.isLoading || viewModel.isRefreshingProfile {
+                    ProgressView()
+                        .accessibilityLabel("Signing in")
+                }
+
+                Button {
+                    isCreatingAccount.toggle()
+                    auth.errorMessage = nil
+                } label: {
+                    Text(isCreatingAccount ? "Already have an account? Sign in" : "No account? Create one")
+                        .font(.footnote)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.tint)
+
+                #if DEBUG
+                devTokenHint
+                #endif
+            }
+            .padding()
         }
-        .padding()
+    }
+
+    private func dividerLabel(_ text: String) -> some View {
+        HStack {
+            Rectangle().fill(Color.secondary.opacity(0.3)).frame(height: 1)
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Rectangle().fill(Color.secondary.opacity(0.3)).frame(height: 1)
+        }
+        .accessibilityHidden(true)
     }
 
     #if DEBUG

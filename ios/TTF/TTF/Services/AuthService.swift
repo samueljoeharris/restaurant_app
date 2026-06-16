@@ -1,3 +1,4 @@
+import AuthenticationServices
 import FirebaseAuth
 import Foundation
 import Observation
@@ -13,6 +14,7 @@ final class AuthService {
 
     private var devTokenActive = false
     private var tokenListener: AuthStateDidChangeListenerHandle?
+    private var pendingAppleSignInNonce: String?
 
     func configure() {
         if AppConfig.useAuthEmulator {
@@ -72,10 +74,50 @@ final class AuthService {
         }
     }
 
-    func signInWithApple() async {
-        // M5 — requires Sign in with Apple capability + OAuthProvider nonce flow.
-        await MainActor.run {
-            errorMessage = "Apple Sign-In is coming in a future update."
+    /// Configures a Sign in with Apple request with the Firebase nonce flow.
+    @MainActor
+    func prepareAppleSignIn(request: ASAuthorizationAppleIDRequest) {
+        let nonce = AppleSignInNonce.random()
+        pendingAppleSignInNonce = nonce
+        request.requestedScopes = [.fullName, .email]
+        request.nonce = AppleSignInNonce.sha256(nonce)
+    }
+
+    @MainActor
+    func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) async {
+        isLoading = true
+        errorMessage = nil
+        defer {
+            isLoading = false
+            pendingAppleSignInNonce = nil
+        }
+
+        switch result {
+        case .success(let authorization):
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                  let nonce = pendingAppleSignInNonce,
+                  let tokenData = credential.identityToken,
+                  let idToken = String(data: tokenData, encoding: .utf8) else {
+                errorMessage = "Apple Sign-In could not be completed."
+                return
+            }
+            do {
+                let firebaseCredential = OAuthProvider.appleCredential(
+                    withIDToken: idToken,
+                    rawNonce: nonce,
+                    fullName: credential.fullName
+                )
+                try await Auth.auth().signIn(with: firebaseCredential)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        case .failure(let error):
+            let nsError = error as NSError
+            if nsError.domain == ASAuthorizationError.errorDomain,
+               nsError.code == ASAuthorizationError.canceled.rawValue {
+                return
+            }
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -85,6 +127,7 @@ final class AuthService {
         idToken = nil
         profile = nil
         errorMessage = nil
+        pendingAppleSignInNonce = nil
     }
 
     func updateProfile(_ profile: UserProfile) {

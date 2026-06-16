@@ -40,6 +40,9 @@ struct AccountView: View {
                     LabeledContent("Contributions", value: "\(profile.contributionCount)")
                 } else if let error = viewModel.profileError {
                     Text(error).foregroundStyle(.red)
+                    Button("Retry") {
+                        Task { await viewModel.refreshProfile(api: api, auth: auth) }
+                    }
                 }
             }
 

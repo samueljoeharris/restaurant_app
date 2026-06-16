@@ -47,7 +47,7 @@ ios/TTF/
 └── TTF/
     ├── App/                # Entry point + AppConfig
     ├── Models/             # Codable types aligned with api/ + web/
-    ├── Services/           # APIClient, AuthService (stub)
+    ├── Services/           # APIClient, AuthService, AppCheckService
     ├── ViewModels/         # MVVM state
     ├── Views/              # Map, list, detail, TTF submit, auth
     └── Resources/          # Info.plist, Assets
@@ -75,15 +75,26 @@ Overrides:
 - **Scheme environment:** `TTF_API_URL` (highest priority at runtime)
 - **Local API from Simulator:** set `TTF_API_URL = http://localhost:8080` in `Config/Debug.xcconfig` or the scheme
 
-## Auth (next wiring step)
+## Auth
 
-`AuthService` is a stub. To enable Apple Sign-In:
+Sign in with **Apple** (primary) or **email/password** (testing parity with web). Requires `GoogleService-Info.plist` from Firebase Console (gitignored — see `ios/.gitignore`).
 
-1. Add **Firebase iOS SDK** via Swift Package Manager (`firebase-ios-sdk`).
-2. Download `GoogleService-Info.plist` from Firebase Console → add to the TTF target (gitignored — see `ios/.gitignore`).
-3. Enable **Sign in with Apple** capability on the target.
-4. Implement `AuthService.signInWithApple()` using `FirebaseAuth` + `ASAuthorizationAppleIDProvider`.
-5. Enable Apple provider in [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers).
+### Apple Sign-In setup
+
+1. Add `GoogleService-Info.plist` to the TTF target (Firebase Console → iOS app).
+2. Enable **Sign in with Apple** in Xcode (already in `TTF.entitlements` — set your Development Team).
+3. Enable Apple provider in [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers).
+4. Build and run on simulator (signed into an Apple ID under Settings) or device.
+
+Email/password remains available for emulator testing (`TTF_USE_AUTH_EMULATOR = YES` in `Debug.xcconfig`).
+
+### App Check (before external TestFlight)
+
+`AppCheckService` is wired but **disabled by default** (`TTF_APP_CHECK_ENABLED = NO`). When ready:
+
+1. Register the iOS app in [Firebase App Check](https://console.firebase.google.com/project/ttf-restaurant-dev/appcheck) (App Attest).
+2. Set `TTF_APP_CHECK_ENABLED = YES` in `Release.xcconfig` (or scheme env).
+3. For simulator debug tokens, use the App Check debug provider (DEBUG builds).
 
 ### Dev token (before Firebase is wired)
 

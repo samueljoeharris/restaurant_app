@@ -31,6 +31,8 @@
 	<string>$(TTF_API_URL)</string>
 	<key>TTFUseAuthEmulator</key>
 	<string>$(TTF_USE_AUTH_EMULATOR)</string>
+	<key>TTFAppCheckEnabled</key>
+	<string>$(TTF_APP_CHECK_ENABLED)</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

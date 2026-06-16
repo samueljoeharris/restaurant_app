@@ -8,6 +8,7 @@ struct TTFApp: App {
     @State private var restaurantStore = RestaurantStore()
 
     init() {
+        AppCheckService.configureIfEnabled()
         FirebaseApp.configure()
         let auth = AuthService()
         auth.configure()

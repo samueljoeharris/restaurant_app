@@ -31,7 +31,7 @@ struct HomeView: View {
                 VStack(spacing: 12) {
                     homeOption(
                         title: "Browse every restaurant",
-                        subtitle: "\(store.mapEntries.count) places in the pilot",
+                        subtitle: storeSubtitle,
                         systemImage: "list.bullet",
                         tab: .list
                     )
@@ -63,6 +63,16 @@ struct HomeView: View {
                 searchText = ""
             }
         }
+    }
+
+    private var storeSubtitle: String {
+        if store.isLoading && store.isEmpty {
+            return "Loading pilot restaurants…"
+        }
+        if store.isEmpty {
+            return "No restaurants loaded yet"
+        }
+        return "\(store.mapEntries.count) places in the pilot"
     }
 
     private func homeOption(
@@ -99,6 +109,8 @@ struct HomeView: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(title). \(subtitle)")
+        .accessibilityHint("Opens the \(title.lowercased()) tab")
     }
 }
 
