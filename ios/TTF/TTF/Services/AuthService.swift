@@ -9,7 +9,7 @@ final class AuthService {
     private(set) var isLoading = false
     private(set) var errorMessage: String?
 
-    var isSignedIn: Bool { Auth.auth().currentUser != nil || devTokenActive }
+    var isSignedIn: Bool { idToken != nil }
 
     private var devTokenActive = false
     private var tokenListener: AuthStateDidChangeListenerHandle?
