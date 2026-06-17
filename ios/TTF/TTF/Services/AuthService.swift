@@ -20,8 +20,9 @@ final class AuthService {
             Auth.auth().useEmulator(withHost: "localhost", port: 9099)
         }
         tokenListener = Auth.auth().addIDTokenDidChangeListener { [weak self] _, user in
+            guard let self else { return }
             Task { @MainActor in
-                await self?.handleTokenChange(user: user)
+                await self.handleTokenChange(user: user)
             }
         }
         bootstrapDevTokenIfNeeded()

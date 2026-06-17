@@ -1,6 +1,7 @@
 import MapKit
 import SwiftUI
 
+@MainActor
 struct RestaurantMapView: View {
     @Environment(APIClient.self) private var api
     @Environment(RestaurantStore.self) private var store

@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct AccountView: View {
     @Environment(AuthService.self) private var auth
     @Environment(APIClient.self) private var api

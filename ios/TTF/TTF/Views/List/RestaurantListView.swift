@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct RestaurantListView: View {
     @Environment(APIClient.self) private var api
     @Environment(RestaurantStore.self) private var store

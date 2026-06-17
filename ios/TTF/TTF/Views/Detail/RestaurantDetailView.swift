@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct RestaurantDetailView: View {
     @Environment(APIClient.self) private var api
     @Environment(AuthService.self) private var auth
