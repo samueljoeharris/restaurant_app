@@ -145,7 +145,7 @@ See [IOS_DESIGN.md](IOS_DESIGN.md) and [ios/TTF/README.md](../ios/TTF/README.md)
 - [x] Restaurant detail with TTF aggregates + Google link-out
 - [x] TTF submission screen (timer + quality + item type) — needs auth to POST
 - [x] Shared attribute rating UI — needs auth to POST
-- [x] Apple Sign-In via Firebase Auth (`AuthService` + `SignInWithAppleButton`, `TTF.entitlements`)
+- [x] Apple Sign-In via Firebase Auth (`AuthService` + `SignInWithAppleButton`, `TTF.entitlements` — merged #47/#48; manual SIWA smoke on device/simulator)
 - [x] Point API base URL at Cloud Run (`https://api.dev.littlescout.app`)
 - [x] Add GitHub Actions iOS workflow skeleton (manual dispatch; TestFlight steps TBD)
 - [ ] TestFlight group: `ttf-pilot-testers`
