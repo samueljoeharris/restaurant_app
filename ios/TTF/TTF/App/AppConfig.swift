@@ -28,4 +28,13 @@ enum AppConfig {
         }
         return ProcessInfo.processInfo.environment["TTF_USE_AUTH_EMULATOR"] == "YES"
     }
+
+    /// True when xcconfig sets TTF_APP_CHECK_ENABLED = YES.
+    /// Sends `X-Firebase-AppCheck` on authenticated API requests once Firebase App Check is registered.
+    static var appCheckEnabled: Bool {
+        if let plist = Bundle.main.object(forInfoDictionaryKey: "TTFAppCheckEnabled") as? String {
+            return plist.uppercased() == "YES"
+        }
+        return ProcessInfo.processInfo.environment["TTF_APP_CHECK_ENABLED"] == "YES"
+    }
 }

@@ -51,6 +51,7 @@ final class AuthService {
     }
 
     func appCheckToken() async -> String? {
+        guard AppConfig.appCheckEnabled else { return nil }
         do {
             let result = try await AppCheck.appCheck().token(forcingRefresh: false)
             return result.token

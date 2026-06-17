@@ -13,9 +13,29 @@ struct TtfSubmitView: View {
 
     var body: some View {
         Form {
-            if !viewModel.restaurantName.isEmpty {
+            if viewModel.isLoadingRestaurant && viewModel.restaurantName.isEmpty {
+                Section {
+                    HStack {
+                        ProgressView()
+                        Text("Loading restaurant…")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } else if !viewModel.restaurantName.isEmpty {
                 Section {
                     Text(viewModel.restaurantName)
+                }
+            } else if let error = viewModel.errorMessage, viewModel.restaurantName.isEmpty {
+                Section {
+                    ContentUnavailableView {
+                        Label("Could not load restaurant", systemImage: "wifi.exclamationmark")
+                    } description: {
+                        Text(error)
+                    } actions: {
+                        Button("Retry") {
+                            Task { await viewModel.loadRestaurant(api: api) }
+                        }
+                    }
                 }
             }
 

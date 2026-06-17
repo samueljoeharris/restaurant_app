@@ -1,7 +1,7 @@
 # Little Scout iOS — Phase 3 Implementation & Design
 
 **Scope:** native iOS MVP (`ios/TTF/`) connecting to the existing Phase 2 backend
-**Status:** scaffold on `main` — `ios/TTF/` builds in Xcode; M1 browse (map/list/detail) implemented; Apple Sign-In + TestFlight (M4–M6) still open
+**Status:** scaffold on `main` — `ios/TTF/` builds in Xcode; M1–M4 browse + auth + contribute implemented; M5 Apple Sign-In + polish on branch; TestFlight (M6) still open
 **Prereqs already done:** API + Postgres live at `https://api.dev.littlescout.app`, Firebase Auth configured, pilot restaurants seeded, Apple Developer Program enrolled
 
 This document operationalizes the Phase 3 plan sketched in [DESIGN.md](DESIGN.md) and [GETTING_STARTED.md](GETTING_STARTED.md). It is written against the **implemented** API (see `api/ttf_api/routers/`), not the original `api/openapi.yaml` sketch, which has drifted.

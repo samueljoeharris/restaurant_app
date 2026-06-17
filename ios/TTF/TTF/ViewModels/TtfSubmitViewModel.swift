@@ -6,6 +6,7 @@ final class TtfSubmitViewModel {
     let restaurantID: UUID
 
     private(set) var restaurantName = ""
+    private(set) var isLoadingRestaurant = false
     private(set) var isSubmitting = false
     private(set) var errorMessage: String?
     private(set) var didSubmit = false
@@ -58,6 +59,8 @@ final class TtfSubmitViewModel {
 
     @MainActor
     func loadRestaurant(api: APIClient) async {
+        isLoadingRestaurant = true
+        defer { isLoadingRestaurant = false }
         do {
             let response = try await api.getRestaurant(id: restaurantID)
             restaurantName = response.restaurant.name

@@ -1,1 +1,3 @@
 TTF_API_URL = https:/$()/api.dev.littlescout.app
+TTF_USE_AUTH_EMULATOR = NO
+TTF_APP_CHECK_ENABLED = NO
