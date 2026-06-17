@@ -18,6 +18,7 @@ from ttf_api.routers import (
     restaurants,
     users,
 )
+from ttf_api.security_headers import SecurityHeadersMiddleware
 
 
 @asynccontextmanager
@@ -57,3 +58,7 @@ app.include_router(places.router)
 app.include_router(coverage.router)
 app.include_router(metrics.router)
 app.include_router(contributions.router)
+
+# Security headers (CSP/X-Content-Type-Options/etc) on every response. Added
+# last so it is the outermost middleware and also covers CORS preflight replies.
+app.add_middleware(SecurityHeadersMiddleware)

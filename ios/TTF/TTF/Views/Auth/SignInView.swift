@@ -29,19 +29,28 @@ struct SignInView: View {
                     .foregroundStyle(.secondary)
 
                 SignInWithAppleButton(.signIn) { request in
-                    auth.prepareAppleSignIn(request: request)
-                } onCompletion: { result in
-                    Task {
-                        await auth.handleAppleSignIn(result)
-                        if auth.isSignedIn {
-                            await viewModel.refreshProfile(api: api, auth: auth)
-                        }
-                    }
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { _ in
+                    // Auth runs through AuthService + AppleSignInCoordinator so we
+                    // control the nonce and Firebase credential exchange.
                 }
+                .frame(height: 48)
                 .signInWithAppleButtonStyle(.black)
-                .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
                 .accessibilityLabel("Sign in with Apple")
+                .overlay {
+                    Button {
+                        Task {
+                            await auth.signInWithApple()
+                            if auth.isSignedIn {
+                                await viewModel.refreshProfile(api: api, auth: auth)
+                            }
+                        }
+                    } label: {
+                        Color.clear.contentShape(Rectangle())
+                    }
+                    .accessibilityHidden(true)
+                }
+                .disabled(auth.isLoading)
 
                 dividerLabel("or use email")
 

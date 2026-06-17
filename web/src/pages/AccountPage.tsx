@@ -61,6 +61,11 @@ export function AccountPage() {
         <Button variant="ghost" onClick={() => logout()}>
           Sign out
         </Button>
+        <p className="muted small">
+          <a className="linkish" href="/privacy">
+            Privacy Policy
+          </a>
+        </p>
       </Card>
 
       <Card title="Security" subtitle="Protect your account">

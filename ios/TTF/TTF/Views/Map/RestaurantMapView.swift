@@ -1,6 +1,7 @@
 import MapKit
 import SwiftUI
 
+@MainActor
 struct RestaurantMapView: View {
     @Environment(APIClient.self) private var api
     @Environment(RestaurantStore.self) private var store
@@ -41,14 +42,8 @@ struct RestaurantMapView: View {
             if store.isLoading && store.isEmpty {
                 ProgressView("Loading restaurants…")
             } else if let error = store.errorMessage, store.isEmpty {
-                ContentUnavailableView {
-                    Label("Could not load map", systemImage: "wifi.exclamationmark")
-                } description: {
-                    Text(error)
-                } actions: {
-                    Button("Retry") {
-                        Task { await store.refresh(api: api) }
-                    }
+                ErrorStateView(message: error) {
+                    Task { await store.refresh(api: api) }
                 }
             } else {
                 mapContent
@@ -125,6 +120,7 @@ struct RestaurantMapView: View {
                                 Circle().strokeBorder(.white, lineWidth: 2)
                             }
                     }
+                    .accessibilityLabel("Your location")
                 }
             }
         }
@@ -153,6 +149,7 @@ struct RestaurantMapView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(.ultraThinMaterial, in: Capsule())
+                .accessibilityLabel("\(store.mapEntries.count) places, updated \(loaded.formatted(date: .omitted, time: .shortened))")
         }
     }
 
@@ -252,6 +249,8 @@ private struct MapLegendView: View {
         .padding(.vertical, 8)
         .background(.ultraThinMaterial, in: Capsule())
         .padding(.bottom, 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Map legend: green fast, yellow OK, red slow")
     }
 }
 

@@ -221,9 +221,10 @@ final class APIClient {
         if authenticated {
             let token = try await authService.freshIDToken()
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            if let appCheckToken = await AppCheckService.token() {
-                request.setValue(appCheckToken, forHTTPHeaderField: "X-Firebase-AppCheck")
-            }
+        }
+
+        if let appCheckToken = await authService.appCheckToken() {
+            request.setValue(appCheckToken, forHTTPHeaderField: "X-Firebase-AppCheck")
         }
 
         if let body {
