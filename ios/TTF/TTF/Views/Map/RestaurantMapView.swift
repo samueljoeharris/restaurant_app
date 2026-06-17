@@ -120,8 +120,8 @@ struct RestaurantMapView: View {
                                 Circle().strokeBorder(.white, lineWidth: 2)
                             }
                     }
+                    .accessibilityLabel("Your location")
                 }
-                .accessibilityLabel("Your location")
             }
         }
         .onMapCameraChange(frequency: .onEnd) { context in
