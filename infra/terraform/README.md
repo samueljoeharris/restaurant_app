@@ -253,4 +253,12 @@ Full runbook: [docs/LITTLESCOUT_DOMAIN.md](../../docs/LITTLESCOUT_DOMAIN.md).
 
 ## Prod
 
-Copy `environments/dev` → `environments/prod` when pilot launches, or add `prod/` with `ttf-restaurant-prod` project.
+`environments/prod/` is scaffolded and mirrors `environments/dev/` — same module calls, parameterized for `ttf-restaurant-prod`:
+
+- Project `ttf-restaurant-prod`, state bucket `ttf-tfstate-prod`
+- Hostnames `app.littlescout.app`, `api.littlescout.app`, `admin.littlescout.app` (no `.dev` segment)
+- Larger Cloud SQL tier (`db-custom-1-3840` vs dev's `db-f1-micro`) and `deletion_protection = true`
+- `firebase_mfa_state = "MANDATORY"` (dev defaults to `ENABLED`, opt-in)
+- Budget alert via [`modules/budget-alert`](modules/budget-alert) with email notification channels, thresholds at $25/$50/$100 (see [docs/DESIGN.md](../../docs/DESIGN.md) naming conventions)
+
+None of this has been applied — there is no real `ttf-restaurant-prod` GCP project yet. Before running `terraform apply` against prod, follow [docs/PROD_CUTOVER_RUNBOOK.md](../../docs/PROD_CUTOVER_RUNBOOK.md) (project creation, billing link, Terraform state bootstrap, Firebase linkage, DNS).
