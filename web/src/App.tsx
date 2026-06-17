@@ -9,6 +9,7 @@ import { ExploreMapPage } from "./pages/ExploreMapPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { MyContributionsPage } from "./pages/MyContributionsPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { RateAttributesPage } from "./pages/RateAttributesPage";
 import { ReviewChatPage } from "./pages/ReviewChatPage";
@@ -22,6 +23,7 @@ export default function App() {
         <DesktopOnlyGate>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route
             path="/"
             element={

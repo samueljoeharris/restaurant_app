@@ -305,6 +305,11 @@ Verify that the production stack is live and responding correctly.
   - [ ] Open `https://app.littlescout.app` in a browser.
   - [ ] Map loads, restaurant list appears.
   - [ ] No CORS errors in browser console.
+- [ ] **CSP (Content-Security-Policy):**
+  - [ ] On `https://app.littlescout.app` and `https://admin.littlescout.app`, open the browser console and confirm **no CSP violation errors** during: initial load, sign-in, map view, and a restaurant rating/submission flow.
+  - [ ] If a CSP error appears, note the blocked origin and add it to the `Content-Security-Policy` `add_header` in `web/nginx.conf` / `web/nginx.admin.conf` (then rebuild/redeploy the web/admin images).
+- [ ] **Privacy policy is public:**
+  - [ ] Open `https://app.littlescout.app/privacy` in a private/incognito window (signed out) and confirm the page renders **without redirecting to login**.
 - [ ] **Sign-in flow:**
   - [ ] Click "Sign In" → Apple/Email sign-in works.
   - [ ] After auth, user returns to the app.

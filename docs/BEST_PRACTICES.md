@@ -297,11 +297,11 @@ Use this as a pre-launch gate. Check off in PRs or project tracking.
 
 ### Auth & security
 
-- [ ] `AUTH_DEV_MODE=false` in production
-- [ ] App Check enforced on write endpoints
-- [ ] Rate limits on writes
-- [ ] `check_revoked=true` on sensitive routes
-- [ ] CORS + CSP configured on web/admin
+- [x] `AUTH_DEV_MODE=false` in production
+- [x] App Check enforced on write endpoints
+- [x] Rate limits on writes
+- [x] `check_revoked=true` on sensitive routes
+- [x] CORS + CSP configured on web/admin
 - [ ] Re-auth / recent-login for account deletion
 
 ### Account deletion
