@@ -158,7 +158,7 @@ See [IOS_DESIGN.md](IOS_DESIGN.md) and [ios/TTF/README.md](../ios/TTF/README.md)
 - [ ] Invite beta testers via TestFlight
 - [ ] Gather TTF observations from real visits
 - [ ] Iterate on aggregates and UX
-- [ ] Plan `ttf-restaurant-prod` GCP project for public launch
+- [x] Plan `ttf-restaurant-prod` GCP project — Terraform scaffold in [environments/prod/](../infra/terraform/environments/prod/); cutover steps in [PROD_CUTOVER_RUNBOOK.md](PROD_CUTOVER_RUNBOOK.md). Apply pending real GCP credentials/billing.
 - [ ] Pre-launch hardening — [BEST_PRACTICES.md](BEST_PRACTICES.md) checklist (auth, account deletion, caching, moderation)
 
 ---

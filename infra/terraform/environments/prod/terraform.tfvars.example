@@ -1,8 +1,51 @@
-# Prod environment — scaffold when pilot city launches.
-# Duplicate environments/dev/ and adjust for ttf-restaurant-prod.
+# Copy to terraform.tfvars (gitignored) and adjust values.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# Applying this against a real GCP project requires completing
+# docs/PROD_CUTOVER_RUNBOOK.md first (project creation, billing link,
+# Terraform state bootstrap).
 
 project_id          = "ttf-restaurant-prod"
 region              = "us-central1"
-uploads_bucket_name = "ttf-uploads-prod"
-cloud_sql_tier      = "db-f1-micro"
+uploads_bucket_name = "ttf-uploads-prod" # append project number if name taken
+cloud_sql_tier      = "db-custom-1-3840"
 deletion_protection = true
+
+# --- Phase A (default) — foundation only, no monthly compute cost ---
+enable_cloud_sql = false
+enable_cloud_run = false
+
+# --- Phase B — uncomment for cutover from the dev pilot ---
+# enable_cloud_sql = true
+# enable_cloud_run = true
+# api_image = "us-central1-docker.pkg.dev/ttf-restaurant-prod/ttf-containers/ttf-api:latest"
+#
+# Weekly restaurant catalog refresh (Cloud Run Job + Cloud Scheduler). Off until reviewed.
+# enable_restaurant_refresh_job = true
+
+# Budget alert — requires billing account ID from:
+#   gcloud billing accounts list
+# Thresholds: $25 / $50 / $100 (see docs/DESIGN.md naming conventions)
+# enable_billing_budget      = true
+# billing_account_id         = "XXXXXX-XXXXXX-XXXXXX"
+# budget_amount_usd          = 100
+# budget_notification_emails = ["you@example.com"]
+
+# --- littlescout.app (see docs/LITTLESCOUT_DOMAIN.md) ---
+# dns_base_domain        = "littlescout.app"
+# dns_environment        = "prod"
+# enable_custom_domains  = true
+# enable_admin_cloud_run = true
+# enable_admin_iap        = true   # default true when admin is deployed
+# iap_admin_members       = ["user:you@gmail.com"]
+
+# --- Secrets (gitignored terraform.tfvars OR GitHub Environment prod secrets) ---
+# Never commit real values. See docs/LITTLESCOUT_DOMAIN.md (IAP) and docs/AUTH.md (Firebase sign-in).
+#
+# IAP OAuth (admin load balancer only):
+#   GitHub: IAP_OAUTH_CLIENT_ID, IAP_OAUTH_CLIENT_SECRET
+# iap_oauth_client_id     = "....apps.googleusercontent.com"
+# iap_oauth_client_secret = "GOCSPX-...."
+#
+# Google sign-in is managed in Firebase Console — not Terraform tfvars.

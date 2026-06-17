@@ -1,3 +1,4 @@
+import FirebaseAppCheck
 import FirebaseAuth
 import Foundation
 import Observation
@@ -19,8 +20,9 @@ final class AuthService {
             Auth.auth().useEmulator(withHost: "localhost", port: 9099)
         }
         tokenListener = Auth.auth().addIDTokenDidChangeListener { [weak self] _, user in
+            guard let self else { return }
             Task { @MainActor in
-                await self?.handleTokenChange(user: user)
+                await self.handleTokenChange(user: user)
             }
         }
         bootstrapDevTokenIfNeeded()
@@ -48,6 +50,15 @@ final class AuthService {
         return try await user.getIDToken()
     }
 
+    func appCheckToken() async -> String? {
+        do {
+            let result = try await AppCheck.appCheck().token(forcingRefresh: false)
+            return result.token
+        } catch {
+            return nil
+        }
+    }
+
     @MainActor
     func signIn(email: String, password: String) async {
         isLoading = true
@@ -72,10 +83,24 @@ final class AuthService {
         }
     }
 
+    @MainActor
     func signInWithApple() async {
-        // M5 — requires Sign in with Apple capability + OAuthProvider nonce flow.
-        await MainActor.run {
-            errorMessage = "Apple Sign-In is coming in a future update."
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        do {
+            let coordinator = AppleSignInCoordinator()
+            let result = try await coordinator.signIn()
+            let credential = OAuthProvider.appleCredential(
+                withIDToken: result.idToken,
+                rawNonce: result.rawNonce,
+                fullName: result.fullName
+            )
+            try await Auth.auth().signIn(with: credential)
+        } catch AppleSignInError.canceled {
+            // User canceled — leave errorMessage nil (no scary banner).
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 

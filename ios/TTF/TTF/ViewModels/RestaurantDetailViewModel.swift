@@ -26,7 +26,7 @@ final class RestaurantDetailViewModel {
             detail = try await detailTask
             notes = try await notesTask
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = (error as? APIError)?.userFacingMessage ?? error.localizedDescription
         }
     }
 }

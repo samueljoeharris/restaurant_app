@@ -190,6 +190,11 @@ export function LoginPage() {
             </>
           )}
         </Card>
+        <p className="muted small" style={{ textAlign: "center", marginTop: "1rem" }}>
+          <a className="linkish" href="/privacy">
+            Privacy Policy
+          </a>
+        </p>
       </main>
     </div>
   );

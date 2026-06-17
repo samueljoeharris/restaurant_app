@@ -1,4 +1,5 @@
 import SwiftUI
+import AuthenticationServices
 
 struct SignInView: View {
     @Environment(AuthService.self) private var auth
@@ -14,6 +15,7 @@ struct SignInView: View {
             Image(systemName: "fork.knife.circle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.tint)
+                .accessibilityHidden(true)
 
             Text("Little Scout")
                 .font(.largeTitle.bold())
@@ -22,6 +24,35 @@ struct SignInView: View {
                  ? "Create an account to submit TTF observations and rate restaurants."
                  : "Sign in to submit TTF observations and rate restaurants in \(AppConfig.pilotDisplayName).")
                 .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+
+            SignInWithAppleButton(.signIn) { request in
+                request.requestedScopes = [.fullName, .email]
+            } onCompletion: { _ in
+                // Actual auth runs through AuthService so we control the nonce
+                // and Firebase credential exchange. The button's own result is
+                // ignored; tapping it triggers our coordinator below.
+            }
+            .frame(height: 48)
+            .signInWithAppleButtonStyle(.black)
+            .accessibilityLabel("Sign in with Apple")
+            .overlay {
+                Button {
+                    Task {
+                        await auth.signInWithApple()
+                        if auth.isSignedIn {
+                            await viewModel.refreshProfile(api: api, auth: auth)
+                        }
+                    }
+                } label: {
+                    Color.clear.contentShape(Rectangle())
+                }
+                .accessibilityHidden(true)
+            }
+            .disabled(auth.isLoading)
+
+            Text("or")
+                .font(.caption)
                 .foregroundStyle(.secondary)
 
             VStack(spacing: 12) {

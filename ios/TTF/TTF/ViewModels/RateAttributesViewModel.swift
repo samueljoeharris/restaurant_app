@@ -28,7 +28,7 @@ final class RateAttributesViewModel {
             metrics = try await metricsTask
             attributes = try await attributesTask
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = (error as? APIError)?.userFacingMessage ?? error.localizedDescription
         }
     }
 
@@ -44,7 +44,7 @@ final class RateAttributesViewModel {
             successMessage = "Saved \(metric.label)"
             await load(api: api)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = (error as? APIError)?.userFacingMessage ?? error.localizedDescription
         }
     }
 }

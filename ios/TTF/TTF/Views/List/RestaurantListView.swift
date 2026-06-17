@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct RestaurantListView: View {
     @Environment(APIClient.self) private var api
     @Environment(RestaurantStore.self) private var store
@@ -16,14 +17,8 @@ struct RestaurantListView: View {
             if store.isLoading && store.isEmpty && !isAreaMode {
                 ProgressView("Loading restaurants…")
             } else if let error = store.errorMessage, store.isEmpty, !isAreaMode {
-                ContentUnavailableView {
-                    Label("Could not load list", systemImage: "wifi.exclamationmark")
-                } description: {
-                    Text(error)
-                } actions: {
-                    Button("Retry") {
-                        Task { await store.refresh(api: api) }
-                    }
+                ErrorStateView(message: error) {
+                    Task { await store.refresh(api: api) }
                 }
             } else {
                 mainContent
@@ -196,5 +191,16 @@ private struct RestaurantRowView: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabelForRow)
+    }
+
+    private var accessibilityLabelForRow: String {
+        let tierInfo = if let ttf {
+            ", \(TtfTierLogic.tier(for: ttf).label)"
+        } else {
+            ""
+        }
+        return "\(restaurant.name), \(restaurant.address)\(tierInfo)"
     }
 }

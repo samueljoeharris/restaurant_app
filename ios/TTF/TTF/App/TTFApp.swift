@@ -1,13 +1,16 @@
+import FirebaseAppCheck
 import FirebaseCore
 import SwiftUI
 
 @main
+@MainActor
 struct TTFApp: App {
     @State private var authService: AuthService
     @State private var apiClient: APIClient
     @State private var restaurantStore = RestaurantStore()
 
     init() {
+        AppCheck.setAppCheckProviderFactory(TTFAppCheckProviderFactory())
         FirebaseApp.configure()
         let auth = AuthService()
         auth.configure()

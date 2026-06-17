@@ -23,6 +23,8 @@ struct TtfSubmitView: View {
                 Text(viewModel.timerLabel)
                     .font(.system(.largeTitle, design: .monospaced))
                     .frame(maxWidth: .infinity)
+                    .accessibilityLabel("Elapsed time")
+                    .accessibilityValue(viewModel.timerLabel)
 
                 HStack {
                     Button(viewModel.isTimerRunning ? "Stop" : "Start") {

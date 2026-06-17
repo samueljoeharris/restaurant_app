@@ -104,14 +104,27 @@ brew install xcodegen
 
 ## TestFlight CI (skeleton)
 
-`.github/workflows/tool-ios.yml` is a manual `workflow_dispatch` job for macOS builds. Before using it, add GitHub secrets:
+`.github/workflows/tool-ios.yml` is a manual `workflow_dispatch` job for macOS builds. Before enabling the (currently commented-out) signing + TestFlight steps, add these GitHub secrets:
 
 | Secret | Purpose |
 |--------|---------|
-| `APPSTORE_ISSUER_ID` | App Store Connect API |
-| `APPSTORE_KEY_ID` | API key ID |
-| `APPSTORE_PRIVATE_KEY` | Contents of `.p8` file |
+| `APPSTORE_ISSUER_ID` | App Store Connect API issuer ID |
+| `APPSTORE_KEY_ID` | App Store Connect API key ID |
+| `APPSTORE_PRIVATE_KEY` | Contents of the `.p8` API key file |
 | `IOS_DEVELOPMENT_TEAM` | Apple team ID |
+| `IOS_BUILD_CERTIFICATE_BASE64` | base64 of the distribution cert `.p12` |
+| `IOS_P12_PASSWORD` | Password for the `.p12` |
+| `IOS_PROVISION_PROFILE_BASE64` | base64 of the `.mobileprovision` profile |
+
+The cert/profile secrets are consumed by [`scripts/import-signing-material.sh`](../../scripts/import-signing-material.sh), which the workflow runs on the macOS runner before `xcodebuild archive`. Test it locally with:
+
+```bash
+RUNNER_TEMP=$(mktemp -d) \
+  BUILD_CERTIFICATE_BASE64=$(base64 -i dist.p12) \
+  P12_PASSWORD=... \
+  BUILD_PROVISION_PROFILE_BASE64=$(base64 -i profile.mobileprovision) \
+  ./scripts/import-signing-material.sh
+```
 
 ## Related docs
 
