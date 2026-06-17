@@ -27,7 +27,9 @@ configFiles:
 packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
-    from: "11.0.0"
+    # Pinned (not upToNextMajorVersion): 11.5.0+ uses Swift 6-only syntax
+    # that fails to compile on the Xcode 15.4 toolchain our CI runner uses.
+    exactVersion: "11.4.0"
 
 targets:
   TTF:
