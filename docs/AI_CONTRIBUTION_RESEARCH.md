@@ -1,7 +1,7 @@
 # AI-Assisted Contribution Flows — Research
 
-**Status:** Research / future work (not implemented)  
-**Last updated:** 2026-06-12  
+**Status:** Partial implementation — web pilot behind `VITE_ENABLE_REVIEW_CHAT`; `ReviewChatPage` exists; backend extraction pipeline and confirm-before-submit flow not complete ([issue #41](https://github.com/samueljoeharris/restaurant_app/issues/41))  
+**Last updated:** 2026-06-15  
 **Related:** [DESIGN.md](DESIGN.md), [ARCHITECTURE.md](ARCHITECTURE.md), [BEST_PRACTICES.md](BEST_PRACTICES.md)
 
 This document evaluates Firebase and GCP options for two related capabilities:

@@ -129,3 +129,59 @@ def build_contribution_schema(conn: Connection) -> dict[str, Any]:
             "metrics": attributes,
         },
     }
+
+
+def build_extraction_json_schema() -> dict[str, Any]:
+    """Gemini responseSchema for preview/submit extraction (not used during chat)."""
+    return {
+        "type": "object",
+        "properties": {
+            "ttf": {
+                "type": "object",
+                "nullable": True,
+                "properties": {
+                    "elapsed_minutes": {"type": "integer", "nullable": True},
+                    "item_type": {
+                        "type": "string",
+                        "nullable": True,
+                        "enum": TTF_ITEM_TYPES,
+                    },
+                    "item_quality": {"type": "integer", "nullable": True},
+                    "portion_size": {
+                        "type": "string",
+                        "nullable": True,
+                        "enum": TTF_PORTION_SIZES,
+                    },
+                    "daypart": {
+                        "type": "string",
+                        "nullable": True,
+                        "enum": TTF_DAYPARTS,
+                    },
+                    "party_size_kids": {"type": "integer", "nullable": True},
+                    "wait_context": {"type": "string", "nullable": True},
+                },
+            },
+            "attributes": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "metric_key": {"type": "string"},
+                        "value": {"type": "string"},
+                        "visit_context": {"type": "string", "nullable": True},
+                    },
+                    "required": ["metric_key", "value"],
+                },
+            },
+            "note": {
+                "type": "object",
+                "nullable": True,
+                "properties": {
+                    "text": {"type": "string"},
+                    "tags": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+            "missing_required": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": ["attributes", "missing_required"],
+    }

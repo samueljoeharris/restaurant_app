@@ -8,6 +8,7 @@ Start here when you are orienting yourself in the Little Scout repo.
 |------|---------|
 | [README.md](../README.md) | Project overview, current status, and top-level quick start |
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Phase checklist and current build/deploy state |
+| [ROADMAP.md](ROADMAP.md) | **Backlog queue** — `now` / `next` / `later` GitHub issues |
 | [CI.md](CI.md) | Local Docker checks and GitHub Actions behavior |
 | [WEB_AUTH.md](WEB_AUTH.md) | **Public app** — sign up, sign in, Google, MFA, local emulator |
 | [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | API JWT verification, dev tokens, App Check, Cloud Run env |
@@ -41,9 +42,10 @@ Start here when you are orienting yourself in the Little Scout repo.
 
 ## Future ideas & backlog
 
-Not scheduled — design notes and product ideas for later phases.
+**Canonical queue:** [ROADMAP.md](ROADMAP.md) (GitHub Issues with `now` / `next` / `later` labels). Research docs below link from issues — not competing backlogs.
 
 | Doc | Area | Summary |
 |------|------|---------|
-| [TTF_SUBMIT_TIMER_IDEAS.md](TTF_SUBMIT_TIMER_IDEAS.md) | Web pilot | Fun timer UX on the TTF submit page — progress ring, parent humor copy, median comparison |
-| [AI_CONTRIBUTION_RESEARCH.md](AI_CONTRIBUTION_RESEARCH.md) | API / web / iOS | Chat or voice visit logging via Firebase/GCP AI; structured draft extraction with human review before submit |
+| [ROADMAP.md](ROADMAP.md) | All | One-screen north star; links to GitHub issues |
+| [TTF_SUBMIT_TIMER_IDEAS.md](TTF_SUBMIT_TIMER_IDEAS.md) | Web pilot | Fun timer UX — [#45](https://github.com/samueljoeharris/restaurant_app/issues/45) |
+| [AI_CONTRIBUTION_RESEARCH.md](AI_CONTRIBUTION_RESEARCH.md) | API / web / iOS | AI contribution research — [#41](https://github.com/samueljoeharris/restaurant_app/issues/41) |

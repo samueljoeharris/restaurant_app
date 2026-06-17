@@ -42,7 +42,7 @@ locals {
 
   secret_ids = concat(
     var.enable_cloud_sql ? ["ttf-db-url"] : [],
-    ["ttf-maps-api-key"],
+    ["ttf-maps-api-key", "ttf-gemini-api-key"],
     var.enable_web_cloud_run ? ["ttf-maps-web-api-key"] : [],
     var.enable_firebase_web ? ["ttf-firebase-web-env", "ttf-recaptcha-site-key"] : [],
     var.enable_cloud_run ? ["ttf-firebase-admin-sa"] : [],

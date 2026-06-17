@@ -211,6 +211,30 @@ export const api = {
   getContributionSchema: () =>
     request<ContributionSchema>("/v1/contribution-schema"),
 
+  reviewChatReply: (
+    restaurantName: string,
+    messages: { role: "user" | "assistant"; text: string }[],
+    token: string,
+  ) =>
+    request<{ reply: string }>(
+      "/v1/review-chat/reply",
+      {
+        method: "POST",
+        body: JSON.stringify({ restaurant_name: restaurantName, messages }),
+      },
+      token,
+    ),
+
+  reviewChatExtract: (
+    messages: { role: "user" | "assistant"; text: string }[],
+    token: string,
+  ) =>
+    request<{ draft: ContributionDraft; missing_required: string[]; summary: string }>(
+      "/v1/review-chat/extract",
+      { method: "POST", body: JSON.stringify({ messages }) },
+      token,
+    ),
+
   previewContributions: (id: string, body: ContributionDraft, token: string) =>
     request<ContributionPreviewResponse>(
       `/v1/restaurants/${id}/contributions/preview`,

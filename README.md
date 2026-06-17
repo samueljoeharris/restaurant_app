@@ -72,12 +72,13 @@ restaurant_app/
 
 ## Future work / backlog
 
-Not scheduled — design notes and product ideas for later phases. See also [docs/DESIGN.md § Roadmap](docs/DESIGN.md#15-open-questions--roadmap).
+**Canonical queue:** [docs/ROADMAP.md](docs/ROADMAP.md) — GitHub Issues labeled `now` (max 3), `next`, and `later`. Research docs link from issues; see also [docs/DESIGN.md § Roadmap](docs/DESIGN.md#15-open-questions--roadmap).
 
 | Doc | Area | Summary |
 |-----|------|---------|
-| [docs/AI_CONTRIBUTION_RESEARCH.md](docs/AI_CONTRIBUTION_RESEARCH.md) | API / web / iOS | Chat or voice visit logging via Firebase/GCP AI; structured draft extraction with human review before submit |
-| [docs/TTF_SUBMIT_TIMER_IDEAS.md](docs/TTF_SUBMIT_TIMER_IDEAS.md) | Web pilot | Fun timer UX on the TTF submit page — progress ring, parent humor copy, median comparison |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | All | One-screen north star; links to GitHub issues |
+| [docs/AI_CONTRIBUTION_RESEARCH.md](docs/AI_CONTRIBUTION_RESEARCH.md) | API / web / iOS | AI contribution — partial web pilot; [#41](https://github.com/samueljoeharris/restaurant_app/issues/41) |
+| [docs/TTF_SUBMIT_TIMER_IDEAS.md](docs/TTF_SUBMIT_TIMER_IDEAS.md) | Web pilot | Fun timer UX — [#45](https://github.com/samueljoeharris/restaurant_app/issues/45) |
 
 ## License
 

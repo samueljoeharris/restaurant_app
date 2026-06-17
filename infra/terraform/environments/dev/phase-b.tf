@@ -38,6 +38,10 @@ locals {
       secret  = "ttf-maps-api-key"
       version = "latest"
     }
+    GEMINI_API_KEY = {
+      secret  = "ttf-gemini-api-key"
+      version = "latest"
+    }
     }, var.enable_restaurant_refresh_job ? {
     INTERNAL_JOB_SECRET = {
       secret  = "ttf-internal-job-secret"
@@ -53,6 +57,8 @@ locals {
     APP_CHECK_ENFORCE         = var.app_check_recaptcha_site_key != "" ? "true" : "false"
     RATE_LIMIT_MAX_WRITES     = "60"
     RATE_LIMIT_WINDOW_MINUTES = "60"
+    GEMINI_CHAT_MODEL         = "gemini-2.5-flash-lite"
+    GEMINI_EXTRACT_MODEL      = "gemini-2.5-flash"
     CORS_ORIGINS = jsonencode(compact(concat(
       ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
       var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],

@@ -11,8 +11,6 @@ import {
   extractContributionDraft,
   reviewChatAvailable,
   sendReviewChatMessage,
-  startReviewChat,
-  buildReviewSystemPrompt,
   type ChatMessage,
 } from "../lib/reviewChat";
 import type { ContributionDraft, ContributionPreviewResponse, ContributionSchema } from "../types";
@@ -37,7 +35,6 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
   const [preview, setPreview] = useState<ContributionPreviewResponse | null>(null);
   const [extractSummary, setExtractSummary] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const chatRef = useRef<ReturnType<typeof startReviewChat> | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,55 +57,36 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
   }, []);
 
   useEffect(() => {
-    chatRef.current = null;
-  }, [schema, restaurantName]);
-
-  const ensureChat = useCallback(() => {
-    if (!schema) return null;
-    if (!chatRef.current) {
-      chatRef.current = startReviewChat(buildReviewSystemPrompt(restaurantName, schema));
-    }
-    return chatRef.current;
-  }, [schema, restaurantName]);
-
-  useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, preview]);
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
-    if (!text || busy) return;
-    let chat: ReturnType<typeof startReviewChat>;
-    try {
-      const session = ensureChat();
-      if (!session) return;
-      chat = session;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Review chat unavailable.");
-      return;
-    }
+    if (!text || busy || !idToken || !schema) return;
+
+    const nextMessages: ChatMessage[] = [...messages, { role: "user", text }];
     setInput("");
     setBusy(true);
     setError(null);
     setPreview(null);
     setExtractSummary(null);
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    setMessages(nextMessages);
     try {
-      const reply = await sendReviewChatMessage(chat, text);
+      const reply = await sendReviewChatMessage(restaurantName, nextMessages, idToken);
       setMessages((prev) => [...prev, { role: "assistant", text: reply }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chat failed.");
     } finally {
       setBusy(false);
     }
-  }, [input, busy, ensureChat]);
+  }, [input, busy, idToken, schema, messages, restaurantName]);
 
   async function handlePreview() {
     if (!schema || !idToken || messages.length < 2) return;
     setBusy(true);
     setError(null);
     try {
-      const extracted = await extractContributionDraft(schema, messages);
+      const extracted = await extractContributionDraft(messages, idToken);
       setExtractSummary(extracted.summary);
       const result = await api.previewContributions(restaurantId, extracted.draft, idToken);
       setPreview(result);
@@ -146,16 +124,8 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
     return (
       <Card title="Review assistant" subtitle="Freeform review → structured ratings">
         <p className="muted small">
-          Enable AI Logic in the{" "}
-          <a
-            href="https://console.firebase.google.com/project/ttf-restaurant-dev/ailogic"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Firebase console
-          </a>
-          , then set <code>VITE_ENABLE_REVIEW_CHAT=true</code> in{" "}
-          <code>web/.env.local</code>.
+          Set <code>VITE_ENABLE_REVIEW_CHAT=true</code> in <code>web/.env.local</code> to enable
+          the review assistant.
         </p>
       </Card>
     );
@@ -232,7 +202,7 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
             onChange={(e) => setInput(e.target.value)}
             rows={3}
             placeholder="We waited about 10 minutes for apple slices… stroller was easy…"
-            disabled={busy}
+            disabled={busy || !schema}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -244,7 +214,7 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
             <Button type="button" variant="secondary" onClick={handlePreview} disabled={busy || messages.length < 2}>
               Preview submission
             </Button>
-            <Button type="button" onClick={() => void sendMessage()} disabled={busy || !input.trim()}>
+            <Button type="button" onClick={() => void sendMessage()} disabled={busy || !input.trim() || !schema}>
               Send
             </Button>
           </div>
