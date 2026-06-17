@@ -42,9 +42,12 @@ targets:
     dependencies:
       - package: Firebase
         product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseAppCheck
     settings:
       base:
         PRODUCT_NAME: Little Scout
+        CODE_SIGN_ENTITLEMENTS: TTF/TTF.entitlements
     info:
       path: TTF/Resources/Info.plist
       properties:

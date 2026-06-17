@@ -19,3 +19,21 @@ enum APIError: LocalizedError {
         }
     }
 }
+
+extension APIError {
+    /// User-facing copy that softens raw HTTP errors for empty/error states.
+    var userFacingMessage: String {
+        switch self {
+        case .unauthorized:
+            return "Please sign in to continue."
+        case .httpStatus(let code, _) where code == 401:
+            return "Please sign in to continue."
+        case .httpStatus(let code, _) where code == 429:
+            return "You're going a bit fast — please wait a moment and try again."
+        case .httpStatus(let code, _) where code >= 500:
+            return "Our servers are having a moment. Please try again shortly."
+        default:
+            return errorDescription ?? "Something went wrong."
+        }
+    }
+}

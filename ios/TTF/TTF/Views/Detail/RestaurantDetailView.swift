@@ -18,10 +18,8 @@ struct RestaurantDetailView: View {
             if viewModel.isLoading && viewModel.detail == nil {
                 ProgressView("Loading…")
             } else if let error = viewModel.errorMessage, viewModel.detail == nil {
-                ContentUnavailableView {
-                    Label("Could not load restaurant", systemImage: "wifi.exclamationmark")
-                } description: {
-                    Text(error)
+                ErrorStateView(message: error) {
+                    Task { await viewModel.load(api: api) }
                 }
             } else if let detail = viewModel.detail {
                 ScrollView {
@@ -65,11 +63,14 @@ struct RestaurantDetailView: View {
                 .font(.headline)
             HStack {
                 Circle().fill(tier.color).frame(width: 12, height: 12)
+                    .accessibilityHidden(true)
                 Text(TtfTierLogic.formattedMedian(ttf))
                     .font(.title2.bold())
                 Text(tier.label)
                     .foregroundStyle(.secondary)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Kid food speed: \(TtfTierLogic.formattedMedian(ttf)), \(tier.label)")
             if ttf.sampleSize > 0 {
                 Text("\(ttf.sampleSize) visit\(ttf.sampleSize == 1 ? "" : "s")")
                     .font(.caption)
@@ -145,16 +146,22 @@ struct RestaurantDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Notes")
                 .font(.headline)
-            ForEach(viewModel.notes) { note in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(note.text)
-                    if !note.tags.isEmpty {
-                        Text(note.tags.joined(separator: ", "))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            if viewModel.notes.isEmpty {
+                Text("No notes yet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(viewModel.notes) { note in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(note.text)
+                        if !note.tags.isEmpty {
+                            Text(note.tags.joined(separator: ", "))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
             }
         }
     }

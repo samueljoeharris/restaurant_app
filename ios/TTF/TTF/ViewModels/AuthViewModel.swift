@@ -17,7 +17,7 @@ final class AuthViewModel {
             let profile = try await api.getMe()
             auth.updateProfile(profile)
         } catch {
-            profileError = error.localizedDescription
+            profileError = (error as? APIError)?.userFacingMessage ?? error.localizedDescription
         }
     }
 }

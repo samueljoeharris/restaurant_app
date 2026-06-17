@@ -16,10 +16,8 @@ struct RateAttributesView: View {
             if viewModel.isLoading && viewModel.metrics.isEmpty {
                 ProgressView("Loading metrics…")
             } else if let error = viewModel.errorMessage, viewModel.metrics.isEmpty {
-                ContentUnavailableView {
-                    Label("Could not load metrics", systemImage: "wifi.exclamationmark")
-                } description: {
-                    Text(error)
+                ErrorStateView(message: error) {
+                    Task { await viewModel.load(api: api) }
                 }
             } else {
                 List(viewModel.metrics) { metric in

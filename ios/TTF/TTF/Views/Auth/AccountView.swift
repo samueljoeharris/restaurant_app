@@ -39,7 +39,12 @@ struct AccountView: View {
                     LabeledContent("Email", value: profile.email ?? "—")
                     LabeledContent("Contributions", value: "\(profile.contributionCount)")
                 } else if let error = viewModel.profileError {
-                    Text(error).foregroundStyle(.red)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(error).foregroundStyle(.red)
+                        Button("Retry") {
+                            Task { await viewModel.refreshProfile(api: api, auth: auth) }
+                        }
+                    }
                 }
             }
 

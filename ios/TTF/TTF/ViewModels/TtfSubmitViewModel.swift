@@ -62,7 +62,7 @@ final class TtfSubmitViewModel {
             let response = try await api.getRestaurant(id: restaurantID)
             restaurantName = response.restaurant.name
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = (error as? APIError)?.userFacingMessage ?? error.localizedDescription
         }
     }
 
@@ -110,7 +110,7 @@ final class TtfSubmitViewModel {
             _ = try await api.submitTTF(restaurantID: restaurantID, submission: submission)
             didSubmit = true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = (error as? APIError)?.userFacingMessage ?? error.localizedDescription
         }
     }
 }

@@ -57,7 +57,7 @@ final class RestaurantStore {
             lastLoadedAt = Date()
         } catch {
             if mapEntries.isEmpty {
-                errorMessage = error.localizedDescription
+                errorMessage = (error as? APIError)?.userFacingMessage ?? error.localizedDescription
             }
         }
     }

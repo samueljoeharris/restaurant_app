@@ -1,3 +1,4 @@
+import FirebaseAppCheck
 import FirebaseCore
 import SwiftUI
 
@@ -8,6 +9,7 @@ struct TTFApp: App {
     @State private var restaurantStore = RestaurantStore()
 
     init() {
+        AppCheck.setAppCheckProviderFactory(TTFAppCheckProviderFactory())
         FirebaseApp.configure()
         let auth = AuthService()
         auth.configure()

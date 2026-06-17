@@ -41,14 +41,8 @@ struct RestaurantMapView: View {
             if store.isLoading && store.isEmpty {
                 ProgressView("Loading restaurants…")
             } else if let error = store.errorMessage, store.isEmpty {
-                ContentUnavailableView {
-                    Label("Could not load map", systemImage: "wifi.exclamationmark")
-                } description: {
-                    Text(error)
-                } actions: {
-                    Button("Retry") {
-                        Task { await store.refresh(api: api) }
-                    }
+                ErrorStateView(message: error) {
+                    Task { await store.refresh(api: api) }
                 }
             } else {
                 mapContent
@@ -126,6 +120,7 @@ struct RestaurantMapView: View {
                             }
                     }
                 }
+                .accessibilityLabel("Your location")
             }
         }
         .onMapCameraChange(frequency: .onEnd) { context in
@@ -153,6 +148,7 @@ struct RestaurantMapView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(.ultraThinMaterial, in: Capsule())
+                .accessibilityLabel("\(store.mapEntries.count) places, updated \(loaded.formatted(date: .omitted, time: .shortened))")
         }
     }
 
@@ -252,6 +248,8 @@ private struct MapLegendView: View {
         .padding(.vertical, 8)
         .background(.ultraThinMaterial, in: Capsule())
         .padding(.bottom, 8)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Map legend: green fast, yellow OK, red slow")
     }
 }
 
