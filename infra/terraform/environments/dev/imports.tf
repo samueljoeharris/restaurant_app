@@ -1,3 +1,7 @@
-# One-time import blocks lived here during Phase B recovery. All targets are in
-# remote state — do not re-add import blocks (Terraform errors if the resource
-# is already managed, or if the import id no longer exists in GCP).
+# Adopt secrets created outside Terraform (e.g. Console) so apply does not 409.
+# Safe to keep: Terraform skips import when the resource is already in state.
+
+import {
+  to = module.secrets.google_secret_manager_secret.secrets["ttf-gemini-api-key"]
+  id = "projects/${var.project_id}/secrets/ttf-gemini-api-key"
+}
