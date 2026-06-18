@@ -423,6 +423,7 @@ export function RestaurantMap({
     maxLng: number;
   }) => void;
 }) {
+  useMapsLibrary("marker");
   const sheetEntry = selectedId ? restaurants.find((r) => r.id === selectedId) : null;
 
   if (!MAPS_KEY) {

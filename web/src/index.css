@@ -1275,6 +1275,22 @@ code {
   display: none;
 }
 
+.shell--map {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.shell--map .shell__content {
+  min-height: 0;
+  height: 100%;
+}
+
+.shell--map .shell__main--flush {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* ——— Layer 2: map ——— */
 .shell__main--flush {
   padding: 0;
@@ -1584,8 +1600,8 @@ code {
 .map-locate-fab {
   position: absolute;
   right: var(--space-4);
-  bottom: var(--space-4);
-  z-index: 6;
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  z-index: 9;
   display: grid;
   place-items: center;
   width: 3rem;
@@ -1614,6 +1630,8 @@ code {
 
 .map-locate-fab--active {
   color: var(--color-brand, #2563eb);
+  border-color: var(--color-brand, #2563eb);
+  border-width: 2px;
 }
 
 .map-locate-fab__icon {
@@ -1632,8 +1650,8 @@ code {
 
 .map-user-location {
   position: relative;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .map-user-location__dot {
@@ -2939,7 +2957,14 @@ fieldset.field-group {
 
 .explore-map-page {
   position: relative;
-  height: 100vh;
+  height: 100%;
+  min-height: 0;
+}
+
+.explore-map-page__map-stage {
+  position: relative;
+  height: 100%;
+  min-height: 0;
 }
 
 /* ——— Map search sidebar (desktop panel) ——— */

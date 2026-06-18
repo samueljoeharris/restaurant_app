@@ -23,12 +23,11 @@ export function MapLocateFab({ busy, active, onClick }: MapLocateFabProps) {
           viewBox="0 0 24 24"
           aria-hidden="true"
           focusable="false"
+          fill="none"
         >
-          {/* Material near_me — matches iOS MapLocateFab `location.fill` */}
-          <path
-            fill="currentColor"
-            d="M12 2 4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z"
-          />
+          {/* Bullseye — standard “my location” affordance (Google Maps / Apple Maps). */}
+          <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="2" />
+          <circle cx="12" cy="12" r="2.5" fill="currentColor" />
         </svg>
       )}
     </button>

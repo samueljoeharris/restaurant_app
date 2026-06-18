@@ -584,28 +584,30 @@ export function ExploreMapPage() {
         </p>
       )}
 
-      <RestaurantMap
-        restaurants={mapRestaurants}
-        focusId={focusId}
-        focusLocation={focusLocation}
-        focusPulse={focusPulse}
-        selectedId={selectedId}
-        onSelectChange={handleMapSelectChange}
-        loading={loading}
-        error={error}
-        searchBusy={searchBusy}
-        userLocation={userLocation}
-        withSidebar={!searchSidebarCollapsed}
-        fitKey={fitKey}
-        onSearchArea={handleSearchArea}
-        onViewportChange={viewportEnabled ? handleViewportChange : undefined}
-      />
+      <div className="explore-map-page__map-stage">
+        <RestaurantMap
+          restaurants={mapRestaurants}
+          focusId={focusId}
+          focusLocation={focusLocation}
+          focusPulse={focusPulse}
+          selectedId={selectedId}
+          onSelectChange={handleMapSelectChange}
+          loading={loading}
+          error={error}
+          searchBusy={searchBusy}
+          userLocation={userLocation}
+          withSidebar={!searchSidebarCollapsed}
+          fitKey={fitKey}
+          onSearchArea={handleSearchArea}
+          onViewportChange={viewportEnabled ? handleViewportChange : undefined}
+        />
 
-      <MapLocateFab
-        busy={locating}
-        active={userLocation !== null}
-        onClick={() => void handleLocateMe()}
-      />
+        <MapLocateFab
+          busy={locating}
+          active={userLocation !== null}
+          onClick={() => void handleLocateMe()}
+        />
+      </div>
 
       <MapSearchSidebar
         resultCount={filtered.length}
