@@ -52,6 +52,14 @@ struct AccountView: View {
             apiSection
 
             Section {
+                DeleteAccountSettingsView()
+            } header: {
+                Text("Delete account")
+            } footer: {
+                Text("Permanent and cannot be undone.")
+            }
+
+            Section {
                 Button("Sign out", role: .destructive) {
                     auth.signOut()
                     healthMessage = nil

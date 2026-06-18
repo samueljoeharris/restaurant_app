@@ -7,7 +7,7 @@ export function PrivacyPage() {
         <div className="auth-hero">
           <div className="auth-hero__mark">🔭</div>
           <h1 className="auth-hero__title">Privacy Policy</h1>
-          <p className="muted">Last updated: 17 June 2026</p>
+          <p className="muted">Last updated: 18 June 2026</p>
         </div>
 
         <Card>
@@ -115,15 +115,22 @@ export function PrivacyPage() {
           <h2>Your rights and choices</h2>
           <ul>
             <li>
-              <strong>Access and deletion:</strong> You may request deletion of
-              your account and associated contributions by contacting{" "}
+              <strong>Account deletion:</strong> Delete your account from{" "}
+              <strong>Account → Delete account</strong> in the web or iOS app.
+              You may need to confirm your identity before deletion completes.
+              When you delete your account, we delete your ratings, observations,
+              and notes, delete any photos you uploaded, revoke your sign-in
+              credentials (including Sign in with Apple), and remove your
+              authentication record, subject to legal retention requirements.
+              Deletion is usually immediate; we show a confirmation when it is
+              done.
+            </li>
+            <li>
+              <strong>Help deleting:</strong> If you cannot access the app, email{" "}
               <a className="linkish" href="mailto:privacy@littlescout.app">
                 privacy@littlescout.app
               </a>
-              . When you delete your account, we delete or anonymize your
-              ratings, observations, and notes, delete any photos you uploaded,
-              and remove your authentication record, subject to legal retention
-              requirements. In-app self-service account deletion is planned.
+              .
             </li>
             <li>
               <strong>Location:</strong> You can decline or revoke the location

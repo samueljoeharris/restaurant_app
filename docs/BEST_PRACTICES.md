@@ -302,17 +302,18 @@ Use this as a pre-launch gate. Check off in PRs or project tracking.
 - [x] Rate limits on writes
 - [x] `check_revoked=true` on sensitive routes
 - [x] CORS + CSP configured on web/admin
-- [ ] Re-auth / recent-login for account deletion
+- [x] Re-auth / recent-login for account deletion
 
 ### Account deletion
 
-- [ ] `POST /v1/me/delete-account` (or equivalent)
-- [ ] Web **Account → Delete account** UI
-- [ ] iOS **Settings → Delete account** UI (before App Store)
-- [ ] Cloud Storage cleanup for user photos
+- [x] `POST /v1/me/delete-account` (or equivalent)
+- [x] Web **Account → Delete account** UI
+- [x] iOS **Settings → Delete account** UI (before App Store)
+- [x] Cloud Storage cleanup for user photos (when `uploads_bucket_name` configured)
 - [ ] Aggregate cache invalidation after delete
-- [ ] Deletion audit log (non-PII)
-- [ ] Privacy policy updated with retention/deletion language
+- [x] Deletion audit log (non-PII)
+- [x] Privacy policy updated with retention/deletion language
+- [x] Sign in with Apple token revoke on delete (when Apple secrets configured)
 
 ### Caching
 

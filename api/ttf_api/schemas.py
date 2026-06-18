@@ -293,6 +293,13 @@ class DeleteAccountRequest(BaseModel):
         ...,
         description="Must be true to confirm permanent account deletion.",
     )
+    apple_authorization_code: str | None = Field(
+        default=None,
+        description=(
+            "Fresh Sign in with Apple authorization code from client re-auth. "
+            "Used to revoke Apple tokens per App Store requirements."
+        ),
+    )
 
     @model_validator(mode="after")
     def require_confirm(self) -> "DeleteAccountRequest":

@@ -442,7 +442,7 @@ Suggested branch naming per repo convention: `feature/ttf-ios-scaffold`, `featur
 
 - Photo upload on TTF submissions (no API upload flow yet)
 - Push notifications, offline persistence, iPad/visionOS layouts
-- Google sign-in on iOS; account deletion UI (required before App Store *public* release — see [BEST_PRACTICES.md](BEST_PRACTICES.md); TestFlight beta is fine without it, plan it before App Store submission)
+- Google sign-in on iOS; account deletion UI in Account tab (required before App Store *public* release — see [BEST_PRACTICES.md](BEST_PRACTICES.md); shipped on main)
 - Adding new restaurants from the app (venues are seeded server-side)
 
 **Open questions:**

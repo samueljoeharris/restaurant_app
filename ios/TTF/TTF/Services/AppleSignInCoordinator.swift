@@ -10,6 +10,7 @@ final class AppleSignInCoordinator: NSObject {
     struct Result {
         let idToken: String      // Apple identity token (JWT)
         let rawNonce: String     // unhashed nonce, passed to Firebase
+        let authorizationCode: String?
         let fullName: PersonNameComponents?
     }
 
@@ -79,6 +80,9 @@ extension AppleSignInCoordinator: ASAuthorizationControllerDelegate {
         continuation?.resume(returning: Result(
             idToken: idToken,
             rawNonce: nonce,
+            authorizationCode: credential.authorizationCode.flatMap {
+                String(data: $0, encoding: .utf8)
+            },
             fullName: credential.fullName
         ))
     }

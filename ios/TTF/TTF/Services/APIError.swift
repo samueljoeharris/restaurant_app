@@ -28,6 +28,8 @@ extension APIError {
             return "Please sign in to continue."
         case .httpStatus(let code, _) where code == 401:
             return "Please sign in to continue."
+        case .httpStatus(let code, _) where code == 403:
+            return "Confirm your identity before deleting your account."
         case .httpStatus(let code, _) where code == 429:
             return "You're going a bit fast — please wait a moment and try again."
         case .httpStatus(let code, _) where code >= 500:

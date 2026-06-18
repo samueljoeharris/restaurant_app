@@ -39,6 +39,13 @@ class Settings(BaseSettings):
     app_check_enforce: bool = False
     rate_limit_max_writes: int = 60
     rate_limit_window_minutes: int = 60
+    account_delete_recent_login_minutes: int = 5
+    uploads_bucket_name: str = ""
+    # Sign in with Apple — optional; enables Apple token revoke on account delete.
+    apple_team_id: str = ""
+    apple_key_id: str = ""
+    apple_private_key: str = ""
+    apple_client_id: str = "com.samueljoeharris.ttf"
     review_chat_enabled: bool = True
     gemini_api_key: str = ""
     # Conversational turns — plain text, keep prompt small.

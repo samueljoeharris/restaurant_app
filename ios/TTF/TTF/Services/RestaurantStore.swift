@@ -65,6 +65,12 @@ final class RestaurantStore {
     func refresh(api: APIClient) async {
         await load(api: api, force: true)
     }
+
+    func clearCache() {
+        mapEntries = []
+        errorMessage = nil
+        lastLoadedAt = nil
+    }
 }
 
 extension RestaurantSummary {

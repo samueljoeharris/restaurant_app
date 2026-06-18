@@ -165,6 +165,19 @@ final class APIClient {
         try await request(path: "/v1/me", authenticated: true)
     }
 
+    func deleteAccount(appleAuthorizationCode: String? = nil) async throws {
+        let _: EmptyResponse = try await request(
+            path: "/v1/me/delete-account",
+            method: "POST",
+            body: DeleteAccountRequest(
+                confirm: true,
+                appleAuthorizationCode: appleAuthorizationCode
+            ),
+            authenticated: true,
+            forceRefreshToken: true
+        )
+    }
+
     static let defaultSession: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
@@ -196,12 +209,23 @@ final class APIClient {
         }
     }
 
+    private struct DeleteAccountRequest: Encodable {
+        let confirm: Bool
+        let appleAuthorizationCode: String?
+
+        enum CodingKeys: String, CodingKey {
+            case confirm
+            case appleAuthorizationCode = "apple_authorization_code"
+        }
+    }
+
     private func request<T: Decodable>(
         path: String,
         method: String = "GET",
         queryItems: [URLQueryItem] = [],
         body: (any Encodable)? = nil,
-        authenticated: Bool = false
+        authenticated: Bool = false,
+        forceRefreshToken: Bool = false
     ) async throws -> T {
         guard let resolved = URL(string: path, relativeTo: baseURL),
               var components = URLComponents(url: resolved, resolvingAgainstBaseURL: true) else {
@@ -219,7 +243,7 @@ final class APIClient {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         if authenticated {
-            let token = try await authService.freshIDToken()
+            let token = try await authService.freshIDToken(forceRefresh: forceRefreshToken)
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

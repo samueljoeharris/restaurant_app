@@ -66,12 +66,8 @@ behalf, subject to their own terms and privacy policies:
 
 ## Your rights and choices
 
-- **Access and deletion:** You may request deletion of your account and your
-  associated contributions. To do so, contact us at **privacy@littlescout.app**.
-  When you delete your account, we delete or anonymize the ratings, observations,
-  and notes you submitted, delete any photos you uploaded, and remove your
-  authentication record, subject to legal retention requirements. In-app
-  self-service account deletion is planned.
+- **Access and deletion:** Delete your account from **Account → Delete account** in the web or iOS app. You may need to confirm your identity before deletion completes. When you delete your account, we delete your ratings, observations, and notes, delete any photos you uploaded, revoke your sign-in credentials (including Sign in with Apple), and remove your authentication record, subject to legal retention requirements. Deletion is usually immediate; we show a confirmation when it is done.
+- **Help deleting:** If you cannot access the app, email **privacy@littlescout.app**.
 - **Location:** You can decline or revoke the location permission at any time in
   your browser or device settings; the app falls back to a default map area.
 - **Regional rights (CCPA / GDPR):** Depending on where you live, you may have

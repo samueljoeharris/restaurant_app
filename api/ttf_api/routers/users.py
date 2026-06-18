@@ -414,4 +414,5 @@ def delete_my_account(
     delete_user_account(
         auth.user.firebase_uid,
         skip_firebase=auth.skip_firebase_delete,
+        apple_authorization_code=body.apple_authorization_code,
     )
