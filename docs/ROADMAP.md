@@ -25,7 +25,6 @@ Phase 4 gate — TestFlight pilot. **Max 3 items.**
 
 | Issue | Summary |
 |-------|---------|
-| [#37](https://github.com/samueljoeharris/restaurant_app/issues/37) | **Web auth:** Google sign-in prod test (email/password + cloud agent ✅; Google OAuth on `app.dev` remaining) |
 | [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline (blocked on [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) secrets) |
 | [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | **Pre-launch hardening** — App Check prod, CSP, prod `AUTH_DEV_MODE=false` (#33 deletion ✅) |
 
@@ -66,6 +65,7 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 | Issue | Summary |
 |-------|---------|
+| [#37](https://github.com/samueljoeharris/restaurant_app/issues/37) | Public web auth — Google sign-in on `app.dev` ✅ |
 | [#33](https://github.com/samueljoeharris/restaurant_app/issues/33) | Account deletion |
 | [#34](https://github.com/samueljoeharris/restaurant_app/issues/34) | Map-search sidebar branch merged |
 | [#49](https://github.com/samueljoeharris/restaurant_app/issues/49) | Map locate FAB icon |

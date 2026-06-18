@@ -50,8 +50,8 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 
 ## Auth (public web)
 
-- [ ] Enable **Google** sign-in in [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) (if not using Terraform OAuth vars)
-- [ ] Test **Continue with Google** and email sign-up on `/login`
+- [x] Enable **Google** sign-in in [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/providers) — verified on `app.dev` (2026-06-18)
+- [x] Test **Continue with Google** and email sign-up on `/login` — email/password + Google OAuth account picker validated
 - [ ] Optional: **Account → Set up authenticator** for MFA
 
 Guide: [WEB_AUTH.md](WEB_AUTH.md). Operator console (IAP): [ADMIN_AUTH.md](ADMIN_AUTH.md).
