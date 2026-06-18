@@ -12,10 +12,12 @@ import type { RestaurantMapEntry } from "../types";
 export function MapPin({
   restaurant,
   selected,
+  popIn,
   onSelect,
 }: {
   restaurant: RestaurantMapEntry;
   selected: boolean;
+  popIn?: boolean;
   onSelect: () => void;
 }) {
   const kind = mapPinKind(restaurant);
@@ -34,6 +36,7 @@ export function MapPin({
         className={[
           "map-pin-wrap",
           selected ? "map-pin-wrap--selected" : "",
+          popIn ? "map-pin-wrap--pop-in" : "",
           `map-pin-wrap--${kind}`,
         ].join(" ")}
         aria-label={tooltip.replace(/\n/g, ". ")}

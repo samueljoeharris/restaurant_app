@@ -28,10 +28,12 @@ function useMapZoom(): number {
 function ClusteredMarkerLayer({
   restaurants,
   selectedId,
+  popInKeys,
   onSelect,
 }: {
   restaurants: RestaurantMapEntry[];
   selectedId: string | null;
+  popInKeys?: ReadonlySet<string>;
   onSelect: (id: string) => void;
 }) {
   const map = useMap();
@@ -56,6 +58,9 @@ function ClusteredMarkerLayer({
       dot.style.background = mapPinFill(restaurant);
       if (key === selectedId) {
         dot.classList.add("map-pin-cluster-dot--selected");
+      }
+      if (popInKeys?.has(key)) {
+        dot.classList.add("map-pin-cluster-dot--pop-in");
       }
 
       const marker = new markerLib.AdvancedMarkerElement({
@@ -88,7 +93,7 @@ function ClusteredMarkerLayer({
       for (const marker of markersRef.current) marker.map = null;
       markersRef.current = [];
     };
-  }, [map, markerLib, restaurants, selectedId]);
+  }, [map, markerLib, restaurants, selectedId, popInKeys]);
 
   return null;
 }
@@ -96,10 +101,12 @@ function ClusteredMarkerLayer({
 export function MapMarkerLayer({
   restaurants,
   selectedId,
+  popInKeys,
   onSelect,
 }: {
   restaurants: RestaurantMapEntry[];
   selectedId: string | null;
+  popInKeys?: ReadonlySet<string>;
   onSelect: (id: string) => void;
 }) {
   const zoom = useMapZoom();
@@ -110,6 +117,7 @@ export function MapMarkerLayer({
       <ClusteredMarkerLayer
         restaurants={restaurants}
         selectedId={selectedId}
+        popInKeys={popInKeys}
         onSelect={onSelect}
       />
     );
@@ -120,7 +128,13 @@ export function MapMarkerLayer({
       {restaurants.map((r) => {
         const key = mapEntryKey(r);
         return (
-          <MapPin key={key} restaurant={r} selected={selectedId === key} onSelect={() => onSelect(key)} />
+          <MapPin
+            key={key}
+            restaurant={r}
+            selected={selectedId === key}
+            popIn={popInKeys?.has(key)}
+            onSelect={() => onSelect(key)}
+          />
         );
       })}
     </>

@@ -1752,6 +1752,25 @@ code {
   height: 100%;
 }
 
+.map-pin-wrap--pop-in {
+  animation: map-pin-pop-in var(--duration-normal, 480ms) cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.map-pin-cluster-dot--pop-in {
+  animation: map-pin-pop-in var(--duration-normal, 480ms) cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes map-pin-pop-in {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .map-pin-wrap {
   position: relative;
   cursor: pointer;

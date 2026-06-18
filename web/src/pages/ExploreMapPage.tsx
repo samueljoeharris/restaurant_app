@@ -18,14 +18,17 @@ import {
 import { useMapViewportRestaurants } from "../hooks/useMapViewportRestaurants";
 import { geolocationErrorMessage, getCurrentPosition } from "../lib/geolocation";
 import { findMapEntry, mapEntryKey } from "../lib/mapEntryKey";
+import { runBackgroundCoverage } from "../lib/backgroundCoverage";
 import { bboxAround } from "../lib/mapViewport";
-import { ensureNearbyAt, ensureViewportRestaurants } from "../lib/restaurantMapCache";
+import { schedulePopInClear } from "../lib/mapSearchPopIn";
+import { ensureNearbyAt, ensureViewportRestaurants, getRestaurantMapEntries } from "../lib/restaurantMapCache";
 import {
   appendRestaurantFocusToParams,
-  buildPendingPlaceParams,
+  buildResolvedPlaceParams,
   buildRestaurantRadiusParams,
   DEFAULT_SEARCH_RADIUS_M,
   readFocusLocationFromParams,
+  RESTAURANT_SEED_RADIUS_M,
   selectionToMapEntryStub,
   type MapFocusState,
   type PlaceSearchPending,
@@ -197,8 +200,24 @@ export function ExploreMapPage() {
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [searchSidebarCollapsed, setSearchSidebarCollapsed] = useState(false);
+  const [popInKeys, setPopInKeys] = useState<ReadonlySet<string>>(() => new Set());
 
   const activeCardRef = useRef<HTMLElement>(null);
+  const searchPopInRef = useRef(false);
+  const focusKeyRef = useRef<string | null>(null);
+  const activatingPlaceRef = useRef<string | null>(null);
+
+  const registerPopIn = useCallback((keys: string[]) => {
+    if (keys.length === 0) return;
+    setPopInKeys((prev) => new Set([...prev, ...keys]));
+    schedulePopInClear(keys, (cleared) => {
+      setPopInKeys((prev) => {
+        const next = new Set(prev);
+        for (const k of cleared) next.delete(k);
+        return next;
+      });
+    });
+  }, []);
 
   // ——— Data loading ———
   const loadRadiusResults = useCallback(
@@ -215,13 +234,27 @@ export function ExploreMapPage() {
 
       load
         .then((data) => {
-          if (!cancelled) {
-            setRadiusRestaurants(data);
-            mergeRestaurantMapEntries(data);
+          if (cancelled) return;
+          const excludeKey = focusKeyRef.current ?? focusParam ?? undefined;
+          const newKeys = mergeRestaurantMapEntries(data, excludeKey);
+          const focusEntry = excludeKey
+            ? findMapEntry(getRestaurantMapEntries(), excludeKey)
+            : undefined;
+          let list = data;
+          if (focusEntry && !data.some((r) => mapEntryKey(r) === excludeKey)) {
+            list = [focusEntry, ...data];
           }
+          setRadiusRestaurants(list);
+          if (searchPopInRef.current && newKeys.length > 0) {
+            registerPopIn(newKeys);
+          }
+          searchPopInRef.current = false;
         })
         .catch((err) => {
-          if (!cancelled) setError(err instanceof Error ? err.message : "Load failed");
+          if (!cancelled) {
+            searchPopInRef.current = false;
+            setError(err instanceof Error ? err.message : "Load failed");
+          }
         })
         .finally(() => {
           if (!cancelled) setRadiusLoading(false);
@@ -230,7 +263,7 @@ export function ExploreMapPage() {
         cancelled = true;
       };
     },
-    [idToken],
+    [idToken, focusParam, registerPopIn],
   );
 
   const refreshActiveData = useCallback(() => {
@@ -246,6 +279,39 @@ export function ExploreMapPage() {
   const viewportEnabled = !isRadiusMode && !isPendingPlaceMode;
   const { onViewportChange, resetViewportGate } = useMapViewportRestaurants(viewportEnabled, idToken);
 
+  const applySearchFocus = useCallback(
+    (focusKey: string) => {
+      focusKeyRef.current = focusKey;
+      setLocalSelectedId(focusKey);
+      setLocalFocusId(focusKey);
+      setFocusPulse((p) => p + 1);
+      resetViewportGate();
+    },
+    [resetViewportGate],
+  );
+
+  const activatePlaceSelection = useCallback(
+    async (placeId: string, sessionToken: string) => {
+      if (!idToken) return;
+      searchPopInRef.current = true;
+      setError(null);
+      try {
+        const resolved = await api.resolvePlace(placeId, sessionToken, idToken);
+        const entry = await api.getPlaceEntry(placeId, idToken);
+        mergeRestaurantMapEntries([entry]);
+        const focusKey = mapEntryKey(entry);
+        applySearchFocus(focusKey);
+        const params = buildResolvedPlaceParams(resolved, placeId);
+        navigate(`${basePath}?${params.toString()}`, { replace: true });
+        runBackgroundCoverage(resolved.lat, resolved.lng, RESTAURANT_SEED_RADIUS_M, idToken);
+      } catch (err) {
+        searchPopInRef.current = false;
+        setError(err instanceof Error ? err.message : "Could not resolve place");
+      }
+    },
+    [idToken, applySearchFocus, navigate, basePath],
+  );
+
   const handleViewportChange = useCallback(
     (bbox: ReturnType<typeof bboxAround>) => {
       lastViewportRef.current = bbox;
@@ -259,36 +325,19 @@ export function ExploreMapPage() {
     if (focusParam) resetViewportGate();
   }, [focusParam, focusPulse, resetViewportGate]);
 
-  // Pending place: resolve coords, then switch into radius mode on the same route.
+  // Pending place (from Home or in-page search): resolve, show pin + sheet, then load nearby async.
   useEffect(() => {
-    if (!isPendingPlaceMode || !paramPlaceId || !idToken) return;
-    let cancelled = false;
-    const timer = window.setTimeout(() => {
-      const sessionToken =
-        (location.state as { placeSessionToken?: string } | null)?.placeSessionToken ??
-        crypto.randomUUID();
-
-      api
-        .resolvePlace(paramPlaceId, sessionToken, idToken)
-        .then((resolved) => {
-          if (cancelled) return;
-          const params = new URLSearchParams();
-          params.set("lat", String(resolved.lat));
-          params.set("lng", String(resolved.lng));
-          params.set("radius", String(radiusM));
-          params.set("place", resolved.label);
-          navigate(`${basePath}?${params.toString()}`, { replace: true });
-        })
-        .catch((err) => {
-          if (!cancelled) setError(err instanceof Error ? err.message : "Could not resolve place");
-        });
-    }, 0);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [isPendingPlaceMode, paramPlaceId, idToken, location.state, navigate, radiusM, basePath]);
+    if (!isPendingPlaceMode || !paramPlaceId || !idToken) {
+      activatingPlaceRef.current = null;
+      return;
+    }
+    if (activatingPlaceRef.current === paramPlaceId) return;
+    activatingPlaceRef.current = paramPlaceId;
+    const sessionToken =
+      (location.state as { placeSessionToken?: string } | null)?.placeSessionToken ??
+      crypto.randomUUID();
+    void activatePlaceSelection(paramPlaceId, sessionToken);
+  }, [isPendingPlaceMode, paramPlaceId, idToken, location.state, activatePlaceSelection]);
 
   useEffect(() => {
     if (!(isRadiusMode && radiusLat !== null && radiusLng !== null)) return;
@@ -306,11 +355,24 @@ export function ExploreMapPage() {
   useEffect(() => {
     if (!focusParam) return;
     if (restaurantsRef.current.some((r) => mapEntryKey(r) === focusParam)) return;
+    if (getRestaurantMapEntries().some((r) => mapEntryKey(r) === focusParam)) return;
 
     let cancelled = false;
     const loc = focusLocation;
 
     void (async () => {
+      if (focusParam.startsWith("place:") && idToken) {
+        const placeId = focusParam.slice("place:".length);
+        try {
+          const entry = await api.getPlaceEntry(placeId, idToken);
+          if (cancelled) return;
+          mergeRestaurantMapEntries([entry]);
+        } catch {
+          // Pin/sheet may stay in loading state if the id is invalid.
+        }
+        return;
+      }
+
       if (loc) {
         try {
           const nearby = await api.listRestaurantsForMap(bboxAround(loc.lat, loc.lng));
@@ -336,7 +398,7 @@ export function ExploreMapPage() {
     return () => {
       cancelled = true;
     };
-  }, [focusParam, focusLocation]);
+  }, [focusParam, focusLocation, idToken]);
 
   // Scroll the matching card into view when the map selection changes.
   useEffect(() => {
@@ -348,18 +410,42 @@ export function ExploreMapPage() {
   // ——— Search box handlers (stay on the combined view) ———
   const handleSelectPlace = useCallback(
     (pending: PlaceSearchPending) => {
-      const params = buildPendingPlaceParams(pending);
-      navigate(`${basePath}?${params.toString()}`, {
-        state: { placeSessionToken: pending.session_token },
-      });
+      void activatePlaceSelection(pending.place_id, pending.session_token);
     },
-    [navigate, basePath],
+    [activatePlaceSelection],
   );
 
   const handleSelectRestaurant = useCallback(
-    (selection: RestaurantSearchSelection) => {
-      const stub = selectionToMapEntryStub(selection);
-      if (stub) mergeRestaurantMapEntries([stub]);
+    async (selection: RestaurantSearchSelection) => {
+      searchPopInRef.current = true;
+      let entry: RestaurantMapEntry | null = selectionToMapEntryStub(selection);
+      if (idToken && selection.restaurant_id) {
+        try {
+          entry = detailToMapEntry(await api.getRestaurant(selection.restaurant_id));
+        } catch {
+          // keep autocomplete stub when detail fetch fails
+        }
+      }
+      if (entry) {
+        mergeRestaurantMapEntries([entry]);
+        applySearchFocus(mapEntryKey(entry));
+      } else if (selection.lat != null && selection.lng != null) {
+        applySearchFocus(selection.restaurant_id);
+      } else {
+        focusKeyRef.current = selection.restaurant_id;
+        setLocalSelectedId(selection.restaurant_id);
+        setLocalFocusId(selection.restaurant_id);
+        setFocusPulse((p) => p + 1);
+      }
+
+      if (selection.lat != null && selection.lng != null && idToken) {
+        runBackgroundCoverage(
+          selection.lat,
+          selection.lng,
+          RESTAURANT_SEED_RADIUS_M,
+          idToken,
+        );
+      }
 
       const radiusParams = buildRestaurantRadiusParams(selection);
       const params = radiusParams ?? new URLSearchParams(searchParams);
@@ -377,12 +463,8 @@ export function ExploreMapPage() {
           : undefined;
 
       setSearchParams(params, { replace: true, state });
-      setLocalSelectedId(selection.restaurant_id);
-      setLocalFocusId(selection.restaurant_id);
-      setFocusPulse((p) => p + 1);
-      resetViewportGate();
     },
-    [searchParams, setSearchParams, resetViewportGate],
+    [idToken, searchParams, setSearchParams, applySearchFocus],
   );
 
   // ——— Map control handlers ———
@@ -485,14 +567,15 @@ export function ExploreMapPage() {
     const extras: RestaurantMapEntry[] = [];
     for (const key of [focusParam, selectedId]) {
       if (!key || keys.has(key)) continue;
-      const entry = findMapEntry(restaurants, key);
+      const entry =
+        findMapEntry(restaurants, key) ?? findMapEntry(catalogRestaurants, key);
       if (entry) {
         extras.push(entry);
         keys.add(mapEntryKey(entry));
       }
     }
     return extras.length > 0 ? [...filtered, ...extras] : filtered;
-  }, [filtered, restaurants, focusParam, selectedId]);
+  }, [filtered, restaurants, catalogRestaurants, focusParam, selectedId]);
 
   const grouped = useMemo(() => {
     if (isRadiusMode) return null;
@@ -585,6 +668,7 @@ export function ExploreMapPage() {
           fitKey={fitKey}
           onSearchArea={handleSearchArea}
           onViewportChange={viewportEnabled ? handleViewportChange : undefined}
+          popInKeys={popInKeys}
         />
 
         <MapLocateFab

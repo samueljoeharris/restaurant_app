@@ -44,12 +44,29 @@ export function selectionToMapEntryStub(
   };
 }
 
+export function placeFocusKey(placeId: string): string {
+  return `place:${placeId}`;
+}
+
 export function buildRadiusSearchParams(resolved: PlaceResolveResponse): URLSearchParams {
   const params = new URLSearchParams();
   params.set("lat", String(resolved.lat));
   params.set("lng", String(resolved.lng));
   params.set("radius", String(DEFAULT_SEARCH_RADIUS_M));
   params.set("place", resolved.label);
+  return params;
+}
+
+/** Radius mode after resolving a Google place — includes focus on the selected venue. */
+export function buildResolvedPlaceParams(
+  resolved: PlaceResolveResponse,
+  placeId: string,
+): URLSearchParams {
+  const params = buildRadiusSearchParams(resolved);
+  params.set("focus", placeFocusKey(placeId));
+  params.set("flat", String(resolved.lat));
+  params.set("flng", String(resolved.lng));
+  if (resolved.label) params.set("q", resolved.label.split(",")[0]?.trim() ?? resolved.label);
   return params;
 }
 

@@ -30,11 +30,19 @@ let fullFetchPromise: Promise<void> | null = null;
 const bboxFetchPromises = new Map<string, Promise<void>>();
 const nearbyFetchPromises = new Map<string, Promise<void>>();
 
-function mergeEntries(incoming: RestaurantMapEntry[]) {
-  if (incoming.length === 0) return;
-  for (const row of incoming) entries.set(mapEntryKey(row), row);
+/** @returns keys newly added (optionally excluding one pin e.g. search focus). */
+function mergeEntries(incoming: RestaurantMapEntry[], excludeKey?: string): string[] {
+  if (incoming.length === 0) return [];
+  const newKeys: string[] = [];
+  for (const row of incoming) {
+    const key = mapEntryKey(row);
+    const isNew = !entries.has(key);
+    entries.set(key, row);
+    if (isNew && key !== excludeKey) newKeys.push(key);
+  }
   rebuildEntriesSnapshot();
   for (const listener of listeners) listener();
+  return newKeys;
 }
 
 export function getRestaurantMapEntries(): RestaurantMapEntry[] {
@@ -128,4 +136,9 @@ export async function ensureNearbyAt(lat: number, lng: number, radiusM: number, 
   return ensureRestaurantMapBbox(bboxAround(lat, lng, radiusM / 111_320), force);
 }
 
-export function mergeRestaurantMapEntries(incoming: RestaurantMapEntry[]) { mergeEntries(incoming); }
+export function mergeRestaurantMapEntries(
+  incoming: RestaurantMapEntry[],
+  excludeKey?: string,
+): string[] {
+  return mergeEntries(incoming, excludeKey);
+}

@@ -403,6 +403,7 @@ export function RestaurantMap({
   fitKey = "all",
   onSearchArea,
   onViewportChange,
+  popInKeys,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
@@ -424,6 +425,7 @@ export function RestaurantMap({
     minLng: number;
     maxLng: number;
   }) => void;
+  popInKeys?: ReadonlySet<string>;
 }) {
   useMapsLibrary("marker");
   const sheetEntry = selectedId ? restaurants.find((r) => mapEntryKey(r) === selectedId) : null;
@@ -481,6 +483,7 @@ export function RestaurantMap({
           <MapMarkerLayer
             restaurants={restaurants}
             selectedId={selectedId}
+            popInKeys={popInKeys}
             onSelect={(id) => onSelectChange(id)}
           />
         </Map>

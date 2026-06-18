@@ -102,6 +102,21 @@ else
   set_env_kv_if_empty web/.env.local VITE_FIREBASE_AUTH_DOMAIN "ttf-restaurant-dev.firebaseapp.com"
 fi
 
+set_env_kv() {
+  local file="$1" key="$2" value="$3"
+  [[ -n "$value" ]] || return 0
+  if grep -q "^${key}=" "$file" 2>/dev/null; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+  else
+    printf '%s=%s\n' "$key" "$value" >>"$file"
+  fi
+}
+
+maps_api="$(env_or_file MAPS_API_KEY)"
+if [[ -n "$maps_api" ]]; then
+  set_env_kv .env MAPS_API_KEY "$maps_api"
+fi
+
 if [[ -d web && ! -d web/node_modules ]]; then
   echo "Installing web npm dependencies…"
   (cd web && npm install --no-fund --no-audit)
