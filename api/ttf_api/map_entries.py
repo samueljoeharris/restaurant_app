@@ -7,7 +7,7 @@ from ttf_api.schemas import RestaurantMapEntry, TtfAggregate
 MAP_SELECT = """
     SELECT
         r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
-        r.google_place_id,
+        r.google_place_id, r.google_maps_url,
         COALESCE(t.sample_size, 0)::int AS sample_size,
         t.median_minutes, t.avg_quality, t.last_updated,
         COALESCE(n.note_count, 0)::int AS note_count,
@@ -34,6 +34,7 @@ def row_to_map_entry(row: dict) -> RestaurantMapEntry:
         id=row["id"], google_place_id=row.get("google_place_id"),
         name=row["name"], address=row["address"], lat=row["lat"], lng=row["lng"],
         cuisine_tags=row["cuisine_tags"] or [], pilot_city=row["pilot_city"],
+        google_maps_url=row.get("google_maps_url"),
         ttf=ttf, note_count=row["note_count"], attribute_rating_count=row["attribute_rating_count"],
     )
 

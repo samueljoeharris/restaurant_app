@@ -25,6 +25,7 @@ def merge_nearby_places(conn, google_places: list[dict], *, pilot_city: str | No
             entries.append(RestaurantMapEntry(
                 id=None, google_place_id=pid, name=row["name"], address=row["address"],
                 lat=row["lat"], lng=row["lng"], cuisine_tags=row["cuisine_tags"], pilot_city=pilot,
+                google_maps_url=row.get("google_maps_url"),
                 ttf=TtfAggregate(), note_count=0, attribute_rating_count=0,
             ))
     return entries
@@ -40,5 +41,6 @@ def map_entry_from_place_details(place: dict, conn, pilot_city: str | None = Non
     return RestaurantMapEntry(
         id=None, google_place_id=row["google_place_id"], name=row["name"], address=row["address"],
         lat=row["lat"], lng=row["lng"], cuisine_tags=row["cuisine_tags"], pilot_city=pilot,
+        google_maps_url=row.get("google_maps_url"),
         ttf=TtfAggregate(), note_count=0, attribute_rating_count=0,
     )

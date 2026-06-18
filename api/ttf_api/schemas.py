@@ -20,6 +20,7 @@ class RestaurantSummary(BaseModel):
     lng: float
     cuisine_tags: list[str]
     pilot_city: str
+    google_maps_url: str | None = None
 
     @model_validator(mode="after")
     def require_identity(self) -> "RestaurantSummary":

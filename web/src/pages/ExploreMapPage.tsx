@@ -54,6 +54,8 @@ function detailToMapEntry(detail: RestaurantDetailResponse): RestaurantMapEntry 
     lng: detail.restaurant.lng,
     cuisine_tags: detail.restaurant.cuisine_tags,
     pilot_city: detail.restaurant.pilot_city,
+    google_place_id: detail.restaurant.google_place_id,
+    google_maps_url: detail.restaurant.google_maps_url,
     ttf: detail.ttf,
     note_count: 0,
     attribute_rating_count: 0,
@@ -469,9 +471,32 @@ export function ExploreMapPage() {
   );
 
   // ——— Map control handlers ———
+  const ensureMapEntryLoaded = useCallback(
+    async (key: string) => {
+      if (!key.startsWith("place:") || !idToken) return;
+      if (findMapEntry(getRestaurantMapEntries(), key)) return;
+      const placeId = key.slice("place:".length);
+      try {
+        const entry = await api.getPlaceEntry(placeId, idToken);
+        mergeRestaurantMapEntries([entry]);
+        if (isRadiusMode) {
+          setRadiusRestaurants((prev) =>
+            prev.some((r) => mapEntryKey(r) === key) ? prev : [entry, ...prev],
+          );
+        }
+      } catch {
+        // Sheet stays in loading state if fetch fails.
+      }
+    },
+    [idToken, isRadiusMode],
+  );
+
   const handleMapSelectChange = useCallback(
     (id: string | null) => {
       setLocalSelectedId(id);
+      if (id) {
+        void ensureMapEntryLoaded(id);
+      }
       if (!id && focusParam) {
         const params = new URLSearchParams(searchParams);
         params.delete("focus");
@@ -481,14 +506,18 @@ export function ExploreMapPage() {
         setLocalFocusId(null);
       }
     },
-    [focusParam, searchParams, setSearchParams],
+    [focusParam, searchParams, setSearchParams, ensureMapEntryLoaded],
   );
 
-  const handleListSelect = useCallback((id: string) => {
-    setLocalSelectedId(id);
-    setLocalFocusId(id);
-    setFocusPulse((p) => p + 1);
-  }, []);
+  const handleListSelect = useCallback(
+    (id: string) => {
+      setLocalSelectedId(id);
+      setLocalFocusId(id);
+      setFocusPulse((p) => p + 1);
+      void ensureMapEntryLoaded(id);
+    },
+    [ensureMapEntryLoaded],
+  );
 
   const fetchNearbyArea = useCallback(
     (lat: number, lng: number, radius: number, message: string) => {

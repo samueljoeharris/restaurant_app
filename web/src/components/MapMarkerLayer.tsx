@@ -4,6 +4,7 @@ import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 
 import { mapEntryKey } from "../lib/mapEntryKey";
 import { mapPinFill, SEARCH_FOCUS_PIN_COLOR } from "../lib/mapPin";
+import { isGoogleOnlyEntry } from "../lib/googleMapsUrl";
 import type { RestaurantMapEntry } from "../types";
 
 import { MapPin } from "./RestaurantMapPins";
@@ -56,6 +57,7 @@ function ClusteredMarkerLayer({
     const markers = restaurants.map((restaurant) => {
       const key = mapEntryKey(restaurant);
       const isSearchFocus = searchFocusId === key;
+      const googleOnly = isGoogleOnlyEntry(restaurant);
       const dot = document.createElement("div");
       dot.className = "map-pin-cluster-dot";
       dot.style.background = isSearchFocus ? SEARCH_FOCUS_PIN_COLOR : mapPinFill(restaurant);
@@ -64,6 +66,9 @@ function ClusteredMarkerLayer({
       }
       if (isSearchFocus) {
         dot.classList.add("map-pin-cluster-dot--search-focus");
+      }
+      if (googleOnly) {
+        dot.classList.add("map-pin-cluster-dot--discover");
       }
       if (popInKeys?.has(key)) {
         dot.classList.add("map-pin-cluster-dot--pop-in");

@@ -17,6 +17,7 @@ import {
 } from "../lib/ttfTier";
 import { mapEntryKey, restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { mapPinFill, mapPinKind } from "../lib/mapPin";
+import { googleMapsUrlForEntry, isGoogleOnlyEntry } from "../lib/googleMapsUrl";
 import {
   MAP_ZOOM_AREA_SEARCH,
   MAP_ZOOM_VENUE_SEARCH,
@@ -24,7 +25,7 @@ import {
 } from "../lib/mapSearchView";
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
-import { Button, ButtonLink } from "./ui/Button";
+import { Button, ButtonAnchor, ButtonLink } from "./ui/Button";
 import { Stat, StatGrid } from "./ui/Stat";
 
 const DEFAULT_MAP_CENTER = { lat: 42.2418, lng: -71.1662 };
@@ -304,6 +305,8 @@ function MapRestaurantSheet({
   const tier = ttfTier(entry.ttf);
   const hasTtf = entry.ttf.sample_size > 0;
   const confirmedTtf = entry.ttf.sample_size >= 3;
+  const googleOnly = isGoogleOnlyEntry(entry);
+  const googleMapsUrl = googleMapsUrlForEntry(entry);
 
   return (
     <aside className="map-sheet" aria-label={`${entry.name} map details`}>
@@ -317,6 +320,9 @@ function MapRestaurantSheet({
           <div className="map-sheet__intro">
             <h2 className="map-sheet__title">{entry.name}</h2>
             <p className="map-sheet__address">{entry.address}</p>
+            {googleOnly && (
+              <Badge tone="brand">Found on Google Maps · scout it in Little Scout</Badge>
+            )}
             {entry.cuisine_tags.length > 0 && (
               <div className="map-sheet__tags">
                 {entry.cuisine_tags.map((tag) => (
@@ -409,9 +415,18 @@ function MapRestaurantSheet({
       </div>
 
       <div className="map-sheet__actions">
-        <ButtonLink to={restaurantDetailPath(entry)} fullWidth>View full details</ButtonLink>
+        <ButtonLink to={restaurantDetailPath(entry)} fullWidth>
+          {googleOnly ? "Scout this place" : "View full details"}
+        </ButtonLink>
         {entry.ttf.sample_size === 0 && (
-          <ButtonLink to={restaurantSubmitPath(entry)} fullWidth variant="secondary">Log a visit</ButtonLink>
+          <ButtonLink to={restaurantSubmitPath(entry)} fullWidth variant="secondary">
+            Log a visit
+          </ButtonLink>
+        )}
+        {googleMapsUrl && (
+          <ButtonAnchor href={googleMapsUrl} target="_blank" rel="noreferrer" variant="ghost" fullWidth>
+            View on Google Maps
+          </ButtonAnchor>
         )}
       </div>
     </aside>
@@ -509,6 +524,7 @@ export function RestaurantMap({
           defaultZoom={13}
           gestureHandling="greedy"
           disableDefaultUI
+          clickableIcons={false}
           mapId="DEMO_MAP_ID"
           className="map-canvas"
         >

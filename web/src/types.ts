@@ -7,6 +7,7 @@ export interface RestaurantSummary {
   lng: number;
   cuisine_tags: string[];
   pilot_city: string;
+  google_maps_url?: string | null;
 }
 
 export interface RestaurantMapEntry extends RestaurantSummary {

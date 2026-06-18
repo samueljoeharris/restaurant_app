@@ -415,6 +415,8 @@ components:
         lng: { type: number, format: double }
         cuisine_tags: { type: array, items: { type: string } }
         pilot_city: { type: string }
+        google_place_id: { type: string, nullable: true }
+        google_maps_url: { type: string, nullable: true }
 
     RestaurantDetail:
       allOf:

@@ -1810,6 +1810,20 @@ code {
   }
 }
 
+.map-pin-wrap--discover .map-pin {
+  outline: 2px dashed var(--color-brand);
+  outline-offset: 2px;
+  background: #fff;
+  border-color: var(--color-brand);
+}
+
+.map-pin-cluster-dot--discover {
+  outline: 2px dashed var(--color-brand);
+  outline-offset: 1px;
+  background: #fff !important;
+  border-color: var(--color-brand);
+}
+
 .map-pin-wrap {
   position: relative;
   cursor: pointer;

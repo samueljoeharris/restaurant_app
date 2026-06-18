@@ -7,6 +7,7 @@ import {
   mapPinLabel,
   mapPinTooltip,
 } from "../lib/mapPin";
+import { isGoogleOnlyEntry } from "../lib/googleMapsUrl";
 import type { RestaurantMapEntry } from "../types";
 
 export function MapPin({
@@ -23,6 +24,7 @@ export function MapPin({
   onSelect: () => void;
 }) {
   const kind = mapPinKind(restaurant);
+  const googleOnly = isGoogleOnlyEntry(restaurant);
   const fill = mapPinFill(restaurant, { searchFocus });
   const label = mapPinLabel(restaurant);
   const tooltip = mapPinTooltip(restaurant);
@@ -40,6 +42,7 @@ export function MapPin({
           "map-pin-wrap",
           selected ? "map-pin-wrap--selected" : "",
           searchFocus ? "map-pin-wrap--search-focus" : "",
+          googleOnly ? "map-pin-wrap--discover" : "",
           popIn ? "map-pin-wrap--pop-in" : "",
           `map-pin-wrap--${kind}`,
         ].join(" ")}
