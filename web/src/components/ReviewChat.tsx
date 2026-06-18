@@ -20,6 +20,18 @@ type ReviewChatProps = {
   restaurantName: string;
 };
 
+function formatReviewField(field: unknown): string {
+  if (typeof field === "string") return field;
+  if (field && typeof field === "object") {
+    const obj = field as Record<string, unknown>;
+    for (const key of ["field", "name", "key", "path", "metric_key"]) {
+      const value = obj[key];
+      if (typeof value === "string") return value;
+    }
+  }
+  return String(field);
+}
+
 export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
   const { idToken } = useAuth();
   const { toast } = useToast();
@@ -173,16 +185,18 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
             </p>
             {preview.missing_required.length > 0 && (
               <ul className="review-chat__missing">
-                {preview.missing_required.map((field) => (
-                  <li key={field}>{field}</li>
-                ))}
+                {preview.missing_required.map((field, index) => {
+                  const label = formatReviewField(field);
+                  return <li key={`${label}-${index}`}>{label}</li>;
+                })}
               </ul>
             )}
             {preview.errors.length > 0 && (
               <ul className="review-chat__errors">
-                {preview.errors.map((err) => (
-                  <li key={err}>{err}</li>
-                ))}
+                {preview.errors.map((err, index) => {
+                  const label = formatReviewField(err);
+                  return <li key={`${label}-${index}`}>{label}</li>;
+                })}
               </ul>
             )}
             <DraftSummary draft={preview.draft} />

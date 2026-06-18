@@ -51,6 +51,20 @@ def generate_reply(restaurant_name: str, messages: list[ChatMessage]) -> str:
     )
 
 
+def _attribute_raw_value(raw: Any) -> str:
+    if isinstance(raw, str):
+        return raw
+    if isinstance(raw, bool):
+        return "true" if raw else "false"
+    if isinstance(raw, (int, float)):
+        return str(raw)
+    if isinstance(raw, dict):
+        for key in ("value", "label", "name"):
+            if key in raw:
+                return _attribute_raw_value(raw[key])
+    return str(raw)
+
+
 def _coerce_attribute(
     metric_key: str, raw: str, schema: dict[str, Any]
 ) -> bool | int | float | str:
@@ -78,7 +92,29 @@ def _clean_ttf(raw: dict[str, Any] | None) -> dict[str, Any] | None:
     return cleaned or None
 
 
-def _build_summary(draft: ContributionDraft) -> str:
+def _humanize_missing(field: str) -> str:
+    label = field.removeprefix("ttf.")
+    return label.replace("_", " ")
+
+
+def _normalize_missing_item(item: Any) -> str | None:
+    """Coerce Gemini missing_required entries to plain field paths (e.g. ttf.daypart)."""
+    if isinstance(item, str):
+        text = item.strip()
+        return text or None
+    if isinstance(item, dict):
+        for key in ("field", "name", "key", "path"):
+            value = item.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return None
+    if item is None:
+        return None
+    text = str(item).strip()
+    return text or None
+
+
+def _build_summary(draft: ContributionDraft, missing_required: list[str]) -> str:
     parts: list[str] = []
     if draft.ttf is not None:
         ttf = draft.ttf
@@ -92,15 +128,24 @@ def _build_summary(draft: ContributionDraft) -> str:
         parts.append("a visit note")
     if not parts:
         return "We couldn't extract structured data yet — try adding a bit more detail."
-    return f"Ready to submit: {', '.join(parts)}."
+    found = ", ".join(parts)
+    if missing_required:
+        missing = ", ".join(_humanize_missing(field) for field in missing_required)
+        return f"Found so far: {found}. Still need: {missing}."
+    return f"Ready to submit: {found}."
 
 
 def _merge_missing_required(
     draft: ContributionDraft,
-    from_model: list[str],
+    from_model: list[Any],
 ) -> list[str]:
-    merged = list(from_model)
-    seen = set(merged)
+    merged: list[str] = []
+    seen: set[str] = set()
+    for raw in from_model:
+        normalized = _normalize_missing_item(raw)
+        if normalized and normalized not in seen:
+            merged.append(normalized)
+            seen.add(normalized)
     if draft.ttf is not None:
         partial = draft.ttf.model_dump(exclude_none=True)
         for field in _ttf_missing_fields(partial):
@@ -157,7 +202,7 @@ Rules:
             AttributeSubmissionRequest(
                 metric_key=attr["metric_key"],
                 value=_coerce_attribute(
-                    attr["metric_key"], str(attr["value"]), schema
+                    attr["metric_key"], _attribute_raw_value(attr.get("value")), schema
                 ),
                 visit_context=attr.get("visit_context"),
             )
@@ -188,5 +233,5 @@ Rules:
     return {
         "draft": draft,
         "missing_required": missing_required,
-        "summary": _build_summary(draft),
+        "summary": _build_summary(draft, missing_required),
     }
