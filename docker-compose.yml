@@ -42,14 +42,10 @@ services:
     volumes:
       - ./firebase-sa.json:/secrets/firebase-admin/firebase-sa.json:ro
     environment:
+      # Container-only overrides (host .env uses localhost for DATABASE_URL).
       DATABASE_URL: postgresql://ttf_app:ttf_local@postgres:5432/ttf
-      PILOT_CITY: dedham-ma
-      PILOT_DISPLAY_NAME: Dedham, Massachusetts
-      FIREBASE_PROJECT_ID: ttf-restaurant-dev
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-admin/firebase-sa.json
-      AUTH_DEV_MODE: "true"
       APP_CHECK_ENFORCE: "false"
-      CORS_ORIGINS: '["http://localhost:5173","http://localhost:5174","http://localhost:3000"]'
     depends_on:
       postgres:
         condition: service_healthy
