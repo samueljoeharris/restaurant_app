@@ -19,6 +19,7 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [../web/README.md](../web/README.md) | Web pilot local setup and Cloud Run deploy notes |
 | [../infra/terraform/README.md](../infra/terraform/README.md) | Terraform bootstrap, dev stack, and WIF setup |
 | [MCP_SETUP.md](MCP_SETUP.md) | Cursor MCP setup for GitHub, GCP, Postgres, and Firebase |
+| [CLOUD_AGENT.md](CLOUD_AGENT.md) | **Cloud Agents** — paste `.env`, local stack, `/map` debugging |
 | [DESIGN.md](DESIGN.md) | Product design, data model, architecture, and roadmap |
 | [IOS_DESIGN.md](IOS_DESIGN.md) | Phase 3 iOS implementation plan — Cursor/Xcode workflow, architecture, milestones |
 | [../ios/TTF/README.md](../ios/TTF/README.md) | iOS Xcode setup and local runbook |

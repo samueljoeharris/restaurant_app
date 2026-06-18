@@ -173,20 +173,18 @@ If Docker is unavailable, run `bash .cursor/scripts/start-docker.sh` before `doc
 
 ### Cursor Cloud secrets
 
-Declare these in the Cursor app (Cloud Agent secrets). They are listed in `.cursor/environment.json` → `secrets` and injected as environment variables before bootstrap runs:
+**Preferred:** paste a filled [`.env.cloud.example`](.env.cloud.example) into **Cursor → Cloud Agents → Environment variables**. Bootstrap syncs `web/.env.local` from it and never overwrites non-empty values. Full runbook: [docs/CLOUD_AGENT.md](docs/CLOUD_AGENT.md).
 
-| Secret | Used for |
-|--------|----------|
-| `VITE_GOOGLE_MAPS_API_KEY` | Local `/map` + Places in Vite dev |
-| `MAPS_API_KEY` | API `/v1/places/nearby` in docker compose |
-| `GITHUB_PERSONAL_ACCESS_TOKEN` | GitHub MCP + workflow dispatch |
-| `VITE_FIREBASE_API_KEY` | Optional — real Firebase web SDK (default: emulator) |
-| `VITE_FIREBASE_APP_ID` | Optional — real Firebase web SDK |
-| `FIREBASE_SERVICE_ACCOUNT_JSON` | Optional — write `firebase-sa.json` for prod JWT verify |
-| `GEMINI_API_KEY` | Optional — review chat locally |
-| `DEV_TEST_EMAIL` / `DEV_TEST_PASSWORD` | Optional — browser testing on `app.dev` |
+Minimum for `/map` debugging in the pasted `.env`:
 
-Minimum for map debugging: **`VITE_GOOGLE_MAPS_API_KEY`** + **`MAPS_API_KEY`**.
+| Variable | Source |
+|----------|--------|
+| `MAPS_API_KEY` | GCP Secret `ttf-maps-api-key` |
+| `VITE_GOOGLE_MAPS_API_KEY` | GCP Secret `ttf-maps-web-api-key` |
+
+Recommended: `GITHUB_PERSONAL_ACCESS_TOKEN`, `DEV_TEST_EMAIL`, `DEV_TEST_PASSWORD`.
+
+Start local stack: `bash .cursor/scripts/cloud-eval-up.sh` then `cd web && npm run dev`.
 
 ### Local full-stack (no cloud Firebase secrets)
 

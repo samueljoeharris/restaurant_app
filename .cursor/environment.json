@@ -5,16 +5,5 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  "start": "bash .cursor/scripts/bootstrap-cloud-env.sh && bash .cursor/scripts/start-docker.sh",
-  "secrets": [
-    "GITHUB_PERSONAL_ACCESS_TOKEN",
-    "MAPS_API_KEY",
-    "VITE_GOOGLE_MAPS_API_KEY",
-    "VITE_FIREBASE_API_KEY",
-    "VITE_FIREBASE_APP_ID",
-    "FIREBASE_SERVICE_ACCOUNT_JSON",
-    "GEMINI_API_KEY",
-    "DEV_TEST_EMAIL",
-    "DEV_TEST_PASSWORD"
-  ]
+  "start": "bash .cursor/scripts/bootstrap-cloud-env.sh && bash .cursor/scripts/start-docker.sh"
 }
