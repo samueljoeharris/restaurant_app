@@ -485,6 +485,35 @@ export const api = {
     return request<PlaceResolveResponse>(`/v1/places/resolve?${params}`, {}, token);
   },
 
+  placesNearby: (
+    opts: { lat: number; lng: number; radius_m?: number; limit?: number },
+    token: string,
+  ) => {
+    const params = new URLSearchParams({
+      lat: String(opts.lat),
+      lng: String(opts.lng),
+    });
+    if (opts.radius_m != null) params.set("radius_m", String(opts.radius_m));
+    if (opts.limit != null) params.set("limit", String(opts.limit));
+    return request<RestaurantMapEntry[]>(`/v1/places/nearby?${params}`, {}, token).then(
+      normalizeMapEntries,
+    );
+  },
+
+  getPlaceEntry: (placeId: string, token: string) =>
+    request<RestaurantMapEntry>(
+      `/v1/places/${encodeURIComponent(placeId)}/entry`,
+      {},
+      token,
+    ).then((row) => normalizeMapEntries([row])[0]),
+
+  materializePlace: (placeId: string, token: string) =>
+    request<RestaurantDetailResponse>(
+      `/v1/places/${encodeURIComponent(placeId)}/materialize`,
+      { method: "POST" },
+      token,
+    ),
+
   searchRestaurants: (opts: {
     lat: number;
     lng: number;

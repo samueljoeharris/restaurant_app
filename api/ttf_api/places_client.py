@@ -14,8 +14,13 @@ from ttf_api.places_seed import PlacesSeedError
 
 logger = logging.getLogger(__name__)
 
+NEARBY_URL = "https://places.googleapis.com/v1/places:searchNearby"
 AUTOCOMPLETE_URL = "https://places.googleapis.com/v1/places:autocomplete"
 PLACE_DETAILS_BASE = "https://places.googleapis.com/v1/places"
+NEARBY_FIELD_MASK = (
+    "places.id,places.displayName,places.formattedAddress,places.location,"
+    "places.types,places.googleMapsUri,places.businessStatus"
+)
 RESOLVE_FIELD_MASK = "id,location,formattedAddress,displayName"
 
 
@@ -90,3 +95,15 @@ def place_details(
         )
 
     return resp.json()
+
+
+def search_nearby_places(api_key: str, lat: float, lng: float, radius_m: int, *, max_result_count: int = 20) -> list[dict]:
+    headers = {"Content-Type": "application/json", "X-Goog-Api-Key": api_key, "X-Goog-FieldMask": NEARBY_FIELD_MASK}
+    body = {"includedTypes": ["restaurant"], "maxResultCount": max_result_count,
+            "locationRestriction": {"circle": {"center": {"latitude": lat, "longitude": lng}, "radius": float(radius_m)}},
+            "languageCode": "en"}
+    with httpx.Client(timeout=20.0) as client:
+        resp = client.post(NEARBY_URL, headers=headers, json=body)
+    if resp.status_code != 200:
+        raise PlacesSeedError(f"Places Nearby Search API error {resp.status_code}: {resp.text}")
+    return resp.json().get("places", [])

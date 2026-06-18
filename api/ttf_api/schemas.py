@@ -12,13 +12,20 @@ class HealthResponse(BaseModel):
 
 
 class RestaurantSummary(BaseModel):
-    id: UUID
+    id: UUID | None = None
+    google_place_id: str | None = None
     name: str
     address: str
     lat: float
     lng: float
     cuisine_tags: list[str]
     pilot_city: str
+
+    @model_validator(mode="after")
+    def require_identity(self) -> "RestaurantSummary":
+        if self.id is None and not self.google_place_id:
+            raise ValueError("RestaurantSummary requires id or google_place_id")
+        return self
 
 
 class RestaurantDetail(RestaurantSummary):

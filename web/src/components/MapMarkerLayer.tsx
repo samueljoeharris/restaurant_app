@@ -2,6 +2,7 @@ import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useEffect, useRef, useState } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 
+import { mapEntryKey } from "../lib/mapEntryKey";
 import { mapPinFill } from "../lib/mapPin";
 import type { RestaurantMapEntry } from "../types";
 
@@ -49,10 +50,11 @@ function ClusteredMarkerLayer({
     markersRef.current = [];
 
     const markers = restaurants.map((restaurant) => {
+      const key = mapEntryKey(restaurant);
       const dot = document.createElement("div");
       dot.className = "map-pin-cluster-dot";
       dot.style.background = mapPinFill(restaurant);
-      if (restaurant.id === selectedId) {
+      if (key === selectedId) {
         dot.classList.add("map-pin-cluster-dot--selected");
       }
 
@@ -61,7 +63,7 @@ function ClusteredMarkerLayer({
         content: dot,
         title: restaurant.name,
       });
-      marker.addListener("click", () => onSelectRef.current(restaurant.id));
+      marker.addListener("click", () => onSelectRef.current(key));
       return marker;
     });
 
@@ -115,14 +117,12 @@ export function MapMarkerLayer({
 
   return (
     <>
-      {restaurants.map((r) => (
-        <MapPin
-          key={r.id}
-          restaurant={r}
-          selected={selectedId === r.id}
-          onSelect={() => onSelect(r.id)}
-        />
-      ))}
+      {restaurants.map((r) => {
+        const key = mapEntryKey(r);
+        return (
+          <MapPin key={key} restaurant={r} selected={selectedId === key} onSelect={() => onSelect(key)} />
+        );
+      })}
     </>
   );
 }

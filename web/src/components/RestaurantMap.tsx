@@ -15,6 +15,7 @@ import {
   TTF_TIER_LABELS,
   type TtfTier,
 } from "../lib/ttfTier";
+import { mapEntryKey, restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { mapPinFill, mapPinKind } from "../lib/mapPin";
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
@@ -99,7 +100,7 @@ function FocusRestaurant({
 
   useEffect(() => {
     if (!map || !focusId) return;
-    const target = restaurants.find((r) => r.id === focusId);
+    const target = restaurants.find((r) => mapEntryKey(r) === focusId);
     const coords = target
       ? { lat: target.lat, lng: target.lng }
       : focusLocation ?? null;
@@ -369,9 +370,10 @@ function MapRestaurantSheet({
       </div>
 
       <div className="map-sheet__actions">
-        <ButtonLink to={`/restaurants/${entry.id}`} fullWidth>
-          View full details
-        </ButtonLink>
+        <ButtonLink to={restaurantDetailPath(entry)} fullWidth>View full details</ButtonLink>
+        {entry.ttf.sample_size === 0 && (
+          <ButtonLink to={restaurantSubmitPath(entry)} fullWidth variant="secondary">Log a visit</ButtonLink>
+        )}
       </div>
     </aside>
   );
@@ -424,7 +426,7 @@ export function RestaurantMap({
   }) => void;
 }) {
   useMapsLibrary("marker");
-  const sheetEntry = selectedId ? restaurants.find((r) => r.id === selectedId) : null;
+  const sheetEntry = selectedId ? restaurants.find((r) => mapEntryKey(r) === selectedId) : null;
 
   if (!MAPS_KEY) {
     return (

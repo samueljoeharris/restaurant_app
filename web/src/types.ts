@@ -1,5 +1,6 @@
 export interface RestaurantSummary {
-  id: string;
+  id: string | null;
+  google_place_id?: string | null;
   name: string;
   address: string;
   lat: number;

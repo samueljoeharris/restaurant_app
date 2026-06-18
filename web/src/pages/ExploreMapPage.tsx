@@ -11,17 +11,15 @@ import { RestaurantMap } from "../components/RestaurantMap";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { SkeletonList } from "../components/ui/Skeleton";
-import { useAreaCoverage } from "../hooks/useAreaCoverage";
 import {
-  invalidateRestaurantMapCache,
   mergeRestaurantMapEntries,
   useRestaurantMapEntries,
 } from "../hooks/useRestaurantMapCatalog";
 import { useMapViewportRestaurants } from "../hooks/useMapViewportRestaurants";
-import { runBackgroundCoverage } from "../lib/backgroundCoverage";
 import { geolocationErrorMessage, getCurrentPosition } from "../lib/geolocation";
+import { findMapEntry, mapEntryKey } from "../lib/mapEntryKey";
 import { bboxAround } from "../lib/mapViewport";
-import { ensureRestaurantMapBbox } from "../lib/restaurantMapCache";
+import { ensureNearbyAt, ensureViewportRestaurants } from "../lib/restaurantMapCache";
 import {
   appendRestaurantFocusToParams,
   buildPendingPlaceParams,
@@ -203,7 +201,7 @@ export function ExploreMapPage() {
   // Locate-me + catalog seeding (map controls).
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
-  const [catalogSeeding, setCatalogSeeding] = useState(false);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [searchSidebarCollapsed, setSearchSidebarCollapsed] = useState(false);
 
@@ -217,8 +215,12 @@ export function ExploreMapPage() {
         setRadiusLoading(true);
         setError(null);
       }
-      api
-        .searchRestaurants({ lat, lng, radius_m: radius })
+
+      const load = idToken
+        ? api.placesNearby({ lat, lng, radius_m: radius }, idToken)
+        : api.searchRestaurants({ lat, lng, radius_m: radius });
+
+      load
         .then((data) => {
           if (!cancelled) {
             setRadiusRestaurants(data);
@@ -235,26 +237,21 @@ export function ExploreMapPage() {
         cancelled = true;
       };
     },
-    [],
+    [idToken],
   );
 
-  /** Silent reload of whichever data source is currently active (after seeding). */
   const refreshActiveData = useCallback(() => {
     if (isRadiusMode && radiusLat !== null && radiusLng !== null) {
       loadRadiusResults(radiusLat, radiusLng, radiusM, { silent: true });
       return;
     }
-    invalidateRestaurantMapCache();
     if (lastViewportRef.current) {
-      void ensureRestaurantMapBbox(lastViewportRef.current, true);
+      void ensureViewportRestaurants(lastViewportRef.current, idToken, true);
     }
-  }, [isRadiusMode, radiusLat, radiusLng, radiusM, loadRadiusResults]);
-
-  // Area coverage seeding for radius mode (silent refetch on completion).
-  const { state: coverageState, ensureArea } = useAreaCoverage(refreshActiveData);
+  }, [isRadiusMode, radiusLat, radiusLng, radiusM, loadRadiusResults, idToken]);
 
   const viewportEnabled = !isRadiusMode && !isPendingPlaceMode;
-  const { onViewportChange, resetViewportGate } = useMapViewportRestaurants(viewportEnabled);
+  const { onViewportChange, resetViewportGate } = useMapViewportRestaurants(viewportEnabled, idToken);
 
   const handleViewportChange = useCallback(
     (bbox: ReturnType<typeof bboxAround>) => {
@@ -300,25 +297,22 @@ export function ExploreMapPage() {
     };
   }, [isPendingPlaceMode, paramPlaceId, idToken, location.state, navigate, radiusM, basePath]);
 
-  // Radius mode: load catalog hits immediately, seed more venues in the background.
   useEffect(() => {
     if (!(isRadiusMode && radiusLat !== null && radiusLng !== null)) return;
     let cancel: (() => void) | undefined;
     const timer = window.setTimeout(() => {
       cancel = loadRadiusResults(radiusLat, radiusLng, radiusM);
-      void ensureArea(radiusLat, radiusLng, radiusM);
     }, 0);
     return () => {
       window.clearTimeout(timer);
       cancel?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRadiusMode, radiusLat, radiusLng, radiusM]);
+  }, [isRadiusMode, radiusLat, radiusLng, radiusM, loadRadiusResults]);
 
   // Ensure focused restaurant is on the map even if filters exclude it.
   useEffect(() => {
     if (!focusParam) return;
-    if (restaurantsRef.current.some((r) => r.id === focusParam)) return;
+    if (restaurantsRef.current.some((r) => mapEntryKey(r) === focusParam)) return;
 
     let cancelled = false;
     const loc = focusLocation;
@@ -328,7 +322,7 @@ export function ExploreMapPage() {
         try {
           const nearby = await api.listRestaurantsForMap(bboxAround(loc.lat, loc.lng));
           if (cancelled) return;
-          if (nearby.some((r) => r.id === focusParam)) {
+          if (nearby.some((r) => r.id === focusParam || mapEntryKey(r) === focusParam)) {
             mergeRestaurantMapEntries(nearby);
             return;
           }
@@ -420,19 +414,21 @@ export function ExploreMapPage() {
     setFocusPulse((p) => p + 1);
   }, []);
 
-  const seedCatalogArea = useCallback(
+  const fetchNearbyArea = useCallback(
     (lat: number, lng: number, radius: number, message: string) => {
       if (!idToken) {
-        setStatusMessage("Sign in to find more restaurants in this area.");
+        setStatusMessage("Sign in to explore nearby restaurants from Google.");
         return;
       }
-      setCatalogSeeding(true);
+      setNearbyLoading(true);
       setStatusMessage(message);
-      runBackgroundCoverage(lat, lng, radius, idToken, () => {
-        setCatalogSeeding(false);
-        setStatusMessage(null);
-        refreshActiveData();
-      });
+      void ensureNearbyAt(lat, lng, radius, idToken, true)
+        .then(() => refreshActiveData())
+        .catch(() => setStatusMessage("Could not load nearby restaurants."))
+        .finally(() => {
+          setNearbyLoading(false);
+          setStatusMessage(null);
+        });
     },
     [idToken, refreshActiveData],
   );
@@ -446,20 +442,20 @@ export function ExploreMapPage() {
       const lng = position.coords.longitude;
       setUserLocation({ lat, lng });
       if (idToken) {
-        seedCatalogArea(lat, lng, DEFAULT_SEARCH_RADIUS_M, "Finding restaurants near you…");
+        fetchNearbyArea(lat, lng, DEFAULT_SEARCH_RADIUS_M, "Loading restaurants near you…");
       }
     } catch (err) {
       setStatusMessage(geolocationErrorMessage(err));
     } finally {
       setLocating(false);
     }
-  }, [idToken, seedCatalogArea]);
+  }, [idToken, fetchNearbyArea]);
 
   const handleSearchArea = useCallback(
     (lat: number, lng: number, radius: number) => {
-      seedCatalogArea(lat, lng, radius, "Searching this area…");
+      fetchNearbyArea(lat, lng, radius, "Loading restaurants in this area…");
     },
-    [seedCatalogArea],
+    [fetchNearbyArea],
   );
 
   function clearRadiusMode() {
@@ -492,14 +488,14 @@ export function ExploreMapPage() {
 
   /** Pins + sheet: always include focused/selected venues even when browse filters hide them. */
   const mapRestaurants = useMemo(() => {
-    const ids = new Set(filtered.map((r) => r.id));
+    const keys = new Set(filtered.map((r) => mapEntryKey(r)));
     const extras: RestaurantMapEntry[] = [];
-    for (const id of [focusParam, selectedId]) {
-      if (!id || ids.has(id)) continue;
-      const entry = restaurants.find((r) => r.id === id);
+    for (const key of [focusParam, selectedId]) {
+      if (!key || keys.has(key)) continue;
+      const entry = findMapEntry(restaurants, key);
       if (entry) {
         extras.push(entry);
-        ids.add(id);
+        keys.add(mapEntryKey(entry));
       }
     }
     return extras.length > 0 ? [...filtered, ...extras] : filtered;
@@ -518,10 +514,9 @@ export function ExploreMapPage() {
   );
 
   const summaryText = useMemo(() => {
-    if (catalogSeeding) return "Searching nearby restaurants…";
+    if (nearbyLoading) return "Loading nearby restaurants…";
     if (isPendingPlaceMode) return "Locating area…";
     if (isRadiusMode) {
-      if (coverageState.status === "seeding") return "finding more nearby…";
       return `${formatPlaceCount(filtered.length)} sorted by distance`;
     }
     if (activeFilter !== "all") return scoutFilterSummaries[activeFilter];
@@ -533,10 +528,9 @@ export function ExploreMapPage() {
     if (bits.length > 0) return `Matching ${bits.join(" · ")}`;
     return `${formatPlaceCount(withContributions)} with parent data`;
   }, [
-    catalogSeeding,
+    nearbyLoading,
     isPendingPlaceMode,
     isRadiusMode,
-    coverageState.status,
     filtered.length,
     activeFilter,
     browseTag,
@@ -546,22 +540,20 @@ export function ExploreMapPage() {
     withContributions,
   ]);
 
-  const radiusSeeding =
-    (isRadiusMode || isPendingPlaceMode) &&
-    (coverageState.status === "seeding" || coverageState.status === "requesting");
-  const searchBusy = catalogSeeding || radiusSeeding;
+  const searchBusy = nearbyLoading || radiusLoading;
   const showListLoading = (loading && restaurants.length === 0) || isPendingPlaceMode;
 
   const fitKey = isRadiusMode ? `r:${radiusLat},${radiusLng},${radiusM}` : "catalog";
 
   function renderCard(r: RestaurantMapEntry) {
+    const key = mapEntryKey(r);
     return (
-      <li key={r.id}>
+      <li key={key}>
         <RestaurantListCard
-          ref={selectedId === r.id ? activeCardRef : undefined}
+          ref={selectedId === key ? activeCardRef : undefined}
           restaurant={r}
-          active={selectedId === r.id}
-          onSelect={() => handleListSelect(r.id)}
+          active={selectedId === key}
+          onSelect={() => handleListSelect(key)}
         />
       </li>
     );
@@ -630,7 +622,7 @@ export function ExploreMapPage() {
                   ? "Locating area…"
                   : `Within ${Math.round(radiusM / 1000)} km`}
             </span>
-            {radiusSeeding && <span className="radius-banner__seeding">finding more nearby…</span>}
+            {radiusLoading && <span className="radius-banner__seeding">loading nearby…</span>}
             <button type="button" className="radius-banner__clear" onClick={clearRadiusMode}>
               Clear
             </button>

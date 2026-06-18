@@ -48,3 +48,19 @@ export const PILOT_DEFAULT_BBOX: MapBbox = {
   minLng: -71.32,
   maxLng: -71.0,
 };
+
+export function bboxCenter(bbox: MapBbox): { lat: number; lng: number } {
+  return { lat: (bbox.minLat + bbox.maxLat) / 2, lng: (bbox.minLng + bbox.maxLng) / 2 };
+}
+
+export function bboxRadiusM(bbox: MapBbox): number {
+  const centerLat = (bbox.minLat + bbox.maxLat) / 2;
+  const latM = ((bbox.maxLat - bbox.minLat) * 111_320) / 2;
+  const lngM = ((bbox.maxLng - bbox.minLng) * 111_320 * Math.cos((centerLat * Math.PI) / 180)) / 2;
+  const radius = Math.min(latM, lngM);
+  return Math.round(Math.max(1000, Math.min(25_000, radius)));
+}
+
+export function nearbyCacheKey(lat: number, lng: number, radiusM: number): string {
+  return `${lat.toFixed(3)}:${lng.toFixed(3)}:${radiusM}`;
+}

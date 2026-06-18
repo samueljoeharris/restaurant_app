@@ -10,15 +10,18 @@ from __future__ import annotations
 import logging
 from typing import Annotated
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from ttf_api.app_check import verify_app_check
 from ttf_api.auth import AuthUser, get_current_user
 from ttf_api.config import settings
 from ttf_api.db import get_conn
-from ttf_api.places_client import autocomplete_places, place_details
-from ttf_api.places_seed import PlacesSeedError, require_maps_api_key
-from ttf_api.schemas import AutocompleteResponse, PlaceSuggestion, PlaceResolveResponse
+from ttf_api.places_client import autocomplete_places, place_details, search_nearby_places
+from ttf_api.places_nearby import map_entry_from_place_details, merge_nearby_places
+from ttf_api.places_seed import PlacesSeedError, ensure_restaurant_for_place, fetch_place_details, require_maps_api_key
+from ttf_api.routers.restaurants import _fetch_ttf_aggregate, _row_to_detail
+from ttf_api.schemas import AutocompleteResponse, PlaceSuggestion, PlaceResolveResponse, RestaurantDetailResponse, RestaurantMapEntry
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +29,14 @@ router = APIRouter(prefix="/v1/places", tags=["places"])
 
 
 def _raise_seed_error(exc: PlacesSeedError) -> None:
-    """Map PlacesSeedError → 503 (missing key) or 400 (other Google error)."""
-    code = (
-        status.HTTP_503_SERVICE_UNAVAILABLE
-        if "MAPS_API_KEY" in str(exc)
-        else status.HTTP_400_BAD_REQUEST
-    )
-    raise HTTPException(status_code=code, detail=str(exc)) from exc
+    msg = str(exc)
+    if "MAPS_API_KEY" in msg:
+        code = status.HTTP_503_SERVICE_UNAVAILABLE
+    elif "not found" in msg.lower():
+        code = status.HTTP_404_NOT_FOUND
+    else:
+        code = status.HTTP_400_BAD_REQUEST
+    raise HTTPException(status_code=code, detail=msg) from exc
 
 
 def _catalog_restaurant_hits(conn, q: str) -> list[PlaceSuggestion]:
@@ -173,3 +177,63 @@ def resolve_place(
         lng=float(lng),
         label=label,
     )
+
+
+@router.get("/nearby", response_model=list[RestaurantMapEntry])
+def nearby_places(
+    request: Request,
+    lat: float = Query(..., ge=-90, le=90),
+    lng: float = Query(..., ge=-180, le=180),
+    radius_m: int = Query(default=8000, ge=500, le=25000),
+    limit: int = Query(default=20, ge=1, le=20),
+    user: Annotated[AuthUser, Depends(get_current_user)] = None,
+) -> list[RestaurantMapEntry]:
+    verify_app_check(request)
+    try:
+        api_key = require_maps_api_key()
+    except PlacesSeedError as exc:
+        _raise_seed_error(exc)
+    try:
+        places = search_nearby_places(api_key, lat, lng, radius_m, max_result_count=limit)
+    except PlacesSeedError as exc:
+        _raise_seed_error(exc)
+    with get_conn() as conn:
+        entries = merge_nearby_places(conn, places)
+    entries.sort(key=lambda e: (e.lat - lat) ** 2 + (e.lng - lng) ** 2)
+    return entries[:limit]
+
+
+@router.get("/{place_id}/entry", response_model=RestaurantMapEntry)
+def get_place_entry(request: Request, place_id: str, user: Annotated[AuthUser, Depends(get_current_user)] = None) -> RestaurantMapEntry:
+    verify_app_check(request)
+    try:
+        api_key = require_maps_api_key()
+    except PlacesSeedError as exc:
+        _raise_seed_error(exc)
+    with httpx.Client() as client:
+        place = fetch_place_details(client, api_key, place_id)
+    if place is None:
+        raise HTTPException(status_code=404, detail="Place not found")
+    with get_conn() as conn:
+        entry = map_entry_from_place_details(place, conn)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Place could not be normalized")
+    return entry
+
+
+@router.post("/{place_id}/materialize", response_model=RestaurantDetailResponse)
+def materialize_place(request: Request, place_id: str, user: Annotated[AuthUser, Depends(get_current_user)] = None) -> RestaurantDetailResponse:
+    verify_app_check(request)
+    try:
+        api_key = require_maps_api_key()
+    except PlacesSeedError as exc:
+        _raise_seed_error(exc)
+    with get_conn() as conn:
+        try:
+            restaurant_id = ensure_restaurant_for_place(conn, place_id, api_key)
+        except PlacesSeedError as exc:
+            _raise_seed_error(exc)
+        row = conn.execute("SELECT * FROM restaurants WHERE id = %s AND pilot_city = %s", (restaurant_id, settings.pilot_city)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Restaurant not found")
+        return RestaurantDetailResponse(restaurant=_row_to_detail(row), ttf=_fetch_ttf_aggregate(conn, restaurant_id))

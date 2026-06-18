@@ -1,21 +1,26 @@
 import { useCallback, useEffect, useRef } from "react";
 
 import {
-  ensureRestaurantMapBbox,
+  ensureViewportRestaurants,
   isBboxRegionLoaded,
+  isNearbyRegionLoaded,
 } from "../lib/restaurantMapCache";
-import { expandBbox, type MapBbox } from "../lib/mapViewport";
+import { bboxCenter, bboxRadiusM, expandBbox, type MapBbox } from "../lib/mapViewport";
 
 function bboxKey(bbox: MapBbox): string {
   return `${bbox.minLat.toFixed(4)},${bbox.maxLat.toFixed(4)},${bbox.minLng.toFixed(4)},${bbox.maxLng.toFixed(4)}`;
 }
 
-/**
- * Debounced viewport bbox fetch for catalog explore mode.
- * Merges into the shared restaurant map cache. Skips the first idle event
- * after resetViewportGate() (e.g. after focus pan).
- */
-export function useMapViewportRestaurants(enabled: boolean) {
+function viewportLoaded(bbox: MapBbox, token: string | null): boolean {
+  const target = expandBbox(bbox, 0.05);
+  if (token) {
+    const center = bboxCenter(target);
+    return isNearbyRegionLoaded(center.lat, center.lng, bboxRadiusM(target));
+  }
+  return isBboxRegionLoaded(target);
+}
+
+export function useMapViewportRestaurants(enabled: boolean, token: string | null) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastBboxRef = useRef<string | null>(null);
   const skipNextRef = useRef(false);
@@ -25,13 +30,13 @@ export function useMapViewportRestaurants(enabled: boolean) {
     lastBboxRef.current = null;
   }, []);
 
-  const fetchBbox = useCallback((bbox: MapBbox) => {
-    const target = expandBbox(bbox, 0.05);
-    if (isBboxRegionLoaded(target)) return;
-    void ensureRestaurantMapBbox(target).catch(() => {
-      /* non-blocking */
-    });
-  }, []);
+  const fetchViewport = useCallback(
+    (bbox: MapBbox) => {
+      if (viewportLoaded(bbox, token)) return;
+      void ensureViewportRestaurants(expandBbox(bbox, 0.05), token).catch(() => {});
+    },
+    [token],
+  );
 
   const onViewportChange = useCallback(
     (bbox: MapBbox) => {
@@ -42,23 +47,20 @@ export function useMapViewportRestaurants(enabled: boolean) {
       }
       const key = bboxKey(bbox);
       if (lastBboxRef.current === key) return;
-
       if (debounceRef.current != null) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         lastBboxRef.current = key;
-        fetchBbox(bbox);
+        fetchViewport(bbox);
       }, 300);
     },
-    [enabled, fetchBbox],
+    [enabled, fetchViewport],
   );
 
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current != null) clearTimeout(debounceRef.current);
-    };
+  useEffect(() => () => {
+    if (debounceRef.current != null) clearTimeout(debounceRef.current);
   }, []);
 
-  return { onViewportChange, resetViewportGate, fetchBbox };
+  return { onViewportChange, resetViewportGate, fetchViewport };
 }
 
 export type { MapBbox };

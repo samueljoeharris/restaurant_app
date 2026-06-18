@@ -49,7 +49,7 @@ function formatTimer(ms: number): string {
 }
 
 export function TtfSubmitPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, placeId } = useParams<{ id?: string; placeId?: string }>();
   const navigate = useNavigate();
   const { idToken } = useAuth();
   const { toast } = useToast();
@@ -68,9 +68,20 @@ export function TtfSubmitPage() {
   const [timerNow, setTimerNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!id) return;
-    api.getRestaurant(id).then(setRestaurant);
-  }, [id]);
+    if (id) { api.getRestaurant(id).then(setRestaurant); return; }
+    if (!placeId || !idToken) return;
+    api.getPlaceEntry(placeId, idToken).then((entry) => {
+      setRestaurant({
+        restaurant: {
+          id: entry.id ?? "", name: entry.name, address: entry.address,
+          lat: entry.lat, lng: entry.lng, cuisine_tags: entry.cuisine_tags,
+          pilot_city: entry.pilot_city, google_place_id: entry.google_place_id ?? placeId,
+          google_maps_url: null, created_at: "", updated_at: "",
+        },
+        ttf: entry.ttf,
+      });
+    });
+  }, [id, placeId, idToken]);
 
   useEffect(() => {
     if (timerStart === null || timerStopped !== null) return;
@@ -110,13 +121,19 @@ export function TtfSubmitPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!id || !idToken || !canSubmit) return;
+    if ((!id && !placeId) || !idToken || !canSubmit) return;
     setBusy(true);
     setError(null);
     const minutes = timerStart !== null ? timerMinutes : elapsed;
     try {
+      let restaurantId = id ?? null;
+      if (!restaurantId && placeId) {
+        const materialized = await api.materializePlace(placeId, idToken);
+        restaurantId = materialized.restaurant.id;
+      }
+      if (!restaurantId) throw new Error("Restaurant not found");
       await api.submitTtf(
-        id,
+        restaurantId,
         {
           elapsed_minutes: minutes,
           item_type: itemType,
@@ -129,7 +146,7 @@ export function TtfSubmitPage() {
         idToken,
       );
       toast("Observation saved — thanks!", "success");
-      navigate(`/restaurants/${id}`);
+      navigate(`/restaurants/${restaurantId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed");
     } finally {

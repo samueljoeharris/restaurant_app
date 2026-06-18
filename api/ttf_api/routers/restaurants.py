@@ -11,6 +11,7 @@ from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.map_query import build_bbox_filter
+from ttf_api.map_entries import MAP_SELECT, row_to_map_entry
 from ttf_api.places_seed import PlacesSeedError
 from ttf_api.pubsub_seed import enqueue_seed_job
 from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area
@@ -41,44 +42,10 @@ _HAVERSINE_EXPR = """
     ))
 """
 
-# Core SELECT shared between /map and /search (no trailing WHERE / ORDER / LIMIT).
-# Pre-aggregated joins scan each child table once instead of per-restaurant LATERAL.
-_MAP_SELECT = """
-    SELECT
-        r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
-        COALESCE(t.sample_size, 0)::int AS sample_size,
-        t.median_minutes,
-        t.avg_quality,
-        t.last_updated,
-        COALESCE(n.note_count, 0)::int AS note_count,
-        COALESCE(a.attribute_rating_count, 0)::int AS attribute_rating_count
-    FROM restaurants r
-    LEFT JOIN (
-        SELECT
-            restaurant_id,
-            COUNT(*)::int AS sample_size,
-            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY elapsed_minutes) AS median_minutes,
-            AVG(item_quality)::float AS avg_quality,
-            MAX(created_at) AS last_updated
-        FROM ttf_observations
-        GROUP BY restaurant_id
-    ) t ON r.id = t.restaurant_id
-    LEFT JOIN (
-        SELECT restaurant_id, COUNT(*)::int AS note_count
-        FROM restaurant_notes
-        GROUP BY restaurant_id
-    ) n ON n.restaurant_id = r.id
-    LEFT JOIN (
-        SELECT restaurant_id, COUNT(*)::int AS attribute_rating_count
-        FROM restaurant_attribute_ratings
-        GROUP BY restaurant_id
-    ) a ON a.restaurant_id = r.id
-"""
-
 router = APIRouter(prefix="/v1/restaurants", tags=["restaurants"])
 
 
-def _row_to_map_entry(row: dict) -> RestaurantMapEntry:
+def row_to_map_entry(row: dict) -> RestaurantMapEntry:
     summary = _row_to_summary(row)
     if row["sample_size"] == 0:
         ttf = TtfAggregate()
@@ -100,6 +67,7 @@ def _row_to_map_entry(row: dict) -> RestaurantMapEntry:
 def _row_to_summary(row: dict) -> RestaurantSummary:
     return RestaurantSummary(
         id=row["id"],
+        google_place_id=row.get("google_place_id"),
         name=row["name"],
         address=row["address"],
         lat=row["lat"],
@@ -203,12 +171,12 @@ def list_restaurants_for_map(
         bbox_sql, bbox_params = build_bbox_filter(min_lat, max_lat, min_lng, max_lng)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    sql = _MAP_SELECT + f"WHERE r.pilot_city = %s AND r.status = 'active'{bbox_sql}\nORDER BY r.name"
+    sql = MAP_SELECT + f"WHERE r.pilot_city = %s AND r.status = 'active'{bbox_sql}\nORDER BY r.name"
     params: list[object] = [pilot]
     params.extend(bbox_params)
     with get_conn() as conn:
         rows = conn.execute(sql, params).fetchall()
-    return [_row_to_map_entry(row) for row in rows]
+    return [row_to_map_entry(row) for row in rows]
 
 
 @router.get("/search", response_model=list[RestaurantMapEntry])
@@ -240,14 +208,14 @@ def search_restaurants(
 
     where = " AND ".join(where_clauses)
     sql = (
-        _MAP_SELECT
+        MAP_SELECT
         + f"WHERE {where}\n"
         + f"ORDER BY {_HAVERSINE_EXPR} ASC\n"
         + "LIMIT %(limit)s"
     )
     with get_conn() as conn:
         rows = conn.execute(sql, params).fetchall()
-    return [_row_to_map_entry(row) for row in rows]
+    return [row_to_map_entry(row) for row in rows]
 
 
 @router.post(

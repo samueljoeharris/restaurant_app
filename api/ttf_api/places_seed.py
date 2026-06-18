@@ -231,6 +231,19 @@ def normalize_place(place: dict, area: SeedArea, pilot_city: str) -> dict | None
     }
 
 
+def normalize_nearby_place(place: dict, pilot_city: str) -> dict | None:
+    place_id = place.get("id")
+    name = (place.get("displayName") or {}).get("text")
+    address = place.get("formattedAddress")
+    loc = place.get("location") or {}
+    lat, lng = loc.get("latitude"), loc.get("longitude")
+    if not place_id or not name or not address or lat is None or lng is None:
+        return None
+    return {"google_place_id": place_id, "name": name.strip(), "address": address.strip(),
+            "lat": float(lat), "lng": float(lng), "google_maps_url": place.get("googleMapsUri"),
+            "cuisine_tags": types_to_cuisine_tags(place.get("types") or []), "pilot_city": pilot_city,
+            "status": place_status(place)}
+
 def _field_changes(existing: dict, row: dict) -> dict | None:
     changes: dict[str, dict[str, object]] = {}
     for field in ("name", "address", "lat", "lng", "status"):
@@ -529,27 +542,28 @@ def fetch_place_details(
     return resp.json()
 
 
+def ensure_restaurant_for_place(conn: Connection, place_id: str, api_key: str) -> UUID:
+    existing = conn.execute("SELECT id, status FROM restaurants WHERE google_place_id = %s AND pilot_city = %s", (place_id, settings.pilot_city)).fetchone()
+    if existing:
+        if existing["status"] != "active":
+            raise PlacesSeedError(f"Restaurant for place {place_id} is not active")
+        return existing["id"]
+    with httpx.Client() as client:
+        place = fetch_place_details(client, api_key, place_id)
+    if place is None:
+        raise PlacesSeedError(f"Place not found: {place_id}")
+    row = normalize_nearby_place(place, settings.pilot_city)
+    if not row or row["status"] != "active":
+        raise PlacesSeedError(f"Place unavailable: {place_id}")
+    upsert_restaurant(conn, row)
+    created = conn.execute("SELECT id FROM restaurants WHERE google_place_id = %s AND pilot_city = %s", (place_id, settings.pilot_city)).fetchone()
+    if not created:
+        raise PlacesSeedError(f"Failed to materialize place: {place_id}")
+    return created["id"]
+
 def _normalize_place_details(place: dict, pilot_city: str) -> dict | None:
-    """Like normalize_place but with no seed-area radius constraint."""
-    place_id = place.get("id")
-    name = (place.get("displayName") or {}).get("text")
-    address = place.get("formattedAddress")
-    loc = place.get("location") or {}
-    lat = loc.get("latitude")
-    lng = loc.get("longitude")
-    if not place_id or not name or not address or lat is None or lng is None:
-        return None
-    return {
-        "google_place_id": place_id,
-        "name": name.strip(),
-        "address": address.strip(),
-        "lat": float(lat),
-        "lng": float(lng),
-        "google_maps_url": place.get("googleMapsUri"),
-        "cuisine_tags": types_to_cuisine_tags(place.get("types") or []),
-        "pilot_city": pilot_city,
-        "status": place_status(place),
-    }
+    return normalize_nearby_place(place, pilot_city)
+
 
 
 def refresh_catalog(

@@ -10,6 +10,7 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { MyContributionsPage } from "./pages/MyContributionsPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
+import { PlaceRestaurantDetailPage } from "./pages/PlaceRestaurantDetailPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { RateAttributesPage } from "./pages/RateAttributesPage";
 import { ReviewChatPage } from "./pages/ReviewChatPage";
@@ -37,6 +38,22 @@ export default function App() {
             element={
               <Layout>
                 <ExploreMapPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/restaurants/place/:placeId/submit"
+            element={
+              <Layout>
+                <TtfSubmitPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/restaurants/place/:placeId"
+            element={
+              <Layout>
+                <PlaceRestaurantDetailPage />
               </Layout>
             }
           />

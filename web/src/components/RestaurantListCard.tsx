@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { Link } from "react-router-dom";
 
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { formatTtfMedian, ttfTier, ttfTierColor } from "../lib/ttfTier";
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
@@ -74,7 +75,7 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
     }
 
     return (
-      <Link ref={ref as React.Ref<HTMLAnchorElement>} to={`/restaurants/${r.id}`} className={className}>
+      <Link ref={ref as React.Ref<HTMLAnchorElement>} to={restaurantDetailPath(r)} className={className}>
         {body}
       </Link>
     );
