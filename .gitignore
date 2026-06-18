@@ -2,8 +2,11 @@
 .env
 .env.*
 !.env.example
+!.env.defaults
 !.env.cloud.example
 !.env.cloud.visible.example
+.secrets/
+ttf-dev-sync-key.json
 .env.cursor-*
 *.pem
 *.p8

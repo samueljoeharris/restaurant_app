@@ -79,7 +79,7 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 ### Secrets
 
 - **Never** commit `.env`, PATs, `*.pem`, `*.p8`, API keys, or `terraform.tfvars`
-- MCP secrets live in **`.env`** (gitignored); `mcp.json` uses `--env-file` / `envFile`, never literal tokens
+- MCP secrets: GCP Secret Manager → `./scripts/sync-secrets.sh` → `.secrets/`; `mcp.json` uses `--env-file .secrets/mcp.env`, never literal tokens
 - App secrets → Secret Manager (GCP) or GitHub Secrets (CI)
 
 ## Agent workflow
@@ -166,7 +166,7 @@ Only create git commits when the user explicitly asks.
 
 Cloud agents install Docker through `.cursor/environment.json` + `.cursor/Dockerfile`. On startup the VM runs:
 
-1. `.cursor/scripts/bootstrap-cloud-env.sh` — writes `.env`, `web/.env.local`, and `firebase-sa.json` from repo examples plus Cursor secrets
+1. `.cursor/scripts/bootstrap-cloud-env.sh` — runs `sync-secrets.sh` (GCP SM → `.secrets/`), writes `web/.env.local`
 2. `.cursor/scripts/start-docker.sh` — ensures Docker is running
 
 If Docker is unavailable, run `bash .cursor/scripts/start-docker.sh` before `docker compose` or `./scripts/ci-check.sh`.
@@ -178,9 +178,9 @@ Full runbook: [docs/CLOUD_AGENT.md](docs/CLOUD_AGENT.md). Use **two** Cursor sur
 | Cursor type | What to add |
 |-------------|-------------|
 | **Environment variables** (visible) | Copy [`.env.cloud.visible.example`](.env.cloud.visible.example) |
-| **Runtime Secrets** (redacted) | `MAPS_API_KEY`, `VITE_*` Firebase/Maps keys, `GITHUB_PERSONAL_ACCESS_TOKEN`, `GEMINI_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `DEV_TEST_*` |
+| **Runtime Secrets** (redacted) | `GCP_DEV_SYNC_SA_JSON` only — sync pulls all other secrets from SM |
 
-Mac helper: `./scripts/merge-env-for-cursor.sh` splits your local `.env` + `web/.env.local`.
+Mac: `./scripts/sync-secrets.sh` after `gcloud auth application-default login` (replaces `merge-env-for-cursor.sh`).
 
 ```bash
 bash .cursor/scripts/cloud-eval-up.sh   # postgres + API (real Firebase JWT verify)

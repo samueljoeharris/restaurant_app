@@ -38,13 +38,38 @@ jobs:
         with:
           terraform_version: 1.9.0
 
+      - uses: google-github-actions/setup-gcloud@v3
+
       - name: Terraform Init
         run: terraform init -input=false
 
+      - name: Resolve IAP OAuth for Terraform
+        run: |
+          set -euo pipefail
+          PROJECT=ttf-restaurant-dev
+          if IAP_JSON="$(gcloud secrets versions access latest \
+            --secret=ttf-iap-oauth --project="$PROJECT" 2>/dev/null)"; then
+            export IAP_JSON
+            python3 - <<'PY' >> "$GITHUB_ENV"
+          import json, os
+          cfg = json.loads(os.environ["IAP_JSON"])
+          cid = cfg.get("client_id", "")
+          secret = cfg.get("client_secret", "")
+          if cid and secret:
+              with open(os.environ["GITHUB_ENV"], "a") as out:
+                  out.write(f"TF_VAR_iap_oauth_client_id={cid}\n")
+                  out.write(f"TF_VAR_iap_oauth_client_secret={secret}\n")
+          print("IAP OAuth loaded from Secret Manager (ttf-iap-oauth)")
+          PY
+          elif [[ -n "${{ secrets.IAP_OAUTH_CLIENT_ID }}" ]]; then
+            echo "TF_VAR_iap_oauth_client_id=${{ secrets.IAP_OAUTH_CLIENT_ID }}" >> "$GITHUB_ENV"
+            echo "TF_VAR_iap_oauth_client_secret=${{ secrets.IAP_OAUTH_CLIENT_SECRET }}" >> "$GITHUB_ENV"
+            echo "IAP OAuth from GitHub Secrets (bootstrap fallback)"
+          else
+            echo "No IAP OAuth in SM or GitHub Secrets — TF reads SM on apply if iap enabled"
+          fi
+
       - name: Terraform Plan
-        env:
-          TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
-          TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
         run: terraform plan -input=false -no-color -var-file=ci.tfvars -out=tfplan
         id: plan
 

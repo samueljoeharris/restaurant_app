@@ -42,6 +42,10 @@ locals {
       secret  = "ttf-gemini-api-key"
       version = "latest"
     }
+    APPLE_SIGN_IN_KEY_JSON = {
+      secret  = "ttf-apple-sign-in-key"
+      version = "latest"
+    }
     }, var.enable_restaurant_refresh_job ? {
     INTERNAL_JOB_SECRET = {
       secret  = "ttf-internal-job-secret"
@@ -57,6 +61,7 @@ locals {
     APP_CHECK_ENFORCE         = var.app_check_recaptcha_site_key != "" ? "true" : "false"
     RATE_LIMIT_MAX_WRITES     = "60"
     RATE_LIMIT_WINDOW_MINUTES = "60"
+    UPLOADS_BUCKET_NAME       = var.uploads_bucket_name
     GEMINI_CHAT_MODEL         = "gemini-2.5-flash-lite"
     GEMINI_EXTRACT_MODEL      = "gemini-2.5-flash"
     CORS_ORIGINS = jsonencode(compact(concat(

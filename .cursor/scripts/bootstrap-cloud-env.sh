@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# Cloud agent startup: ensure .env + web/.env.local + firebase-sa.json exist.
-# Defaults to real Firebase unless FIREBASE_AUTH_EMULATOR_HOST is set.
+# Cloud agent startup: sync secrets from GCP SM, ensure web env + firebase SA exist.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
 read_env_file() {
-  local key="$1" file="${2:-.env}"
+  local key="$1" file="${2:-.env.defaults}"
   [[ -f "$file" ]] || return 0
   local line
   line="$(grep -E "^${key}=" "$file" 2>/dev/null | head -1 || true)"
@@ -19,17 +18,10 @@ read_env_file() {
   printf '%s' "$value"
 }
 
-set_env_kv_if_empty() {
-  local file="$1" key="$2" value="$3"
-  [[ -n "$value" ]] || return 0
-  local current
-  current="$(read_env_file "$key" "$file")"
-  [[ -z "$current" ]] || return 0
-  if grep -q "^${key}=" "$file" 2>/dev/null; then
-    sed -i "s|^${key}=.*|${key}=${value}|" "$file"
-  else
-    printf '%s=%s\n' "$key" "$value" >>"$file"
-  fi
+read_kv_safe() {
+  local file="$1" key="$2"
+  [[ -f "$file" ]] || return 0
+  grep -E "^${key}=" "$file" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '\r' || true
 }
 
 env_or_file() {
@@ -39,82 +31,44 @@ env_or_file() {
     printf '%s' "$from_env"
     return
   fi
-  read_env_file "$key"
+  local val
+  val="$(read_env_file "$key" ".env")"
+  [[ -n "$val" ]] && printf '%s' "$val" && return
+  read_env_file "$key" ".env.defaults"
 }
-
-if [[ ! -f .env ]]; then
-  if [[ -f .env.cloud.visible.example ]]; then
-    cp .env.cloud.visible.example .env
-    echo "Created .env from .env.cloud.visible.example — add Runtime Secrets in Cursor"
-  else
-    cp .env.example .env
-  fi
-fi
 
 emulator_host="$(env_or_file FIREBASE_AUTH_EMULATOR_HOST)"
 use_emulator=false
 [[ -n "$emulator_host" ]] && use_emulator=true
 
-# Shared defaults (non-secret).
-set_env_kv_if_empty .env AUTH_DEV_MODE "true"
-set_env_kv_if_empty .env DATABASE_URL "postgresql://ttf_app:ttf_local@localhost:5432/ttf"
-set_env_kv_if_empty .env POSTGRES_CONNECTION_STRING "postgresql://ttf_app:ttf_local@localhost:5432/ttf"
-set_env_kv_if_empty .env PILOT_CITY "dedham-ma"
-set_env_kv_if_empty .env FIREBASE_PROJECT_ID "ttf-restaurant-dev"
-set_env_kv_if_empty .env FIREBASE_SERVICE_ACCOUNT_PATH "firebase-sa.json"
-set_env_kv_if_empty .env CORS_ORIGINS '["http://localhost:5173","http://localhost:3000"]'
-
-sa_json="$(env_or_file FIREBASE_SERVICE_ACCOUNT_JSON)"
-if [[ -n "$sa_json" ]]; then
-  printf '%s' "$sa_json" >firebase-sa.json
-elif [[ ! -f firebase-sa.json ]]; then
-  if $use_emulator; then
-    echo '{}' >firebase-sa.json
-  else
-    echo '{}' >firebase-sa.json
-    echo "WARN: firebase-sa.json empty — set FIREBASE_SERVICE_ACCOUNT_JSON Runtime Secret for real Firebase" >&2
-  fi
-fi
-
-# Sync web/.env.local from env (Runtime Secrets + visible .env).
-{
-  echo "VITE_API_URL=$(env_or_file VITE_API_URL)"
-  echo "VITE_USE_AUTH_EMULATOR=$(env_or_file VITE_USE_AUTH_EMULATOR)"
-  echo "VITE_FIREBASE_API_KEY=$(env_or_file VITE_FIREBASE_API_KEY)"
-  echo "VITE_FIREBASE_AUTH_DOMAIN=$(env_or_file VITE_FIREBASE_AUTH_DOMAIN)"
-  echo "VITE_FIREBASE_PROJECT_ID=$(env_or_file VITE_FIREBASE_PROJECT_ID)"
-  echo "VITE_FIREBASE_APP_ID=$(env_or_file VITE_FIREBASE_APP_ID)"
-  echo "VITE_GOOGLE_MAPS_API_KEY=$(env_or_file VITE_GOOGLE_MAPS_API_KEY)"
-  echo "VITE_ENABLE_REVIEW_CHAT=$(env_or_file VITE_ENABLE_REVIEW_CHAT)"
-  echo "VITE_ADMIN_APP_URL=$(env_or_file VITE_ADMIN_APP_URL)"
-} >web/.env.local
-
-set_env_kv_if_empty web/.env.local VITE_API_URL "http://localhost:8080"
-set_env_kv_if_empty web/.env.local VITE_FIREBASE_PROJECT_ID "ttf-restaurant-dev"
-set_env_kv_if_empty web/.env.local VITE_ENABLE_REVIEW_CHAT "true"
-
 if $use_emulator; then
-  set_env_kv_if_empty .env FIREBASE_AUTH_EMULATOR_HOST "firebase-emulator:9099"
-  set_env_kv_if_empty web/.env.local VITE_USE_AUTH_EMULATOR "true"
-  set_env_kv_if_empty web/.env.local VITE_FIREBASE_API_KEY "fake-api-key-for-emulator"
-  set_env_kv_if_empty web/.env.local VITE_FIREBASE_AUTH_DOMAIN "localhost"
+  mkdir -p .secrets
+  echo '{}' > .secrets/firebase-sa.json
+  cp .secrets/firebase-sa.json firebase-sa.json 2>/dev/null || true
+  WEB="$ROOT/.secrets/web.env.local"
+  {
+    echo "VITE_API_URL=http://localhost:8080"
+    echo "VITE_USE_AUTH_EMULATOR=true"
+    echo "VITE_FIREBASE_API_KEY=fake-api-key-for-emulator"
+    echo "VITE_FIREBASE_AUTH_DOMAIN=localhost"
+    echo "VITE_FIREBASE_PROJECT_ID=ttf-restaurant-dev"
+  } >"$WEB"
+  cp "$WEB" "$ROOT/web/.env.local"
+  echo "Cloud env bootstrap: Firebase emulator mode (skipping Secret Manager sync)"
 else
-  set_env_kv_if_empty web/.env.local VITE_FIREBASE_AUTH_DOMAIN "ttf-restaurant-dev.firebaseapp.com"
-fi
-
-set_env_kv() {
-  local file="$1" key="$2" value="$3"
-  [[ -n "$value" ]] || return 0
-  if grep -q "^${key}=" "$file" 2>/dev/null; then
-    sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+  if [[ -n "${GCP_DEV_SYNC_SA_JSON:-}" ]] || [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]] \
+    || (command -v gcloud >/dev/null 2>&1 \
+      && gcloud auth application-default print-access-token \
+        --project="${TTF_GCP_PROJECT_DEV:-ttf-restaurant-dev}" >/dev/null 2>&1); then
+    bash "$ROOT/scripts/sync-secrets.sh" || {
+      echo "WARN: sync-secrets.sh failed — set GCP_DEV_SYNC_SA_JSON Runtime Secret or gcloud ADC" >&2
+    }
   else
-    printf '%s=%s\n' "$key" "$value" >>"$file"
+    echo "WARN: No GCP credentials — set GCP_DEV_SYNC_SA_JSON in Cursor Runtime Secrets" >&2
+    echo "      See docs/CLOUD_AGENT.md" >&2
+    mkdir -p .secrets
+    [[ -f firebase-sa.json ]] && cp firebase-sa.json .secrets/firebase-sa.json 2>/dev/null || echo '{}' > .secrets/firebase-sa.json
   fi
-}
-
-maps_api="$(env_or_file MAPS_API_KEY)"
-if [[ -n "$maps_api" ]]; then
-  set_env_kv .env MAPS_API_KEY "$maps_api"
 fi
 
 if [[ -d web && ! -d web/node_modules ]]; then
@@ -122,25 +76,19 @@ if [[ -d web && ! -d web/node_modules ]]; then
   (cd web && npm install --no-fund --no-audit)
 fi
 
-maps_api="$(env_or_file MAPS_API_KEY)"
-maps_web="$(env_or_file VITE_GOOGLE_MAPS_API_KEY)"
-github_pat="$(env_or_file GITHUB_PERSONAL_ACCESS_TOKEN)"
-if [[ -n "$github_pat" ]]; then
-  # gh CLI defaults to Cursor's integration token (issues: read-only). Use repo PAT for issue edits.
-  export GH_TOKEN="$github_pat"
-fi
-dev_email="$(env_or_file DEV_TEST_EMAIL)"
-vite_fb="$(env_or_file VITE_FIREBASE_API_KEY)"
+maps_api="$(read_kv_safe .secrets/api.env MAPS_API_KEY)"
+maps_web="$(read_kv_safe .secrets/web.env.local VITE_GOOGLE_MAPS_API_KEY)"
+github_pat="$(read_kv_safe .secrets/mcp.env GITHUB_PERSONAL_ACCESS_TOKEN)"
+[[ -n "$github_pat" ]] && export GH_TOKEN="$github_pat"
+
 sa_size=0
-[[ -f firebase-sa.json ]] && sa_size=$(wc -c <firebase-sa.json | tr -d ' ')
+[[ -f .secrets/firebase-sa.json ]] && sa_size=$(wc -c <.secrets/firebase-sa.json | tr -d ' ')
 
 echo "Cloud env bootstrap:"
-echo "  auth mode:         $($use_emulator && echo emulator || echo real-firebase)"
-echo "  .env:              $([[ -f .env ]] && echo yes || echo missing)"
+echo "  auth mode:         $($use_emulator && echo emulator || echo secret-manager-sync)"
+echo "  .secrets/api.env:  $([[ -f .secrets/api.env ]] && echo yes || echo missing)"
 echo "  MAPS_API_KEY:      $([[ -n "$maps_api" ]] && echo set || echo MISSING)"
 echo "  VITE_GOOGLE_MAPS:  $([[ -n "$maps_web" ]] && echo set || echo MISSING)"
-echo "  VITE_FIREBASE_KEY: $([[ -n "$vite_fb" ]] && echo set || echo MISSING)"
-echo "  firebase-sa.json:  $([[ "$sa_size" -gt 10 ]] && echo set || echo MISSING — need FIREBASE_SERVICE_ACCOUNT_JSON)"
-echo "  GitHub PAT:        $([[ -n "$github_pat" ]] && echo set || echo missing)"
-echo "  DEV_TEST_EMAIL:    $([[ -n "$dev_email" ]] && echo set || echo missing)"
-echo "  web/.env.local:    synced"
+echo "  firebase-sa.json:  $([[ "$sa_size" -gt 10 ]] && echo set || echo MISSING)"
+echo "  GitHub PAT (MCP):  $([[ -n "$github_pat" ]] && echo set || echo missing)"
+echo "  web/.env.local:    synced from .secrets/"

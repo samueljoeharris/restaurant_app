@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     apple_key_id: str = ""
     apple_private_key: str = ""
     apple_client_id: str = "com.samueljoeharris.ttf"
+    apple_sign_in_key_json: str = ""
     review_chat_enabled: bool = True
     gemini_api_key: str = ""
     # Conversational turns — plain text, keep prompt small.

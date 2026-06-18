@@ -39,29 +39,26 @@ gcloud auth login
 gcloud auth application-default login
 ```
 
-## Phase 0c — Secrets via `.env`
+## Phase 0c — Secrets via Secret Manager
 
-**Do not use system environment variables** unless you prefer a global setup. This project uses a **gitignored `.env` file** at the repo root.
+**Write secrets once in GCP Secret Manager.** Dev pulls via `./scripts/sync-secrets.sh` → `.secrets/` (gitignored).
 
 ```bash
-cp .env.example .env
+gcloud auth application-default login
+gcloud config set project ttf-restaurant-dev
+./scripts/sync-secrets.sh
+./scripts/audit-env.sh
 ```
 
-Edit `.env` and set your values:
+| MCP server | Secret source |
+|------------|---------------|
+| **github** | Docker `--env-file .secrets/mcp.env` (from `ttf-github-pat-mcp` in SM) |
+| **postgres** | `.env.defaults` `POSTGRES_CONNECTION_STRING` (local, non-secret) |
+| **gcloud** | `gcloud auth application-default login` (no stored key) |
 
-| Variable | Value | When needed |
-|----------|-------|-------------|
-| `GITHUB_PERSONAL_ACCESS_TOKEN` | Your fine-grained PAT | Phase 0 — GitHub MCP |
-| `POSTGRES_CONNECTION_STRING` | `postgresql://ttf_app:ttf_local@localhost:5432/ttf` | Phase 2 — postgres MCP |
-| `TTF_GCP_PROJECT_DEV` | `ttf-restaurant-dev` | Optional reference for gcloud |
+Store GitHub PAT in SM as `ttf-github-pat-mcp`, not in `.env`. See [SECRETS_MATRIX.md](SECRETS_MATRIX.md).
 
-### How secrets reach each MCP
-
-| MCP | Mechanism |
-|-----|-----------|
-| **github** | Docker `--env-file .env` — token passed directly into container |
-| **postgres** | Cursor `envFile` — loads `.env` for npx server |
-| **gcloud** | No token in `.env` — uses `gcloud auth login` credentials on your machine |
+Cursor Cloud: one Runtime Secret `GCP_DEV_SYNC_SA_JSON` — see [CLOUD_AGENT.md](CLOUD_AGENT.md).
 
 ### MCP scripts (Mac vs Windows)
 
@@ -81,11 +78,11 @@ gcloud config set project ttf-restaurant-dev
 
 ### Alternative: Windows user env vars
 
-If you prefer machine-wide secrets, set `GITHUB_PERSONAL_ACCESS_TOKEN` in Windows Environment Variables and change `mcp.json` to use `${env:GITHUB_PERSONAL_ACCESS_TOKEN}` instead of `--env-file`. The `.env` approach is recommended for this repo.
+If you prefer machine-wide secrets, set `GITHUB_PERSONAL_ACCESS_TOKEN` in Windows Environment Variables and change `mcp.json` to use `${env:GITHUB_PERSONAL_ACCESS_TOKEN}` instead of `--env-file`. Prefer SM + `sync-secrets.sh` for this repo.
 
 ### Alternative: global `~/.cursor/mcp.json`
 
-Store the PAT only in your **global** Cursor config (never commit). Official GitHub docs show putting the token directly in `~/.cursor/mcp.json`. Use that if you want GitHub MCP in all projects — this repo uses **project-scoped** `.cursor/mcp.json` + `.env` instead.
+Store the PAT in Secret Manager (`ttf-github-pat-mcp`) or global `~/.cursor/mcp.json` — this repo uses project-scoped `.cursor/mcp.json` + `.secrets/mcp.env`.
 
 ### Creating the GitHub PAT
 
@@ -93,8 +90,8 @@ Store the PAT only in your **global** Cursor config (never commit). Official Git
 2. Create fine-grained token named **`ttf-cursor-mcp`**
 3. Repository access: **Only** `samueljoeharris/restaurant_app`
 4. Permissions: Contents (read), Issues (read/write), Pull requests (read/write), Actions (read), Metadata (read)
-5. Copy token → paste into `.env` as `GITHUB_PERSONAL_ACCESS_TOKEN=...`
-6. Restart Cursor (or Reload Window) so MCP reloads
+5. Store token in SM: `echo -n "ghp_..." | gcloud secrets versions add ttf-github-pat-mcp --project=ttf-restaurant-dev --data-file=-`
+6. Run `./scripts/sync-secrets.sh` and restart Cursor
 
 ## Phase 0d — Enable MCP in Cursor
 
@@ -110,7 +107,7 @@ Store the PAT only in your **global** Cursor config (never commit). Official Git
 
 | Problem | Fix |
 |---------|-----|
-| GitHub MCP red / disconnected | Docker running? `.env` exists with PAT? Path: `${workspaceFolder}/.env` |
+| GitHub MCP red / disconnected | Docker running? Run `./scripts/sync-secrets.sh` — needs `.secrets/mcp.env` |
 | gcloud MCP red on Mac | Node in PATH? Run `which npx`. Reload Cursor after `brew install node@20`. |
 | gcloud MCP red on Windows | Cursor doesn't load fnm shell PATH — use `.cmd` wrappers in `mcp.json`. Reload Cursor. |
 | gcloud MCP auth errors | Run `gcloud auth login` in terminal |

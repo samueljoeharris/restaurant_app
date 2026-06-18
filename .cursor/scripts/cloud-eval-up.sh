@@ -41,4 +41,4 @@ else
   echo "  Auth:      real Firebase (ttf-restaurant-dev)"
 fi
 echo "  Web dev:   cd web && npm run dev  → http://localhost:5173"
-echo "  app.dev:   DEV_TEST_EMAIL / DEV_TEST_PASSWORD Runtime Secrets"
+  echo "  app.dev:   DEV_TEST_* from .secrets/dev-test.env (via sync-secrets.sh)"

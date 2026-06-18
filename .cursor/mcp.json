@@ -11,7 +11,7 @@
         "-i",
         "--rm",
         "--env-file",
-        "${workspaceFolder}/.env",
+        "${workspaceFolder}/.secrets/mcp.env",
         "ghcr.io/github/github-mcp-server"
       ]
     },

@@ -31,7 +31,7 @@ See [MCP_SETUP.md](MCP_SETUP.md) for full instructions.
 - [x] Install [Node.js 20+](https://nodejs.org) (or `brew install node@20`)
 - [x] Install [gcloud CLI](https://cloud.google.com/sdk/docs/install) → `gcloud auth login`
 - [x] Install [gh CLI](https://cli.github.com) (optional)
-- [x] `cp .env.example .env` and add `GITHUB_PERSONAL_ACCESS_TOKEN` (see [MCP_SETUP.md](MCP_SETUP.md))
+- [x] `gcloud auth application-default login` + `./scripts/sync-secrets.sh` (see [SECRETS_MATRIX.md](SECRETS_MATRIX.md); replaces manual `.env` paste)
 - [x] Restart Cursor → verify green MCP dots (github, gcloud)
 - [x] Test: ask agent to list GitHub issues or run `gcloud projects list`
 

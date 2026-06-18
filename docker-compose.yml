@@ -38,11 +38,14 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - .env.defaults
+      - path: .secrets/api.env
+        required: false
+      - path: .env
+        required: false
     volumes:
-      - ./firebase-sa.json:/secrets/firebase-admin/firebase-sa.json:ro
+      - ./.secrets/firebase-sa.json:/secrets/firebase-admin/firebase-sa.json:ro
     environment:
-      # Container-only overrides (host .env uses localhost for DATABASE_URL).
       DATABASE_URL: postgresql://ttf_app:ttf_local@postgres:5432/ttf
       FIREBASE_SERVICE_ACCOUNT_PATH: /secrets/firebase-admin/firebase-sa.json
       APP_CHECK_ENFORCE: "false"
