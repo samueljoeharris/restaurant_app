@@ -9,6 +9,7 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [README.md](../README.md) | Project overview, current status, and top-level quick start |
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Phase checklist and current build/deploy state |
 | [ROADMAP.md](ROADMAP.md) | **Backlog queue** — `now` / `next` / `later` GitHub issues |
+| [BACKLOG_STATUS.md](BACKLOG_STATUS.md) | Hygiene snapshot + `gh issue edit` bodies in [backlog/](backlog/) |
 | [CI.md](CI.md) | Local Docker checks and GitHub Actions behavior |
 | [WEB_AUTH.md](WEB_AUTH.md) | **Public app** — sign up, sign in, Google, MFA, local emulator |
 | [FIREBASE_AUTH.md](FIREBASE_AUTH.md) | API JWT verification, dev tokens, App Check, Cloud Run env |

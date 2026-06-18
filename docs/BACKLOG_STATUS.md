@@ -3,7 +3,7 @@
 **Date:** 2026-06-18  
 **Canonical queue:** [ROADMAP.md](ROADMAP.md)
 
-Use this when syncing GitHub issue bodies/labels. The cloud agent token cannot edit issues — run locally:
+Use this when syncing GitHub issue bodies/labels. Cloud bootstrap sets `GH_TOKEN` from `GITHUB_PERSONAL_ACCESS_TOKEN` so `gh issue edit` works (Cursor's default `ghs_` token cannot edit issues).
 
 ```bash
 gh issue edit 42 --body-file docs/backlog/issue-42.md

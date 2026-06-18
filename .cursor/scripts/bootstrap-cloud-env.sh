@@ -125,6 +125,10 @@ fi
 maps_api="$(env_or_file MAPS_API_KEY)"
 maps_web="$(env_or_file VITE_GOOGLE_MAPS_API_KEY)"
 github_pat="$(env_or_file GITHUB_PERSONAL_ACCESS_TOKEN)"
+if [[ -n "$github_pat" ]]; then
+  # gh CLI defaults to Cursor's integration token (issues: read-only). Use repo PAT for issue edits.
+  export GH_TOKEN="$github_pat"
+fi
 dev_email="$(env_or_file DEV_TEST_EMAIL)"
 vite_fb="$(env_or_file VITE_FIREBASE_API_KEY)"
 sa_size=0
