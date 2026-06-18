@@ -1,0 +1,16 @@
+---
+description: Autonomous GitHub issue delivery — orchestrate up to 3 attempts, no questions until done
+alwaysApply: true
+---
+
+# GitHub issue orchestrator
+
+When the user assigns a **GitHub issue** ("work on #42", "implement issue 42", issue URL):
+
+1. **Read and follow** [.cursor/skills/github-issue-orchestrator/SKILL.md](.cursor/skills/github-issue-orchestrator/SKILL.md).
+2. **Do not ask questions** until success or 3 failed attempts — use skill defaults.
+3. **Orchestrate:** plan → delegate sub-agents (research / worktree writes) → implement → `./scripts/ci-check.sh` → push `main` → watch **CI/CD** → validate live (API curl / browser).
+4. **Update the issue** each attempt; close on success or post failure report after attempt 3.
+5. **One final chat message** at each gate — no status pings mid-loop.
+
+Commits and pushes are **in scope** for assigned issue delivery unless the user says otherwise in the same message.

@@ -1,57 +1,108 @@
 # Cursor Cloud Agent setup
 
-How to give cloud agents a full local stack and credentials to evaluate `/map`, auth, and API behavior.
+How to configure cloud agents for **real Firebase** (`ttf-restaurant-dev`) — same auth as `app.dev` and your Mac `web/.env.local`.
 
-## Fastest path: paste `.env` in Cursor
+## Cursor: Environment variables vs Runtime Secrets
 
-1. Copy [`.env.cloud.example`](../.env.cloud.example) from the repo.
-2. Fill in the `<paste-…>` placeholders (see below).
-3. In **Cursor → Cloud Agents → Environment variables**, paste the entire file and save.
-4. Start or restart a cloud agent — `.cursor/scripts/bootstrap-cloud-env.sh` runs on startup.
+Per [Cursor security docs](https://cursor.com/docs/cloud-agent/security-network):
 
-Bootstrap **never overwrites** non-empty values in your pasted `.env`. It syncs `web/.env.local` from the root `.env` and writes `firebase-sa.json` when needed.
+| Cursor type | Agent can read value? | Use for |
+|-------------|----------------------|---------|
+| **Environment Variable** | **Yes** (visible in chat/tools/commits) | Non-sensitive config: URLs, pilot city, CORS |
+| **Runtime Secret** | **No** (`[REDACTED]` in agent output) | API keys, PATs, Firebase keys, SA JSON, passwords |
+| **Build Secret** | No (build only) | Private npm registries in Dockerfile |
 
-## Required values (minimum for `/map` debugging)
+Runtime Secrets are still injected as environment variables — `docker compose`, Vite, and bootstrap work normally; the agent just cannot echo them.
 
-| Variable | Source |
-|----------|--------|
-| `MAPS_API_KEY` | GCP Secret `ttf-maps-api-key` |
-| `VITE_GOOGLE_MAPS_API_KEY` | GCP Secret `ttf-maps-web-api-key` |
+**Do not paste your full `.env` into visible Environment Variables.**
+
+---
+
+## Setup (real Firebase)
+
+### 1. Environment Variables (visible)
+
+Copy [`.env.cloud.visible.example`](../.env.cloud.visible.example) into **Cursor → Cloud Agents → Environment variables**.
+
+### 2. Runtime Secrets (one row per key)
+
+In **Cursor → Cloud Agents → Secrets**, add each as type **Runtime Secret**. Values from your Mac `.env`, `web/.env.local`, and `firebase-sa.json`:
+
+| Runtime Secret name | Source on your Mac |
+|---------------------|-------------------|
+| `GITHUB_PERSONAL_ACCESS_TOKEN` | `.env` |
+| `MAPS_API_KEY` | `.env` |
+| `GEMINI_API_KEY` | `.env` |
+| `VITE_FIREBASE_API_KEY` | `web/.env.local` |
+| `VITE_FIREBASE_APP_ID` | `web/.env.local` |
+| `VITE_GOOGLE_MAPS_API_KEY` | `web/.env.local` |
+| `AUTH_DEV_ADMIN_UIDS` | `.env` |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | one-line JSON from `firebase-sa.json` (see below) |
+| `DEV_TEST_EMAIL` | optional — browser tests on `app.dev` |
+| `DEV_TEST_PASSWORD` | optional |
+
+One-line Firebase admin SA:
 
 ```bash
-gcloud secrets versions access latest --secret=ttf-maps-web-api-key --project=ttf-restaurant-dev
+python3 -c "import json; print(json.dumps(json.load(open('firebase-sa.json'))))"
+```
+
+Paste output as `FIREBASE_SERVICE_ACCOUNT_JSON` Runtime Secret. Bootstrap writes it to `firebase-sa.json` on the VM so the API can verify real Firebase JWTs.
+
+### 3. Maps keys (required for `/map`)
+
+```bash
 gcloud secrets versions access latest --secret=ttf-maps-api-key --project=ttf-restaurant-dev
+gcloud secrets versions access latest --secret=ttf-maps-web-api-key --project=ttf-restaurant-dev
 ```
 
-## Recommended extras
+→ `MAPS_API_KEY` and `VITE_GOOGLE_MAPS_API_KEY` Runtime Secrets.
 
-| Variable | Purpose |
-|----------|---------|
-| `GITHUB_PERSONAL_ACCESS_TOKEN` | GitHub MCP, workflow dispatch |
-| `DEV_TEST_EMAIL` / `DEV_TEST_PASSWORD` | Sign in on `app.dev.littlescout.app` in browser tests |
-| `GEMINI_API_KEY` | Review chat locally |
+### 4. Restart cloud agent
 
-## Local full stack (agent commands)
+Startup runs `.cursor/scripts/bootstrap-cloud-env.sh` then Docker.
 
-After `.env` is pasted:
+---
+
+## Local stack on the cloud VM
 
 ```bash
-bash .cursor/scripts/cloud-eval-up.sh   # docker compose emulator + API
-cd web && npm run dev                   # http://localhost:5173 (non-minified React errors)
+bash .cursor/scripts/cloud-eval-up.sh   # postgres + API (real Firebase JWT verify)
+cd web && npm run dev                   # http://localhost:5173
+./scripts/audit-env.sh                  # redacted status report
 ```
 
-Emulator sign-in defaults to `pilot@ttf.test` / `pilotpass123` unless `DEV_TEST_*` is set.
+Sign in with a **real** Firebase user on `ttf-restaurant-dev` (same as `app.dev`), or set `DEV_TEST_EMAIL` / `DEV_TEST_PASSWORD` Runtime Secrets.
 
-## Testing deployed dev
+---
 
-Agents can curl `https://api.dev.littlescout.app/health` without secrets. Signed-in browser tests on `https://app.dev.littlescout.app/map` need `DEV_TEST_EMAIL` and `DEV_TEST_PASSWORD` (a real Firebase user on `ttf-restaurant-dev`).
+## Mac helper: split your local env
 
-## Files touched by bootstrap
+```bash
+./scripts/merge-env-for-cursor.sh
+```
 
-| File | Role |
-|------|------|
-| `.env` | Pasted from Cursor or created from `.env.cloud.example` |
-| `web/.env.local` | Synced from `VITE_*` in `.env` |
-| `firebase-sa.json` | `{}` for emulator, or `FIREBASE_SERVICE_ACCOUNT_JSON` |
+Writes:
 
-See also [AGENTS.md](../AGENTS.md) (Cursor Cloud section) and [WEB_AUTH.md](WEB_AUTH.md#option-a--firebase-auth-emulator-recommended-in-cloud--no-secrets).
+- `.env.cursor-visible` → copy into Cursor **Environment variables**
+- `.env.cursor-runtime-checklist` → names to add as **Runtime Secrets** (no values)
+
+---
+
+## Emulator mode (optional alternative)
+
+Only if you explicitly want fake auth without `firebase-sa.json`:
+
+- Add visible: `FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099`, `VITE_USE_AUTH_EMULATOR=true`
+- Use `docker compose --profile emulator up …`
+- See [WEB_AUTH.md](WEB_AUTH.md#option-b--firebase-auth-emulator-optional-no-secrets)
+
+**Default for this project: real Firebase** (matches production dev pilot).
+
+---
+
+## Deployed `app.dev`
+
+Local Cursor config does not fix a broken `app.dev` deploy. Maps on `app.dev` come from GCP Secret Manager at **web build** time (`ttf-maps-web-api-key`). Re-run the **Web** GitHub workflow after updating that secret.
+
+See [SECRETS_MATRIX.md](SECRETS_MATRIX.md) for rotation and where each secret lives.

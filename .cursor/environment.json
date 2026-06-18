@@ -1,5 +1,5 @@
 {
-  "name": "Little Scout Cloud Agent",
+  "name": "Little Scout Cloud Agent V1",
   "user": "ubuntu",
   "build": {
     "dockerfile": "Dockerfile",

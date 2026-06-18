@@ -171,24 +171,37 @@ Cloud agents install Docker through `.cursor/environment.json` + `.cursor/Docker
 
 If Docker is unavailable, run `bash .cursor/scripts/start-docker.sh` before `docker compose` or `./scripts/ci-check.sh`.
 
-### Cursor Cloud secrets
+### Cursor Cloud secrets (real Firebase)
 
-**Preferred:** paste a filled [`.env.cloud.example`](.env.cloud.example) into **Cursor → Cloud Agents → Environment variables**. Bootstrap syncs `web/.env.local` from it and never overwrites non-empty values. Full runbook: [docs/CLOUD_AGENT.md](docs/CLOUD_AGENT.md).
+Full runbook: [docs/CLOUD_AGENT.md](docs/CLOUD_AGENT.md). Use **two** Cursor surfaces — do not paste secrets into visible env vars ([Cursor docs](https://cursor.com/docs/cloud-agent/security-network)):
 
-Minimum for `/map` debugging in the pasted `.env`:
+| Cursor type | What to add |
+|-------------|-------------|
+| **Environment variables** (visible) | Copy [`.env.cloud.visible.example`](.env.cloud.visible.example) |
+| **Runtime Secrets** (redacted) | `MAPS_API_KEY`, `VITE_*` Firebase/Maps keys, `GITHUB_PERSONAL_ACCESS_TOKEN`, `GEMINI_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `DEV_TEST_*` |
 
-| Variable | Source |
-|----------|--------|
-| `MAPS_API_KEY` | GCP Secret `ttf-maps-api-key` |
-| `VITE_GOOGLE_MAPS_API_KEY` | GCP Secret `ttf-maps-web-api-key` |
+Mac helper: `./scripts/merge-env-for-cursor.sh` splits your local `.env` + `web/.env.local`.
 
-Recommended: `GITHUB_PERSONAL_ACCESS_TOKEN`, `DEV_TEST_EMAIL`, `DEV_TEST_PASSWORD`.
+```bash
+bash .cursor/scripts/cloud-eval-up.sh   # postgres + API (real Firebase JWT verify)
+cd web && npm run dev
+```
 
-Start local stack: `bash .cursor/scripts/cloud-eval-up.sh` then `cd web && npm run dev`.
+### Local full-stack — real Firebase (default)
 
-### Local full-stack (no cloud Firebase secrets)
+Same auth as `app.dev` — use your real `web/.env.local` Firebase config and `firebase-sa.json`. Full steps: [docs/WEB_AUTH.md](docs/WEB_AUTH.md#option-a--real-firebase-locally-recommended).
 
-Use the Firebase Auth emulator so web sign-in works without `firebase-sa.json` or real `VITE_FIREBASE_API_KEY`. Full steps: [docs/WEB_AUTH.md](docs/WEB_AUTH.md#option-a--firebase-auth-emulator-recommended-in-cloud--no-secrets).
+```bash
+# .env — no FIREBASE_AUTH_EMULATOR_HOST; real SA path
+# web/.env.local — real VITE_FIREBASE_* (no VITE_USE_AUTH_EMULATOR)
+
+docker compose up --build -d postgres api
+cd web && npm run dev   # http://localhost:5173
+```
+
+Sign in with a real Firebase user on `ttf-restaurant-dev` (Google or email/password).
+
+### Local full-stack — Firebase emulator (optional)
 
 ```bash
 cp .env.example .env

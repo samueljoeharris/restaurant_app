@@ -3,6 +3,8 @@
 .env.*
 !.env.example
 !.env.cloud.example
+!.env.cloud.visible.example
+.env.cursor-*
 *.pem
 *.p8
 *.key

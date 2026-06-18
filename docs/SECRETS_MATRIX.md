@@ -28,33 +28,35 @@ Where each credential lives, what it powers, and what to do if it leaks.
 
 ## Secret inventory
 
-| Secret | Local file(s) | GCP Secret Manager | GitHub Actions | Rotate if… |
-|--------|---------------|--------------------|----------------|------------|
-| Server Maps / Places key | `.env` → `MAPS_API_KEY` | `ttf-maps-api-key` | via deploy SA | Leaked in chat, commit, or public issue |
-| Browser Maps JS key | `web/.env.local` → `VITE_GOOGLE_MAPS_API_KEY` | `ttf-maps-web-api-key` | web build arg | Same |
-| Firebase web SDK JSON | `web/.env.local` → `VITE_FIREBASE_*` | `ttf-firebase-web-env` | web build arg | Firebase console regen |
-| Firebase admin SA | `firebase-sa.json` | `ttf-firebase-admin-sa` (prod API) | — | **Always rotate** if JSON leaked |
-| Gemini API key | `.env` → `GEMINI_API_KEY` | `ttf-gemini-api-key` | API deploy | Google AI Studio revoke |
-| GitHub PAT (MCP) | `.env` → `GITHUB_PERSONAL_ACCESS_TOKEN` | — | — | GitHub → revoke token |
-| IAP OAuth client | — | `ttf-iap-oauth` | `IAP_OAUTH_*` env secrets | Google Cloud Console |
-| Dev test login | `.env` → `DEV_TEST_EMAIL/PASSWORD` | — | — | Firebase console reset password |
-| Postgres (local) | `.env` → `DATABASE_URL` | — | — | N/A (`ttf_local` is dev-only) |
+| Secret | Local | GCP Secret Manager | Cursor Cloud |
+|--------|-------|-------------------|--------------|
+| Server Maps / Places key | `.env` → `MAPS_API_KEY` | `ttf-maps-api-key` | Runtime Secret |
+| Browser Maps JS key | `web/.env.local` → `VITE_GOOGLE_MAPS_API_KEY` | `ttf-maps-web-api-key` | Runtime Secret |
+| Firebase web SDK | `web/.env.local` → `VITE_FIREBASE_*` | `ttf-firebase-web-env` | Runtime Secret |
+| Firebase admin SA | `firebase-sa.json` | `ttf-firebase-admin-sa` | Runtime Secret `FIREBASE_SERVICE_ACCOUNT_JSON` |
+| Gemini API key | `.env` → `GEMINI_API_KEY` | `ttf-gemini-api-key` | Runtime Secret |
+| GitHub PAT (MCP) | `.env` → `GITHUB_PERSONAL_ACCESS_TOKEN` | — | Runtime Secret |
+| IAP OAuth client | — | `ttf-iap-oauth` | GitHub env secrets (deploy only) |
+| Dev test login | `.env` → `DEV_TEST_*` | — | Runtime Secret (optional) |
+| Postgres (local) | `.env` → `DATABASE_URL` | — | Environment variable (non-secret) |
+
+Cursor types: [CLOUD_AGENT.md](CLOUD_AGENT.md) — **Environment variables** = agent can see; **Runtime Secrets** = `[REDACTED]` in agent output.
 
 ## Which file do I edit?
 
 | I want to… | Edit |
 |------------|------|
 | Local API + docker compose | Repo root **`.env`** |
-| Local web (`npm run dev`) | **`web/.env.local`** (or `VITE_*` in pasted Cursor `.env` — bootstrap syncs) |
-| Cloud agent VM | **Cursor → Cloud Agents → paste `.env`** (root + `VITE_*` lines together) |
+| Local web (`npm run dev`) | **`web/.env.local`** |
+| Cloud agent VM | Cursor **Environment variables** + **Runtime Secrets** (see [CLOUD_AGENT.md](CLOUD_AGENT.md)) |
 | Fix `app.dev` map tiles | GCP `ttf-maps-web-api-key` + re-run **Web** workflow |
-| Fix `app.dev` places search | GCP `ttf-maps-api-key` on API Cloud Run (Terraform/secret) |
+| Fix `app.dev` places search | GCP `ttf-maps-api-key` on API Cloud Run |
 
 ## Rotation runbook (after a leak)
 
 1. **Revoke at source** (Google Cloud Console → APIs & Services → Credentials, Firebase, GitHub PAT settings, etc.).
 2. **Write new version** to GCP Secret Manager (`gcloud secrets versions add …`).
-3. **Update local** `.env` / `web/.env.local` / Cursor pasted `.env`.
+3. **Update local** `.env` / `web/.env.local` / Cursor Runtime Secrets.
 4. **Redeploy** — push to `main` or workflow_dispatch **Web** / **API** as needed.
 5. **Terraform** `maps-web.tf` creates browser key in SM — prefer updating SM version over ad-hoc console keys.
 

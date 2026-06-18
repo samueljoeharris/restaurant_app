@@ -66,9 +66,20 @@ Public read endpoints do not require auth. All **writes** require a valid Fireba
 
 ## Local development
 
-### Option A — Firebase Auth emulator (recommended in cloud / no secrets)
+### Option A — Real Firebase locally (recommended)
 
-No real Firebase project credentials needed.
+Same auth as `app.dev` and Cursor Cloud agents. Use when testing Google sign-in, MFA, or production-like JWT verification.
+
+1. Copy Firebase Web SDK config into `web/.env.local` (`VITE_FIREBASE_*`). Do **not** set `VITE_USE_AUTH_EMULATOR`.
+2. Download `firebase-sa.json` (Firebase Console → Service accounts).
+3. In `.env`: leave `FIREBASE_AUTH_EMULATOR_HOST` unset; set `FIREBASE_SERVICE_ACCOUNT_PATH=firebase-sa.json` (and `AUTH_DEV_MODE=false` if you want only real tokens).
+4. Run `docker compose up -d postgres api` and `cd web && npm run dev`.
+
+For Cursor Cloud, see [CLOUD_AGENT.md](CLOUD_AGENT.md) — paste `FIREBASE_SERVICE_ACCOUNT_JSON` as a Runtime Secret.
+
+### Option B — Firebase Auth emulator (optional, no secrets)
+
+No real Firebase credentials needed. Useful for CI-like sandboxes or when you cannot use Runtime Secrets.
 
 ```bash
 cp .env.example .env
@@ -100,23 +111,14 @@ cd web && npm install && npm run dev   # http://localhost:5173
 
 Test user (emulator): **`pilot@ttf.test`** / **`pilotpass123`**. Emulator UI: http://localhost:4000.
 
-### Option B — Production Firebase locally
-
-Use when testing real Google sign-in or Cloud SQL with production tokens.
-
-1. Copy Firebase Web SDK config into `web/.env.local` (`VITE_FIREBASE_*`).
-2. Download `firebase-sa.json` (Firebase Console → Service accounts).
-3. Set `AUTH_DEV_MODE=false` and `FIREBASE_SERVICE_ACCOUNT_PATH=firebase-sa.json` in `.env`.
-4. Run `docker compose up -d postgres api` and `cd web && npm run dev`.
-
-See [FIREBASE_AUTH.md](FIREBASE_AUTH.md) for API-side modes (dev tokens, emulator, production).
-
 ### Option C — API-only smoke test (no web)
 
 ```bash
 docker compose up -d postgres api
 curl -H "Authorization: Bearer dev:pilot-tester-1" http://localhost:8080/v1/me
 ```
+
+See [FIREBASE_AUTH.md](FIREBASE_AUTH.md) for API-side modes (dev tokens, emulator, production).
 
 ---
 
