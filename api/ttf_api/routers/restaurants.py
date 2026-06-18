@@ -62,7 +62,7 @@ _MAP_SELECT = """
             MAX(created_at) AS last_updated
         FROM ttf_observations
         GROUP BY restaurant_id
-    ) t ON t.id = t.restaurant_id
+    ) t ON r.id = t.restaurant_id
     LEFT JOIN (
         SELECT restaurant_id, COUNT(*)::int AS note_count
         FROM restaurant_notes
