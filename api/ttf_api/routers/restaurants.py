@@ -42,6 +42,7 @@ _HAVERSINE_EXPR = """
 """
 
 # Core SELECT shared between /map and /search (no trailing WHERE / ORDER / LIMIT).
+# Pre-aggregated joins scan each child table once instead of per-restaurant LATERAL.
 _MAP_SELECT = """
     SELECT
         r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
@@ -52,25 +53,26 @@ _MAP_SELECT = """
         COALESCE(n.note_count, 0)::int AS note_count,
         COALESCE(a.attribute_rating_count, 0)::int AS attribute_rating_count
     FROM restaurants r
-    LEFT JOIN LATERAL (
+    LEFT JOIN (
         SELECT
+            restaurant_id,
             COUNT(*)::int AS sample_size,
             PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY elapsed_minutes) AS median_minutes,
             AVG(item_quality)::float AS avg_quality,
             MAX(created_at) AS last_updated
         FROM ttf_observations
-        WHERE restaurant_id = r.id
-    ) t ON true
-    LEFT JOIN LATERAL (
-        SELECT COUNT(*)::int AS note_count
+        GROUP BY restaurant_id
+    ) t ON t.id = t.restaurant_id
+    LEFT JOIN (
+        SELECT restaurant_id, COUNT(*)::int AS note_count
         FROM restaurant_notes
-        WHERE restaurant_id = r.id
-    ) n ON true
-    LEFT JOIN LATERAL (
-        SELECT COUNT(*)::int AS attribute_rating_count
+        GROUP BY restaurant_id
+    ) n ON n.restaurant_id = r.id
+    LEFT JOIN (
+        SELECT restaurant_id, COUNT(*)::int AS attribute_rating_count
         FROM restaurant_attribute_ratings
-        WHERE restaurant_id = r.id
-    ) a ON true
+        GROUP BY restaurant_id
+    ) a ON a.restaurant_id = r.id
 """
 
 router = APIRouter(prefix="/v1/restaurants", tags=["restaurants"])

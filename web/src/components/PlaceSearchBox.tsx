@@ -55,6 +55,7 @@ export function PlaceSearchBox({
         lat: s.lat,
         lng: s.lng,
         name: s.primary_text,
+        address: s.secondary_text ?? undefined,
       });
       return;
     }

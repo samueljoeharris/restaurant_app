@@ -7,13 +7,7 @@ import {
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 
-import {
-  mapPinFill,
-  mapPinHasBadges,
-  mapPinKind,
-  mapPinLabel,
-  mapPinTooltip,
-} from "../lib/mapPin";
+import { MapMarkerLayer } from "./MapMarkerLayer";
 import {
   formatTtfMedian,
   ttfTier,
@@ -21,6 +15,7 @@ import {
   TTF_TIER_LABELS,
   type TtfTier,
 } from "../lib/ttfTier";
+import { mapPinFill, mapPinKind } from "../lib/mapPin";
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
 import { Button, ButtonLink } from "./ui/Button";
@@ -221,76 +216,6 @@ function SearchArea({
         </span>
       </Button>
     </div>
-  );
-}
-
-function MapPin({
-  restaurant,
-  selected,
-  onSelect,
-}: {
-  restaurant: RestaurantMapEntry;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const kind = mapPinKind(restaurant);
-  const fill = mapPinFill(restaurant);
-  const label = mapPinLabel(restaurant);
-  const tooltip = mapPinTooltip(restaurant);
-  const showBadges = mapPinHasBadges(restaurant);
-
-  return (
-    <AdvancedMarker
-      position={{ lat: restaurant.lat, lng: restaurant.lng }}
-      onClick={onSelect}
-      title={tooltip}
-    >
-      <div
-        className={[
-          "map-pin-wrap",
-          selected ? "map-pin-wrap--selected" : "",
-          `map-pin-wrap--${kind}`,
-        ].join(" ")}
-        aria-label={tooltip.replace(/\n/g, ". ")}
-      >
-        <div className="map-pin-tooltip" role="tooltip">
-          {tooltip.split("\n").map((line, i) => (
-            <span key={i}>
-              {line}
-              {i < tooltip.split("\n").length - 1 && <br />}
-            </span>
-          ))}
-        </div>
-        <div className="map-pin-stack">
-          {label && (
-            <span className="map-pin-label" style={{ borderColor: fill }}>
-              {label}
-            </span>
-          )}
-          <div
-            className="map-pin"
-            style={{
-              background: fill,
-              boxShadow: selected ? `0 0 0 3px ${fill}66` : undefined,
-            }}
-          />
-          {showBadges && (
-            <div className="map-pin-badges">
-              {restaurant.attribute_rating_count > 0 && kind !== "ratings" && (
-                <span className="map-pin-badge" title="Parent ratings">
-                  ★
-                </span>
-              )}
-              {restaurant.note_count > 0 && kind !== "notes" && (
-                <span className="map-pin-badge" title="Parent notes">
-                  💬
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </AdvancedMarker>
   );
 }
 
@@ -515,13 +440,17 @@ export function RestaurantMap({
     return <p className="error map-fallback">{error}</p>;
   }
 
-  if (loading && restaurants.length === 0) {
-    return <p className="muted map-fallback">Loading map…</p>;
-  }
+  const showLoadingOverlay = loading && restaurants.length === 0;
 
   return (
     <APIProvider apiKey={MAPS_KEY}>
       <div className={`map-shell${withSidebar ? " map-shell--with-sidebar" : ""}`}>
+        {showLoadingOverlay && (
+          <div className="map-loading-overlay" aria-live="polite">
+            <span className="map-loading-overlay__spinner" aria-hidden="true" />
+            <span className="muted small">Loading map…</span>
+          </div>
+        )}
         <Map
           defaultCenter={DEFAULT_MAP_CENTER}
           defaultZoom={13}
@@ -546,14 +475,11 @@ export function RestaurantMap({
           {onViewportChange && (
             <ViewportWatcher onViewportChange={onViewportChange} />
           )}
-          {restaurants.map((r) => (
-            <MapPin
-              key={r.id}
-              restaurant={r}
-              selected={selectedId === r.id}
-              onSelect={() => onSelectChange(r.id)}
-            />
-          ))}
+          <MapMarkerLayer
+            restaurants={restaurants}
+            selectedId={selectedId}
+            onSelect={(id) => onSelectChange(id)}
+          />
         </Map>
 
         <MapLegend />

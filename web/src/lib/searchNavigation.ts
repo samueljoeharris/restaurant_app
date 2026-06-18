@@ -1,4 +1,4 @@
-import type { PlaceResolveResponse } from "../types";
+import type { PlaceResolveResponse, RestaurantMapEntry, TtfAggregate } from "../types";
 
 export const DEFAULT_SEARCH_RADIUS_M = 8000;
 /** Minimum allowed by POST /v1/coverage/ensure — tight seed around one venue. */
@@ -15,6 +15,33 @@ export interface RestaurantSearchSelection {
   lat?: number;
   lng?: number;
   name?: string;
+  address?: string;
+}
+
+const EMPTY_TTF: TtfAggregate = {
+  sample_size: 0,
+  median_minutes: null,
+  avg_quality: null,
+  last_updated: null,
+};
+
+/** Minimal map pin from autocomplete — replaced when search/detail loads. */
+export function selectionToMapEntryStub(
+  selection: RestaurantSearchSelection,
+): RestaurantMapEntry | null {
+  if (selection.lat == null || selection.lng == null) return null;
+  return {
+    id: selection.restaurant_id,
+    name: selection.name ?? "Restaurant",
+    address: selection.address ?? "",
+    lat: selection.lat,
+    lng: selection.lng,
+    cuisine_tags: [],
+    pilot_city: "",
+    ttf: EMPTY_TTF,
+    note_count: 0,
+    attribute_rating_count: 0,
+  };
 }
 
 export function buildRadiusSearchParams(resolved: PlaceResolveResponse): URLSearchParams {
@@ -61,10 +88,33 @@ export function readFocusLocationFromParams(
   return { lat, lng };
 }
 
+/** Radius search around a catalog restaurant (same as place resolve, plus focus + q). */
+export function buildRestaurantRadiusParams(
+  selection: RestaurantSearchSelection,
+): URLSearchParams | null {
+  if (selection.lat == null || selection.lng == null) return null;
+  const params = new URLSearchParams();
+  params.set("lat", String(selection.lat));
+  params.set("lng", String(selection.lng));
+  params.set("radius", String(DEFAULT_SEARCH_RADIUS_M));
+  if (selection.name) {
+    params.set("place", selection.name);
+    params.set("q", selection.name);
+  }
+  appendRestaurantFocusToParams(params, selection);
+  return params;
+}
+
 export function buildMapFocusPath(selection: RestaurantSearchSelection): string {
   const params = new URLSearchParams();
   appendRestaurantFocusToParams(params, selection);
   return `/map?${params.toString()}`;
+}
+
+export function buildMapRestaurantPath(selection: RestaurantSearchSelection): string {
+  const params = buildRestaurantRadiusParams(selection);
+  if (params) return `/map?${params.toString()}`;
+  return buildMapFocusPath(selection);
 }
 
 export function buildMapPendingPlacePath(pending: PlaceSearchPending): string {
@@ -74,4 +124,5 @@ export function buildMapPendingPlacePath(pending: PlaceSearchPending): string {
 export interface MapFocusState {
   focusLocation?: { lat: number; lng: number };
   placeSessionToken?: string;
+  optimisticRestaurant?: RestaurantSearchSelection;
 }

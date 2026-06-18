@@ -1,12 +1,8 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-
-import { useAuth } from "../auth/useAuth";
-import { runBackgroundCoverage } from "../lib/backgroundCoverage";
 import {
-  buildMapFocusPath,
   buildMapPendingPlacePath,
-  RESTAURANT_SEED_RADIUS_M,
+  buildMapRestaurantPath,
   type MapFocusState,
   type PlaceSearchPending,
   type RestaurantSearchSelection,
@@ -15,7 +11,6 @@ import {
 /** Navigate to the map; seed coverage in the background when we have coords. */
 export function usePlaceSearchHandlers() {
   const navigate = useNavigate();
-  const { idToken } = useAuth();
 
   const handleSelectPlace = useCallback(
     (pending: PlaceSearchPending) => {
@@ -28,16 +23,16 @@ export function usePlaceSearchHandlers() {
 
   const handleSelectRestaurant = useCallback(
     (selection: RestaurantSearchSelection) => {
-      if (idToken && selection.lat != null && selection.lng != null) {
-        runBackgroundCoverage(selection.lat, selection.lng, RESTAURANT_SEED_RADIUS_M, idToken);
-      }
       const state: MapFocusState | undefined =
         selection.lat != null && selection.lng != null
-          ? { focusLocation: { lat: selection.lat, lng: selection.lng } }
+          ? {
+              focusLocation: { lat: selection.lat, lng: selection.lng },
+              optimisticRestaurant: selection,
+            }
           : undefined;
-      navigate(buildMapFocusPath(selection), { state });
+      navigate(buildMapRestaurantPath(selection), { state });
     },
-    [navigate, idToken],
+    [navigate],
   );
 
   return { handleSelectPlace, handleSelectRestaurant };

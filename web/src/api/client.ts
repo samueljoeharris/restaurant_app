@@ -81,6 +81,14 @@ async function request<T>(
   return response.json() as Promise<T>;
 }
 
+function normalizeMapEntries(rows: RestaurantMapEntry[]): RestaurantMapEntry[] {
+  return rows.map((r) => ({
+    ...r,
+    note_count: r.note_count ?? 0,
+    attribute_rating_count: r.attribute_rating_count ?? 0,
+  }));
+}
+
 export const api = {
   listRestaurants: (q?: string) => {
     const params = q ? `?q=${encodeURIComponent(q)}` : "";
@@ -103,13 +111,54 @@ export const api = {
       });
       path += `?${params}`;
     }
-    return request<RestaurantMapEntry[]>(path).then((rows) =>
-      rows.map((r) => ({
-        ...r,
-        note_count: r.note_count ?? 0,
-        attribute_rating_count: r.attribute_rating_count ?? 0,
-      })),
-    );
+    return request<RestaurantMapEntry[]>(path).then(normalizeMapEntries);
+  },
+
+  /** Map fetch with optional ETag revalidation (304 → notModified). */
+  listRestaurantsForMapCached: async (opts?: {
+    bbox?: { minLat: number; maxLat: number; minLng: number; maxLng: number };
+    etag?: string | null;
+  }): Promise<{
+    rows: RestaurantMapEntry[] | null;
+    etag: string | null;
+    notModified: boolean;
+  }> => {
+    let path = "/v1/restaurants/map";
+    if (opts?.bbox) {
+      const params = new URLSearchParams({
+        min_lat: String(opts.bbox.minLat),
+        max_lat: String(opts.bbox.maxLat),
+        min_lng: String(opts.bbox.minLng),
+        max_lng: String(opts.bbox.maxLng),
+      });
+      path += `?${params}`;
+    }
+    const headers = new Headers();
+    if (opts?.etag) headers.set("If-None-Match", opts.etag);
+    const response = await fetch(`${API_URL}${path}`, { headers });
+    if (response.status === 304) {
+      return {
+        rows: null,
+        etag: opts?.etag ?? response.headers.get("ETag"),
+        notModified: true,
+      };
+    }
+    if (!response.ok) {
+      let detail = response.statusText;
+      try {
+        const data = (await response.json()) as { detail?: string };
+        if (data.detail) detail = data.detail;
+      } catch {
+        /* ignore */
+      }
+      throw new ApiError(response.status, detail);
+    }
+    const rows = normalizeMapEntries((await response.json()) as RestaurantMapEntry[]);
+    return {
+      rows,
+      etag: response.headers.get("ETag"),
+      notModified: false,
+    };
   },
 
   triggerRestaurantSeed: (

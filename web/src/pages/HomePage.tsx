@@ -1,13 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
-import { api } from "../api/client";
 import { PlaceSearchBox } from "../components/PlaceSearchBox";
 import { ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Skeleton } from "../components/ui/Skeleton";
 import { usePlaceSearchHandlers } from "../hooks/usePlaceSearchHandlers";
-import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import { useFullRestaurantCatalog } from "../hooks/useRestaurantMapCatalog";
 import type { RestaurantMapEntry } from "../types";
 
 type LandingOption = {
@@ -40,29 +39,7 @@ function formatPlaceCount(count: number) {
 
 export function HomePage() {
   const { handleSelectPlace, handleSelectRestaurant } = usePlaceSearchHandlers();
-  const [restaurants, setRestaurants] = useState<RestaurantMapEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useRefreshOnNavigate(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    api
-      .listRestaurantsForMap()
-      .then((data) => {
-        if (!cancelled) setRestaurants(data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Load failed");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { restaurants, loading, error } = useFullRestaurantCatalog();
 
   const counts = useMemo(() => {
     const withParentData = restaurants.filter(hasParentData).length;

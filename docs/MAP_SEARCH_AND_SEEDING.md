@@ -1,120 +1,149 @@
 # Map search & restaurant seeding
 
-Reference for how the pilot map loads and filters restaurants, how catalog seeding works, why explore can feel slow, and how location-based background seeding could work on web and iOS.
+Reference for how the pilot map loads and filters restaurants, how catalog seeding works, performance characteristics, and location-based background seeding on web and iOS.
 
-**Status:** Research / design reference (June 2026). Describes current implementation plus proposed improvements not yet built.
+**Status:** Current implementation (June 2026). Describes live behavior in `web/`, `api/`, and admin tooling.
 
-**Related docs:** [DESIGN.md](DESIGN.md) (product + iOS plans), [BEST_PRACTICES.md](BEST_PRACTICES.md) (caching, bbox, geolocation UX), [FIREBASE_AUTH.md](FIREBASE_AUTH.md) (admin-only seed endpoints), [api/README.md](../api/README.md) (endpoint summary).
+**Related docs:** [DESIGN.md](DESIGN.md), [BEST_PRACTICES.md](BEST_PRACTICES.md), [FIREBASE_AUTH.md](FIREBASE_AUTH.md), [api/README.md](../api/README.md).
 
 ---
 
 ## Executive summary
 
-| Concern | Today | Gap |
-|---------|-------|-----|
-| **User search** | Fetch entire pilot catalog; filter in browser | No server-side bbox, radius, or viewport query |
-| **Map load** | `GET /v1/restaurants/map` with per-restaurant SQL aggregates | Heavy query; refetched on every route visit |
-| **Catalog seeding** | Google Places in circular areas; admin/scheduler/CLI only | Not tied to user location or map viewport |
-| **iOS** | Planned (MapKit + Core Location) | No `ios/` code in repo yet |
+| Concern | Today |
+|---------|-------|
+| **User search** | Multiple modes: viewport bbox catalog load, radius search, typeahead, client-side browse filters |
+| **Map load** | `GET /v1/restaurants/map` with pre-aggregated JOINs; optional bbox; shared in-memory cache + HTTP ETag |
+| **Catalog seeding** | Google Places in circular areas; admin/scheduler/CLI + signed-in `POST /v1/coverage/ensure` |
+| **iOS** | Planned (MapKit + Core Location) — same API contract when Phase 3 starts |
 
-**Search and seeding are separate systems.** Slow explore is usually slow **data load**, not slow text filtering. Missing restaurants near the user is usually a **coverage** problem, not a search bug.
+**Search and seeding are separate systems.** Slow explore is usually **initial data load** or **uncached repeat fetches**, not slow text filtering. Missing restaurants near the user is usually a **coverage** problem, not a search bug.
 
 ---
 
 ## 1. How user-facing map search works (web)
 
-### Data loading
+### Routes and page
 
-All three explore surfaces use the same endpoint:
+| Route | Component | Notes |
+|-------|-----------|-------|
+| `/map` | `ExploreMapPage` | Combined map + sidebar list |
+| `/restaurants` | `ExploreMapPage` | Same component; filter links stay on current path |
+| `/` (Home) | `HomePage` | Search box navigates to map; landing stats from shared cache |
 
-| Page | File | API call |
-|------|------|----------|
-| Home | `web/src/pages/HomePage.tsx` | `api.listRestaurantsForMap()` |
-| Explore list | `web/src/pages/RestaurantListPage.tsx` | same |
-| Map | `web/src/pages/MapPage.tsx` | same |
+There is no separate list-only page — explore is a single combined view.
 
-Client: `web/src/api/client.ts` → `GET /v1/restaurants/map`
+### Search modes
 
-`listRestaurants()` (`GET /v1/restaurants?q=…`) supports server-side name search but is **not used** by any page today.
+#### A. Default catalog browse (no `?lat`/`lng`)
 
-### Client-side filtering
+```
+ExploreMapPage (catalog mode)
+  → map idle → debounced viewport bbox
+  → GET /v1/restaurants/map?min_lat=…&max_lat=…&min_lng=…&max_lng=…
+  → merge into shared restaurantMapCache (web/src/lib/restaurantMapCache.ts)
+  → client filter in exploreFacets.ts (?q, ?city, ?zip, ?tag, ?filter)
+```
 
-After the full catalog loads, filtering happens in memory in `web/src/lib/exploreFacets.ts`:
+- Does **not** fetch the full catalog on mount — loads the visible viewport (plus padding) and merges as the user pans
+- Browse facet chips reflect **loaded** restaurants (grows as the user explores)
+- Typing in the sidebar search box updates URL only — **no API call** (client substring filter)
+
+#### B. Place / radius search (`?lat=&lng=&radius=&place=`)
+
+```
+PlaceSearchBox → Google place or catalog hit
+  → ?place_id=… → GET /v1/places/resolve → ?lat=&lng=&radius=8000
+  → GET /v1/restaurants/search?lat&lng&radius_m  (Haversine, distance-sorted)
+  → POST /v1/coverage/ensure (background seed if sparse)
+  → poll GET /v1/coverage/jobs/{id} → silent refresh
+```
+
+Restaurant name selection can also enter radius mode via `buildRestaurantRadiusParams()`.
+
+#### C. Typeahead (search box)
+
+Requires sign-in (Google spend gated):
+
+```
+GET /v1/places/autocomplete?q=…&session_token=…
+  → up to 5 catalog ILIKE hits + up to 5 Google place predictions
+```
+
+Selecting a **restaurant** → focus + optional 1 km background seed.  
+Selecting a **place** → pending resolve flow → radius mode.
+
+### Client-side filtering (catalog mode)
+
+After data is in the shared cache, filtering happens in memory in `web/src/lib/exploreFacets.ts`:
 
 - `matchesExploreSearch()` — substring on name, address, cuisine tags
 - `matchesBrowseFilters()` — city/ZIP from address string, cuisine tag
 - `matchesScoutFilter()` — fast-starters / parent-data / needs-data
-- `buildExploreFacets()` — town/ZIP/tag chips from full dataset
+- `buildExploreFacets()` — town/ZIP/tag chips from loaded dataset
 
-URL params on `/restaurants` (`q`, `filter`, `city`, `zip`, `tag`) are applied client-side only.
-
-**Typing in the search box does not call the API.**
+URL params: `q`, `filter`, `city`, `zip`, `tag`, `focus`, `lat`, `lng`, `radius`, `place`, `place_id`.
 
 ### Map rendering
 
-`web/src/components/RestaurantMap.tsx`:
+`web/src/components/RestaurantMap.tsx` + `MapMarkerLayer.tsx`:
 
-- Google Maps JS via `@vis.gl/react-google-maps` (`VITE_GOOGLE_MAPS_API_KEY`)
-- Fixed center: `DEFAULT_MAP_CENTER` (42.2418, -71.1662)
-- `FitBounds` fits all pins; no viewport-based API query
-- `FocusRestaurant` pans to `?focus=<id>` from URL
-- Pin styling: `web/src/lib/mapPin.ts`, `web/src/lib/ttfTier.ts`
-- No clustering; every venue gets an `AdvancedMarker`
+- Google Maps JS via `@vis.gl/react-google-maps`
+- Default center: Dedham pilot (`42.2418, -71.1662`)
+- **Pin clustering** at zoom ≤ 13 when > 12 pins (`@googlemaps/markerclusterer`)
+- Full custom pins at higher zoom
+- `FitBounds` fits loaded pins; `ViewportWatcher` fires on map idle
+- “Search this area” when viewport has ≤ 3 restaurants (sparse CTA)
 
-Map pan/zoom does **not** trigger API calls.
+Map pan/zoom triggers **bbox catalog loads** in default mode (debounced 300 ms), not full-catalog refetch.
 
-### Refresh behavior
+### Shared client cache
 
-`web/src/hooks/useRefreshOnNavigate.ts` re-runs the fetch effect on every navigation to a route (via `location.key`). Visiting Home → Map → Explore refetches `/map` three times.
+`web/src/lib/restaurantMapCache.ts`:
 
-There is no React Query/SWR layer — plain `useState` + `fetch`.
+| Feature | Behavior |
+|---------|----------|
+| In-memory merge | All `/map` fetches merge by restaurant id |
+| Stale time | 5 minutes for full-catalog flag |
+| ETag revalidation | `listRestaurantsForMapCached()` sends `If-None-Match` |
+| Home + Explore | Same cache — Home loads full catalog once; Explore reuses it |
+| Invalidation | After coverage seed completes |
 
-### User search flow (current)
+Home uses `useFullRestaurantCatalog()` (full `/map` once, cached).  
+Explore catalog mode uses `useRestaurantMapEntries()` + `useMapViewportRestaurants()`.
 
-```
-[HomePage | RestaurantListPage | MapPage]
-        |
-        |  GET /v1/restaurants/map  (on each route enter)
-        v
-[API: list_restaurants_for_map]
-        |
-        |  SQL: restaurants + 3× LATERAL aggregates
-        v
-[PostgreSQL: all active dedham-ma restaurants]
-        |
-        |  JSON RestaurantMapEntry[]
-        v
-[Browser: restaurants[] state]
-        |
-        +---> List: exploreFacets filters (q, city, zip, tag, scout)
-        +---> Map: render all pins, FitBounds
-        +---> Home: landing card metrics
-```
+### HTTP caching (API)
 
-### Text search flow (client-only)
+`api/ttf_api/http_cache.py` — `ETagMiddleware` on `GET /v1/restaurants/map`:
 
-```
-User types in search box
-        → URL ?q=... updated
-        → matchesExploreSearch(restaurant, q)
-        → filtered list re-render (no API call)
-```
+- `Cache-Control: public, max-age=30, stale-while-revalidate=300`
+- Strong ETag → `304 Not Modified` on repeat reads
 
 ---
 
 ## 2. API endpoints
 
-### Public read (map / list)
+### Public read (map / list / search)
 
 | Method | Path | Handler | Notes |
 |--------|------|---------|-------|
-| GET | `/v1/restaurants` | `list_restaurants()` | Optional `q` (name `ILIKE`), `cuisine`. No lat/lng/bbox. |
-| GET | `/v1/restaurants/map` | `list_restaurants_for_map()` | All active pilot-city restaurants + TTF aggregates + note/rating counts. **No geo filter.** |
+| GET | `/v1/restaurants` | `list_restaurants()` | Optional `q` (name `ILIKE`), `cuisine`. Unused by explore UI today. |
+| GET | `/v1/restaurants/map` | `list_restaurants_for_map()` | TTF + note/rating aggregates. Optional bbox (`min_lat`, `max_lat`, `min_lng`, `max_lng`). ETag cached. |
+| GET | `/v1/restaurants/search` | `search_restaurants()` | Required `lat`, `lng`; optional `radius_m`, `q`, `limit`. Haversine sort. |
 | GET | `/v1/restaurants/{id}` | `get_restaurant()` | Single restaurant + TTF aggregate |
+| GET | `/v1/places/autocomplete` | `autocomplete()` | Auth + App Check; catalog + Google predictions |
+| GET | `/v1/places/resolve` | `resolve_place()` | Place id → lat/lng label |
 
-Implementation: `api/ttf_api/routers/restaurants.py`
+Implementation: `api/ttf_api/routers/restaurants.py`, `places.py`
 
-The `/map` query runs three `LEFT JOIN LATERAL` subqueries per restaurant (TTF percentile, notes count, attribute ratings count). Indexes exist on `pilot_city` and `(lat, lng)` but spatial filters are not used.
+The `/map` query uses **pre-aggregated LEFT JOINs** (one scan per child table) instead of per-row LATERAL subqueries. Indexes on `pilot_city` and `(lat, lng)` support bbox filters.
+
+### Coverage (signed-in users)
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/v1/coverage/ensure` | User + App Check | Rate-limited area seed wrapper |
+| GET | `/v1/coverage/jobs/{job_id}` | User (own jobs) | Poll seed status |
 
 ### Seeding / refresh (admin + background)
 
@@ -128,13 +157,11 @@ The `/map` query runs three `LEFT JOIN LATERAL` subqueries per restaurant (TTF p
 | POST | `/v1/internal/pubsub/seed-jobs` | Internal | Pub/Sub worker runs seed |
 | POST | `/v1/internal/scheduled-restaurant-refresh` | Internal | Cloud Scheduler entry |
 
-Seeding endpoints require `role=admin` on the public restaurants router (Maps API cost control). See [FIREBASE_AUTH.md](FIREBASE_AUTH.md).
-
 ### Manual create (not Places)
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| POST | `/v1/restaurants` | Authenticated user creates a row directly (no Places lookup) |
+| POST | `/v1/restaurants` | Authenticated user creates a row directly |
 
 ---
 
@@ -148,307 +175,107 @@ Defined in `api/ttf_api/places_seed.py` as `SeedArea`:
 
 - Center `lat` / `lng`
 - `radius_m` (default **8000** m ≈ 5 mi)
-- `label` (human-readable area name)
 - `area_key`: `"{round(lat,3)}:{round(lng,3)}:{radius_m}"` — dedupes nearby geocodes
 
-Default center: `42.2418, -71.1662` (`api/ttf_api/config.py`). Catalog key: `dedham-ma` (opaque).
-
-Results are filtered with Haversine `within_area()` — places outside the circle are skipped (`out_of_area`).
-
-**Seeding is explicitly area-based, not driven by the user’s map pan/zoom.**
-
-### Google APIs used (server key only)
-
-| API | Purpose |
-|-----|---------|
-| Geocoding | Resolve ZIP/city/address string → lat/lng |
-| Places Text Search (New) | Area discovery with `locationBias.circle` |
-| Place Details (New) | Catalog-wide refresh of known `google_place_id` values |
-
-Field mask and URLs: `api/ttf_api/places_seed.py`
-
-**Web map key** (`VITE_GOOGLE_MAPS_API_KEY`) is separate — Maps JavaScript for rendering only.
-
-### Search queries per area seed
-
-Initial area seed runs four Text Search queries, e.g.:
-
-- `"restaurants near {label}"`
-- `"family restaurants near {label}"`
-- `"pizza near {label}"`
-- `"breakfast near {label}"`
-
-Scheduled refresh uses `RESTAURANT_SEED_REFRESH_QUERIES` (configurable in config/env).
-
-### Job kinds
-
-Stored on `restaurant_seed_jobs.kind`:
-
-| Kind | Behavior |
-|------|----------|
-| `area` | Places Text Search in a circle; on refresh, tombstones active venues in area not seen in Places |
-| `catalog` | Place Details for every known `google_place_id` in pilot city |
+Default center: `42.2418, -71.1662`. Catalog key: `dedham-ma` (opaque).
 
 ### Triggers
 
-1. **CLI** — `api/scripts/seed_restaurants.py`, `api/ttf_api/jobs/refresh_restaurants.py` (sync `run_seed_job`)
-2. **Local bootstrap** — `scripts/start-local.sh` seeds if restaurant count is 0
+1. **CLI** — `api/scripts/seed_restaurants.py`
+2. **Local bootstrap** — `scripts/start-local.sh` if count = 0
 3. **Admin UI** — `web/src/pages/admin/AdminLocationSeedingPage.tsx`
-4. **Cloud Scheduler** — weekly (configurable) → `POST /v1/internal/scheduled-restaurant-refresh` → `create_scheduled_refresh_jobs()`
+4. **Cloud Scheduler** — → `POST /v1/internal/scheduled-restaurant-refresh`
+5. **Web users** — `POST /v1/coverage/ensure` (near me, search this area, radius mode)
 
-### Background execution
-
-```
-Trigger (admin / scheduler / CLI)
-        → create_seed_job(area)
-        → enqueue_seed_job (Pub/Sub in prod, BackgroundTasks or sync locally)
-        → run_seed_job(job_id)
-        → Google Places APIs
-        → upsert restaurants + restaurant_changelog
-        → job status = succeeded
-```
-
-Infra: `infra/terraform/environments/dev/location-seeding.tf` — topic `ttf-restaurant-seed-jobs`, push to API with OIDC.
-
-### Dedup and cooldown
-
-`create_seed_job()` in `api/ttf_api/seed_jobs.py` reuses an existing job if:
-
-- Status is `pending` or `running`, or
-- Status is `succeeded` and `finished_at` is within `RESTAURANT_SEED_COOLDOWN_HOURS` (default **24h**) for the same `area_key`
-
-Pass `force=true` to bypass (admin refresh, scheduled refresh).
-
-### DB write path
-
-- Upsert by `google_place_id`
-- Set `cuisine_tags` from Places types
-- Track `status` (`active`, `closed`, `tombstoned`, etc.)
-- Log changes to `restaurant_changelog`
-- Register successful area seeds in `seed_locations` for future scheduled refresh
-
-### Seeding flow (end-to-end)
+### User coverage flow (web)
 
 ```
-1. TRIGGER
-   ├─ First-time local: start-local.sh → seed_restaurants.py
-   ├─ Manual/prod: seed_restaurants.py or seed_production.sh
-   ├─ Admin: POST /v1/admin/seed-jobs { location: "02026", radius_m: 8000 }
-   ├─ Admin refresh: POST /v1/admin/refresh-runs
-   └─ Scheduled: Cloud Scheduler → /v1/internal/scheduled-restaurant-refresh
-
-2. JOB CREATION (restaurant_seed_jobs row, status=pending)
-
-3. ENQUEUE (Pub/Sub prod | BackgroundTasks/sync local)
-
-4. PLACES FETCH
-   ├─ Geocode location string (if provided)
-   ├─ area job: Text Search × N queries, paginated, locationBias circle
-   └─ catalog job: Place Details per known google_place_id
-
-5. NORMALIZE + FILTER (require id, name, address, lat/lng; Haversine within radius)
-
-6. UPSERT restaurants (pilot_city = dedham-ma)
-   ├─ New → INSERT + changelog "added"
-   ├─ Existing → UPDATE + changelog
-   └─ Refresh: tombstone active venues in area not seen in Places
-
-7. REGISTER seed_locations (on successful non-refresh area seed)
-
-8. JOB COMPLETE
+"Show restaurants near me" / "Search this area" / radius mode entry
+  → POST /v1/coverage/ensure { lat, lng, radius_m }
+  → density check, per-user daily cap, 24h area_key cooldown
+  → enqueue seed job → Pub/Sub → run_seed_job → Google Places → upsert
+  → poll GET /v1/coverage/jobs/{id}
+  → invalidateRestaurantMapCache() + refetch active data source
 ```
 
-### Key files
+Hooks: `useNearbyCoverage`, `useAreaCoverage`, `runBackgroundCoverage` in `web/src/lib/backgroundCoverage.ts`.
+
+---
+
+## 4. Performance characteristics
+
+### Improvements in place
+
+| Optimization | Where |
+|--------------|-------|
+| Pre-aggregated `/map` SQL | `restaurants.py` `_MAP_SELECT` |
+| Shared in-memory cache + ETag | `restaurantMapCache.ts`, `http_cache.py` |
+| Viewport bbox loads (not full catalog every visit) | `useMapViewportRestaurants`, `ExploreMapPage` |
+| Pin clustering at low zoom | `MapMarkerLayer.tsx` |
+| HTTP 304 on repeat `/map` reads | `ETagMiddleware` |
+
+### Remaining limits
+
+- Home landing stats still require one **full-catalog** `/map` fetch (cached 5 min; shared with Explore)
+- Browse facets only cover **loaded** viewport regions until the user pans or visits Home first
+- Catalog refresh (scheduled Place Details pass) cost grows with venue count
+- No PostGIS / geohash server-side search beyond Haversine radius
+
+---
+
+## 5. Architecture diagram
+
+```mermaid
+flowchart TB
+  subgraph read [Read paths]
+    Home[HomePage] -->|full catalog once| Cache[restaurantMapCache]
+    Explore[ExploreMapPage] -->|viewport bbox| MapAPI["GET /v1/restaurants/map"]
+    Explore -->|?lat&lng| SearchAPI["GET /v1/restaurants/search"]
+    Typeahead[PlaceSearchBox] --> Auto["GET /v1/places/autocomplete"]
+    MapAPI --> Cache
+    SearchAPI --> PG[(PostgreSQL)]
+    Auto --> PG
+    Cache --> Explore
+    Cache --> Home
+  end
+
+  subgraph seed [Seed paths]
+    Coverage["POST /v1/coverage/ensure"] --> Jobs[seed_jobs]
+    Admin[Admin / Scheduler / CLI] --> Jobs
+    Jobs --> PubSub[Pub/Sub]
+    PubSub --> Places[Google Places]
+    Places --> PG
+  end
+
+  Explore --> Coverage
+```
+
+---
+
+## 6. Key files
 
 | Layer | Paths |
 |-------|-------|
-| Core logic | `api/ttf_api/places_seed.py`, `api/ttf_api/seed_jobs.py`, `api/ttf_api/pubsub_seed.py` |
-| Routers | `api/ttf_api/routers/restaurants.py`, `admin.py`, `internal.py` |
-| CLI | `api/scripts/seed_restaurants.py`, `api/scripts/seed_production.sh` |
-| Migrations | `005_restaurant_seed_jobs.sql`, `006_location_seeding.sql`, `007_seed_locations.sql` |
-| Config | `api/ttf_api/config.py` |
+| Explore UI | `web/src/pages/ExploreMapPage.tsx`, `RestaurantMap.tsx`, `MapMarkerLayer.tsx` |
+| Cache | `web/src/lib/restaurantMapCache.ts`, `web/src/hooks/useRestaurantMapCatalog.ts` |
+| Viewport load | `web/src/hooks/useMapViewportRestaurants.ts`, `web/src/lib/mapViewport.ts` |
+| Client filter | `web/src/lib/exploreFacets.ts` |
+| API map/search | `api/ttf_api/routers/restaurants.py`, `map_query.py` |
+| HTTP cache | `api/ttf_api/http_cache.py` |
+| Seeding | `api/ttf_api/places_seed.py`, `seed_jobs.py`, `coverage.py` |
 | Admin UI | `web/src/pages/admin/AdminLocationSeedingPage.tsx` |
 
 ---
 
-## 4. Why explore feels slow
-
-Two distinct problems can feel like “slow search.”
-
-### A. Load latency (most likely)
-
-| Bottleneck | Where | Why |
-|------------|-------|-----|
-| Heavy `/map` SQL | `list_restaurants_for_map()` | 3 LATERAL subqueries per restaurant |
-| Full payload | API + web | No bbox, pagination, or HTTP cache |
-| Repeated fetches | `useRefreshOnNavigate` | Same endpoint on Home, Map, List route entry |
-| No client cache | web | No React Query/SWR |
-| All pins rendered | `RestaurantMap.tsx` | No clustering |
-
-Text filtering is instant once data is loaded. If typing feels slow, the initial load may still be in progress or the UI is re-rendering a large list.
-
-### B. Coverage gaps (feels like bad search)
-
-Users outside any seeded area may see few or no restaurants. That is missing catalog data, not slow filtering. Use "Search this area" on the map to seed a new area.
-
-The map reads the full seeded catalog for `dedham-ma`; it does not trigger or scope seeding.
-
-### Admin seed path slowness (not user-facing)
-
-Places seeding is intentionally throttled (`time.sleep` between pages/queries) and does one Place Details call per restaurant on catalog refresh. Relevant for ops, not pilot users.
-
----
-
-## 5. “If we see a restaurant, should we seed others?”
-
-**At view time: no.** Viewing a restaurant on the map does not trigger seed or refresh.
-
-**At seed time: yes, implicitly.** An area seed job does not stop at one venue. `seed_restaurants_for_area()` runs multiple Places queries and upserts every place inside the circle — often dozens of restaurants per job.
-
-What is missing is **on-demand coverage expansion** when a user is in an under-seeded area. The right unit of work is already modeled: **area** (`lat`, `lng`, `radius_m`) with `area_key` dedup — not “seed neighbors of this one restaurant row.”
-
----
-
-## 6. Location-based background seeding
-
-**Status:** Web MVP **implemented** (June 2026). `POST /v1/coverage/ensure` plus a "Show restaurants near me" control on the map. iOS (Phase 3) still pending.
-
-### Goal
-
-Web and iOS request device location (with consent), then kick off a **background** area seed or refresh for that location without blocking the UI — reusing the existing Pub/Sub seed pipeline.
-
-### Why not expose today’s admin endpoint?
-
-`POST /v1/restaurants/seed-jobs` is admin-only because each area seed costs Google Places API calls. Public clients need a guarded wrapper.
-
-### API (implemented)
-
-`POST /v1/coverage/ensure` — `api/ttf_api/routers/coverage.py`:
-
-```json
-{ "lat": 42.24, "lng": -71.17, "radius_m": 8000 }
-```
-
-Requires a Firebase-authenticated user (plus App Check when enforced). `radius_m`
-defaults to 8000 and is clamped to 1000–25000.
-
-**Behavior:**
-
-1. Check active-restaurant density in radius (Haversine `COUNT(*)`, `coverage.count_active_within`) — if ≥ `coverage_min_restaurants`, return `{ status: "covered", restaurant_count }`, no Places spend.
-2. Enforce per-user daily area cap (`coverage_max_areas_per_day`, distinct `area_key` in last 24h) → `429`.
-3. Call `create_seed_job()` + `enqueue_seed_job()` (existing code), enqueueing only `pending` jobs.
-4. Return `{ status: "queued", job_id, reused }`.
-
-Status is carried in the body (always `200`) so the client switches on `status`. No geographic bounding box restriction — search works anywhere.
-
-**Guards:**
-
-| Guard | Where |
-|-------|-------|
-| Firebase auth required | `Depends(get_current_user)` + `verify_app_check` |
-| Reuse `area_key` 24h cooldown | `create_seed_job()` (existing) |
-| Max new areas per user per day | `coverage_max_areas_per_day` |
-| Skip when already dense | `coverage_min_restaurants` |
-
-### Proposed client flow
-
-```mermaid
-sequenceDiagram
-    participant Client as Web / iOS
-    participant API as ttf-api
-    participant PS as Pub/Sub
-    participant Places as Google Places
-
-    Client->>Client: User taps "Near me" or grants location
-    Client->>API: POST /v1/coverage/ensure { lat, lng }
-    API->>API: Already dense? Per-user cap OK?
-    alt needs seed
-        API->>PS: enqueue area seed job
-        API-->>Client: 202 queued
-    else covered
-        API-->>Client: 200 covered
-    end
-    PS->>API: run_seed_job (background)
-    API->>Places: Text Search
-    API->>API: upsert restaurants
-```
-
-### Web (implemented)
-
-- `useNearbyCoverage()` (`web/src/hooks/useNearbyCoverage.ts`) calls `navigator.geolocation` only on the explicit "Show restaurants near me" button on `MapPage` — per [BEST_PRACTICES.md](BEST_PRACTICES.md).
-- Two entry points, both via `api.ensureCoverage()` (fire-and-forget, no render block):
-  - **"Show restaurants near me"** — `useNearbyCoverage().requestNearMe()` uses `navigator.geolocation`.
-  - **"Search this area"** — `ensureAt(center, SEARCH_RADIUS_M)` seeds the current map viewport center. A translucent circle (`SearchRadiusCircle` in `RestaurantMap.tsx`) previews the seed radius, glued to the viewport center so panning re-aims it.
-- On `queued`, polls `GET /v1/coverage/jobs/{job_id}` (every 4s, 90s cap) and refreshes the map when the seed finishes.
-- Requires sign-in; the control hints to sign in when no `idToken` is present.
-
-`GET /v1/coverage/jobs/{job_id}` is a lightweight, user-scoped status poll (any
-signed-in user, only their own jobs) — distinct from the admin-only
-`/v1/restaurants/seed-jobs/{id}`.
-
-The CTA only renders when the viewport has ≤ 3 restaurants (sparse check). The seed radius is derived from the actual map bounds (zoom-adaptive, clamped 1–25 km) — not a fixed 8 km.
-
-### iOS (Phase 3)
-
-- `CLLocationManager` with when-in-use authorization.
-- Same `POST /v1/coverage/ensure` contract.
-- `BGAppRefreshTask` only if background refresh while app is suspended is required — usually overkill for v1.
-
-Planned stack: Apple MapKit + Core Location per [DESIGN.md](DESIGN.md). No iOS code in repo yet.
-
-### Constraints
-
-1. **Google Maps Platform terms** — `place_id` may be stored indefinitely; lat/lng from Geocoding/Places may only be cached up to 30 consecutive days. Little Scout stores our own restaurant rows in Postgres; Places is for seeding only. See [BEST_PRACTICES.md](BEST_PRACTICES.md).
-2. **Cost** — Each new area ≈ geocode + 4+ Text Search pages + upserts. Cooldown and per-user caps are essential.
-3. **Privacy** — No geolocation on page load without consent.
-4. **Separate from search perf** — Coverage seeding does not fix slow `/map` loads.
-
----
-
-## 7. Recommended priorities
-
-### Fix perceived search slowness (no extra Places cost)
-
-1. **Shared client cache** across Home / Map / List (React Query with `staleTime`, or context store) — eliminate triple-fetch.
-2. **Lighten `/map`** — materialized TTF aggregates, or split lightweight pin payload from detail aggregates.
-3. **Bbox query params** when catalog grows (`min_lat`, `max_lat`, …) — documented in [BEST_PRACTICES.md](BEST_PRACTICES.md), not implemented.
-4. **Pin clustering** at low zoom.
-5. **HTTP caching** — short CDN TTL + ETag on public list endpoints.
-
-### Fix coverage gaps (Places cost, controlled)
-
-1. ✅ `POST /v1/coverage/ensure` wrapping existing seed jobs.
-2. ✅ Web: location permission → background enqueue (`useNearbyCoverage`). iOS pending.
-3. Optional sparse-viewport CTA on map.
-
-### iOS
-
-Same API as web when Phase 3 starts. Core Location when-in-use is sufficient for v1.
-
----
-
-## 8. Gaps vs design docs
-
-[DESIGN.md](DESIGN.md) and [BEST_PRACTICES.md](BEST_PRACTICES.md) describe patterns **not yet built**:
-
-- Bbox / PostGIS spatial search
-- Geohash cache keys
-- CDN TTL + `stale-while-revalidate`
-- Map-idle debouncing and “search this area”
-- Pin clustering
-- Server-enforced pilot-city bounding box on queries
-
-The live system fits a **single-metro pilot with hundreds of venues** but will degrade as catalog and observation volume grow, mainly due to per-restaurant aggregate joins on `/map` and lack of caching/pagination.
-
----
-
-## 9. Quick reference
+## 7. Quick reference
 
 | Question | Answer |
 |----------|--------|
-| How does search work? | Fetch all restaurants + aggregates; filter client-side |
-| Why is it slow? | Heavy `/map` SQL, no cache, refetch on every route |
-| Does viewing a restaurant seed others? | No at view time; yes during area seed (many venues per circle) |
-| Can location trigger background seed? | Yes (web) — `POST /v1/coverage/ensure`, rate-limited, reuses the Pub/Sub pipeline |
-| Who can seed today? | Admins, scheduler, CLI only |
-| iOS status? | Planned; no implementation in repo |
+| What routes serve explore? | `/map` and `/restaurants` → `ExploreMapPage` |
+| Default catalog load? | Viewport bbox → `GET /v1/restaurants/map?min_lat=…` (merged in shared cache) |
+| Place/neighborhood search? | `GET /v1/restaurants/search` + background `POST /v1/coverage/ensure` |
+| Sidebar text filter? | Client-only (`exploreFacets.ts`), URL `?q=` |
+| Typeahead? | `GET /v1/places/autocomplete` (auth required) |
+| Who can seed? | Admins, scheduler, CLI, signed-in users via `/v1/coverage/ensure` |
+| Refresh after seed? | Invalidate cache → refetch bbox or radius results |
+| iOS status? | Planned; no implementation in repo yet |
