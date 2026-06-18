@@ -14,7 +14,13 @@ import {
 const STALE_MS = 5 * 60 * 1000;
 type CacheListener = () => void;
 const entries = new Map<string, RestaurantMapEntry>();
+/** Stable snapshot for useSyncExternalStore — must keep referential equality until data changes. */
+let entriesSnapshot: RestaurantMapEntry[] = [];
 const listeners = new Set<CacheListener>();
+
+function rebuildEntriesSnapshot() {
+  entriesSnapshot = [...entries.values()];
+}
 let fullCatalogLoadedAt = 0;
 let fullCatalogEtag: string | null = null;
 const bboxEtags = new Map<string, string>();
@@ -25,12 +31,14 @@ const bboxFetchPromises = new Map<string, Promise<void>>();
 const nearbyFetchPromises = new Map<string, Promise<void>>();
 
 function mergeEntries(incoming: RestaurantMapEntry[]) {
+  if (incoming.length === 0) return;
   for (const row of incoming) entries.set(mapEntryKey(row), row);
+  rebuildEntriesSnapshot();
   for (const listener of listeners) listener();
 }
 
 export function getRestaurantMapEntries(): RestaurantMapEntry[] {
-  return [...entries.values()];
+  return entriesSnapshot;
 }
 
 export function subscribeRestaurantMapCache(listener: CacheListener): () => void {
@@ -56,6 +64,7 @@ export function invalidateRestaurantMapCache() {
   entries.clear(); loadedBboxes.length = 0; loadedNearbyKeys.clear();
   fullCatalogLoadedAt = 0; fullCatalogEtag = null; bboxEtags.clear();
   fullFetchPromise = null; bboxFetchPromises.clear(); nearbyFetchPromises.clear();
+  rebuildEntriesSnapshot();
   for (const listener of listeners) listener();
 }
 
