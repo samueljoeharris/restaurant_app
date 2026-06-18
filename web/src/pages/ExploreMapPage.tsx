@@ -162,14 +162,15 @@ export function ExploreMapPage() {
 
   // Merge stub pin when arriving from Home search (navigation state).
   const optimisticSel = focusState?.optimisticRestaurant;
-  const [prevOptimisticSel, setPrevOptimisticSel] = useState(optimisticSel);
-  if (optimisticSel !== prevOptimisticSel) {
-    setPrevOptimisticSel(optimisticSel);
-    if (optimisticSel) {
-      const stub = selectionToMapEntryStub(optimisticSel);
-      if (stub) mergeRestaurantMapEntries([stub]);
-    }
-  }
+  const optimisticRestaurantId = optimisticSel?.restaurant_id ?? null;
+  const mergedOptimisticIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!optimisticSel || !optimisticRestaurantId) return;
+    if (mergedOptimisticIdRef.current === optimisticRestaurantId) return;
+    mergedOptimisticIdRef.current = optimisticRestaurantId;
+    const stub = selectionToMapEntryStub(optimisticSel);
+    if (stub) mergeRestaurantMapEntries([stub]);
+  }, [optimisticRestaurantId, optimisticSel]);
 
   const [error, setError] = useState<string | null>(null);
   const [radiusLoading, setRadiusLoading] = useState(false);
@@ -183,20 +184,12 @@ export function ExploreMapPage() {
       : !viewportFetched && catalogRestaurants.length === 0 && error === null);
 
   // Map selection (sheet + highlight) and focus (pan/zoom trigger).
-  const [selectedId, setSelectedId] = useState<string | null>(focusParam);
-  const [focusId, setFocusId] = useState<string | null>(focusParam);
+  // URL ?focus= wins over local selection so deep links work without render-time setState.
+  const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
+  const [localFocusId, setLocalFocusId] = useState<string | null>(null);
   const [focusPulse, setFocusPulse] = useState(0);
-  // Sync selection when arriving with ?focus=<id> — adjust state during render
-  // (React-recommended over a setState-in-effect).
-  const [prevFocusParam, setPrevFocusParam] = useState(focusParam);
-  if (focusParam !== prevFocusParam) {
-    setPrevFocusParam(focusParam);
-    if (focusParam) {
-      setSelectedId(focusParam);
-      setFocusId(focusParam);
-      setFocusPulse((p) => p + 1);
-    }
-  }
+  const selectedId = focusParam ?? localSelectedId;
+  const focusId = focusParam ?? localFocusId;
 
   // Locate-me + catalog seeding (map controls).
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -384,8 +377,8 @@ export function ExploreMapPage() {
           : undefined;
 
       setSearchParams(params, { replace: true, state });
-      setSelectedId(selection.restaurant_id);
-      setFocusId(selection.restaurant_id);
+      setLocalSelectedId(selection.restaurant_id);
+      setLocalFocusId(selection.restaurant_id);
       setFocusPulse((p) => p + 1);
       resetViewportGate();
     },
@@ -395,22 +388,22 @@ export function ExploreMapPage() {
   // ——— Map control handlers ———
   const handleMapSelectChange = useCallback(
     (id: string | null) => {
-      setSelectedId(id);
+      setLocalSelectedId(id);
       if (!id && focusParam) {
         const params = new URLSearchParams(searchParams);
         params.delete("focus");
         params.delete("flat");
         params.delete("flng");
         setSearchParams(params, { replace: true });
-        setFocusId(null);
+        setLocalFocusId(null);
       }
     },
     [focusParam, searchParams, setSearchParams],
   );
 
   const handleListSelect = useCallback((id: string) => {
-    setSelectedId(id);
-    setFocusId(id);
+    setLocalSelectedId(id);
+    setLocalFocusId(id);
     setFocusPulse((p) => p + 1);
   }, []);
 

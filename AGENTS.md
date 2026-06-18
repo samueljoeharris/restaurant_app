@@ -164,7 +164,29 @@ Only create git commits when the user explicitly asks.
 
 ### Docker daemon
 
-Cloud agents install Docker through `.cursor/environment.json` + `.cursor/Dockerfile`, then run `.cursor/scripts/start-docker.sh` on startup. If Docker is unavailable, run `bash .cursor/scripts/start-docker.sh` before `docker compose` or `./scripts/ci-check.sh`.
+Cloud agents install Docker through `.cursor/environment.json` + `.cursor/Dockerfile`. On startup the VM runs:
+
+1. `.cursor/scripts/bootstrap-cloud-env.sh` — writes `.env`, `web/.env.local`, and `firebase-sa.json` from repo examples plus Cursor secrets
+2. `.cursor/scripts/start-docker.sh` — ensures Docker is running
+
+If Docker is unavailable, run `bash .cursor/scripts/start-docker.sh` before `docker compose` or `./scripts/ci-check.sh`.
+
+### Cursor Cloud secrets
+
+Declare these in the Cursor app (Cloud Agent secrets). They are listed in `.cursor/environment.json` → `secrets` and injected as environment variables before bootstrap runs:
+
+| Secret | Used for |
+|--------|----------|
+| `VITE_GOOGLE_MAPS_API_KEY` | Local `/map` + Places in Vite dev |
+| `MAPS_API_KEY` | API `/v1/places/nearby` in docker compose |
+| `GITHUB_PERSONAL_ACCESS_TOKEN` | GitHub MCP + workflow dispatch |
+| `VITE_FIREBASE_API_KEY` | Optional — real Firebase web SDK (default: emulator) |
+| `VITE_FIREBASE_APP_ID` | Optional — real Firebase web SDK |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | Optional — write `firebase-sa.json` for prod JWT verify |
+| `GEMINI_API_KEY` | Optional — review chat locally |
+| `DEV_TEST_EMAIL` / `DEV_TEST_PASSWORD` | Optional — browser testing on `app.dev` |
+
+Minimum for map debugging: **`VITE_GOOGLE_MAPS_API_KEY`** + **`MAPS_API_KEY`**.
 
 ### Local full-stack (no cloud Firebase secrets)
 

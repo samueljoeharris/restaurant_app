@@ -103,6 +103,10 @@ jobs:
           fi
 
           export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY MAPS_API_KEY ADMIN_APP_URL WEB_PUBLIC_URL
+          if [[ -z "${MAPS_API_KEY// }" ]]; then
+            echo "::error::Secret ttf-maps-web-api-key is empty — run Terraform apply (maps-web.tf) then re-run this workflow"
+            exit 1
+          fi
           python3 <<'PY'
           import json, os
           from urllib.parse import urlparse
