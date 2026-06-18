@@ -21,6 +21,7 @@ import { findMapEntry, mapEntryKey } from "../lib/mapEntryKey";
 import { runBackgroundCoverage } from "../lib/backgroundCoverage";
 import { bboxAround } from "../lib/mapViewport";
 import { schedulePopInClear } from "../lib/mapSearchPopIn";
+import { searchZoomModeForEntry } from "../lib/mapSearchView";
 import { ensureNearbyAt, ensureViewportRestaurants, getRestaurantMapEntries } from "../lib/restaurantMapCache";
 import {
   appendRestaurantFocusToParams,
@@ -577,6 +578,29 @@ export function ExploreMapPage() {
     return extras.length > 0 ? [...filtered, ...extras] : filtered;
   }, [filtered, restaurants, catalogRestaurants, focusParam, selectedId]);
 
+  const searchFocusEntry = useMemo(() => {
+    if (!focusParam) return undefined;
+    return (
+      findMapEntry(mapRestaurants, focusParam) ??
+      findMapEntry(getRestaurantMapEntries(), focusParam)
+    );
+  }, [focusParam, mapRestaurants]);
+
+  const focusZoomMode = useMemo(
+    () =>
+      searchZoomModeForEntry(
+        searchFocusEntry,
+        Boolean(focusParam),
+        isRadiusMode,
+      ),
+    [searchFocusEntry, focusParam, isRadiusMode],
+  );
+
+  const areaCenter =
+    isRadiusMode && !focusParam && radiusLat != null && radiusLng != null
+      ? { lat: radiusLat, lng: radiusLng }
+      : null;
+
   const grouped = useMemo(() => {
     if (isRadiusMode) return null;
     const browsing = browseCity || browseZip || browseTag || query.trim();
@@ -669,6 +693,10 @@ export function ExploreMapPage() {
           onSearchArea={handleSearchArea}
           onViewportChange={viewportEnabled ? handleViewportChange : undefined}
           popInKeys={popInKeys}
+          searchFocusId={focusParam}
+          focusZoomMode={focusZoomMode}
+          areaCenter={areaCenter}
+          areaRadiusM={radiusM}
         />
 
         <MapLocateFab

@@ -7,6 +7,9 @@ import {
   type TtfTier,
 } from "./ttfTier";
 
+/** Brand orange — pin for the restaurant the user just searched. */
+export const SEARCH_FOCUS_PIN_COLOR = "#e85d24";
+
 export type MapPinKind = "confirmed_ttf" | "early_ttf" | "ratings" | "notes" | "empty";
 
 export function mapPinKind(entry: RestaurantMapEntry): MapPinKind {
@@ -26,7 +29,8 @@ export function previewTtfTier(entry: RestaurantMapEntry): TtfTier {
   return "slow";
 }
 
-export function mapPinFill(entry: RestaurantMapEntry): string {
+export function mapPinFill(entry: RestaurantMapEntry, opts?: { searchFocus?: boolean }): string {
+  if (opts?.searchFocus) return SEARCH_FOCUS_PIN_COLOR;
   const kind = mapPinKind(entry);
   if (kind === "confirmed_ttf") {
     return TTF_TIER_COLORS[ttfTier(entry.ttf)];

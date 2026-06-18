@@ -17,6 +17,11 @@ import {
 } from "../lib/ttfTier";
 import { mapEntryKey, restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { mapPinFill, mapPinKind } from "../lib/mapPin";
+import {
+  MAP_ZOOM_AREA_SEARCH,
+  MAP_ZOOM_VENUE_SEARCH,
+  type MapSearchZoomMode,
+} from "../lib/mapSearchView";
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
 import { Button, ButtonLink } from "./ui/Button";
@@ -29,10 +34,12 @@ function FitBounds({
   restaurants,
   fitKey,
   skip,
+  maxZoom,
 }: {
   restaurants: RestaurantMapEntry[];
   fitKey: string;
   skip: boolean;
+  maxZoom?: number;
 }) {
   const map = useMap();
   const core = useMapsLibrary("core");
@@ -46,8 +53,11 @@ function FitBounds({
       bounds.extend({ lat: r.lat, lng: r.lng });
     }
     map.fitBounds(bounds, { top: 48, right: 24, bottom: 24, left: 24 });
+    if (maxZoom != null && (map.getZoom() ?? 0) > maxZoom) {
+      map.setZoom(maxZoom);
+    }
     lastFitKeyRef.current = fitKey;
-  }, [map, core, restaurants, fitKey, skip]);
+  }, [map, core, restaurants, fitKey, skip, maxZoom]);
 
   return null;
 }
@@ -90,11 +100,13 @@ function FocusRestaurant({
   focusId,
   focusLocation,
   focusPulse = 0,
+  focusZoomMode = "venue",
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
   focusLocation?: { lat: number; lng: number } | null;
   focusPulse?: number;
+  focusZoomMode?: MapSearchZoomMode;
 }) {
   const map = useMap();
 
@@ -106,9 +118,36 @@ function FocusRestaurant({
       : focusLocation ?? null;
     if (!coords) return;
     map.panTo(coords);
-    const zoom = map.getZoom() ?? 13;
-    if (zoom < 15) map.setZoom(15);
-  }, [map, focusId, focusLocation, restaurants, focusPulse]);
+    const targetZoom =
+      focusZoomMode === "area" ? MAP_ZOOM_AREA_SEARCH : MAP_ZOOM_VENUE_SEARCH;
+    map.setZoom(targetZoom);
+  }, [map, focusId, focusLocation, restaurants, focusPulse, focusZoomMode]);
+
+  return null;
+}
+
+function FocusAreaCenter({
+  center,
+  radiusM,
+  pulse = 0,
+}: {
+  center: { lat: number; lng: number } | null;
+  radiusM: number;
+  pulse?: number;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !center) return;
+    map.panTo(center);
+    const zoom =
+      radiusM >= 8000
+        ? MAP_ZOOM_AREA_SEARCH
+        : radiusM >= 4000
+          ? MAP_ZOOM_AREA_SEARCH + 1
+          : MAP_ZOOM_AREA_SEARCH + 2;
+    map.setZoom(zoom);
+  }, [map, center, radiusM, pulse]);
 
   return null;
 }
@@ -404,6 +443,10 @@ export function RestaurantMap({
   onSearchArea,
   onViewportChange,
   popInKeys,
+  searchFocusId = null,
+  focusZoomMode = null,
+  areaCenter = null,
+  areaRadiusM,
 }: {
   restaurants: RestaurantMapEntry[];
   focusId: string | null;
@@ -426,6 +469,11 @@ export function RestaurantMap({
     maxLng: number;
   }) => void;
   popInKeys?: ReadonlySet<string>;
+  searchFocusId?: string | null;
+  focusZoomMode?: MapSearchZoomMode | null;
+  /** Radius-mode center when browsing an area without a venue focus. */
+  areaCenter?: { lat: number; lng: number } | null;
+  areaRadiusM?: number;
 }) {
   useMapsLibrary("marker");
   const sheetEntry = selectedId ? restaurants.find((r) => mapEntryKey(r) === selectedId) : null;
@@ -467,14 +515,24 @@ export function RestaurantMap({
           <FitBounds
             restaurants={restaurants}
             fitKey={fitKey}
-            skip={!!focusId || !!userLocation || !!cameraTarget}
+            skip={!!focusId || !!userLocation || !!cameraTarget || !!areaCenter}
+            maxZoom={focusZoomMode === "area" || areaCenter ? MAP_ZOOM_AREA_SEARCH + 1 : undefined}
           />
-          <FocusRestaurant
-            restaurants={restaurants}
-            focusId={focusId}
-            focusLocation={focusLocation}
-            focusPulse={focusPulse}
-          />
+          {focusId ? (
+            <FocusRestaurant
+              restaurants={restaurants}
+              focusId={focusId}
+              focusLocation={focusLocation}
+              focusPulse={focusPulse}
+              focusZoomMode={focusZoomMode ?? "venue"}
+            />
+          ) : areaCenter ? (
+            <FocusAreaCenter
+              center={areaCenter}
+              radiusM={areaRadiusM ?? DEFAULT_SEARCH_RADIUS_M}
+              pulse={focusPulse}
+            />
+          ) : null}
           <PanToLocation location={userLocation ?? cameraTarget} />
           {userLocation && <UserLocationMarker location={userLocation} />}
           {onViewportChange && (
@@ -483,6 +541,7 @@ export function RestaurantMap({
           <MapMarkerLayer
             restaurants={restaurants}
             selectedId={selectedId}
+            searchFocusId={searchFocusId}
             popInKeys={popInKeys}
             onSelect={(id) => onSelectChange(id)}
           />

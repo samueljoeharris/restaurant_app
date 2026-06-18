@@ -12,16 +12,18 @@ import type { RestaurantMapEntry } from "../types";
 export function MapPin({
   restaurant,
   selected,
+  searchFocus,
   popIn,
   onSelect,
 }: {
   restaurant: RestaurantMapEntry;
   selected: boolean;
+  searchFocus?: boolean;
   popIn?: boolean;
   onSelect: () => void;
 }) {
   const kind = mapPinKind(restaurant);
-  const fill = mapPinFill(restaurant);
+  const fill = mapPinFill(restaurant, { searchFocus });
   const label = mapPinLabel(restaurant);
   const tooltip = mapPinTooltip(restaurant);
   const showBadges = mapPinHasBadges(restaurant);
@@ -31,11 +33,13 @@ export function MapPin({
       position={{ lat: restaurant.lat, lng: restaurant.lng }}
       onClick={onSelect}
       title={tooltip}
+      zIndex={searchFocus ? 2000 : selected ? 1500 : undefined}
     >
       <div
         className={[
           "map-pin-wrap",
           selected ? "map-pin-wrap--selected" : "",
+          searchFocus ? "map-pin-wrap--search-focus" : "",
           popIn ? "map-pin-wrap--pop-in" : "",
           `map-pin-wrap--${kind}`,
         ].join(" ")}
@@ -50,16 +54,25 @@ export function MapPin({
           ))}
         </div>
         <div className="map-pin-stack">
-          {label && (
+          {label && !searchFocus && (
             <span className="map-pin-label" style={{ borderColor: fill }}>
               {label}
+            </span>
+          )}
+          {searchFocus && (
+            <span className="map-pin-label map-pin-label--search" style={{ borderColor: fill }}>
+              ★
             </span>
           )}
           <div
             className="map-pin"
             style={{
               background: fill,
-              boxShadow: selected ? `0 0 0 3px ${fill}66` : undefined,
+              boxShadow: searchFocus
+                ? "0 0 0 4px rgb(232 93 36 / 40%), 0 2px 10px rgb(0 0 0 / 30%)"
+                : selected
+                  ? `0 0 0 3px ${fill}66`
+                  : undefined,
             }}
           />
           {showBadges && (

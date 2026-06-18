@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 
 import { mapEntryKey } from "../lib/mapEntryKey";
-import { mapPinFill } from "../lib/mapPin";
+import { mapPinFill, SEARCH_FOCUS_PIN_COLOR } from "../lib/mapPin";
 import type { RestaurantMapEntry } from "../types";
 
 import { MapPin } from "./RestaurantMapPins";
@@ -28,11 +28,13 @@ function useMapZoom(): number {
 function ClusteredMarkerLayer({
   restaurants,
   selectedId,
+  searchFocusId,
   popInKeys,
   onSelect,
 }: {
   restaurants: RestaurantMapEntry[];
   selectedId: string | null;
+  searchFocusId?: string | null;
   popInKeys?: ReadonlySet<string>;
   onSelect: (id: string) => void;
 }) {
@@ -53,11 +55,15 @@ function ClusteredMarkerLayer({
 
     const markers = restaurants.map((restaurant) => {
       const key = mapEntryKey(restaurant);
+      const isSearchFocus = searchFocusId === key;
       const dot = document.createElement("div");
       dot.className = "map-pin-cluster-dot";
-      dot.style.background = mapPinFill(restaurant);
+      dot.style.background = isSearchFocus ? SEARCH_FOCUS_PIN_COLOR : mapPinFill(restaurant);
       if (key === selectedId) {
         dot.classList.add("map-pin-cluster-dot--selected");
+      }
+      if (isSearchFocus) {
+        dot.classList.add("map-pin-cluster-dot--search-focus");
       }
       if (popInKeys?.has(key)) {
         dot.classList.add("map-pin-cluster-dot--pop-in");
@@ -93,7 +99,7 @@ function ClusteredMarkerLayer({
       for (const marker of markersRef.current) marker.map = null;
       markersRef.current = [];
     };
-  }, [map, markerLib, restaurants, selectedId, popInKeys]);
+  }, [map, markerLib, restaurants, selectedId, searchFocusId, popInKeys]);
 
   return null;
 }
@@ -101,11 +107,13 @@ function ClusteredMarkerLayer({
 export function MapMarkerLayer({
   restaurants,
   selectedId,
+  searchFocusId,
   popInKeys,
   onSelect,
 }: {
   restaurants: RestaurantMapEntry[];
   selectedId: string | null;
+  searchFocusId?: string | null;
   popInKeys?: ReadonlySet<string>;
   onSelect: (id: string) => void;
 }) {
@@ -117,6 +125,7 @@ export function MapMarkerLayer({
       <ClusteredMarkerLayer
         restaurants={restaurants}
         selectedId={selectedId}
+        searchFocusId={searchFocusId}
         popInKeys={popInKeys}
         onSelect={onSelect}
       />
@@ -132,6 +141,7 @@ export function MapMarkerLayer({
             key={key}
             restaurant={r}
             selected={selectedId === key}
+            searchFocus={searchFocusId === key}
             popIn={popInKeys?.has(key)}
             onSelect={() => onSelect(key)}
           />

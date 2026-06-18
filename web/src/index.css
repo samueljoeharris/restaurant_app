@@ -1771,6 +1771,45 @@ code {
   }
 }
 
+.map-pin-wrap--search-focus {
+  z-index: 3;
+}
+
+.map-pin-wrap--search-focus .map-pin {
+  width: 18px;
+  height: 18px;
+  border-width: 3px;
+}
+
+.map-pin-label--search {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-brand);
+  background: #fff;
+}
+
+.map-pin-cluster-dot--search-focus {
+  width: 16px;
+  height: 16px;
+  border-width: 3px;
+  box-shadow: 0 0 0 4px rgb(232 93 36 / 40%), 0 2px 8px rgb(0 0 0 / 25%);
+}
+
+.map-pin-wrap--search-focus.map-pin-wrap--pop-in {
+  animation-name: map-pin-pop-in-search;
+}
+
+@keyframes map-pin-pop-in-search {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
 .map-pin-wrap {
   position: relative;
   cursor: pointer;
