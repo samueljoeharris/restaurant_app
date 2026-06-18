@@ -53,11 +53,14 @@ ExploreMapPage (catalog mode)
 
 ```
 PlaceSearchBox → Google place or catalog hit
-  → ?place_id=… → GET /v1/places/resolve → ?lat=&lng=&radius=8000
-  → GET /v1/restaurants/search?lat&lng&radius_m  (Haversine, distance-sorted)
-  → POST /v1/coverage/ensure (background seed if sparse)
-  → poll GET /v1/coverage/jobs/{id} → silent refresh
+  → resolve + GET /v1/places/{id}/entry (fast path: focus pin + detail sheet)
+  → ?lat=&lng=&radius=8000&focus=place:…
+  → GET /v1/places/nearby (signed-in; merges Google + SQL rated rows)
+  → POST /v1/coverage/ensure (background seed, 1 km on search select)
+  → nearby pins pop in; selected venue kept even if not in top-20 nearby
 ```
+
+Signed-out fallback: `GET /v1/restaurants/search` (Haversine on SQL catalog only).
 
 Restaurant name selection can also enter radius mode via `buildRestaurantRadiusParams()`.
 
@@ -70,8 +73,8 @@ GET /v1/places/autocomplete?q=…&session_token=…
   → up to 5 catalog ILIKE hits + up to 5 Google place predictions
 ```
 
-Selecting a **restaurant** → focus + optional 1 km background seed.  
-Selecting a **place** → pending resolve flow → radius mode.
+Selecting a **restaurant** → focus + `GET /places/{id}/entry` or catalog detail + 1 km `coverage/ensure`.  
+Selecting a **place** → resolve + entry fetch + focus + nearby async + `coverage/ensure`.
 
 ### Client-side filtering (catalog mode)
 
@@ -90,6 +93,9 @@ URL params: `q`, `filter`, `city`, `zip`, `tag`, `focus`, `lat`, `lng`, `radius`
 
 - Google Maps JS via `@vis.gl/react-google-maps`
 - Default center: Dedham pilot (`42.2418, -71.1662`)
+- **`clickableIcons={false}`** — native Google POI clicks disabled; use Little Scout pins
+- Search-focus pin: brand orange; Google-only (not in SQL) pins: dashed discover ring
+- Venue search zoom 17; area/radius zoom 12
 - **Pin clustering** at zoom ≤ 13 when > 12 pins (`@googlemaps/markerclusterer`)
 - Full custom pins at higher zoom
 - `FitBounds` fits loaded pins; `ViewportWatcher` fires on map idle
