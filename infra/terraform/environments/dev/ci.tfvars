@@ -30,3 +30,7 @@ enable_admin_cloud_run = true
 # IAP — Google login wall on admin.dev (OAuth client in ttf-iap-oauth secret; see docs/LITTLESCOUT_DOMAIN.md)
 enable_admin_iap  = true
 iap_admin_members = ["user:samueljoeharris@gmail.com"]
+
+# SA key max-age org policy requires org/folder-level orgpolicy.policyAdmin (not grantable
+# on project IAM). Enable via local terraform.tfvars after owner applies, or org IAM grant.
+enable_sa_key_max_age_policy = false

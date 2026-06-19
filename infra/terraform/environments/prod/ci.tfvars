@@ -36,6 +36,9 @@ enable_admin_cloud_run = true
 enable_admin_iap  = true
 iap_admin_members = ["user:samueljoeharris@gmail.com"]
 
+# Org policy for SA key max age — see dev/ci.tfvars (CI SA cannot create org policies).
+enable_sa_key_max_age_policy = false
+
 # Budget alert — see docs/DESIGN.md naming matrix ($25/$50/$100 thresholds)
 enable_billing_budget      = true
 billing_account_id         = "" # set via GitHub Environment secret BILLING_ACCOUNT_ID before apply
