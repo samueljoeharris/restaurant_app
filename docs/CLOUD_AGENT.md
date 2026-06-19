@@ -28,6 +28,7 @@ Paste the entire JSON file into **Cursor → Cloud Agents → Secrets → `GCP_D
 Startup: `bootstrap-cloud-env.sh` → `sync-secrets.sh` → Docker.
 
 ```bash
+bash .cursor/scripts/cloud-agent-bootstrap.sh   # new VM verify (sync + audit + API smoke)
 bash .cursor/scripts/cloud-eval-up.sh
 cd web && npm run dev
 ./scripts/audit-env.sh

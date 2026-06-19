@@ -3,8 +3,8 @@
 # Source of truth: Secret Manager — write secrets there once, sync everywhere else.
 #
 # Auth (first match wins):
-#   1. GCP_DEV_SYNC_SA_JSON env (Cursor Runtime Secret) → temp ADC file
-#   2. GOOGLE_APPLICATION_CREDENTIALS already set
+#   1. GCP_DEV_SYNC_SA_JSON env (Cursor Runtime Secret) → temp ADC + gcloud SA activate
+#   2. GOOGLE_APPLICATION_CREDENTIALS already set (SA key → activate for gcloud CLI)
 #   3. gcloud Application Default Credentials (local Mac: gcloud auth application-default login)
 #
 # Usage: ./scripts/sync-secrets.sh
@@ -25,15 +25,25 @@ trap cleanup EXIT
 mkdir -p "$SECRETS_DIR"
 chmod 700 "$SECRETS_DIR"
 
+activate_gcloud_sa_if_key() {
+  local key_file="$1"
+  [[ -f "$key_file" ]] || return 0
+  grep -q '"type"[[:space:]]*:[[:space:]]*"service_account"' "$key_file" 2>/dev/null || return 0
+  gcloud auth activate-service-account --key-file="$key_file" --quiet >/dev/null 2>&1 \
+    || echo "WARN: gcloud auth activate-service-account failed — Secret Manager fetch may fail" >&2
+}
+
 setup_gcp_auth() {
   if [[ -n "${GCP_DEV_SYNC_SA_JSON:-}" ]]; then
     TMP_ADC="$(mktemp)"
     printf '%s' "$GCP_DEV_SYNC_SA_JSON" >"$TMP_ADC"
     chmod 600 "$TMP_ADC"
     export GOOGLE_APPLICATION_CREDENTIALS="$TMP_ADC"
+    activate_gcloud_sa_if_key "$TMP_ADC"
     return 0
   fi
   if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" && -f "$GOOGLE_APPLICATION_CREDENTIALS" ]]; then
+    activate_gcloud_sa_if_key "$GOOGLE_APPLICATION_CREDENTIALS"
     return 0
   fi
   if command -v gcloud >/dev/null 2>&1; then
@@ -50,9 +60,25 @@ setup_gcp_auth() {
 
 fetch_secret() {
   local secret_id="$1"
-  gcloud secrets versions access latest \
+  local err_file value
+  err_file="$(mktemp)"
+  if value="$(gcloud secrets versions access latest \
     --secret="$secret_id" \
-    --project="$PROJECT" 2>/dev/null || true
+    --project="$PROJECT" 2>"$err_file")"; then
+    rm -f "$err_file"
+    printf '%s' "$value"
+    return 0
+  fi
+  if grep -q PERMISSION_DENIED "$err_file" 2>/dev/null; then
+    echo "  WARN: could not fetch $secret_id (permission denied)" >&2
+  elif grep -qi NOT_FOUND "$err_file" 2>/dev/null; then
+    echo "  WARN: could not fetch $secret_id (not found or no version)" >&2
+  elif [[ -s "$err_file" ]]; then
+    echo "  WARN: could not fetch $secret_id (see gcloud output above)" >&2
+  else
+    echo "  WARN: could not fetch $secret_id (empty)" >&2
+  fi
+  rm -f "$err_file"
 }
 
 write_env_kv() {
