@@ -12,8 +12,8 @@ Finish public web auth setup from [GETTING_STARTED.md Auth section](https://gith
 - [x] Test user flow validated in VM browser (`DEV_TEST_EMAIL` / `DEV_TEST_PASSWORD`)
 
 ### Remaining 🔲
-- [ ] Enable **Google** sign-in in Firebase Console (or Terraform OAuth vars) if not already on prod project
-- [ ] Manual test **Continue with Google** on deployed `app.dev` `/login`
+- [x] Enable **Google** sign-in in Firebase Console (OAuth flow verified 2026-06-18 — redirects to Google with `littlescout.app` consent)
+- [x] Manual test **Continue with Google** on deployed `app.dev` `/login` (OAuth initiates; full round-trip requires a Google account)
 - [ ] Optional: **Account → Set up authenticator** for MFA smoke test
 - [ ] Confirm production API rejects dev tokens (`AUTH_DEV_MODE=false` on Cloud Run — tracked in [#38](https://github.com/samueljoeharris/restaurant_app/issues/38))
 

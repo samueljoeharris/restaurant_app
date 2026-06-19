@@ -35,6 +35,8 @@ locals {
     "roles/iap.admin",
     "roles/logging.viewer",
     "roles/pubsub.admin",
+    # Org policies (e.g. SA key max age in project-security module)
+    "roles/orgpolicy.policyAdmin",
     # Deploy Cloud Run services that run as ttf-api-runtime (actAs)
     "roles/iam.serviceAccountUser",
     # Firebase Web app + project management

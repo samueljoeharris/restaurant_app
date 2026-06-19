@@ -1,6 +1,6 @@
 # Secret sync migration & cleanup
 
-Run after the SM distributor PR merges.
+SM distributor is on `main`. Use this checklist to finish cutover on your machines.
 
 ## Validate
 
