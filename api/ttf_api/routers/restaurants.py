@@ -88,7 +88,11 @@ def _row_to_detail(row: dict) -> RestaurantDetail:
 
 
 def _fetch_contribution_recency(conn, restaurant_id: UUID) -> ContributionRecency:
-    """Combined TTF + attribute counts by age bucket at restaurant scope."""
+    """Combined TTF + attribute counts by age bucket at restaurant scope.
+
+    Buckets are exclusive by contribution age in days. Contributions older than
+    180 days roll into ``over_365_days`` so totals always partition cleanly.
+    """
     row = conn.execute(
         """
         SELECT
