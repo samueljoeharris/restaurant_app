@@ -18,7 +18,7 @@ export const RECENCY_BUCKET_ROWS: Omit<RecencyBucketRow, "count">[] = [
   { key: "last_7_days", label: "This week" },
   { key: "days_8_to_30", label: "This month" },
   { key: "days_31_to_180", label: "Past 6 mo" },
-  { key: "over_365_days", label: "Over 6 mo ago" },
+  { key: "over_365_days", label: "Over 1 yr" },
 ];
 
 export function recencyBucketRows(recency: ContributionRecency): RecencyBucketRow[] {
