@@ -49,7 +49,7 @@ echo '{"team_id":"...","key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----
 
 ### Cursor UI
 
-- [ ] Remove old Runtime Secrets: `MAPS_API_KEY`, `GEMINI_API_KEY`, `VITE_*`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `GITHUB_PERSONAL_ACCESS_TOKEN`, `DEV_TEST_*`
+- [x] Remove old Runtime Secrets: `MAPS_API_KEY`, `GEMINI_API_KEY`, `VITE_*`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `GITHUB_PERSONAL_ACCESS_TOKEN`, `DEV_TEST_*`
 - [ ] Keep only `GCP_DEV_SYNC_SA_JSON` + visible env vars from `.env.cloud.visible.example`
 
 ### Local Mac

@@ -122,3 +122,8 @@ output "public_urls" {
     admin = var.enable_admin_cloud_run ? local.admin_origin : null
   } : null
 }
+
+output "secrets_catalog" {
+  description = "Enabled Secret Manager metadata (WHAT/WHY/env alias) — source: modules/secrets/catalog.tf"
+  value       = module.secrets.catalog
+}

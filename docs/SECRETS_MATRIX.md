@@ -4,6 +4,8 @@
 
 Never commit filled `.env`, `web/.env.local`, `.secrets/`, or `firebase-sa.json`.
 
+**Canonical source of truth:** [`infra/terraform/modules/secrets/catalog.tf`](../infra/terraform/modules/secrets/catalog.tf) — every secret has labels (`category`, `environment`, `sync_dev`) and annotations (`title`, `purpose`, `env-alias`, `seed-hint`).
+
 ## Mental model
 
 ```
@@ -17,21 +19,34 @@ You → GCP Secret Manager (source of truth)
 
 ## Secret inventory
 
-| SM secret ID | Env / file | Consumers |
-|--------------|------------|-----------|
-| `ttf-maps-api-key` | `MAPS_API_KEY` | API local + Cloud Run |
-| `ttf-maps-web-api-key` | `VITE_GOOGLE_MAPS_API_KEY` | Web build + local Vite |
-| `ttf-firebase-web-env` | JSON → `web/.env.local` | Web build + local Vite |
-| `ttf-firebase-admin-sa` | `firebase-sa.json` | API JWT verify |
-| `ttf-gemini-api-key` | `GEMINI_API_KEY` | API review chat |
-| `ttf-github-pat-mcp` | `GITHUB_PERSONAL_ACCESS_TOKEN` | GitHub MCP (`.secrets/mcp.env`) |
-| `ttf-dev-test-credentials` | JSON → `DEV_TEST_*` | Optional browser tests |
-| `ttf-apple-sign-in-key` | JSON → `APPLE_*` / `APPLE_SIGN_IN_KEY_JSON` | Account delete Apple revoke |
-| `ttf-recaptcha-site-key` | `VITE_APP_CHECK_RECAPTCHA_SITE_KEY` | Optional local App Check |
-| `ttf-iap-oauth` | Terraform only | Admin IAP (not dev sync) |
-| `ttf-db-url` | Cloud Run only | Production DB |
+| SM secret ID | Env alias | Category | Purpose | Dev sync? |
+|--------------|-----------|----------|---------|-----------|
+| `ttf-maps-api-key` | `MAPS_API_KEY` | api | Server Places/Geocoding | yes |
+| `ttf-maps-web-api-key` | `VITE_GOOGLE_MAPS_API_KEY` | web | Browser Maps JS API | yes |
+| `ttf-firebase-web-env` | `web/.env.local` VITE_* | web | Firebase web SDK JSON | yes |
+| `ttf-firebase-admin-sa` | `firebase-sa.json` | api | API JWT verify | yes |
+| `ttf-gemini-api-key` | `GEMINI_API_KEY` | api | Review chat | yes |
+| `ttf-github-pat-mcp` | `GITHUB_PERSONAL_ACCESS_TOKEN` | dev-tool | Cursor GitHub MCP | yes |
+| `ttf-dev-test-credentials` | `DEV_TEST_*` | dev-tool | Optional browser tests | yes |
+| `ttf-apple-sign-in-key` | `APPLE_*` / `APPLE_SIGN_IN_KEY_JSON` | api | Apple revoke on delete | yes |
+| `ttf-recaptcha-site-key` | `VITE_APP_CHECK_RECAPTCHA_SITE_KEY` | web | App Check (optional local) | yes |
+| `ttf-iap-oauth` | Terraform IAP vars | terraform | Admin IAP OAuth | no |
+| `ttf-db-url` | `DATABASE_URL` | infra | Cloud SQL DSN | no |
+| `ttf-internal-job-secret` | `INTERNAL_JOB_SECRET` | infra | Scheduler job token | no |
+| `ttf-api-public-url` | api origin | infra | CI deploy URL | no |
+| `ttf-web-public-url` | app origin | infra | CI deploy URL | no |
+| `ttf-admin-public-url` | admin origin | infra | CI deploy URL | no |
 
 Non-secrets: [`.env.defaults`](../.env.defaults) (committed).
+
+### View in GCP Console or CLI
+
+Terraform labels every secret with `managed_by=terraform`. In Console, open a secret → **Labels** and **Annotations** show title, purpose, env alias, and seed instructions.
+
+```bash
+./scripts/list-sm-secrets.sh
+gcloud secrets describe ttf-maps-api-key --project=ttf-restaurant-dev
+```
 
 ## Write a secret (once)
 
@@ -40,11 +55,9 @@ PROJECT=ttf-restaurant-dev
 echo -n "VALUE" | gcloud secrets versions add SECRET_ID --project=$PROJECT --data-file=-
 ```
 
-Create new secret containers via Terraform (`infra/terraform/environments/dev/main.tf` `secret_ids`) or:
+Secret **containers** are created by Terraform (`catalog.tf` + environment `secret_ids`). Do not `gcloud secrets create` manually — add new IDs to the catalog first.
 
-```bash
-gcloud secrets create SECRET_ID --project=$PROJECT --replication-policy=automatic
-```
+Optional dev placeholders: Terraform can seed initial JSON for `ttf-dev-test-credentials` and `ttf-apple-sign-in-key` when `create_placeholders = true` (dev only). Replace with real values via `gcloud secrets versions add`.
 
 ## Pull secrets (dev)
 
@@ -86,6 +99,7 @@ gcloud config set project ttf-restaurant-dev
 
 ```bash
 ./scripts/audit-env.sh
+./scripts/list-sm-secrets.sh
 ```
 
 ## Cleanup after migration

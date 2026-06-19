@@ -93,8 +93,10 @@ module "storage" {
 module "secrets" {
   source = "../../modules/secrets"
 
-  project_id = var.project_id
-  secret_ids = local.secret_ids
+  project_id          = var.project_id
+  environment         = var.environment
+  secret_ids          = local.secret_ids
+  create_placeholders = true
 
   depends_on = [module.project_services]
 }

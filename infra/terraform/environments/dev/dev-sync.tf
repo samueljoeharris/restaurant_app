@@ -8,13 +8,7 @@ resource "google_service_account" "dev_sync" {
 }
 
 locals {
-  dev_sync_secret_ids = concat(
-    ["ttf-maps-api-key", "ttf-gemini-api-key", "ttf-github-pat-mcp"],
-    var.enable_web_cloud_run ? ["ttf-maps-web-api-key"] : [],
-    var.enable_firebase_web ? ["ttf-firebase-web-env", "ttf-recaptcha-site-key"] : [],
-    var.enable_cloud_run ? ["ttf-firebase-admin-sa"] : [],
-    ["ttf-dev-test-credentials", "ttf-apple-sign-in-key"],
-  )
+  dev_sync_secret_ids = module.secrets.dev_sync_secret_ids
 }
 
 resource "google_secret_manager_secret_iam_member" "dev_sync_accessor" {
