@@ -99,7 +99,9 @@ gcloud config set project ttf-restaurant-dev
 
 ### dev-sync SA key (Cursor bootstrap)
 
-Terraform [`project-security`](../infra/terraform/modules/project-security/) enforces **90-day max age** on service account JSON keys (`iam.serviceAccountKeyExpiryHours`).
+**Personal / solo GCP projects:** there is no org or folder to attach IAM to, and the CI Terraform service account cannot create project org policies. Rotation is **script + calendar discipline** (target 90 days), not enforced by GCP.
+
+Optional: as **project Owner**, you can enable `enable_sa_key_max_age_policy = true` in gitignored `terraform.tfvars` and apply locally — but CI keeps it off in `ci.tfvars`, so the next infra deploy would remove it. For solo dev, skip the org policy module.
 
 ```bash
 ./scripts/audit-dev-sync-keys.sh    # warns when <=15 days remain

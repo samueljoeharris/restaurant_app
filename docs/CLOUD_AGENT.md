@@ -23,7 +23,12 @@ After Terraform applies [`dev-sync.tf`](../infra/terraform/environments/dev/dev-
 
 Paste the entire JSON file into **Cursor → Cloud Agents → Secrets → `GCP_DEV_SYNC_SA_JSON`**.
 
-Rotate before **90 days** (Terraform org policy): `./scripts/audit-dev-sync-keys.sh`, then `./scripts/rotate-dev-sync-key.sh`.
+Rotate before **90 days** (calendar + audit scripts — see [SECRETS_MATRIX.md](SECRETS_MATRIX.md#dev-sync-sa-key-cursor-bootstrap)):
+
+```bash
+./scripts/audit-dev-sync-keys.sh
+./scripts/rotate-dev-sync-key.sh
+```
 
 ### VM security notes
 
