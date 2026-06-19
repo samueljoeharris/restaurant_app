@@ -50,7 +50,7 @@ jobs:
           if IAP_JSON="$(gcloud secrets versions access latest \
             --secret=ttf-iap-oauth --project="$PROJECT" 2>/dev/null)"; then
             export IAP_JSON
-            python3 - <<'PY' >> "$GITHUB_ENV"
+            python3 - <<'PY'
           import json, os
           cfg = json.loads(os.environ["IAP_JSON"])
           cid = cfg.get("client_id", "")
@@ -59,8 +59,8 @@ jobs:
               with open(os.environ["GITHUB_ENV"], "a") as out:
                   out.write(f"TF_VAR_iap_oauth_client_id={cid}\n")
                   out.write(f"TF_VAR_iap_oauth_client_secret={secret}\n")
-          print("IAP OAuth loaded from Secret Manager (ttf-iap-oauth)")
           PY
+            echo "IAP OAuth loaded from Secret Manager (ttf-iap-oauth)"
           elif [[ -n "${{ secrets.IAP_OAUTH_CLIENT_ID }}" ]]; then
             echo "TF_VAR_iap_oauth_client_id=${{ secrets.IAP_OAUTH_CLIENT_ID }}" >> "$GITHUB_ENV"
             echo "TF_VAR_iap_oauth_client_secret=${{ secrets.IAP_OAUTH_CLIENT_SECRET }}" >> "$GITHUB_ENV"
