@@ -4,9 +4,12 @@ Run after the SM distributor PR merges.
 
 ## Validate
 
+Local Mac only (skip on Cursor Cloud — use `GCP_DEV_SYNC_SA_JSON` instead):
+
 ```bash
 git pull
-gcloud auth application-default login   # local Mac only
+gcloud auth application-default login
+gcloud config set project ttf-restaurant-dev
 ./scripts/sync-secrets.sh
 ./scripts/audit-env.sh
 bash .cursor/scripts/cloud-eval-up.sh   # or ./scripts/start-local.sh
