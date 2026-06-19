@@ -90,10 +90,31 @@ gcloud config set project ttf-restaurant-dev
 
 ## Rotation
 
+### Secret Manager values
+
 1. `gcloud secrets versions add …` in SM
 2. Dev: `./scripts/sync-secrets.sh`
 3. Cloud Run: new revision (push `infra/**` or redeploy API workflow)
 4. Web: re-run Web workflow if build-time keys changed
+
+### dev-sync SA key (Cursor bootstrap)
+
+Terraform [`project-security`](../infra/terraform/modules/project-security/) enforces **90-day max age** on service account JSON keys (`iam.serviceAccountKeyExpiryHours`).
+
+```bash
+./scripts/audit-dev-sync-keys.sh    # warns when <=15 days remain
+./scripts/rotate-dev-sync-key.sh    # new key → update Cursor → revoke old keys
+```
+
+## Hardening (repo + deploy)
+
+| Control | Where |
+|---------|--------|
+| `AUTH_DEV_MODE` blocked on Cloud Run | API `security_config.py` — fails startup if `K_SERVICE`, `TTF_DEPLOYED`, or Cloud SQL URL |
+| `AUTH_DEV_MODE=false` in deploy | Terraform `phase-b.tf` `container_env` |
+| Committed secret scan | `./scripts/secret-scan.sh` (gitleaks) — pre-push + GitHub CI |
+| Dev-sync least privilege | `dev-sync.tf` — `secretAccessor` on `sync_dev=true` secrets only |
+| Prod secrets not on VM | SM → CI / Cloud Run only (`sync_dev=false` for infra secrets) |
 
 ## Audit (no secret values printed)
 

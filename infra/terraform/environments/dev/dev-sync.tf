@@ -24,3 +24,8 @@ output "dev_sync_service_account_email" {
   description = "Grant a key via scripts/create-dev-sync-key.sh → Cursor GCP_DEV_SYNC_SA_JSON"
   value       = google_service_account.dev_sync.email
 }
+
+output "dev_sync_key_max_age_hours" {
+  description = "SA key max age from project_security module (rotate before expiry)."
+  value       = module.project_security.sa_key_max_age_hours
+}

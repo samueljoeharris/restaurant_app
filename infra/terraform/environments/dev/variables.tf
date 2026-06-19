@@ -242,3 +242,15 @@ variable "iap_admin_members" {
   description = "IAM members granted IAP access to admin backend (e.g. user:you@gmail.com)"
   default     = []
 }
+
+variable "enable_sa_key_max_age_policy" {
+  type        = bool
+  description = "Enforce max age on service account JSON keys (90d default). Required for dev-sync rotation discipline."
+  default     = true
+}
+
+variable "sa_key_max_age_hours" {
+  type        = number
+  description = "Max SA key validity in hours (2160 = 90 days)."
+  default     = 2160
+}

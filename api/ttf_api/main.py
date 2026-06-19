@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ttf_api.config import settings
 from ttf_api.db import run_migrations
+from ttf_api.security_config import assert_safe_auth_config
 from ttf_api.http_cache import ETagMiddleware
 from ttf_api.routers import (
     admin,
@@ -24,6 +25,7 @@ from ttf_api.security_headers import SecurityHeadersMiddleware
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    assert_safe_auth_config(settings)
     run_migrations()
     yield
 

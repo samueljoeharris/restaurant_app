@@ -14,6 +14,7 @@ cd "$ROOT"
 RUN_WEB=false
 RUN_API=false
 RUN_INFRA=false
+RUN_SECRETS=false
 MODE="smart"
 
 # Dummy Vite env for web Docker builds (same as GitHub CI).
@@ -57,11 +58,13 @@ while [[ $# -gt 0 ]]; do
       RUN_WEB=true
       RUN_API=true
       RUN_INFRA=true
+      RUN_SECRETS=true
       MODE="all"
       shift
       ;;
     --pre-push)
       MODE="pre-push"
+      RUN_SECRETS=true
       shift
       ;;
     -h|--help)
@@ -112,12 +115,15 @@ if [[ "$MODE" != "all" ]]; then
     RUN_API=true
     RUN_INFRA=true
   fi
+  if echo "$changed" | grep -qE '^(\.gitleaks\.toml|scripts/secret-scan\.sh)'; then
+    RUN_SECRETS=true
+  fi
   if echo "$changed" | grep -qE '^\.github/workflows/reusable-terraform\.yml'; then
     RUN_INFRA=true
   fi
 fi
 
-if ! $RUN_WEB && ! $RUN_API && ! $RUN_INFRA; then
+if ! $RUN_WEB && ! $RUN_API && ! $RUN_INFRA && ! $RUN_SECRETS; then
   echo "ci-check: no relevant changes — skipping (use --all to force)"
   exit 0
 fi
@@ -145,6 +151,10 @@ require_docker
 
 echo "=== TTF ci-check ($MODE, Docker) ==="
 
+if $RUN_SECRETS; then
+  bash "$ROOT/scripts/secret-scan.sh" detect
+fi
+
 if $RUN_WEB; then
   echo "→ web: docker build (web/Dockerfile)"
   docker build "${VITE_CI_ARGS[@]}" -t ttf-web-ci ./web
@@ -158,6 +168,7 @@ if $RUN_API; then
   # Import the app: catches startup-time failures (route config, bad imports)
   # that compileall misses — same failure mode as a Cloud Run boot crash.
   docker run --rm ttf-api-ci python -c "from ttf_api.main import app"
+  docker run --rm ttf-api-ci python -m unittest tests.test_security_config -q
   echo "✓ api build"
 fi
 

@@ -23,6 +23,15 @@ After Terraform applies [`dev-sync.tf`](../infra/terraform/environments/dev/dev-
 
 Paste the entire JSON file into **Cursor → Cloud Agents → Secrets → `GCP_DEV_SYNC_SA_JSON`**.
 
+Rotate before **90 days** (Terraform org policy): `./scripts/audit-dev-sync-keys.sh`, then `./scripts/rotate-dev-sync-key.sh`.
+
+### VM security notes
+
+- Synced secrets live as **plaintext files** in `.secrets/` on the VM disk (gitignored, `chmod 600`) — same risk model as a dev laptop.
+- Runtime Secret redacts values from **agent chat/commits**, but secrets are still visible in the **terminal**.
+- Use Cursor **network allowlists** to limit exfiltration (cloud agents auto-run commands).
+- Prod credentials (`ttf-db-url`, etc.) never sync to the VM — deploy path only.
+
 ### Restart agent
 
 Startup: `bootstrap-cloud-env.sh` → `sync-secrets.sh` → Docker.

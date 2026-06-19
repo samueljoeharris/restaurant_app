@@ -59,6 +59,7 @@ locals {
     PILOT_DISPLAY_NAME        = "Dedham, Massachusetts"
     FIREBASE_PROJECT_ID       = var.project_id
     AUTH_DEV_MODE             = "false"
+    TTF_DEPLOYED              = "true"
     APP_CHECK_ENFORCE         = var.app_check_recaptcha_site_key != "" ? "true" : "false"
     RATE_LIMIT_MAX_WRITES     = "60"
     RATE_LIMIT_WINDOW_MINUTES = "60"

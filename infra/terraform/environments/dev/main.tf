@@ -8,6 +8,7 @@ locals {
     "iamcredentials.googleapis.com",
     "sts.googleapis.com",
     "cloudresourcemanager.googleapis.com",
+    "orgpolicy.googleapis.com",
     # Firebase Web SDK + Auth (browser sign-in)
     "firebase.googleapis.com",
     "identitytoolkit.googleapis.com",
@@ -149,6 +150,16 @@ module "github_workload_identity" {
   ]
 
   depends_on = [module.iam, module.project_services]
+}
+
+module "project_security" {
+  source = "../../modules/project-security"
+
+  project_id                   = var.project_id
+  enable_sa_key_max_age_policy = var.enable_sa_key_max_age_policy
+  sa_key_max_age_hours         = var.sa_key_max_age_hours
+
+  depends_on = [module.project_services]
 }
 
 resource "google_billing_budget" "dev" {

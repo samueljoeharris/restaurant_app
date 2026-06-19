@@ -1,0 +1,39 @@
+# TTF gitleaks config — scan for committed secrets; allow documented placeholders.
+# Run: ./scripts/secret-scan.sh
+
+title = "TTF gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Committed non-secret examples and docs"
+paths = [
+  '''\.env\.example$''',
+  '''\.env\.defaults$''',
+  '''\.env\.cloud\.visible\.example$''',
+  '''\.env\.cloud\.example$''',
+  '''terraform\.tfvars\.example$''',
+  '''docs/SECRET_SYNC_MIGRATION\.md$''',
+  '''docs/SECRETS_MATRIX\.md$''',
+  '''docs/CLOUD_AGENT\.md$''',
+  '''docs/MCP_SETUP\.md$''',
+  '''docs/WEB_AUTH\.md$''',
+  '''docs/FIREBASE_AUTH\.md$''',
+  '''AGENTS\.md$''',
+  '''api/README\.md$''',
+]
+
+regexes = [
+  '''fake-api-key-for-emulator''',
+  '''ci-dummy''',
+  '''ci-project''',
+  '''ci\.example\.com''',
+  '''ghp_\.\.\.''',
+  '''ghp_REDACTED''',
+  '''pilotpass123''',
+  '''pilot@ttf\.test''',
+  '''Bearer dev:<''',
+  '''postgresql://ttf_app:ttf_local@''',
+  '''YOUR_|REPLACE_ME|PLACEHOLDER''',
+]
