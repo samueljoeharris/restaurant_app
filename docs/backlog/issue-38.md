@@ -5,7 +5,7 @@ Work through Tier 1 hardening in [BEST_PRACTICES.md §7](https://github.com/samu
 
 ---
 
-## Progress (2026-06-18)
+## Progress (2026-06-19)
 
 ### Done ✅
 - [x] Account deletion (API + web + iOS) — #33
@@ -14,12 +14,14 @@ Work through Tier 1 hardening in [BEST_PRACTICES.md §7](https://github.com/samu
 - [x] `check_revoked=True` on sensitive auth paths (non-emulator)
 - [x] Privacy policy page (`/privacy`, [PRIVACY_POLICY.md](https://github.com/samueljoeharris/restaurant_app/blob/main/docs/PRIVACY_POLICY.md))
 - [x] CORS allowlist in API config
+- [x] CSP headers on web/admin SPAs (`web/nginx.conf`, `web/nginx.admin.conf`)
+- [x] `AUTH_DEV_MODE=false` in Terraform dev/prod + startup guard (`security_config.py`)
+- [x] Write-route audit — all user-facing writes use `require_write_access` (or documented allowlist); regression test `api/tests/test_write_guards.py`
+- [x] `POST /v1/places/{id}/materialize` now uses `require_write_access` (was missing rate limit)
 
 ### Remaining 🔲
-- [ ] Confirm `AUTH_DEV_MODE=false` on **production** Cloud Run (dev/staging audit)
-- [ ] App Check **enforced in prod** (reCAPTCHA site key + web client token on all writes)
-- [ ] CSP headers on web/admin SPAs
-- [ ] Audit all write routes use `secure_write` / rate limit consistently
+- [ ] Set `app_check_recaptcha_site_key` in prod `terraform.tfvars` and apply (enables `APP_CHECK_ENFORCE=true` on prod API)
+- [ ] Post-deploy smoke: confirm no CSP violations on `app.littlescout.app` / `admin.littlescout.app` ([PROD_CUTOVER_RUNBOOK.md](PROD_CUTOVER_RUNBOOK.md))
 - [ ] iOS pre-launch checklist items in BEST_PRACTICES §7 (if any still open)
 
 ---

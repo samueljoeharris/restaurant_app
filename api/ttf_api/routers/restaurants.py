@@ -80,8 +80,6 @@ def _row_to_summary(row: dict) -> RestaurantSummary:
 def _row_to_detail(row: dict) -> RestaurantDetail:
     return RestaurantDetail(
         **_row_to_summary(row).model_dump(),
-        google_place_id=row.get("google_place_id"),
-        google_maps_url=row.get("google_maps_url"),
         created_at=row["created_at"],
         updated_at=row["updated_at"],
     )
