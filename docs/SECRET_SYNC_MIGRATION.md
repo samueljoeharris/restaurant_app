@@ -31,9 +31,10 @@ echo -n "ghp_..." | gcloud secrets versions add ttf-github-pat-mcp --project=$PR
 echo '{"email":"you@example.com","password":"..."}' \
   | gcloud secrets versions add ttf-dev-test-credentials --project=$PROJECT --data-file=-
 
-# Apple Sign-In (when ready)
+# Apple Sign-In (when ready — then set apple_sign_in_key_configured = true in terraform.tfvars)
 echo '{"team_id":"...","key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----","client_id":"com.samueljoeharris.ttf"}' \
   | gcloud secrets versions add ttf-apple-sign-in-key --project=$PROJECT --data-file=-
+# After seeding: apple_sign_in_key_configured = true in terraform.tfvars → push infra/
 ```
 
 ## Terraform (dev-sync SA)

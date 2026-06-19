@@ -42,11 +42,12 @@ locals {
       secret  = "ttf-gemini-api-key"
       version = "latest"
     }
+    }, var.apple_sign_in_key_configured ? {
     APPLE_SIGN_IN_KEY_JSON = {
       secret  = "ttf-apple-sign-in-key"
       version = "latest"
     }
-    }, var.enable_restaurant_refresh_job ? {
+  } : {}, var.enable_restaurant_refresh_job ? {
     INTERNAL_JOB_SECRET = {
       secret  = "ttf-internal-job-secret"
       version = "latest"

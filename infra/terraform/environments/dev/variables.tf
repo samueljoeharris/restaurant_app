@@ -159,6 +159,12 @@ variable "firebase_admin_sa_configured" {
   default     = false
 }
 
+variable "apple_sign_in_key_configured" {
+  type        = bool
+  description = "Set true after seeding ttf-apple-sign-in-key in Secret Manager (enables APPLE_SIGN_IN_KEY_JSON on Cloud Run)"
+  default     = false
+}
+
 variable "dns_base_domain" {
   type        = string
   description = "Registrable domain (e.g. littlescout.app). Empty disables custom hostnames."
