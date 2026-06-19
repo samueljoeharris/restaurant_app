@@ -11,13 +11,13 @@ on:
         default: false
         type: boolean
 
-concurrency:
-  group: terraform-dev-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   plan:
     name: Terraform Plan (dev)
+    # Plan is safe to supersede; apply uses its own non-cancelling group below.
+    concurrency:
+      group: terraform-plan-dev-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     environment: dev
     permissions:
@@ -92,6 +92,10 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' ||
        (github.event_name == 'workflow_dispatch' && inputs.apply == true))
+    # Never cancel mid-apply — queue newer applies until the current one finishes.
+    concurrency:
+      group: terraform-apply-dev-${{ github.ref }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     environment: dev
     permissions:

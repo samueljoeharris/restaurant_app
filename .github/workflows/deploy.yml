@@ -12,9 +12,11 @@ on:
   push:
     branches: [main]
 
+# Supersede stale pipeline runs on rapid pushes; child reusable workflows have
+# their own groups (deploy jobs cancel; Terraform apply does not).
 concurrency:
   group: deploy-dev-main
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   changes:

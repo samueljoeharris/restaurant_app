@@ -35,6 +35,10 @@ env:
   PROJECT_ID: ttf-restaurant-dev
   REGION: us-central1
 
+concurrency:
+  group: tool-debug-logs-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   fetch:
     name: Fetch Cloud Logging
