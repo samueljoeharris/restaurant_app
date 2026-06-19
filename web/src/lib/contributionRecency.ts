@@ -1,5 +1,13 @@
 import type { ContributionRecency } from "../types";
 
+export const EMPTY_CONTRIBUTION_RECENCY: ContributionRecency = {
+  last_7_days: 0,
+  days_8_to_30: 0,
+  days_31_to_180: 0,
+  over_365_days: 0,
+  total: 0,
+};
+
 export interface RecencyBucketRow {
   key: keyof Omit<ContributionRecency, "total">;
   label: string;

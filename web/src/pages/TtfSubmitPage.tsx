@@ -10,6 +10,7 @@ import { ChoiceChip, ChoiceChipGroup } from "../components/ui/ChoiceChip";
 import { Page } from "../components/ui/Page";
 import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
+import { EMPTY_CONTRIBUTION_RECENCY } from "../lib/contributionRecency";
 import type { RestaurantDetailResponse, TtfSubmission } from "../types";
 
 const ITEM_TYPES: { value: TtfSubmission["item_type"]; label: string; emoji: string }[] = [
@@ -79,6 +80,7 @@ export function TtfSubmitPage() {
           google_maps_url: null, created_at: "", updated_at: "",
         },
         ttf: entry.ttf,
+        contribution_recency: EMPTY_CONTRIBUTION_RECENCY,
       });
     });
   }, [id, placeId, idToken]);
