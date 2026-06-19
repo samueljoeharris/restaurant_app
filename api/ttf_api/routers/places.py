@@ -20,7 +20,7 @@ from ttf_api.db import get_conn
 from ttf_api.places_client import autocomplete_places, place_details, search_nearby_places
 from ttf_api.places_nearby import map_entry_from_place_details, merge_nearby_places
 from ttf_api.places_seed import PlacesSeedError, ensure_restaurant_for_place, fetch_place_details, require_maps_api_key
-from ttf_api.routers.restaurants import _fetch_ttf_aggregate, _row_to_detail
+from ttf_api.routers.restaurants import build_restaurant_detail_response, _row_to_detail
 from ttf_api.schemas import AutocompleteResponse, PlaceSuggestion, PlaceResolveResponse, RestaurantDetailResponse, RestaurantMapEntry
 
 logger = logging.getLogger(__name__)
@@ -236,4 +236,4 @@ def materialize_place(request: Request, place_id: str, user: Annotated[AuthUser,
         row = conn.execute("SELECT * FROM restaurants WHERE id = %s AND pilot_city = %s", (restaurant_id, settings.pilot_city)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Restaurant not found")
-        return RestaurantDetailResponse(restaurant=_row_to_detail(row), ttf=_fetch_ttf_aggregate(conn, restaurant_id))
+        return build_restaurant_detail_response(conn, row, restaurant_id)

@@ -18,6 +18,7 @@ from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area
 from ttf_api.schemas import (
     AttributeSubmissionRequest,
     AttributeSubmissionResponse,
+    ContributionRecency,
     CreateRestaurantRequest,
     NoteSubmissionRequest,
     NoteSubmissionResponse,
@@ -84,6 +85,42 @@ def _row_to_detail(row: dict) -> RestaurantDetail:
         google_maps_url=row.get("google_maps_url"),
         created_at=row["created_at"],
         updated_at=row["updated_at"],
+    )
+
+
+def _fetch_contribution_recency(conn, restaurant_id: UUID) -> ContributionRecency:
+    """Combined TTF + attribute counts by age bucket at restaurant scope."""
+    row = conn.execute(
+        """
+        SELECT
+            COUNT(*) FILTER (WHERE age_days <= 7)::int AS last_7_days,
+            COUNT(*) FILTER (WHERE age_days BETWEEN 8 AND 30)::int AS days_8_to_30,
+            COUNT(*) FILTER (WHERE age_days BETWEEN 31 AND 180)::int AS days_31_to_180,
+            COUNT(*) FILTER (WHERE age_days > 180)::int AS over_365_days,
+            COUNT(*)::int AS total
+        FROM (
+            SELECT (CURRENT_DATE - ts::date) AS age_days
+            FROM (
+                SELECT created_at AS ts
+                FROM ttf_observations
+                WHERE restaurant_id = %s
+                UNION ALL
+                SELECT observed_at AS ts
+                FROM restaurant_attribute_ratings
+                WHERE restaurant_id = %s
+            ) contributions
+        ) aged
+        """,
+        (restaurant_id, restaurant_id),
+    ).fetchone()
+    return ContributionRecency(**row)
+
+
+def build_restaurant_detail_response(conn, row: dict, restaurant_id: UUID) -> RestaurantDetailResponse:
+    return RestaurantDetailResponse(
+        restaurant=_row_to_detail(row),
+        ttf=_fetch_ttf_aggregate(conn, restaurant_id),
+        contribution_recency=_fetch_contribution_recency(conn, restaurant_id),
     )
 
 
@@ -261,8 +298,7 @@ def get_restaurant_seed_job(
 def get_restaurant(restaurant_id: UUID) -> RestaurantDetailResponse:
     with get_conn() as conn:
         row = _ensure_restaurant(conn, restaurant_id)
-        ttf = _fetch_ttf_aggregate(conn, restaurant_id)
-    return RestaurantDetailResponse(restaurant=_row_to_detail(row), ttf=ttf)
+        return build_restaurant_detail_response(conn, row, restaurant_id)
 
 
 @router.post("", response_model=RestaurantDetail, status_code=status.HTTP_201_CREATED)

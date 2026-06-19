@@ -55,6 +55,16 @@ class TtfAggregate(BaseModel):
     last_updated: datetime | None = None
 
 
+class ContributionRecency(BaseModel):
+    """Combined TTF + attribute rating counts by age bucket (exclusive)."""
+
+    last_7_days: int = 0
+    days_8_to_30: int = 0
+    days_31_to_180: int = 0
+    over_365_days: int = 0
+    total: int = 0
+
+
 class RestaurantMapEntry(RestaurantSummary):
     ttf: TtfAggregate
     note_count: int = 0
@@ -64,6 +74,7 @@ class RestaurantMapEntry(RestaurantSummary):
 class RestaurantDetailResponse(BaseModel):
     restaurant: RestaurantDetail
     ttf: TtfAggregate = Field(default_factory=TtfAggregate)
+    contribution_recency: ContributionRecency = Field(default_factory=ContributionRecency)
 
 
 class RestaurantSeedJobRequest(BaseModel):

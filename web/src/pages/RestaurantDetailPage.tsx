@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { authErrorMessage } from "../auth/errors";
 import { AttributeSummary } from "../components/AttributeSummary";
+import { ContributionRecencyChart } from "../components/ContributionRecencyChart";
 import { Badge } from "../components/ui/Badge";
 import { Button, ButtonAnchor, ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -87,7 +88,7 @@ export function RestaurantDetailPage() {
     );
   }
 
-  const { restaurant: r, ttf } = data;
+  const { restaurant: r, ttf, contribution_recency } = data;
 
   return (
     <Page
@@ -121,6 +122,15 @@ export function RestaurantDetailPage() {
           </p>
         )}
       </Card>
+
+      {contribution_recency.total > 0 && (
+        <Card
+          title="Community activity"
+          subtitle="When parents last shared speed and kid-friendly ratings"
+        >
+          <ContributionRecencyChart recency={contribution_recency} />
+        </Card>
+      )}
 
       <Card title="Kid food speed" subtitle="How fast did kid food arrive?" accent>
         {ttf.sample_size === 0 ? (

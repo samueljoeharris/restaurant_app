@@ -153,6 +153,14 @@ export interface TtfAggregate {
   last_updated: string | null;
 }
 
+export interface ContributionRecency {
+  last_7_days: number;
+  days_8_to_30: number;
+  days_31_to_180: number;
+  over_365_days: number;
+  total: number;
+}
+
 export interface RestaurantDetail {
   id: string;
   name: string;
@@ -170,6 +178,7 @@ export interface RestaurantDetail {
 export interface RestaurantDetailResponse {
   restaurant: RestaurantDetail;
   ttf: TtfAggregate;
+  contribution_recency: ContributionRecency;
 }
 
 export interface UserProfile {
