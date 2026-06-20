@@ -30,6 +30,7 @@ You → GCP Secret Manager (source of truth)
 | `ttf-gemini-api-key` | `GEMINI_API_KEY` | api | secret | Review chat | yes |
 | `ttf-github-pat-mcp` | `GITHUB_PERSONAL_ACCESS_TOKEN` | dev-tool | secret | Cursor GitHub MCP | yes |
 | `ttf-dev-test-credentials` | `DEV_TEST_*` | dev-tool | secret | Cloud-agent / local browser UI tests (`contrib-1781961579@ttf.test`) | yes |
+| `ttf-agent-users-registry` | `.secrets/agent-users-registry.json` | dev-tool | secret | Synthetic agent user pool | yes |
 | `ttf-apple-sign-in-key` | `APPLE_*` / `APPLE_SIGN_IN_KEY_JSON` | api | secret | Apple revoke on delete | yes |
 | `ttf-iap-oauth` | Terraform IAP vars | terraform | secret | Admin IAP OAuth | no |
 | `ttf-db-url` | `DATABASE_URL` | infra | secret | Cloud SQL DSN | no |

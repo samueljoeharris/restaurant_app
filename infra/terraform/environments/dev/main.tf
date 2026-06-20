@@ -53,7 +53,7 @@ locals {
     var.enable_custom_domains && var.enable_admin_cloud_run && var.enable_admin_iap ? [
       "ttf-iap-oauth",
     ] : [],
-    ["ttf-dev-test-credentials", "ttf-apple-sign-in-key"],
+    ["ttf-dev-test-credentials", "ttf-agent-users-registry", "ttf-apple-sign-in-key"],
   )
 
   database_url = var.enable_cloud_sql ? format(
