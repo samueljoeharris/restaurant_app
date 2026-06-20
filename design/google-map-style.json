@@ -1,17 +1,135 @@
 {
   "variant": "light",
-  "description": "Little Scout Bluebird — warm ivory land, sky water, sage parks, minimal POI. Import in Google Cloud Console → Map Styles, attach to a Map ID, set VITE_GOOGLE_MAPS_MAP_ID.",
-  "colors": {
-    "land": "#FBF6EC",
-    "water": "#D6EDF7",
-    "park": "#A8C9A0",
-    "road": "#F5EFE3",
-    "roadOutline": "#E8DFD0",
-    "label": "#6B7A85"
+  "backgroundColor": "#FBF6EC",
+  "metadata": {
+    "name": "Little Scout Bluebird",
+    "description": "Cloud map style for web explore map. Palette from design/tokens.json (mapLand, mapWater, mapPark). Import via Google Cloud Console → Map Styles → Create style → JSON tab.",
+    "docs": "docs/MAP_STYLE.md"
   },
-  "settings": {
-    "hidePoiBusiness": true,
-    "hideTransit": true,
-    "reduceLabelDensity": true
-  }
+  "styles": [
+    {
+      "id": "natural.land",
+      "geometry": {
+        "fillColor": "#FBF6EC"
+      }
+    },
+    {
+      "id": "natural.land.landCover",
+      "geometry": {
+        "fillColor": "#F5EFE3"
+      }
+    },
+    {
+      "id": "infrastructure.urbanArea",
+      "geometry": {
+        "fillColor": "#FBF6EC"
+      }
+    },
+    {
+      "id": "natural.water",
+      "geometry": {
+        "fillColor": "#D6EDF7"
+      },
+      "label": {
+        "textFillColor": "#6B7A85",
+        "textStrokeColor": "#FBF6EC"
+      }
+    },
+    {
+      "id": "pointOfInterest.recreation.park",
+      "geometry": {
+        "fillColor": "#A8C9A0"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.local",
+      "geometry": {
+        "fillColor": "#F5EFE3",
+        "strokeColor": "#E8DFD0"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.arterial",
+      "geometry": {
+        "fillColor": "#F0EBE0",
+        "strokeColor": "#E8DFD0"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork.road.highway",
+      "geometry": {
+        "fillColor": "#EDE5D6",
+        "strokeColor": "#D4C8B8"
+      }
+    },
+    {
+      "id": "infrastructure.roadNetwork",
+      "label": {
+        "textFillColor": "#6B7A85",
+        "textStrokeColor": "#FBF6EC"
+      }
+    },
+    {
+      "id": "infrastructure.building",
+      "geometry": {
+        "fillColor": "#EDE8DD",
+        "fillOpacity": 0.5
+      },
+      "label": {
+        "visible": false
+      }
+    },
+    {
+      "id": "political.city",
+      "label": {
+        "textFillColor": "#6B7A85",
+        "textStrokeColor": "#FBF6EC"
+      }
+    },
+    {
+      "id": "political.neighborhood",
+      "label": {
+        "visible": false
+      }
+    },
+    {
+      "id": "political.sublocality",
+      "label": {
+        "visible": false
+      }
+    },
+    {
+      "id": "political.landParcel",
+      "label": {
+        "visible": false
+      }
+    },
+    {
+      "id": "pointOfInterest",
+      "label": {
+        "visible": false
+      }
+    },
+    {
+      "id": "infrastructure.transitStation",
+      "geometry": {
+        "visible": false
+      },
+      "label": {
+        "visible": false
+      }
+    },
+    {
+      "id": "infrastructure.railwayTrack",
+      "geometry": {
+        "visible": false
+      }
+    },
+    {
+      "id": "pointOfInterest.transit",
+      "label": {
+        "visible": false
+      }
+    }
+  ]
 }
