@@ -179,7 +179,6 @@ export function ExploreMapPage() {
   const [locating, setLocating] = useState(false);
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [searchSidebarCollapsed, setSearchSidebarCollapsed] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [popInKeys, setPopInKeys] = useState<ReadonlySet<string>>(() => new Set());
 
@@ -691,7 +690,7 @@ export function ExploreMapPage() {
           error={error}
           searchBusy={searchBusy}
           userLocation={userLocation}
-          withSidebar={!searchSidebarCollapsed}
+          withSidebar
           fitKey={fitKey}
           onSearchArea={handleSearchArea}
           onViewportChange={viewportEnabled ? handleViewportChange : undefined}
@@ -711,14 +710,14 @@ export function ExploreMapPage() {
 
       <MapSearchSidebar
         resultCount={filtered.length}
-        onCollapsedChange={setSearchSidebarCollapsed}
+        search={
+          <PlaceSearchBox
+            onSelectPlace={handleSelectPlace}
+            onSelectRestaurant={handleSelectRestaurant}
+            placeholder="Search by name, place, or neighborhood…"
+          />
+        }
       >
-        <PlaceSearchBox
-          onSelectPlace={handleSelectPlace}
-          onSelectRestaurant={handleSelectRestaurant}
-          placeholder="Search by name, place, or neighborhood…"
-        />
-
         {(isRadiusMode || isPendingPlaceMode) && (
           <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-brand/25 bg-brand-soft px-4 py-3 text-sm">
             <span className="flex-1 font-semibold text-brand">
