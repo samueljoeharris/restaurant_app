@@ -1,4 +1,5 @@
-const MASCOT_SRC = "/images/scout-mascot.png";
+const MASCOT_PNG = "/images/scout-mascot.png";
+const MASCOT_WEBP = "/images/scout-mascot.webp";
 
 /** Illustrated scout mascot for onboarding, auth, and empty states (geometric ScoutLogo stays the app mark). */
 export function ScoutMascot({
@@ -11,16 +12,19 @@ export function ScoutMascot({
   alt?: string;
 }) {
   return (
-    <img
-      src={MASCOT_SRC}
-      alt={alt}
-      width={size}
-      height={size}
-      className={className}
-      loading="lazy"
-      decoding="async"
-    />
+    <picture>
+      <source srcSet={MASCOT_WEBP} type="image/webp" />
+      <img
+        src={MASCOT_PNG}
+        alt={alt}
+        width={size}
+        height={size}
+        className={className}
+        loading="lazy"
+        decoding="async"
+      />
+    </picture>
   );
 }
 
-export const SCOUT_MASCOT_PATH = MASCOT_SRC;
+export const SCOUT_MASCOT_PATH = MASCOT_PNG;
