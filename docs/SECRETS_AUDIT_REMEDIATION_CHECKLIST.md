@@ -20,7 +20,7 @@ These steps confirm GHA Terraform applied the new SM labels.
 
 ## Local Mac smoke (any time)
 
-Requires **Python 3.11–3.13** on PATH (`api/Dockerfile` uses 3.12; 3.14 may fail on pinned `psycopg`). Use `./scripts/start-local.sh --docker-api` if native venv install fails.
+Requires **Python 3.14** on PATH (matches `api/Dockerfile` and GHA). Mac: `brew install python@3.14`. Cloud VM: preinstalled via `.cursor/Dockerfile` (deadsnakes).
 
 ```bash
 ./scripts/sync-secrets.sh
