@@ -142,3 +142,15 @@ export function mergeRestaurantMapEntries(
 ): string[] {
   return mergeEntries(incoming, excludeKey);
 }
+
+/** Keep map/list cards in sync after a watch toggle (catalog entries only). */
+export function setRestaurantWatched(restaurantId: string, watched: boolean) {
+  for (const [key, entry] of entries) {
+    if (entry.id === restaurantId) {
+      entries.set(key, { ...entry, watched });
+      rebuildEntriesSnapshot();
+      for (const listener of listeners) listener();
+      return;
+    }
+  }
+}

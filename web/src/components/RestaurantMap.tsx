@@ -323,7 +323,7 @@ function MapRestaurantSheet({
   const confirmedTtf = entry.ttf.sample_size >= 3;
   const googleOnly = isGoogleOnlyEntry(entry);
   const googleMapsUrl = googleMapsUrlForEntry(entry);
-  const restaurantId = entry.id ?? entry.google_place_id ?? null;
+  const restaurantId = entry.id ?? null;
   const { watched, busy, toggle } = useWatch(restaurantId, entry.watched ?? false);
 
   return (
