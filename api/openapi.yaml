@@ -15,6 +15,7 @@ tags:
   - name: restaurants
   - name: places
   - name: metrics
+  - name: me
 
 paths:
   /health:
@@ -463,6 +464,156 @@ paths:
         "304":
           $ref: "#/components/responses/NotModified"
 
+  /v1/me/profile:
+    get:
+      tags: [me]
+      summary: Extended user profile (family + inbox state)
+      security: [{ firebase: [] }]
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtendedUserProfile"
+    patch:
+      tags: [me]
+      summary: Update family profile / onboarding
+      security: [{ firebase: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfilePatch"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtendedUserProfile"
+
+  /v1/me/watches:
+    get:
+      tags: [me]
+      summary: List watched restaurants
+      security: [{ firebase: [] }]
+      responses:
+        "200":
+          description: Watched restaurants
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchedRestaurantsResponse"
+
+  /v1/me/watches/{restaurant_id}:
+    post:
+      tags: [me]
+      summary: Watch a restaurant
+      security: [{ firebase: [] }]
+      parameters:
+        - name: restaurant_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Watched
+    delete:
+      tags: [me]
+      summary: Unwatch a restaurant
+      security: [{ firebase: [] }]
+      parameters:
+        - name: restaurant_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          description: Unwatched
+
+  /v1/me/activity:
+    get:
+      tags: [me]
+      summary: Activity inbox for watched restaurants
+      security: [{ firebase: [] }]
+      responses:
+        "200":
+          description: Inbox events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityInboxResponse"
+
+  /v1/me/activity/unread-count:
+    get:
+      tags: [me]
+      summary: Unread activity count
+      security: [{ firebase: [] }]
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityUnreadCountResponse"
+
+  /v1/me/activity/mark-read:
+    post:
+      tags: [me]
+      summary: Mark inbox read through timestamp
+      security: [{ firebase: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivityMarkReadRequest"
+      responses:
+        "200":
+          description: Updated unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityUnreadCountResponse"
+
+  /v1/me/notification-preferences:
+    get:
+      tags: [me]
+      summary: Notification preferences
+      security: [{ firebase: [] }]
+      responses:
+        "200":
+          description: Preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+    patch:
+      tags: [me]
+      summary: Update notification preferences
+      security: [{ firebase: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationPreferencesUpdate"
+      responses:
+        "200":
+          description: Updated preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+
+  /v1/me/push-tokens:
+    post:
+      tags: [me]
+      summary: Register device push token
+      security: [{ firebase: [] }]
+      responses:
+        "201":
+          description: Token registered
+
 components:
   securitySchemes:
     firebase:
@@ -624,6 +775,118 @@ components:
               $ref: "#/components/schemas/TtfAggregate"
             note_count: { type: integer }
             attribute_rating_count: { type: integer }
+            watched: { type: boolean, default: false }
+
+    ExtendedUserProfile:
+      allOf:
+        - $ref: "#/components/schemas/UserProfile"
+        - type: object
+          properties:
+            kids_ages: { type: array, items: { type: integer } }
+            home_lat: { type: number, format: double, nullable: true }
+            home_lng: { type: number, format: double, nullable: true }
+            home_label: { type: string, nullable: true }
+            onboarding_completed: { type: boolean }
+            inbox_read_through: { type: string, format: date-time }
+            timezone: { type: string }
+            notification_preferences:
+              $ref: "#/components/schemas/NotificationPreferences"
+
+    UserProfile:
+      type: object
+      properties:
+        firebase_uid: { type: string }
+        display_name: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        contribution_count: { type: integer }
+        role: { type: string, nullable: true }
+        watch_count: { type: integer }
+        unread_activity_count: { type: integer }
+
+    UserProfilePatch:
+      type: object
+      properties:
+        kids_ages: { type: array, items: { type: integer } }
+        home_lat: { type: number, format: double, nullable: true }
+        home_lng: { type: number, format: double, nullable: true }
+        home_label: { type: string, nullable: true }
+        timezone: { type: string }
+        complete_onboarding: { type: boolean }
+
+    NotificationPreferences:
+      type: object
+      properties:
+        cadence: { type: string, enum: [weekly, daily, realtime_bundle] }
+        quiet_hours_start: { type: string }
+        quiet_hours_end: { type: string }
+        alert_new_ttf: { type: boolean }
+        alert_new_rating: { type: boolean }
+        alert_new_note: { type: boolean }
+        alert_every_review: { type: boolean }
+        push_enabled: { type: boolean }
+
+    NotificationPreferencesUpdate:
+      type: object
+      properties:
+        cadence: { type: string, enum: [weekly, daily, realtime_bundle] }
+        quiet_hours_start: { type: string }
+        quiet_hours_end: { type: string }
+        alert_new_ttf: { type: boolean }
+        alert_new_rating: { type: boolean }
+        alert_new_note: { type: boolean }
+        alert_every_review: { type: boolean }
+        push_enabled: { type: boolean }
+
+    ActivityEventItem:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        restaurant_id: { type: string, format: uuid }
+        restaurant_name: { type: string }
+        event_type: { type: string, enum: [ttf, attribute, note] }
+        source_id: { type: string, format: uuid }
+        headline: { type: string }
+        created_at: { type: string, format: date-time }
+
+    ActivityInboxResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityEventItem"
+        total: { type: integer }
+        limit: { type: integer }
+        offset: { type: integer }
+        unread_count: { type: integer }
+
+    ActivityUnreadCountResponse:
+      type: object
+      properties:
+        unread_count: { type: integer }
+
+    ActivityMarkReadRequest:
+      type: object
+      required: [through]
+      properties:
+        through: { type: string, format: date-time }
+
+    WatchedRestaurantEntry:
+      type: object
+      properties:
+        restaurant: { $ref: "#/components/schemas/RestaurantMapEntry" }
+        watched_at: { type: string, format: date-time }
+
+    WatchedRestaurantsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/WatchedRestaurantEntry"
+        total: { type: integer }
+        limit: { type: integer }
+        offset: { type: integer }
 
     PlaceSuggestion:
       type: object

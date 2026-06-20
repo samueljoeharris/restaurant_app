@@ -32,6 +32,10 @@ import type {
   UserContribution,
   UserProfile,
   UserTtfContribution,
+  ExtendedUserProfile,
+  NotificationPreferences,
+  ActivityInboxResponse,
+  WatchedRestaurantsResponse,
 } from "../types";
 
 // In dev, Vite proxies /v1 → VITE_API_URL so any localhost port avoids CORS.
@@ -174,8 +178,8 @@ export const api = {
   getRestaurantSeedJob: (id: string, token: string) =>
     request<RestaurantSeedJobResponse>(`/v1/restaurants/seed-jobs/${id}`, {}, token),
 
-  getRestaurant: (id: string) =>
-    request<RestaurantDetailResponse>(`/v1/restaurants/${id}`),
+  getRestaurant: (id: string, token?: string | null) =>
+    request<RestaurantDetailResponse>(`/v1/restaurants/${id}`, {}, token ?? undefined),
 
   ensureCoverage: (
     body: { lat: number; lng: number; radius_m?: number },
@@ -191,6 +195,74 @@ export const api = {
 
   getMe: (token: string) =>
     request<UserProfile>("/v1/me", {}, token),
+
+  getProfile: (token: string) =>
+    request<ExtendedUserProfile>("/v1/me/profile", {}, token),
+
+  patchProfile: (
+    token: string,
+    body: {
+      kids_ages?: number[];
+      home_lat?: number | null;
+      home_lng?: number | null;
+      home_label?: string | null;
+      timezone?: string;
+      complete_onboarding?: boolean;
+    },
+  ) =>
+    request<ExtendedUserProfile>("/v1/me/profile", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }, token),
+
+  listWatches: (token: string, opts: { limit?: number; offset?: number } = {}) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    return request<WatchedRestaurantsResponse>(`/v1/me/watches?${params}`, {}, token);
+  },
+
+  watchRestaurant: (restaurantId: string, token: string) =>
+    request<{ watched: boolean }>(`/v1/me/watches/${restaurantId}`, { method: "POST" }, token),
+
+  unwatchRestaurant: (restaurantId: string, token: string) =>
+    request<void>(`/v1/me/watches/${restaurantId}`, { method: "DELETE" }, token),
+
+  getActivityInbox: (
+    token: string,
+    opts: { limit?: number; offset?: number; unread_only?: boolean; restaurant_id?: string } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    if (opts.unread_only) params.set("unread_only", "true");
+    if (opts.restaurant_id) params.set("restaurant_id", opts.restaurant_id);
+    return request<ActivityInboxResponse>(`/v1/me/activity?${params}`, {}, token);
+  },
+
+  getUnreadActivityCount: (token: string) =>
+    request<{ unread_count: number }>("/v1/me/activity/unread-count", {}, token),
+
+  markActivityRead: (token: string, through: string) =>
+    request<{ unread_count: number }>("/v1/me/activity/mark-read", {
+      method: "POST",
+      body: JSON.stringify({ through }),
+    }, token),
+
+  getNotificationPreferences: (token: string) =>
+    request<NotificationPreferences>("/v1/me/notification-preferences", {}, token),
+
+  patchNotificationPreferences: (token: string, body: Partial<NotificationPreferences>) =>
+    request<NotificationPreferences>("/v1/me/notification-preferences", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }, token),
+
+  registerPushToken: (token: string, platform: "web" | "ios", pushToken: string) =>
+    request<{ id: string }>("/v1/me/push-tokens", {
+      method: "POST",
+      body: JSON.stringify({ platform, token: pushToken }),
+    }, token),
 
   listMyContributions: (
     token: string,

@@ -5,11 +5,12 @@ import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
 import { DesktopOnlyGate } from "./components/DesktopOnlyGate";
 import { Layout } from "./components/Layout";
 import { AccountPage } from "./pages/AccountPage";
+import { ActivityToast } from "./components/ActivityToast";
 import { ExploreMapPage } from "./pages/ExploreMapPage";
-import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { MyContributionsPage } from "./pages/MyContributionsPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
+import { SavedPage } from "./pages/SavedPage";
 import { PlaceRestaurantDetailPage } from "./pages/PlaceRestaurantDetailPage";
 import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
 import { RateAttributesPage } from "./pages/RateAttributesPage";
@@ -25,11 +26,12 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/" element={<Navigate to="/map" replace />} />
           <Route
-            path="/"
+            path="/saved"
             element={
               <Layout>
-                <HomePage />
+                <SavedPage />
               </Layout>
             }
           />
@@ -138,8 +140,9 @@ export default function App() {
             }
           />
           <Route path="/admin/*" element={<AdminSiteRedirect />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/map" replace />} />
         </Routes>
+        <ActivityToast />
         </DesktopOnlyGate>
       </BrowserRouter>
     </AuthProvider>

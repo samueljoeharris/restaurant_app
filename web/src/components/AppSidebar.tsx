@@ -1,11 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 
+import { useActivityBadge } from "../hooks/useActivityBadge";
 import { cn } from "../lib/cn";
+import { ActivityInbox } from "./ActivityInbox";
 import { Button } from "./ui/Button";
 
 const tabs = [
-  { to: "/", label: "Home", icon: "🏠" },
   { to: "/map", label: "Explore", icon: "🗺️" },
+  { to: "/saved", label: "Saved", icon: "♥" },
   { to: "/account", label: "You", icon: "👤" },
 ] as const;
 
@@ -19,9 +21,9 @@ export function AppSidebar({
   onLogout: () => void;
 }) {
   const { pathname } = useLocation();
+  const { unreadCount } = useActivityBadge();
 
   function isActive(path: string) {
-    if (path === "/") return pathname === "/";
     if (path === "/map") {
       return pathname === "/map" || pathname === "/restaurants";
     }
@@ -45,7 +47,7 @@ export function AppSidebar({
         )}
       >
         <Link
-          to="/"
+          to="/map"
           className={cn(
             "flex min-w-0 flex-1 items-center gap-3 pb-5",
             collapsed && "justify-center pb-4",
@@ -69,6 +71,7 @@ export function AppSidebar({
             <span className="text-xs font-medium text-text-muted">Kid-food speed</span>
           </span>
         </Link>
+        {!collapsed && <ActivityInbox />}
         <button
           type="button"
           className="mt-[0.15rem] h-8 w-8 shrink-0 cursor-pointer rounded-sm border border-border bg-bg p-0 text-[1.1rem] leading-none text-text-muted transition-[color,border-color] duration-fast ease-out hover:border-border-strong hover:text-text"
@@ -99,11 +102,17 @@ export function AppSidebar({
             )}
             title={collapsed ? tab.label : undefined}
           >
-            <span className="w-6 shrink-0 text-center text-[1.1rem] leading-none" aria-hidden>
+            <span className="relative w-6 shrink-0 text-center text-[1.1rem] leading-none" aria-hidden>
               {tab.icon}
+              {tab.to === "/saved" && unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-brand" />
+              )}
             </span>
             <span className={cn("flex-1 overflow-hidden whitespace-nowrap", collapsed && "hidden")}>
               {tab.label}
+              {tab.to === "/saved" && unreadCount > 0 && !collapsed && (
+                <span className="ml-2 text-xs text-brand">({unreadCount})</span>
+              )}
             </span>
           </Link>
         ))}

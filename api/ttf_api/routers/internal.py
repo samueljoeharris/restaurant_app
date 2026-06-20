@@ -75,6 +75,16 @@ def pubsub_seed_job_handler(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.post("/scheduled-push-dispatch", status_code=status.HTTP_200_OK)
+def scheduled_push_dispatch(
+    _auth: Annotated[None, Depends(_verify_internal_caller)],
+) -> dict:
+    """Cloud Scheduler entry point — bundle and send pending push notifications."""
+    from ttf_api.push_dispatch import dispatch_pending_pushes
+
+    return dispatch_pending_pushes()
+
+
 @router.post("/scheduled-restaurant-refresh", status_code=status.HTTP_202_ACCEPTED)
 def scheduled_restaurant_refresh(
     _auth: Annotated[None, Depends(_verify_internal_caller)],

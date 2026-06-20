@@ -115,9 +115,3 @@ struct HomeView: View {
     }
 }
 
-enum AppTab: Hashable {
-    case home
-    case map
-    case list
-    case account
-}

@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from psycopg.types.json import Jsonb
 
 from ttf_api.account_deletion import delete_user_account
+from ttf_api.activity_events import unread_activity_count
+from ttf_api.user_profiles import ensure_user_profile, watch_count
 from ttf_api.auth import AuthUser, get_current_user, require_account_deletion, AccountDeletionAuth
 from ttf_api.db import get_conn
 from ttf_api.schemas import (
@@ -176,12 +178,23 @@ def _contributions_count(conn, firebase_uid: str, kind: str | None) -> int:
 def get_me(user: Annotated[AuthUser, Depends(get_current_user)]) -> UserProfile:
     with get_conn() as conn:
         count = _contribution_count(conn, user.firebase_uid)
+        watches = 0
+        unread = 0
+        profile = conn.execute(
+            "SELECT inbox_read_through FROM user_profiles WHERE firebase_uid = %s",
+            (user.firebase_uid,),
+        ).fetchone()
+        if profile:
+            watches = watch_count(conn, user.firebase_uid)
+            unread = unread_activity_count(conn, user.firebase_uid, profile["inbox_read_through"])
     return UserProfile(
         firebase_uid=user.firebase_uid,
         display_name=user.display_name,
         email=user.email,
         contribution_count=count,
         role=user.role,
+        watch_count=watches,
+        unread_activity_count=unread,
     )
 
 

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { ExploreFilterBar } from "../components/ExploreFilterBar";
 import { MapLocateFab } from "../components/MapLocateFab";
 import { MapSearchSidebar } from "../components/MapSearchSidebar";
 import { PlaceSearchBox } from "../components/PlaceSearchBox";
@@ -63,13 +64,6 @@ function detailToMapEntry(detail: RestaurantDetailResponse): RestaurantMapEntry 
   };
 }
 
-const scoutFilterLabels: Record<ScoutFilter, string> = {
-  all: "All",
-  "fast-starters": "Quick starters",
-  "parent-data": "Parent-rated",
-  "needs-data": "Needs scouting",
-};
-
 const scoutFilterSummaries: Record<Exclude<ScoutFilter, "all">, string> = {
   "fast-starters": "Places with starter-speed observations of 10 minutes or less.",
   "parent-data": "Restaurants with at least one parent observation, rating, or note.",
@@ -85,28 +79,6 @@ function getScoutFilter(value: string | null): ScoutFilter {
 
 function formatPlaceCount(count: number) {
   return `${count} ${count === 1 ? "place" : "places"}`;
-}
-
-const exploreFilterClass =
-  "shrink-0 rounded-full border border-border bg-surface px-3 py-2 text-sm font-bold text-text-muted";
-const exploreFilterActiveClass = "border-brand/35 bg-brand-soft text-brand";
-
-function BrowseChip({
-  label,
-  count,
-  active,
-  to,
-}: {
-  label: string;
-  count: number;
-  active: boolean;
-  to: string;
-}) {
-  return (
-    <Link className={cn(exploreFilterClass, active && exploreFilterActiveClass)} to={to}>
-      {label} ({count})
-    </Link>
-  );
 }
 
 export function ExploreMapPage() {
@@ -208,6 +180,7 @@ export function ExploreMapPage() {
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [searchSidebarCollapsed, setSearchSidebarCollapsed] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [popInKeys, setPopInKeys] = useState<ReadonlySet<string>>(() => new Set());
 
   const activeCardRef = useRef<HTMLElement>(null);
@@ -578,12 +551,6 @@ export function ExploreMapPage() {
     setSearchParams(params, { replace: true });
   }
 
-  // ——— Derived view state ———
-  const urlState = useMemo(
-    () => ({ filter: activeFilter, q: query, city: browseCity, zip: browseZip, tag: browseTag }),
-    [activeFilter, query, browseCity, browseZip, browseTag],
-  );
-
   const facets = useMemo(() => buildExploreFacets(restaurants), [restaurants]);
 
   const filtered = useMemo(() => {
@@ -688,6 +655,8 @@ export function ExploreMapPage() {
           restaurant={r}
           active={selectedId === key}
           onSelect={() => handleListSelect(key)}
+          density="compact"
+          showWatch
         />
       </li>
     );
@@ -778,91 +747,21 @@ export function ExploreMapPage() {
           !isPendingPlaceMode &&
           !showListLoading &&
           restaurants.length > 0 && (
-            <>
-              {facets.cities.length > 0 && (
-                <nav
-                  className="mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4"
-                  aria-label="Browse by town"
-                >
-                  {facets.cities.slice(0, 8).map((facet) => (
-                    <BrowseChip
-                      key={facet.key}
-                      label={facet.label}
-                      count={facet.count}
-                      active={browseCity === facet.key}
-                      to={
-                        browseCity === facet.key
-                          ? exploreUrl({ ...urlState, city: null })
-                          : exploreUrl({ ...urlState, city: facet.key, zip: null })
-                      }
-                    />
-                  ))}
-                </nav>
-              )}
-
-              {facets.zips.length > 1 && (
-                <nav
-                  className="-mt-2 mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4"
-                  aria-label="Browse by ZIP"
-                >
-                  {facets.zips.slice(0, 8).map((facet) => (
-                    <BrowseChip
-                      key={facet.key}
-                      label={facet.label}
-                      count={facet.count}
-                      active={browseZip === facet.key}
-                      to={
-                        browseZip === facet.key
-                          ? exploreUrl({ ...urlState, zip: null })
-                          : exploreUrl({ ...urlState, zip: facet.key, city: null })
-                      }
-                    />
-                  ))}
-                </nav>
-              )}
-
-              {facets.tags.length > 0 && (
-                <nav
-                  className="-mt-2 mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4"
-                  aria-label="Browse by type"
-                >
-                  {facets.tags.slice(0, 10).map((facet) => (
-                    <BrowseChip
-                      key={facet.key}
-                      label={facet.label}
-                      count={facet.count}
-                      active={browseTag === facet.key}
-                      to={
-                        browseTag === facet.key
-                          ? exploreUrl({ ...urlState, tag: null })
-                          : exploreUrl({ ...urlState, tag: facet.key })
-                      }
-                    />
-                  ))}
-                </nav>
-              )}
-            </>
+            <ExploreFilterBar
+              activeFilter={activeFilter}
+              browseCity={browseCity}
+              browseZip={browseZip}
+              browseTag={browseTag}
+              cities={facets.cities}
+              zips={facets.zips}
+              tags={facets.tags}
+              resultCount={filtered.length}
+              exploreUrl={exploreUrl}
+              query={query}
+              filtersOpen={filtersOpen}
+              onToggleFilters={() => setFiltersOpen((v) => !v)}
+            />
           )}
-
-        {!isRadiusMode && !isPendingPlaceMode && (
-          <nav
-            className="mt-2 mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4"
-            aria-label="Scout quality filters"
-          >
-            {(Object.keys(scoutFilterLabels) as ScoutFilter[]).map((filter) => (
-              <Link
-                key={filter}
-                className={cn(
-                  exploreFilterClass,
-                  filter === activeFilter && exploreFilterActiveClass,
-                )}
-                to={exploreUrl({ ...urlState, filter })}
-              >
-                {scoutFilterLabels[filter]}
-              </Link>
-            ))}
-          </nav>
-        )}
 
         {!isRadiusMode &&
           !isPendingPlaceMode &&

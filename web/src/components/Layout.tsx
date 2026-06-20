@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 import { useAuth } from "../auth/useAuth";
+import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useCollapsiblePanel } from "../hooks/useCollapsiblePanel";
 import { cn } from "../lib/cn";
 import { AppSidebar } from "./AppSidebar";
@@ -9,6 +10,7 @@ import { Skeleton } from "./ui/Skeleton";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { user, loading, logout } = useAuth();
+  useActivityBadge();
   const location = useLocation();
   const { collapsed: navCollapsed, toggle: toggleNavCollapsed } = useCollapsiblePanel(
     "(max-width: 87.5rem)",

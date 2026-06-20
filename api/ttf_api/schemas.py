@@ -69,12 +69,14 @@ class RestaurantMapEntry(RestaurantSummary):
     ttf: TtfAggregate
     note_count: int = 0
     attribute_rating_count: int = 0
+    watched: bool = False
 
 
 class RestaurantDetailResponse(BaseModel):
     restaurant: RestaurantDetail
     ttf: TtfAggregate = Field(default_factory=TtfAggregate)
     contribution_recency: ContributionRecency = Field(default_factory=ContributionRecency)
+    watched: bool = False
 
 
 class RestaurantSeedJobRequest(BaseModel):
@@ -297,6 +299,100 @@ class UserProfile(BaseModel):
     email: str | None = None
     contribution_count: int
     role: str | None = None
+    watch_count: int = 0
+    unread_activity_count: int = 0
+
+
+class NotificationPreferences(BaseModel):
+    cadence: Literal["weekly", "daily", "realtime_bundle"] = "weekly"
+    quiet_hours_start: str = "20:00"
+    quiet_hours_end: str = "08:00"
+    alert_new_ttf: bool = True
+    alert_new_rating: bool = False
+    alert_new_note: bool = False
+    alert_every_review: bool = False
+    push_enabled: bool = False
+
+
+class ExtendedUserProfile(UserProfile):
+    kids_ages: list[int] = Field(default_factory=list)
+    home_lat: float | None = None
+    home_lng: float | None = None
+    home_label: str | None = None
+    onboarding_completed: bool = False
+    inbox_read_through: datetime
+    timezone: str = "America/New_York"
+    notification_preferences: NotificationPreferences = Field(default_factory=NotificationPreferences)
+
+
+class UserProfilePatch(BaseModel):
+    kids_ages: list[int] | None = None
+    home_lat: float | None = None
+    home_lng: float | None = None
+    home_label: str | None = Field(None, max_length=120)
+    timezone: str | None = Field(None, max_length=64)
+    complete_onboarding: bool = False
+
+
+class NotificationPreferencesUpdate(BaseModel):
+    cadence: Literal["weekly", "daily", "realtime_bundle"] | None = None
+    quiet_hours_start: str | None = None
+    quiet_hours_end: str | None = None
+    alert_new_ttf: bool | None = None
+    alert_new_rating: bool | None = None
+    alert_new_note: bool | None = None
+    alert_every_review: bool | None = None
+    push_enabled: bool | None = None
+
+
+class ActivityEventItem(BaseModel):
+    id: UUID
+    restaurant_id: UUID
+    restaurant_name: str
+    event_type: Literal["ttf", "attribute", "note"]
+    source_id: UUID
+    headline: str
+    created_at: datetime
+
+
+class ActivityInboxResponse(BaseModel):
+    items: list[ActivityEventItem]
+    total: int
+    limit: int
+    offset: int
+    unread_count: int
+
+
+class ActivityUnreadCountResponse(BaseModel):
+    unread_count: int
+
+
+class ActivityMarkReadRequest(BaseModel):
+    through: datetime
+
+
+class WatchedRestaurantEntry(BaseModel):
+    restaurant: RestaurantMapEntry
+    watched_at: datetime
+
+
+class WatchedRestaurantsResponse(BaseModel):
+    items: list[WatchedRestaurantEntry]
+    total: int
+    limit: int
+    offset: int
+
+
+class DevicePushTokenRequest(BaseModel):
+    platform: Literal["web", "ios"]
+    token: str = Field(min_length=1, max_length=4096)
+
+
+class DevicePushTokenResponse(BaseModel):
+    id: UUID
+    platform: Literal["web", "ios"]
+    created_at: datetime
+    last_seen_at: datetime
 
 
 class DeleteAccountRequest(BaseModel):

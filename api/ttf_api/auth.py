@@ -97,6 +97,17 @@ def resolve_user_from_token(token: str) -> AuthUser:
     return _user_from_claims(_verify_firebase_token(token))
 
 
+async def get_optional_user(
+    creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> AuthUser | None:
+    if creds is None or creds.scheme.lower() != "bearer":
+        return None
+    try:
+        return resolve_user_from_token(creds.credentials)
+    except HTTPException:
+        return None
+
+
 async def get_current_user(
     creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
 ) -> AuthUser:

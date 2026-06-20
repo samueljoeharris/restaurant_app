@@ -9,6 +9,7 @@ import {
 
 import { MapMarkerLayer } from "./MapMarkerLayer";
 import { PlacePracticalInfo } from "./PlacePracticalInfo";
+import { WatchButton } from "./WatchButton";
 import { cn } from "../lib/cn";
 import {
   formatTtfMedian,
@@ -18,8 +19,9 @@ import {
   type TtfTier,
 } from "../lib/ttfTier";
 import { mapEntryKey, restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
-import { mapPinFill, mapPinKind } from "../lib/mapPin";
+import { mapPinFill } from "../lib/mapPin";
 import { googleMapsUrlForEntry, isGoogleOnlyEntry } from "../lib/googleMapsUrl";
+import { useWatch } from "../hooks/useWatch";
 import {
   MAP_ZOOM_AREA_SEARCH,
   MAP_ZOOM_VENUE_SEARCH,
@@ -316,12 +318,13 @@ function MapRestaurantSheet({
   entry: RestaurantMapEntry;
   onClose: () => void;
 }) {
-  const kind = mapPinKind(entry);
   const tier = ttfTier(entry.ttf);
   const hasTtf = entry.ttf.sample_size > 0;
   const confirmedTtf = entry.ttf.sample_size >= 3;
   const googleOnly = isGoogleOnlyEntry(entry);
   const googleMapsUrl = googleMapsUrlForEntry(entry);
+  const restaurantId = entry.id ?? entry.google_place_id ?? null;
+  const { watched, busy, toggle } = useWatch(restaurantId, entry.watched ?? false);
 
   return (
     <aside
@@ -404,39 +407,16 @@ function MapRestaurantSheet({
               No fries timer yet — be the first parent to clock a visit.
             </p>
           )}
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h3 className="m-0 text-xs font-semibold tracking-wide text-text-muted uppercase">
-            Parent contributions
-          </h3>
-          <StatGrid>
-            <Stat
-              label="Ratings"
-              value={entry.attribute_rating_count}
-              hint={entry.attribute_rating_count === 0 ? "none yet" : "submissions"}
-            />
-            <Stat
-              label="Notes"
-              value={entry.note_count}
-              hint={entry.note_count === 0 ? "none yet" : "from parents"}
-            />
-            <Stat
-              label="Data"
-              value={
-                kind === "empty"
-                  ? "—"
-                  : kind === "confirmed_ttf"
-                    ? "Speed"
-                    : kind === "early_ttf"
-                      ? "Early"
-                      : kind === "ratings"
-                        ? "★"
-                        : "💬"
-              }
-              hint="primary signal"
-            />
-          </StatGrid>
+          <div className="flex flex-wrap gap-2">
+            {restaurantId && (
+              <WatchButton watched={watched} busy={busy} onClick={() => void toggle()} size="sm" />
+            )}
+            {entry.ttf.sample_size === 0 && (
+              <ButtonLink to={restaurantSubmitPath(entry)} size="sm">
+                Log visit
+              </ButtonLink>
+            )}
+          </div>
         </section>
       </div>
 

@@ -70,6 +70,23 @@ def _delete_user_photos(photo_urls: list[str]) -> int:
 
 
 def _delete_postgres_data(conn, firebase_uid: str) -> dict[str, int]:
+    watches = conn.execute(
+        "DELETE FROM restaurant_watches WHERE firebase_uid = %s",
+        (firebase_uid,),
+    ).rowcount
+    push_tokens = conn.execute(
+        "DELETE FROM device_push_tokens WHERE firebase_uid = %s",
+        (firebase_uid,),
+    ).rowcount
+    push_log = conn.execute(
+        "DELETE FROM push_dispatch_log WHERE firebase_uid = %s",
+        (firebase_uid,),
+    ).rowcount
+    # user_notification_preferences cascades from user_profiles
+    profiles = conn.execute(
+        "DELETE FROM user_profiles WHERE firebase_uid = %s",
+        (firebase_uid,),
+    ).rowcount
     ttf = conn.execute(
         "DELETE FROM ttf_observations WHERE firebase_uid = %s",
         (firebase_uid,),
@@ -82,7 +99,15 @@ def _delete_postgres_data(conn, firebase_uid: str) -> dict[str, int]:
         "DELETE FROM restaurant_notes WHERE firebase_uid = %s",
         (firebase_uid,),
     ).rowcount
-    return {"ttf": ttf, "attributes": attrs, "notes": notes}
+    return {
+        "watches": watches,
+        "push_tokens": push_tokens,
+        "push_log": push_log,
+        "profiles": profiles,
+        "ttf": ttf,
+        "attributes": attrs,
+        "notes": notes,
+    }
 
 
 def _revoke_and_delete_firebase_user(firebase_uid: str) -> None:

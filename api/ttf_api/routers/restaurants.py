@@ -6,12 +6,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, s
 from psycopg.types.json import Jsonb
 
 from ttf_api.aggregates import build_attribute_aggregates
-from ttf_api.auth import AuthUser, require_admin
+from ttf_api.auth import AuthUser, get_optional_user, require_admin
 from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.map_query import build_bbox_filter
-from ttf_api.map_entries import MAP_SELECT, row_to_map_entry
+from ttf_api.map_entries import MAP_SELECT, apply_watched_flags, row_to_map_entry
+from ttf_api.user_profiles import fetch_watched_ids
 from ttf_api.places_seed import PlacesSeedError
 from ttf_api.pubsub_seed import enqueue_seed_job
 from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area
@@ -46,23 +47,9 @@ _HAVERSINE_EXPR = """
 router = APIRouter(prefix="/v1/restaurants", tags=["restaurants"])
 
 
-def row_to_map_entry(row: dict) -> RestaurantMapEntry:
-    summary = _row_to_summary(row)
-    if row["sample_size"] == 0:
-        ttf = TtfAggregate()
-    else:
-        ttf = TtfAggregate(
-            sample_size=row["sample_size"],
-            median_minutes=float(row["median_minutes"]) if row["median_minutes"] is not None else None,
-            avg_quality=float(row["avg_quality"]) if row["avg_quality"] is not None else None,
-            last_updated=row["last_updated"],
-        )
-    return RestaurantMapEntry(
-        **summary.model_dump(),
-        ttf=ttf,
-        note_count=row["note_count"],
-        attribute_rating_count=row["attribute_rating_count"],
-    )
+def _map_entries_from_rows(rows: list, watched_ids: set) -> list[RestaurantMapEntry]:
+    entries = [row_to_map_entry(row, watched=row["id"] in watched_ids) for row in rows]
+    return apply_watched_flags(entries, watched_ids)
 
 
 def _row_to_summary(row: dict) -> RestaurantSummary:
@@ -119,11 +106,18 @@ def _fetch_contribution_recency(conn, restaurant_id: UUID) -> ContributionRecenc
     return ContributionRecency(**row)
 
 
-def build_restaurant_detail_response(conn, row: dict, restaurant_id: UUID) -> RestaurantDetailResponse:
+def build_restaurant_detail_response(
+    conn,
+    row: dict,
+    restaurant_id: UUID,
+    *,
+    watched: bool = False,
+) -> RestaurantDetailResponse:
     return RestaurantDetailResponse(
         restaurant=_row_to_detail(row),
         ttf=_fetch_ttf_aggregate(conn, restaurant_id),
         contribution_recency=_fetch_contribution_recency(conn, restaurant_id),
+        watched=watched,
     )
 
 
@@ -204,9 +198,9 @@ def list_restaurants_for_map(
     max_lat: float | None = Query(None, ge=-90, le=90),
     min_lng: float | None = Query(None, ge=-180, le=180),
     max_lng: float | None = Query(None, ge=-180, le=180),
+    user: Annotated[AuthUser | None, Depends(get_optional_user)] = None,
 ) -> list[RestaurantMapEntry]:
     pilot = settings.pilot_city
-    # Optional viewport bbox (all-or-nothing); empty fragment when omitted.
     try:
         bbox_sql, bbox_params = build_bbox_filter(min_lat, max_lat, min_lng, max_lng)
     except ValueError as exc:
@@ -216,7 +210,8 @@ def list_restaurants_for_map(
     params.extend(bbox_params)
     with get_conn() as conn:
         rows = conn.execute(sql, params).fetchall()
-    return [row_to_map_entry(row) for row in rows]
+        watched_ids = fetch_watched_ids(conn, user.firebase_uid) if user else set()
+    return _map_entries_from_rows(rows, watched_ids)
 
 
 @router.get("/search", response_model=list[RestaurantMapEntry])
@@ -226,6 +221,7 @@ def search_restaurants(
     radius_m: int = Query(default=8000, description="Search radius in metres (500–25000)"),
     q: str | None = Query(None, description="Optional name filter (ILIKE)"),
     limit: int = Query(default=100, description="Max results (1–250)"),
+    user: Annotated[AuthUser | None, Depends(get_optional_user)] = None,
 ) -> list[RestaurantMapEntry]:
     """Radius query returning RestaurantMapEntry rows sorted by distance ascending.
 
@@ -255,7 +251,8 @@ def search_restaurants(
     )
     with get_conn() as conn:
         rows = conn.execute(sql, params).fetchall()
-    return [row_to_map_entry(row) for row in rows]
+        watched_ids = fetch_watched_ids(conn, user.firebase_uid) if user else set()
+    return _map_entries_from_rows(rows, watched_ids)
 
 
 @router.post(
@@ -298,10 +295,22 @@ def get_restaurant_seed_job(
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantDetailResponse)
-def get_restaurant(restaurant_id: UUID) -> RestaurantDetailResponse:
+def get_restaurant(
+    restaurant_id: UUID,
+    user: Annotated[AuthUser | None, Depends(get_optional_user)] = None,
+) -> RestaurantDetailResponse:
     with get_conn() as conn:
         row = _ensure_restaurant(conn, restaurant_id)
-        return build_restaurant_detail_response(conn, row, restaurant_id)
+        watched = False
+        if user:
+            watched = conn.execute(
+                """
+                SELECT 1 FROM restaurant_watches
+                WHERE firebase_uid = %s AND restaurant_id = %s
+                """,
+                (user.firebase_uid, restaurant_id),
+            ).fetchone() is not None
+        return build_restaurant_detail_response(conn, row, restaurant_id, watched=watched)
 
 
 @router.post("", response_model=RestaurantDetail, status_code=status.HTTP_201_CREATED)

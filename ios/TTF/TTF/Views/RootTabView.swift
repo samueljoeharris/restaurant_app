@@ -5,26 +5,22 @@ struct RootTabView: View {
     @Environment(APIClient.self) private var api
     @Environment(RestaurantStore.self) private var store
 
-    @State private var selectedTab: AppTab = .home
+    @State private var selectedTab: AppTab = .map
     @State private var placeSearchVM: PlaceSearchViewModel?
 
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                if let placeSearchVM {
-                    HomeView(placeSearchVM: placeSearchVM, selectedTab: $selectedTab)
-                } else {
-                    ProgressView()
-                }
-            }
-            .tabItem { Label("Home", systemImage: "house") }
-            .tag(AppTab.home)
-
-            NavigationStack {
                 RestaurantMapView()
             }
-            .tabItem { Label("Map", systemImage: "map") }
+            .tabItem { Label("Explore", systemImage: "map") }
             .tag(AppTab.map)
+
+            NavigationStack {
+                SavedView()
+            }
+            .tabItem { Label("Saved", systemImage: "heart") }
+            .tag(AppTab.saved)
 
             NavigationStack {
                 if let placeSearchVM {
@@ -33,13 +29,13 @@ struct RootTabView: View {
                     ProgressView()
                 }
             }
-            .tabItem { Label("Explore", systemImage: "magnifyingglass") }
+            .tabItem { Label("Browse", systemImage: "magnifyingglass") }
             .tag(AppTab.list)
 
             NavigationStack {
                 AccountView()
             }
-            .tabItem { Label("Account", systemImage: "person.crop.circle") }
+            .tabItem { Label("You", systemImage: "person.crop.circle") }
             .tag(AppTab.account)
         }
         .tint(.brand)
@@ -57,4 +53,11 @@ struct RootTabView: View {
             }
         }
     }
+}
+
+enum AppTab: Hashable {
+    case map
+    case saved
+    case list
+    case account
 }

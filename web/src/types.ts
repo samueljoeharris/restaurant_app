@@ -14,6 +14,7 @@ export interface RestaurantMapEntry extends RestaurantSummary {
   ttf: TtfAggregate;
   note_count: number;
   attribute_rating_count: number;
+  watched?: boolean;
 }
 
 export interface RestaurantSeedJob {
@@ -179,6 +180,59 @@ export interface RestaurantDetailResponse {
   restaurant: RestaurantDetail;
   ttf: TtfAggregate;
   contribution_recency: ContributionRecency;
+  watched?: boolean;
+}
+
+export interface NotificationPreferences {
+  cadence: "weekly" | "daily" | "realtime_bundle";
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  alert_new_ttf: boolean;
+  alert_new_rating: boolean;
+  alert_new_note: boolean;
+  alert_every_review: boolean;
+  push_enabled: boolean;
+}
+
+export interface ExtendedUserProfile extends UserProfile {
+  kids_ages: number[];
+  home_lat: number | null;
+  home_lng: number | null;
+  home_label: string | null;
+  onboarding_completed: boolean;
+  inbox_read_through: string;
+  timezone: string;
+  notification_preferences: NotificationPreferences;
+}
+
+export interface ActivityEventItem {
+  id: string;
+  restaurant_id: string;
+  restaurant_name: string;
+  event_type: "ttf" | "attribute" | "note";
+  source_id: string;
+  headline: string;
+  created_at: string;
+}
+
+export interface ActivityInboxResponse {
+  items: ActivityEventItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  unread_count: number;
+}
+
+export interface WatchedRestaurantEntry {
+  restaurant: RestaurantMapEntry;
+  watched_at: string;
+}
+
+export interface WatchedRestaurantsResponse {
+  items: WatchedRestaurantEntry[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 export interface UserProfile {
@@ -187,6 +241,8 @@ export interface UserProfile {
   email: string | null;
   contribution_count: number;
   role?: string | null;
+  watch_count?: number;
+  unread_activity_count?: number;
 }
 
 export interface UserTtfContribution {

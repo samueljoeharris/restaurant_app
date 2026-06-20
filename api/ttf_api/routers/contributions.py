@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field, ValidationError
 
+from ttf_api.activity_events import emit_activity_event
 from ttf_api.contribution_schema import build_contribution_schema
 from ttf_api.auth import AuthUser
 from ttf_api.db import get_conn
@@ -151,12 +152,15 @@ def _persist_contributions(conn, restaurant_id, body, user):
         ordered_at = body.ttf.ordered_at or (served_at - timedelta(minutes=body.ttf.elapsed_minutes or 0))
         row = conn.execute("""INSERT INTO ttf_observations (restaurant_id, firebase_uid, ordered_at, served_at, elapsed_minutes, item_type, item_quality, portion_size, daypart, party_size_kids, wait_context, photo_url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id, elapsed_minutes, item_type, item_quality""", (restaurant_id, user.firebase_uid, ordered_at, served_at, body.ttf.elapsed_minutes, body.ttf.item_type, body.ttf.item_quality, body.ttf.portion_size, body.ttf.daypart, body.ttf.party_size_kids, body.ttf.wait_context, body.ttf.photo_url)).fetchone()
         response.ttf = TtfSubmissionResponse(**row)
+        emit_activity_event(conn, restaurant_id=restaurant_id, event_type="ttf", source_id=row["id"], actor_firebase_uid=user.firebase_uid)
     for attr in body.attributes:
         row = conn.execute("INSERT INTO restaurant_attribute_ratings (restaurant_id, metric_key, firebase_uid, value, visit_context) VALUES (%s,%s,%s,%s,%s) RETURNING id, metric_key", (restaurant_id, attr.metric_key, user.firebase_uid, Jsonb(attr.value), attr.visit_context)).fetchone()
         response.attributes.append(AttributeSubmissionResponse(**row))
+        emit_activity_event(conn, restaurant_id=restaurant_id, event_type="attribute", source_id=row["id"], actor_firebase_uid=user.firebase_uid)
     if body.note is not None:
         row = conn.execute("INSERT INTO restaurant_notes (restaurant_id, firebase_uid, text, tags) VALUES (%s,%s,%s,%s) RETURNING id, text, tags, created_at", (restaurant_id, user.firebase_uid, body.note.text, body.note.tags)).fetchone()
         response.note = NoteSubmissionResponse(id=row["id"], text=row["text"], tags=row["tags"] or [], created_at=row["created_at"])
+        emit_activity_event(conn, restaurant_id=restaurant_id, event_type="note", source_id=row["id"], actor_firebase_uid=user.firebase_uid)
     return response
 
 @router.get("/contribution-schema")

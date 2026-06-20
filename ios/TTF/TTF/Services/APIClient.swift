@@ -179,6 +179,34 @@ final class APIClient {
         try await request(path: "/v1/me", authenticated: true)
     }
 
+    func listWatches() async throws -> WatchedRestaurantsResponse {
+        try await request(path: "/v1/me/watches", authenticated: true)
+    }
+
+    func watchRestaurant(id: UUID) async throws {
+        let _: EmptyResponse = try await request(
+            path: "/v1/me/watches/\(id.uuidString.lowercased())",
+            method: "POST",
+            authenticated: true
+        )
+    }
+
+    func unwatchRestaurant(id: UUID) async throws {
+        try await request(
+            path: "/v1/me/watches/\(id.uuidString.lowercased())",
+            method: "DELETE",
+            authenticated: true
+        )
+    }
+
+    func getUnreadActivityCount() async throws -> UnreadCountResponse {
+        try await request(path: "/v1/me/activity/unread-count", authenticated: true)
+    }
+
+    func getActivityInbox(limit: Int = 30) async throws -> ActivityInboxResponse {
+        try await request(path: "/v1/me/activity?limit=\(limit)", authenticated: true)
+    }
+
     func deleteAccount(appleAuthorizationCode: String? = nil) async throws {
         let _: EmptyResponse = try await request(
             path: "/v1/me/delete-account",

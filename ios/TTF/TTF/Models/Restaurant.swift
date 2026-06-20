@@ -72,13 +72,29 @@ struct RestaurantMapEntry: Codable, Identifiable, Hashable {
     let ttf: TtfAggregate
     let noteCount: Int
     let attributeRatingCount: Int
+    let watched: Bool
 
     enum CodingKeys: String, CodingKey {
-        case id, name, address, lat, lng, ttf
+        case id, name, address, lat, lng, ttf, watched
         case cuisineTags = "cuisine_tags"
         case pilotCity = "pilot_city"
         case noteCount = "note_count"
         case attributeRatingCount = "attribute_rating_count"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        address = try container.decode(String.self, forKey: .address)
+        lat = try container.decode(Double.self, forKey: .lat)
+        lng = try container.decode(Double.self, forKey: .lng)
+        cuisineTags = try container.decode([String].self, forKey: .cuisineTags)
+        pilotCity = try container.decode(String.self, forKey: .pilotCity)
+        ttf = try container.decode(TtfAggregate.self, forKey: .ttf)
+        noteCount = try container.decode(Int.self, forKey: .noteCount)
+        attributeRatingCount = try container.decode(Int.self, forKey: .attributeRatingCount)
+        watched = try container.decodeIfPresent(Bool.self, forKey: .watched) ?? false
     }
 }
 
