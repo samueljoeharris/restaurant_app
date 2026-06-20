@@ -59,7 +59,7 @@ struct DeleteAccountSettingsView: View {
             if let errorMessage {
                 Text(errorMessage)
                     .font(.footnote)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color.error)
             }
 
             HStack {
@@ -101,13 +101,13 @@ struct DeleteAccountSettingsView: View {
             } else {
                 Text("Sign out and back in, then try deleting your account again.")
                     .font(.footnote)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color.error)
             }
 
             if let errorMessage {
                 Text(errorMessage)
                     .font(.footnote)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color.error)
             }
 
             Button("Cancel") {

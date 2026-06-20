@@ -72,7 +72,7 @@ struct RestaurantListView: View {
                                 : "Within \(radiusKm) km"
                         )
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.textMuted)
                     }
                     Spacer()
                     Button("Clear") {
@@ -89,7 +89,7 @@ struct RestaurantListView: View {
                             .scaleEffect(0.8)
                         Text("Finding more nearby…")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.textMuted)
                     }
                 }
             }
@@ -182,11 +182,11 @@ private struct RestaurantRowView: View {
                     .font(.headline)
                 Text(restaurant.address)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
                 if let ttf, ttf.sampleSize > 0 {
                     Text("TTF: \(TtfTierLogic.formattedMedian(ttf)) · \(ttf.sampleSize) visits")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.textMuted)
                 }
             }
         }

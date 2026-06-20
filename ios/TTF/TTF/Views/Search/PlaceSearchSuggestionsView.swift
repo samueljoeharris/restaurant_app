@@ -40,7 +40,7 @@ struct PlaceSearchSuggestionsView: View {
                     .lineLimit(1)
                 Text(suggestion.secondaryText ?? "")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
                     .lineLimit(1)
             }
             Spacer(minLength: 0)

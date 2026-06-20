@@ -47,11 +47,11 @@ struct RestaurantDetailView: View {
     private func header(for detail: RestaurantDetailResponse) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(detail.restaurant.address)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textMuted)
             if !detail.restaurant.cuisineTags.isEmpty {
                 Text(detail.restaurant.cuisineTags.joined(separator: " · "))
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
             }
         }
     }
@@ -68,18 +68,18 @@ struct RestaurantDetailView: View {
                 Text(TtfTierLogic.formattedMedian(ttf))
                     .font(.title2.bold())
                 Text(tier.label)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Kid food speed: \(TtfTierLogic.formattedMedian(ttf)), \(tier.label)")
             if ttf.sampleSize > 0 {
                 Text("\(ttf.sampleSize) visit\(ttf.sampleSize == 1 ? "" : "s")")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
             } else {
                 Text("No TTF observations yet — be the first!")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -153,7 +153,7 @@ struct RestaurantDetailView: View {
             if viewModel.notes.isEmpty {
                 Text("No notes yet.")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
             } else {
                 ForEach(viewModel.notes) { note in
                     VStack(alignment: .leading, spacing: 4) {
@@ -161,7 +161,7 @@ struct RestaurantDetailView: View {
                         if !note.tags.isEmpty {
                             Text(note.tags.joined(separator: ", "))
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.textMuted)
                         }
                     }
                     .padding(.vertical, 4)

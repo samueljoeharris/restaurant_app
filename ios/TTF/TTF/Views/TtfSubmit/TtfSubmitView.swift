@@ -18,7 +18,7 @@ struct TtfSubmitView: View {
                     HStack {
                         ProgressView()
                         Text("Loading restaurant…")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.textMuted)
                     }
                 }
             } else if !viewModel.restaurantName.isEmpty {
@@ -100,7 +100,7 @@ struct TtfSubmitView: View {
 
             if let error = viewModel.errorMessage {
                 Section {
-                    Text(error).foregroundStyle(.red)
+                    Text(error).foregroundStyle(Color.error)
                 }
             }
 

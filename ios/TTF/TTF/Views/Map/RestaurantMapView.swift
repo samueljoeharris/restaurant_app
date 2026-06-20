@@ -183,7 +183,7 @@ struct RestaurantMapView: View {
                     Image(systemName: "xmark.circle.fill")
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textMuted)
             }
         }
         .padding(.horizontal, 12)
