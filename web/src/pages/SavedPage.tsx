@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -15,6 +15,7 @@ import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import { formatTtfMedian } from "../lib/ttfTier";
 import type { WatchedRestaurantEntry } from "../types";
 import { userStorage } from "../lib/userStorage";
+import { WATCHLIST_CHANGED_EVENT } from "../lib/watchlist";
 import { useWatch } from "../hooks/useWatch";
 
 function SavedRow({ entry }: { entry: WatchedRestaurantEntry }) {
@@ -52,7 +53,10 @@ export function SavedPage() {
   const [stripDismissed, setStripDismissed] = useState(false);
 
   const load = useCallback(async () => {
-    if (!idToken) return;
+    if (!idToken) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -79,6 +83,14 @@ export function SavedPage() {
 
   useRefreshOnNavigate(() => {
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    const onWatchlistChanged = () => {
+      void load();
+    };
+    window.addEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
+    return () => window.removeEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
   }, [load]);
 
   const stripVisible =

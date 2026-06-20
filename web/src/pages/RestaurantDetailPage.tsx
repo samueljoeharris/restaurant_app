@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -16,6 +16,7 @@ import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/useToast";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import { WATCHLIST_CHANGED_EVENT, type WatchlistChangedDetail } from "../lib/watchlist";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
 
 const backLinkClass =
@@ -65,6 +66,16 @@ export function RestaurantDetailPage() {
   }, [id, idToken]);
 
   useRefreshOnNavigate(loadRestaurant, [id, idToken]);
+
+  useEffect(() => {
+    const onWatchlistChanged = (event: Event) => {
+      const { restaurantId, watched } = (event as CustomEvent<WatchlistChangedDetail>).detail;
+      if (restaurantId !== id) return;
+      setData((prev) => (prev ? { ...prev, watched } : prev));
+    };
+    window.addEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
+    return () => window.removeEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
+  }, [id]);
 
   async function handleNoteSubmit(e: FormEvent) {
     e.preventDefault();
