@@ -393,7 +393,9 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 
 **Steps** — `curl https://api.dev.littlescout.app/health` → 200.
 
-**Audit** | app.dev | ☐ | n/a | | | |
+**Audit** | app.dev | ☑ 2026-06-20 | n/a | cloud-agent | HTTP 200 |
+
+**Note:** Web theme flows (WEB-MAP-*, WEB-AUTH-*) require merge of `cursor-cloud-whimsical-bluebird-6c64` + deploy; validate locally via `cd web && npm run dev` until then.
 
 ---
 

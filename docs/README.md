@@ -24,6 +24,9 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [SECRETS_MATRIX.md](SECRETS_MATRIX.md) | **Where secrets live** — local vs GCP vs deploy; rotation |
 | [SECRETS_AUDIT.md](SECRETS_AUDIT.md) | Audit of the secrets design + Docker/runtime consistency (2026-06-20) |
 | [DESIGN.md](DESIGN.md) | Product design, data model, architecture, and roadmap |
+| [DESIGN_TOKENS.md](DESIGN_TOKENS.md) | Bluebird theme tokens — `design/tokens.json` workflow |
+| [MAP_STYLE.md](MAP_STYLE.md) | Google Map Style + MapKit POI-off |
+| [TEST_FLOWS.md](TEST_FLOWS.md) | Live UI audit catalog (manual QA) |
 | [IOS_DESIGN.md](IOS_DESIGN.md) | Phase 3 iOS implementation plan — Cursor/Xcode workflow, architecture, milestones |
 | [../ios/TTF/README.md](../ios/TTF/README.md) | iOS Xcode setup and local runbook |
 | [../AGENTS.md](../AGENTS.md) | AI coding agent guidance for this repository |
