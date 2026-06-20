@@ -116,9 +116,16 @@ function FocusRestaurant({
   focusZoomMode?: MapSearchZoomMode;
 }) {
   const map = useMap();
+  const lastAppliedRef = useRef<{ focusId: string; pulse: number } | null>(null);
 
   useEffect(() => {
     if (!map || !focusId) return;
+    if (
+      lastAppliedRef.current?.focusId === focusId &&
+      lastAppliedRef.current.pulse === focusPulse
+    ) {
+      return;
+    }
     const target = restaurants.find((r) => mapEntryKey(r) === focusId);
     const coords = target
       ? { lat: target.lat, lng: target.lng }
@@ -128,6 +135,7 @@ function FocusRestaurant({
     const targetZoom =
       focusZoomMode === "area" ? MAP_ZOOM_AREA_SEARCH : MAP_ZOOM_VENUE_SEARCH;
     map.setZoom(targetZoom);
+    lastAppliedRef.current = { focusId, pulse: focusPulse };
   }, [map, focusId, focusLocation, restaurants, focusPulse, focusZoomMode]);
 
   return null;
