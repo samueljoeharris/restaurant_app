@@ -10,7 +10,7 @@ export function AdminSiteRedirect() {
 
   return (
     <main className="page page--narrow">
-      <p className="muted">Redirecting to the operator console…</p>
+      <p className="text-text-muted">Redirecting to the operator console…</p>
     </main>
   );
 }

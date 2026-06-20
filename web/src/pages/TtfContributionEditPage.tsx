@@ -33,6 +33,9 @@ const DAYPARTS: { value: TtfSubmission["daypart"]; label: string }[] = [
   { value: "late", label: "Late" },
 ];
 
+const backLinkClass =
+  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
+
 export function TtfContributionEditPage() {
   const { observationId } = useParams<{ observationId: string }>();
   const navigate = useNavigate();
@@ -99,7 +102,7 @@ export function TtfContributionEditPage() {
   if (loading) {
     return (
       <Page narrow title="Edit observation">
-        <p className="muted">Loading…</p>
+        <p className="text-text-muted">Loading…</p>
       </Page>
     );
   }
@@ -110,12 +113,12 @@ export function TtfContributionEditPage() {
         narrow
         title="Edit observation"
         back={
-          <Link to="/account/contributions" className="back-link">
+          <Link to="/account/contributions" className={backLinkClass}>
             ← Your contributions
           </Link>
         }
       >
-        <p className="error">{error}</p>
+        <p className="text-sm font-semibold text-error">{error}</p>
       </Page>
     );
   }
@@ -128,13 +131,13 @@ export function TtfContributionEditPage() {
       title="Edit observation"
       subtitle={observation.restaurant_name}
       back={
-        <Link to="/account/contributions" className="back-link">
+        <Link to="/account/contributions" className={backLinkClass}>
           ← Your contributions
         </Link>
       }
     >
       <Card>
-        <form className="stack" onSubmit={handleSubmit}>
+        <form className="grid gap-3" onSubmit={handleSubmit}>
           <label>
             Elapsed minutes
             <input
@@ -146,8 +149,8 @@ export function TtfContributionEditPage() {
             />
           </label>
 
-          <fieldset className="field-group">
-            <legend>What arrived?</legend>
+          <fieldset className="field-group grid gap-2">
+            <legend className="text-sm font-semibold">What arrived?</legend>
             <ChoiceChipGroup columns={2}>
               {ITEM_TYPES.map((item) => (
                 <ChoiceChip
@@ -161,13 +164,13 @@ export function TtfContributionEditPage() {
             </ChoiceChipGroup>
           </fieldset>
 
-          <div className="field-group">
-            <span className="field-group__label">Quality</span>
+          <div className="grid gap-2">
+            <span className="text-sm font-semibold">Quality</span>
             <StarRating value={quality} onChange={setQuality} label="Item quality" />
           </div>
 
-          <fieldset className="field-group">
-            <legend>Portion</legend>
+          <fieldset className="field-group grid gap-2">
+            <legend className="text-sm font-semibold">Portion</legend>
             <ChoiceChipGroup columns={3}>
               {PORTIONS.map((opt) => (
                 <ChoiceChip
@@ -181,8 +184,8 @@ export function TtfContributionEditPage() {
             </ChoiceChipGroup>
           </fieldset>
 
-          <fieldset className="field-group">
-            <legend>Daypart</legend>
+          <fieldset className="field-group grid gap-2">
+            <legend className="text-sm font-semibold">Daypart</legend>
             <ChoiceChipGroup columns={2}>
               {DAYPARTS.map((opt) => (
                 <ChoiceChip
@@ -217,7 +220,7 @@ export function TtfContributionEditPage() {
             />
           </label>
 
-          {error && <p className="error">{error}</p>}
+          {error && <p className="text-sm font-semibold text-error">{error}</p>}
           <Button type="submit" fullWidth disabled={busy || elapsed < 1}>
             {busy ? "Saving…" : "Save changes"}
           </Button>

@@ -20,6 +20,8 @@ struct TTFApp: App {
     var body: some Scene {
         WindowGroup {
             RootTabView()
+                .tint(.brand)
+                .background(Color.bg)
                 .environment(authService)
                 .environment(apiClient)
                 .environment(restaurantStore)

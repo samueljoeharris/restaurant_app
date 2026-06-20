@@ -1,3 +1,5 @@
+import { cn } from "../../lib/cn";
+
 export function StarRating({
   value,
   onChange,
@@ -10,13 +12,16 @@ export function StarRating({
   label?: string;
 }) {
   return (
-    <div className="star-rating">
-      <div className="star-row" role="group" aria-label={label}>
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex gap-1" role="group" aria-label={label}>
         {Array.from({ length: max }, (_, i) => i + 1).map((star) => (
           <button
             key={star}
             type="button"
-            className={["star-btn", value >= star ? "star-btn--on" : ""].join(" ")}
+            className={cn(
+              "cursor-pointer border-0 bg-transparent p-1 text-3xl leading-none transition-[color,transform] duration-fast hover:scale-110 hover:text-brand",
+              value >= star ? "text-brand" : "text-border-strong",
+            )}
             onClick={() => onChange(star)}
             aria-label={`${star} out of ${max}`}
             aria-pressed={value >= star}
@@ -25,7 +30,7 @@ export function StarRating({
           </button>
         ))}
       </div>
-      <span className="star-rating__value">
+      <span className="min-w-12 text-right text-sm font-bold text-brand">
         {value} / {max}
       </span>
     </div>

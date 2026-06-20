@@ -1,0 +1,86 @@
+@import "tailwindcss";
+@import "./tokens.generated.css";
+@import "./components.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply m-0 font-sans text-base leading-normal text-text bg-bg;
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply m-0 font-display leading-tight font-bold;
+  }
+
+  label {
+    @apply grid gap-2 text-sm font-semibold;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply w-full rounded-md border border-border-strong bg-surface px-3 py-2.5 text-text font-[inherit] transition-[border-color,box-shadow] duration-fast;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    @apply outline-none border-brand;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 18%, transparent);
+  }
+
+  code {
+    @apply rounded bg-bg px-1 py-0.5 text-[0.8em] break-all;
+  }
+
+  fieldset.field-group {
+    @apply m-0 border-0 p-0;
+  }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility leading-tight {
+  line-height: 1.2;
+}
+
+@utility leading-normal {
+  line-height: 1.5;
+}
+
+@utility duration-fast {
+  transition-duration: var(--duration-fast);
+}
+
+@utility duration-normal {
+  transition-duration: var(--duration-normal);
+}
+
+@utility ease-out {
+  transition-timing-function: var(--ease-out);
+}
+
+@utility animate-page-enter {
+  animation: page-enter var(--duration-normal) var(--ease-out);
+}
+
+@utility animate-toast-in {
+  animation: toast-in var(--duration-normal) var(--ease-out);
+}

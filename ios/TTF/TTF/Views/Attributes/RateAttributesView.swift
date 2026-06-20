@@ -68,7 +68,7 @@ private struct AttributeMetricRow: View {
             if let existing {
                 Text("Current: \(aggregateLabel(existing)) · \(existing.sampleSize) samples")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
             }
 
             switch metric.metricType {
@@ -96,7 +96,7 @@ private struct AttributeMetricRow: View {
             default:
                 Text("Unsupported metric type: \(metric.metricType)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
             }
         }
         .padding(.vertical, 4)

@@ -26,7 +26,7 @@ struct SignInView: View {
                      ? "Create an account to submit TTF observations and rate restaurants."
                      : "Sign in to submit TTF observations and rate restaurants in \(AppConfig.pilotDisplayName).")
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
 
                 SignInWithAppleButton(.signIn) { request in
                     request.requestedScopes = [.fullName, .email]
@@ -72,7 +72,7 @@ struct SignInView: View {
                 if let error = auth.errorMessage ?? viewModel.profileError {
                     Text(error)
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color.error)
                         .multilineTextAlignment(.center)
                         .accessibilityLabel("Error: \(error)")
                 }
@@ -121,11 +121,11 @@ struct SignInView: View {
 
     private func dividerLabel(_ text: String) -> some View {
         HStack {
-            Rectangle().fill(Color.secondary.opacity(0.3)).frame(height: 1)
+            Rectangle().fill(Color.border.opacity(0.5)).frame(height: 1)
             Text(text)
                 .font(.caption)
-                .foregroundStyle(.secondary)
-            Rectangle().fill(Color.secondary.opacity(0.3)).frame(height: 1)
+                .foregroundStyle(Color.textMuted)
+            Rectangle().fill(Color.border.opacity(0.5)).frame(height: 1)
         }
         .accessibilityHidden(true)
     }
@@ -138,7 +138,7 @@ struct SignInView: View {
                 .font(.caption.bold())
             Text("Set scheme env TTF_DEV_TOKEN to a Firebase emulator or dev token to call write endpoints without Firebase setup.")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textMuted)
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 16)

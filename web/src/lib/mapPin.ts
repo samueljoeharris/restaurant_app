@@ -8,7 +8,7 @@ import {
 } from "./ttfTier";
 
 /** Brand orange — pin for the restaurant the user just searched. */
-export const SEARCH_FOCUS_PIN_COLOR = "#e85d24";
+export const SEARCH_FOCUS_PIN_COLOR = "#2d5a3d";
 
 export type MapPinKind = "confirmed_ttf" | "early_ttf" | "ratings" | "notes" | "empty";
 

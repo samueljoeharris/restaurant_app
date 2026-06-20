@@ -5,7 +5,7 @@ import { initAppCheck } from "./appCheck";
 import App from "./App";
 import { ToastProvider } from "./components/ui/Toast";
 import { firebaseApp } from "./firebase";
-import "./index.css";
+import "./styles/globals.css";
 
 initAppCheck(firebaseApp);
 

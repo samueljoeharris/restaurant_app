@@ -1,24 +1,30 @@
-import type { ReactNode } from "react";
+import { ButtonLink } from "./Button";
 
 export function EmptyState({
-  emoji = "🍟",
+  emoji,
   title,
   description,
-  action,
+  actionLabel,
+  actionTo,
 }: {
   emoji?: string;
   title: string;
   description?: string;
-  action?: ReactNode;
+  actionLabel?: string;
+  actionTo?: string;
 }) {
   return (
-    <div className="ui-empty">
-      <span className="ui-empty__emoji" aria-hidden>
-        {emoji}
-      </span>
-      <h3 className="ui-empty__title">{title}</h3>
-      {description && <p className="ui-empty__desc">{description}</p>}
-      {action && <div className="ui-empty__action">{action}</div>}
+    <div className="px-5 py-10 text-center">
+      {emoji && <span className="mb-3 block text-4xl">{emoji}</span>}
+      <h2 className="mb-2 text-lg">{title}</h2>
+      {description && (
+        <p className="mx-auto mb-5 max-w-80 text-sm text-text-muted">{description}</p>
+      )}
+      {actionLabel && actionTo && (
+        <ButtonLink to={actionTo} variant="primary">
+          {actionLabel}
+        </ButtonLink>
+      )}
     </div>
   );
 }

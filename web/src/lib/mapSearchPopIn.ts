@@ -1,4 +1,4 @@
-/** Pin pop-in animation duration (ms) — keep in sync with index.css. */
+/** Pin pop-in animation duration (ms) — keep in sync with components.css. */
 export const MAP_PIN_POP_IN_MS = 480;
 
 export function schedulePopInClear(

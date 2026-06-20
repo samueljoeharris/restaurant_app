@@ -1,0 +1,193 @@
+/* Map pins, keyframes, and other non-utility styles */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes map-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes map-pin-pop-in {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes map-pin-pop-in-search {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes map-user-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes place-search-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.map-pin-wrap {
+  @apply relative cursor-pointer transition-transform duration-fast ease-out;
+}
+
+.map-pin-wrap--selected {
+  @apply z-[2] scale-[1.15];
+}
+
+.map-pin-wrap--pop-in {
+  animation: map-pin-pop-in var(--duration-normal, 480ms) cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.map-pin-wrap--search-focus {
+  @apply z-[3];
+}
+
+.map-pin-wrap--search-focus .map-pin {
+  @apply h-[18px] w-[18px] border-[3px];
+}
+
+.map-pin-wrap--search-focus.map-pin-wrap--pop-in {
+  animation-name: map-pin-pop-in-search;
+}
+
+.map-pin-wrap--discover .map-pin {
+  @apply border-brand bg-surface outline-2 outline-dashed outline-offset-2 outline-brand;
+}
+
+.map-pin-wrap--early_ttf .map-pin {
+  @apply opacity-85 outline-2 outline-dashed outline-offset-1 outline-white;
+}
+
+.map-pin-stack {
+  @apply flex flex-col items-center gap-0.5;
+}
+
+.map-pin {
+  @apply h-3.5 w-3.5 rounded-full border-2 border-white shadow-[0_1px_4px_rgba(0,0,0,0.25)];
+}
+
+.map-pin-cluster-dot {
+  @apply h-3 w-3 rounded-full border-2 border-white shadow-[0_1px_4px_rgba(0,0,0,0.25)];
+}
+
+.map-pin-cluster-dot--pop-in {
+  animation: map-pin-pop-in var(--duration-normal, 480ms) cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.map-pin-cluster-dot--selected {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 45%, transparent);
+}
+
+.map-pin-cluster-dot--search-focus {
+  @apply h-4 w-4 border-[3px];
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--color-brand) 40%, transparent),
+    0 2px 8px rgb(0 0 0 / 25%);
+}
+
+.map-pin-cluster-dot--discover {
+  @apply border-brand bg-surface outline-2 outline-dashed outline-offset-1 outline-brand;
+}
+
+.map-pin-label {
+  @apply rounded-full border-[1.5px] bg-surface px-1.5 py-px text-[10px] font-bold leading-tight text-text shadow-[0_1px_3px_rgba(0,0,0,0.15)] whitespace-nowrap;
+}
+
+.map-pin-label--search {
+  @apply text-xs text-brand;
+}
+
+.map-pin-badges {
+  @apply -mt-0.5 flex gap-0.5;
+}
+
+.map-pin-badge {
+  @apply rounded-full bg-surface px-0.5 py-px text-[9px] leading-none shadow-[0_1px_2px_rgba(0,0,0,0.2)];
+}
+
+.map-pin-tooltip {
+  @apply pointer-events-none invisible absolute bottom-[calc(100%+6px)] left-1/2 z-[5] min-w-40 max-w-56 -translate-x-1/2 rounded-md border border-border bg-surface px-3 py-2 text-left text-xs leading-snug text-text opacity-0 shadow-md transition-[opacity,visibility] duration-fast;
+}
+
+.map-pin-wrap:hover .map-pin-tooltip,
+.map-pin-wrap:focus-within .map-pin-tooltip {
+  @apply visible opacity-100;
+}
+
+.map-user-location__dot {
+  @apply absolute inset-[0.2rem] rounded-full border-2 border-white bg-brand shadow-[0_1px_4px_rgb(0_0_0_/_25%)];
+}
+
+.map-user-location__pulse {
+  @apply absolute inset-0 rounded-full bg-brand/20;
+  animation: map-user-pulse 2s ease-out infinite;
+}
+
+.map-loading-overlay__spinner,
+.place-search__spinner,
+.map-locate-fab__spinner {
+  @apply rounded-full border-2 border-border border-t-brand;
+}
+
+.map-loading-overlay__spinner {
+  animation: map-spin 0.8s linear infinite;
+}
+
+.place-search__spinner,
+.map-locate-fab__spinner {
+  animation: place-search-spin 0.7s linear infinite;
+}

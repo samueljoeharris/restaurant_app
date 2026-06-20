@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { api } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
+import { Button } from "../../components/ui/Button";
 import type {
   AdminAuditLogRow,
   GcpConsoleLinks,
@@ -43,7 +44,13 @@ function GcpLink({
 }) {
   if (!href) return null;
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="small admin-gcp-link" title={title}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="text-sm whitespace-nowrap"
+      title={title}
+    >
       {children} ↗
     </a>
   );
@@ -52,14 +59,14 @@ function GcpLink({
 function GcpInfraPanel({ links }: { links: GcpConsoleLinks | null | undefined }) {
   if (!links) return null;
   return (
-    <section className="admin-panel admin-panel--infra">
-      <h2>How runs execute in GCP</h2>
-      <p className="muted small">
+    <section className="rounded-lg border border-border bg-surface-muted p-5 shadow-sm">
+      <h2 className="mb-3 text-lg">How runs execute in GCP</h2>
+      <p className="text-sm text-text-muted">
         Runs are rows in Postgres, not separate Cloud Run Jobs. Work is queued on Pub/Sub and
         executed inside the <strong>ttf-api</strong> Cloud Run service. Scheduled refresh uses
         Cloud Scheduler → API → the same queue.
       </p>
-      <ul className="admin-gcp-links">
+      <ul className="m-0 flex list-none flex-wrap gap-3 p-0">
         <li><GcpLink href={links.cloud_run_url}>Cloud Run · ttf-api logs</GcpLink></li>
         <li><GcpLink href={links.pubsub_subscription_url}>Pub/Sub · ttf-restaurant-seed-worker</GcpLink></li>
         <li><GcpLink href={links.pubsub_topic_url}>Pub/Sub · ttf-restaurant-seed-jobs topic</GcpLink></li>
@@ -75,9 +82,9 @@ function fmtTime(iso: string | null) {
 }
 
 function statusClass(status: RestaurantSeedJob["status"]) {
-  if (status === "succeeded") return "admin-badge--ok";
-  if (status === "failed") return "admin-badge--warn";
-  if (status === "running" || status === "pending") return "admin-badge--info";
+  if (status === "succeeded") return "font-bold text-success";
+  if (status === "failed") return "font-bold text-warning";
+  if (status === "running" || status === "pending") return "font-bold text-brand";
   return "";
 }
 
@@ -371,42 +378,41 @@ export function AdminLocationSeedingPage() {
   }
 
   return (
-    <div className="admin-page stack">
-      <header className="admin-page__header">
+    <div className="grid gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1>Location seeding</h1>
-          <p className="muted">
+          <h1 className="text-2xl">Location seeding</h1>
+          <p className="text-text-muted">
             Seed new areas from Google Places, manage auto-refresh, and review catalog changes
           </p>
         </div>
       </header>
 
-      {bootLoading && <p className="muted">Loading…</p>}
-      {error && <p className="error">{error}</p>}
-      {message && <p className="muted">{message}</p>}
+      {bootLoading && <p className="text-text-muted">Loading…</p>}
+      {error && <p className="text-sm font-semibold text-error">{error}</p>}
+      {message && <p className="text-text-muted">{message}</p>}
 
       {!bootLoading && config && (
         <>
-          <section className="admin-panel">
-            <h2>Seed a new area</h2>
-            <p className="muted small">
+          <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
+            <h2 className="mb-3 text-lg">Seed a new area</h2>
+            <p className="text-sm text-text-muted">
               Enter a ZIP code, city, or address — we geocode it and search Google Places nearby.
             </p>
             <form
-              className="admin-seed-form"
+              className="mt-4 flex flex-wrap items-end gap-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 triggerSeed();
               }}
             >
               <input
-                className="search"
                 placeholder="e.g. 02026, Norwood MA, or a city center"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 required
               />
-              <label className="admin-seed-form__field">
+              <label className="flex flex-col gap-1 text-sm">
                 Radius (mi)
                 <input
                   type="number"
@@ -417,7 +423,7 @@ export function AdminLocationSeedingPage() {
                   onChange={(e) => setRadiusMi(Number(e.target.value))}
                 />
               </label>
-              <label className="admin-seed-form__check">
+              <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={force}
@@ -425,15 +431,15 @@ export function AdminLocationSeedingPage() {
                 />
                 Force (ignore cooldown)
               </label>
-              <button type="submit" disabled={busy || !location.trim()}>
+              <Button type="submit" disabled={busy || !location.trim()}>
                 {busy ? "Starting…" : "Start seed run"}
-              </button>
+              </Button>
             </form>
           </section>
 
-          <section className="admin-panel">
-            <h2>Refresh locations</h2>
-            <p className="muted small">
+          <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
+            <h2 className="mb-3 text-lg">Refresh locations</h2>
+            <p className="text-sm text-text-muted">
               Every successfully seeded area is registered here. The scheduled refresh
               re-runs all enabled locations, then refreshes every known restaurant
               regardless of zone via Place Details.
@@ -454,7 +460,7 @@ export function AdminLocationSeedingPage() {
                     <div>
                       <div>{loc.label}</div>
                       {loc.query && loc.query !== loc.label && (
-                        <div className="muted small">{loc.query}</div>
+                        <div className="text-sm text-text-muted">{loc.query}</div>
                       )}
                     </div>
                   ),
@@ -470,41 +476,42 @@ export function AdminLocationSeedingPage() {
                     />
                   ),
                   actions: (
-                    <button
+                    <Button
                       type="button"
-                      className="secondary small"
+                      variant="secondary"
+                      size="sm"
                       disabled={busy}
                       onClick={() => removeLocation(loc)}
                     >
                       Remove
-                    </button>
+                    </Button>
                   ),
                 },
               }))}
             />
             {locations.length === 0 && (
-              <p className="muted small">
+              <p className="text-sm text-text-muted">
                 No locations yet — seed an area above and it will appear here.
               </p>
             )}
           </section>
 
-          <section className="admin-panel admin-panel--split">
+          <section className="grid gap-6 rounded-lg border border-border bg-surface p-5 shadow-sm [grid-template-columns:repeat(auto-fit,minmax(10rem,1fr))]">
             <div>
-              <h2>Auto-refresh</h2>
-              <p className="muted small">
+              <h2 className="mb-3 text-lg">Auto-refresh</h2>
+              <p className="text-sm text-text-muted">
                 Scheduled refresh re-seeds all enabled locations and the full catalog,
                 tombstoning venues missing from Places and updating closed status.
                 Saving updates the Cloud Scheduler job schedule and pause state in GCP.
               </p>
-              <p className="muted small">
+              <p className="text-sm text-text-muted">
                 <strong>Default area</strong> is only used when no refresh locations are
                 enabled — it geocodes the label below and searches Google Places within the
                 radius (default ~5 mi). Once you seed areas above,
                 those replace this fallback.
               </p>
-              <div className="admin-seed-form admin-seed-form--config">
-                <label className="admin-seed-form__check">
+              <div className="flex max-w-md flex-col items-stretch gap-3">
+                <label className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     checked={config.enabled}
@@ -512,21 +519,21 @@ export function AdminLocationSeedingPage() {
                   />
                   Enabled
                 </label>
-                <label className="admin-seed-form__field">
+                <label className="flex flex-col gap-1 text-sm">
                   Schedule (cron)
                   <input
                     value={config.schedule_cron}
                     onChange={(e) => setConfig({ ...config, schedule_cron: e.target.value })}
                   />
                 </label>
-                <label className="admin-seed-form__field">
+                <label className="flex flex-col gap-1 text-sm">
                   Timezone
                   <input
                     value={config.schedule_timezone}
                     onChange={(e) => setConfig({ ...config, schedule_timezone: e.target.value })}
                   />
                 </label>
-                <label className="admin-seed-form__field">
+                <label className="flex flex-col gap-1 text-sm">
                   Default area
                   <input
                     placeholder="e.g. a city or ZIP code"
@@ -534,7 +541,7 @@ export function AdminLocationSeedingPage() {
                     onChange={(e) => setConfig({ ...config, default_location: e.target.value })}
                   />
                 </label>
-                <label className="admin-seed-form__field">
+                <label className="flex flex-col gap-1 text-sm">
                   Default radius (mi)
                   <input
                     type="number"
@@ -550,29 +557,29 @@ export function AdminLocationSeedingPage() {
                     }
                   />
                 </label>
-                <p className="muted small">
+                <p className="text-sm text-text-muted">
                   Last scheduled: {fmtTime(config.last_scheduled_at)}
                 </p>
-                <div className="admin-seed-form__actions">
-                  <button type="button" onClick={saveConfig} disabled={busy}>
+                <div className="flex flex-wrap gap-3">
+                  <Button type="button" onClick={saveConfig} disabled={busy}>
                     Save settings
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
-                    className="secondary"
+                    variant="secondary"
                     onClick={triggerRefreshAll}
                     disabled={busy || !config.enabled}
                   >
                     Run refresh now
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="admin-panel">
-            <h2>Refresh audit log</h2>
-            <p className="muted small">
+          <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
+            <h2 className="mb-3 text-lg">Refresh audit log</h2>
+            <p className="text-sm text-text-muted">
               Who enabled or disabled auto-refresh, changed the schedule, or toggled refresh
               locations — plus Cloud Scheduler sync results.
             </p>
@@ -596,7 +603,7 @@ export function AdminLocationSeedingPage() {
               }))}
             />
             {auditLog.length === 0 && (
-              <p className="muted small">No refresh setting changes recorded yet.</p>
+              <p className="text-sm text-text-muted">No refresh setting changes recorded yet.</p>
             )}
             <Pagination
               total={auditTotal}
@@ -608,14 +615,14 @@ export function AdminLocationSeedingPage() {
 
           <GcpInfraPanel links={runs.find((r) => r.gcp_links)?.gcp_links} />
 
-          <section className="admin-panel">
-            <h2>Runs</h2>
-            <p className="muted small">
+          <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
+            <h2 className="mb-3 text-lg">Runs</h2>
+            <p className="text-sm text-text-muted">
               Each run is a seed/refresh job. Use <strong>Run logs</strong> for lines tagged{" "}
               <code>[seed_job:…]</code> on ttf-api. Pending runs have no logs until Pub/Sub delivers
               the message.
             </p>
-            {runsLoading && <p className="muted small">Updating…</p>}
+            {runsLoading && <p className="text-sm text-text-muted">Updating…</p>}
             <DataTable
               columns={[
                 { key: "when", label: "Started" },
@@ -634,7 +641,7 @@ export function AdminLocationSeedingPage() {
                   area: (
                     <div>
                       <div>{r.query ?? `${r.lat.toFixed(3)}, ${r.lng.toFixed(3)}`}</div>
-                      <div className="muted small">
+                      <div className="text-sm text-text-muted">
                         {r.kind === "catalog"
                           ? "full catalog"
                           : fmtRadiusMi(r.radius_m)}
@@ -645,7 +652,7 @@ export function AdminLocationSeedingPage() {
                   status: (
                     <span className={statusClass(r.status)}>
                       {r.status}
-                      {r.error && <div className="muted small">{r.error}</div>}
+                      {r.error && <div className="text-sm text-text-muted">{r.error}</div>}
                     </span>
                   ),
                   added: r.inserted_count,
@@ -653,12 +660,12 @@ export function AdminLocationSeedingPage() {
                   tombstoned: r.tombstoned_count,
                   by: r.requested_by_display ?? r.requested_by ?? "—",
                   logs: (
-                    <div className="admin-gcp-links admin-gcp-links--inline">
+                    <div className="flex flex-col items-start gap-1">
                       <GcpLink href={r.gcp_links?.run_logs_url} title="Logs for this run">
                         Run logs
                       </GcpLink>
                       {r.status === "pending" && (
-                        <span className="muted small">Queued</span>
+                        <span className="text-sm text-text-muted">Queued</span>
                       )}
                     </div>
                   ),
@@ -673,10 +680,10 @@ export function AdminLocationSeedingPage() {
             />
           </section>
 
-          <section className="admin-panel">
-            <header className="admin-page__header">
-              <h2>Change log</h2>
-              <label className="admin-filter">
+          <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
+            <header className="flex flex-wrap items-end justify-between gap-4">
+              <h2 className="text-lg">Change log</h2>
+              <label className="grid min-w-[min(100%,12rem)] gap-2 text-sm font-semibold">
                 Action
                 <select
                   value={changelogAction}
@@ -695,7 +702,7 @@ export function AdminLocationSeedingPage() {
                 </select>
               </label>
             </header>
-            {changelogLoading && <p className="muted small">Updating…</p>}
+            {changelogLoading && <p className="text-sm text-text-muted">Updating…</p>}
             <DataTable
               columns={[
                 { key: "when", label: "When" },
@@ -711,7 +718,7 @@ export function AdminLocationSeedingPage() {
                     <div>
                       <div>{actionLabel(c.action)}</div>
                       {c.previous_status && c.new_status && (
-                        <div className="muted small">
+                        <div className="text-sm text-text-muted">
                           {c.previous_status} → {c.new_status}
                         </div>
                       )}

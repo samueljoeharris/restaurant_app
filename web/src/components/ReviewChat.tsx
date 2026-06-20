@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { authErrorMessage } from "../auth/errors";
+import { cn } from "../lib/cn";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { useToast } from "./ui/useToast";
@@ -135,7 +136,7 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
   if (!reviewChatAvailable()) {
     return (
       <Card title="Review assistant" subtitle="Freeform review → structured ratings">
-        <p className="muted small">
+        <p className="text-sm text-text-muted">
           Set <code>VITE_ENABLE_REVIEW_CHAT=true</code> in <code>web/.env.local</code> to enable
           the review assistant.
         </p>
@@ -146,7 +147,7 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
   if (!idToken) {
     return (
       <Card title="Review assistant" subtitle="Freeform review → structured ratings">
-        <p className="muted small">
+        <p className="text-sm text-text-muted">
           <Link to="/login">Sign in</Link> to chat through your visit and submit ratings.
         </p>
       </Card>
@@ -155,36 +156,44 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
 
   return (
     <Card title="Review assistant" subtitle="Describe your visit — we'll fill in the right fields">
-      <div className="review-chat">
-        <div className="review-chat__messages" ref={scrollRef}>
+      <div className="flex flex-col gap-3">
+        <div
+          className="flex max-h-80 flex-col gap-2 overflow-y-auto rounded-md bg-surface-muted p-2"
+          ref={scrollRef}
+        >
           {messages.map((message, index) => (
             <div
               key={`${message.role}-${index}`}
-              className={`review-chat__bubble review-chat__bubble--${message.role}`}
+              className={cn(
+                "max-w-[92%] rounded-md px-3 py-2 text-sm leading-normal whitespace-pre-wrap",
+                message.role === "assistant"
+                  ? "self-start border border-border bg-surface"
+                  : "self-end border border-brand/25 bg-brand-soft",
+              )}
             >
               {message.text}
             </div>
           ))}
           {busy && !preview && (
-            <div className="review-chat__bubble review-chat__bubble--assistant muted">
+            <div className="max-w-[92%] self-start rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-muted">
               Thinking…
             </div>
           )}
         </div>
 
         {extractSummary && (
-          <div className="review-chat__preview-summary">
+          <div className="rounded-md bg-surface-muted p-3 text-sm">
             <p>{extractSummary}</p>
           </div>
         )}
 
         {preview && (
-          <div className="review-chat__preview">
-            <p className="review-chat__preview-title">
+          <div className="rounded-md bg-surface-muted p-3 text-sm">
+            <p className="mb-2 font-semibold">
               {preview.ready_to_submit ? "Ready to submit" : "Needs a bit more detail"}
             </p>
             {preview.missing_required.length > 0 && (
-              <ul className="review-chat__missing">
+              <ul className="mb-2 pl-4">
                 {preview.missing_required.map((field, index) => {
                   const label = formatReviewField(field);
                   return <li key={`${label}-${index}`}>{label}</li>;
@@ -192,7 +201,7 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
               </ul>
             )}
             {preview.errors.length > 0 && (
-              <ul className="review-chat__errors">
+              <ul className="mb-2 pl-4 text-error">
                 {preview.errors.map((err, index) => {
                   const label = formatReviewField(err);
                   return <li key={`${label}-${index}`}>{label}</li>;
@@ -208,10 +217,11 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
           </div>
         )}
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className="text-sm font-semibold text-error">{error}</p>}
 
-        <div className="review-chat__composer">
+        <div>
           <textarea
+            className="w-full resize-y"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             rows={3}
@@ -224,7 +234,7 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
               }
             }}
           />
-          <div className="review-chat__actions">
+          <div className="mt-2 flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={handlePreview} disabled={busy || messages.length < 2}>
               Preview submission
             </Button>
@@ -251,9 +261,9 @@ function DraftSummary({ draft }: { draft: ContributionDraft }) {
   if (draft.note?.text) {
     parts.push(`Note: "${draft.note.text.slice(0, 80)}${draft.note.text.length > 80 ? "…" : ""}"`);
   }
-  if (parts.length === 0) return <p className="muted small">Nothing extracted yet.</p>;
+  if (parts.length === 0) return <p className="text-sm text-text-muted">Nothing extracted yet.</p>;
   return (
-    <ul className="review-chat__draft-summary">
+    <ul className="mb-2 pl-4">
       {parts.map((part) => (
         <li key={part}>{part}</li>
       ))}

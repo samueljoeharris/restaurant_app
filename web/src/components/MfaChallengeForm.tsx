@@ -27,7 +27,7 @@ export function MfaChallengeForm() {
 
   return (
     <Card title="Two-factor authentication" subtitle="Enter your 6-digit code">
-      <form className="stack" onSubmit={handleSubmit}>
+      <form className="grid gap-3" onSubmit={handleSubmit}>
         <label>
           Code
           <input
@@ -41,8 +41,8 @@ export function MfaChallengeForm() {
             required
           />
         </label>
-        {error && <p className="error">{error}</p>}
-        <div className="row">
+        {error && <p className="text-sm font-semibold text-error">{error}</p>}
+        <div className="flex items-center gap-4">
           <Button type="submit" disabled={busy || code.length < 6}>
             {busy ? "…" : "Verify"}
           </Button>

@@ -18,13 +18,15 @@ export function AdminAccessDeniedPage({
   const { user, logout } = useAuth();
 
   return (
-    <div className="auth-page auth-page--admin">
-      <main className="page page--narrow page-enter">
-        <div className="auth-hero">
-          <div className="auth-hero__mark">🔭</div>
-          <p className="auth-hero__badge">Operator console</p>
-          <h1 className="auth-hero__title">{title}</h1>
-          <p className="muted">{message}</p>
+    <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col justify-center px-8 py-8">
+      <main className="mx-auto w-full max-w-[var(--page-narrow)] animate-page-enter">
+        <div className="mb-6 text-center">
+          <div className="mb-3 text-5xl">🔭</div>
+          <p className="mb-2 inline-block rounded-full bg-accent-soft px-2 py-1 text-xs font-semibold uppercase tracking-widest text-accent">
+            Operator console
+          </p>
+          <h1 className="text-2xl tracking-tight">{title}</h1>
+          <p className="mt-2 text-text-muted">{message}</p>
         </div>
 
         <Card>
@@ -33,7 +35,7 @@ export function AdminAccessDeniedPage({
               Signed in as <strong>{user.email}</strong>
             </p>
           )}
-          <div className="auth-actions">
+          <div className="grid gap-3">
             <ButtonAnchor href={PUBLIC_APP_URL} fullWidth>
               Go to public app
             </ButtonAnchor>
@@ -47,7 +49,7 @@ export function AdminAccessDeniedPage({
               </Button>
             )}
             {import.meta.env.DEV && (
-              <Link to="/login" className="linkish">
+              <Link to="/login" className="text-sm font-semibold text-brand">
                 Local dev sign-in
               </Link>
             )}

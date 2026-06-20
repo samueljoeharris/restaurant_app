@@ -168,13 +168,13 @@ export function MfaSettings() {
   if (hasTotpMfa) {
     if (unenrollStep === "confirm") {
       return (
-        <div className="stack">
-          <p className="muted small">
+        <div className="grid gap-3">
+          <p className="text-sm text-text-muted">
             You will sign in with only your password or Google account. Anyone
             with that access can use your account without a code.
           </p>
-          {error && <p className="error">{error}</p>}
-          <div className="row">
+          {error && <p className="text-sm font-semibold text-error">{error}</p>}
+          <div className="flex items-center gap-4">
             <Button onClick={handleRemoveMfa} disabled={busy}>
               {busy ? "…" : "Remove authenticator"}
             </Button>
@@ -188,8 +188,8 @@ export function MfaSettings() {
 
     if (unenrollStep === "reauth") {
       return (
-        <form className="stack" onSubmit={handleReauth}>
-          <p className="muted small">
+        <form className="grid gap-3" onSubmit={handleReauth}>
+          <p className="text-sm text-text-muted">
             Confirm it is you before we remove two-factor authentication.
           </p>
           {hasPassword ? (
@@ -208,13 +208,13 @@ export function MfaSettings() {
               {busy ? "…" : "Confirm with Google"}
             </Button>
           ) : (
-            <p className="error">
+            <p className="text-sm font-semibold text-error">
               Sign out and back in, then try removing MFA again.
             </p>
           )}
-          {error && <p className="error">{error}</p>}
+          {error && <p className="text-sm font-semibold text-error">{error}</p>}
           {hasPassword && (
-            <div className="row">
+            <div className="flex items-center gap-4">
               <Button type="submit" disabled={busy || !password}>
                 {busy ? "…" : "Confirm identity"}
               </Button>
@@ -244,8 +244,8 @@ export function MfaSettings() {
 
     if (unenrollStep === "reauth-mfa" || reauthMfaResolver) {
       return (
-        <form className="stack" onSubmit={handleReauthMfa}>
-          <p className="muted small">
+        <form className="grid gap-3" onSubmit={handleReauthMfa}>
+          <p className="text-sm text-text-muted">
             Enter your authenticator code to confirm your identity.
           </p>
           <label>
@@ -260,8 +260,8 @@ export function MfaSettings() {
               required
             />
           </label>
-          {error && <p className="error">{error}</p>}
-          <div className="row">
+          {error && <p className="text-sm font-semibold text-error">{error}</p>}
+          <div className="flex items-center gap-4">
             <Button type="submit" disabled={busy || code.length < 6}>
               {busy ? "…" : "Verify and remove MFA"}
             </Button>
@@ -274,12 +274,12 @@ export function MfaSettings() {
     }
 
     return (
-      <div className="stack">
-        <p className="success">Two-factor authentication is on.</p>
-        <p className="muted small">
+      <div className="grid gap-3">
+        <p className="text-success">Two-factor authentication is on.</p>
+        <p className="text-sm text-text-muted">
           Authenticator app (TOTP) is linked to this account.
         </p>
-        {error && <p className="error">{error}</p>}
+        {error && <p className="text-sm font-semibold text-error">{error}</p>}
         <Button
           variant="ghost"
           onClick={() => {
@@ -295,18 +295,18 @@ export function MfaSettings() {
 
   if (enrollment) {
     return (
-      <form className="stack" onSubmit={handleConfirmMfa}>
-        <p className="muted small">
+      <form className="grid gap-3" onSubmit={handleConfirmMfa}>
+        <p className="text-sm text-text-muted">
           Scan with Google Authenticator, 1Password, or Authy.
         </p>
         <img
-          className="qr"
+          className="my-2 block rounded-md border border-border"
           src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(enrollment.qrCodeUrl)}`}
           alt="TOTP QR code"
           width={180}
           height={180}
         />
-        <p className="muted small">
+        <p className="text-sm text-text-muted">
           Manual key: <code>{enrollment.secret.secretKey}</code>
         </p>
         <label>
@@ -320,8 +320,8 @@ export function MfaSettings() {
             required
           />
         </label>
-        {error && <p className="error">{error}</p>}
-        <div className="row">
+        {error && <p className="text-sm font-semibold text-error">{error}</p>}
+        <div className="flex items-center gap-4">
           <Button type="submit" disabled={busy || code.length < 6}>
             {busy ? "…" : "Confirm authenticator"}
           </Button>
@@ -343,10 +343,10 @@ export function MfaSettings() {
 
   return (
     <>
-      <p className="muted small">
+      <p className="text-sm text-text-muted">
         Add an authenticator app for an extra sign-in step.
       </p>
-      {error && <p className="error">{error}</p>}
+      {error && <p className="text-sm font-semibold text-error">{error}</p>}
       <Button onClick={handleStartMfa} disabled={busy}>
         {busy ? "…" : "Set up authenticator"}
       </Button>

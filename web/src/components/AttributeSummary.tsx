@@ -48,12 +48,12 @@ function groupByCategory(entries: AttributeEntry[]): Map<string, AttributeEntry[
 function sampleBadge(entry: AttributeEntry) {
   if (entry.status === "early") {
     return (
-      <Badge tone="brand">
+      <Badge variant="brand">
         early · {entry.sample_size}/{entry.min_sample_size}
       </Badge>
     );
   }
-  return <Badge tone="neutral">{entry.sample_size}</Badge>;
+  return <Badge variant="neutral">{entry.sample_size}</Badge>;
 }
 
 export function AttributeSummary({ entries }: { entries: AttributeEntry[] }) {
@@ -62,24 +62,30 @@ export function AttributeSummary({ entries }: { entries: AttributeEntry[] }) {
   const unratedCount = entries.filter((e) => e.sample_size === 0).length;
 
   if (rated.length === 0) {
-    return <p className="muted small">No parent ratings yet — be the first to rate this spot.</p>;
+    return <p className="text-sm text-text-muted">No parent ratings yet — be the first to rate this spot.</p>;
   }
 
   const groups = groupByCategory(displayable.length > 0 ? displayable : rated);
 
   return (
-    <div className="attr-groups">
+    <div className="grid gap-4">
       {[...groups.entries()].map(([category, items]) => (
         <div key={category}>
-          <h3 className="attr-cat">{CATEGORY_LABELS[category] ?? category}</h3>
-          <ul className="attr-list">
+          <h3 className="mb-2 text-sm font-semibold capitalize text-text-muted">
+            {CATEGORY_LABELS[category] ?? category}
+          </h3>
+          <ul className="m-0 grid list-none gap-2 p-0">
             {items.map((entry) => (
               <li
                 key={entry.key}
-                className={entry.status === "early" ? "attr-list__item--early" : undefined}
+                className={
+                  entry.status === "early"
+                    ? "-m-2 grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-md bg-brand-soft p-2 text-sm"
+                    : "grid grid-cols-[1fr_auto_auto] items-center gap-2 text-sm"
+                }
               >
                 <span>{entry.label}</span>
-                <span className="attr-list__value">{formatValue(entry)}</span>
+                <span className="font-semibold capitalize">{formatValue(entry)}</span>
                 {sampleBadge(entry)}
               </li>
             ))}
@@ -87,13 +93,13 @@ export function AttributeSummary({ entries }: { entries: AttributeEntry[] }) {
         </div>
       ))}
       {displayable.some((e) => e.status === "early") && (
-        <p className="field-hint">
+        <p className="m-0 text-xs text-text-muted">
           Early signals show after the first parent rates — full confidence at 3+ ratings per
           attribute.
         </p>
       )}
       {unratedCount > 0 && rated.length > 0 && (
-        <p className="muted small">
+        <p className="text-sm text-text-muted">
           {unratedCount} more attribute{unratedCount === 1 ? "" : "s"} still need a first rating.
         </p>
       )}

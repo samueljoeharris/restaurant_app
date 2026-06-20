@@ -49,16 +49,16 @@ export function AdminUsersPage() {
   }, [idToken, offset]);
 
   return (
-    <div className="admin-page stack">
-      <header className="admin-page__header">
+    <div className="grid gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1>Contributors</h1>
-          <p className="muted">Firebase users who submitted data</p>
+          <h1 className="text-2xl">Contributors</h1>
+          <p className="text-text-muted">Firebase users who submitted data</p>
         </div>
       </header>
 
-      {loading && <p className="muted">Loading…</p>}
-      {error && <p className="error">{error}</p>}
+      {loading && <p className="text-text-muted">Loading…</p>}
+      {error && <p className="text-sm font-semibold text-error">{error}</p>}
 
       {!loading && !error && (
         <>
@@ -78,13 +78,19 @@ export function AdminUsersPage() {
                 user: (
                   <div>
                     <strong>{r.display_name ?? r.email ?? "Unknown"}</strong>
-                    {r.disabled && <span className="admin-badge admin-badge--warn"> disabled</span>}
+                    {r.disabled && (
+                      <span className="font-bold text-warning"> disabled</span>
+                    )}
                     {r.email && r.display_name && (
-                      <div className="muted small">{r.email}</div>
+                      <div className="text-sm text-text-muted">{r.email}</div>
                     )}
                   </div>
                 ),
-                uid: <code className="admin-code">{r.firebase_uid.slice(0, 12)}…</code>,
+                uid: (
+                  <code className="rounded bg-bg px-1.5 py-0.5 text-xs">
+                    {r.firebase_uid.slice(0, 12)}…
+                  </code>
+                ),
                 ttf: r.ttf_count,
                 attr: r.attribute_count,
                 notes: r.note_count,

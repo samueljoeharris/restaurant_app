@@ -13,6 +13,9 @@ import { restaurantSubmitPath } from "../lib/mapEntryKey";
 import { googleMapsUrlForEntry } from "../lib/googleMapsUrl";
 import type { RestaurantMapEntry } from "../types";
 
+const backLinkClass =
+  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
+
 export function PlaceRestaurantDetailPage() {
   const { placeId } = useParams<{ placeId: string }>();
   const { idToken } = useAuth();
@@ -36,21 +39,21 @@ export function PlaceRestaurantDetailPage() {
 
   if (!idToken) {
     return (
-      <Page narrow back={<Link to="/map" className="back-link">← Explore</Link>}>
+      <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
         <EmptyState title="Sign in required" description="Sign in to view restaurant details from Google Places." />
       </Page>
     );
   }
   if (error) {
     return (
-      <Page narrow back={<Link to="/map" className="back-link">← Explore</Link>}>
-        <p className="error">{error}</p>
+      <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
+        <p className="text-sm font-semibold text-error">{error}</p>
       </Page>
     );
   }
   if (loading || !entry) {
     return (
-      <Page narrow back={<Link to="/map" className="back-link">← Explore</Link>}>
+      <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
         <SkeletonList count={3} />
       </Page>
     );
@@ -59,9 +62,9 @@ export function PlaceRestaurantDetailPage() {
   const hasTtf = entry.ttf.sample_size > 0;
   const googleMapsUrl = googleMapsUrlForEntry(entry);
   return (
-    <Page narrow back={<Link to="/map" className="back-link">← Explore</Link>} title={entry.name} subtitle={entry.address}>
+    <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>} title={entry.name} subtitle={entry.address}>
       <Card>
-        <p className="muted small">
+        <p className="text-sm text-text-muted">
           Listed via Google Places — not in the Little Scout catalog yet. Log a visit to add parent
           speed and kid-friendly details.
         </p>
@@ -74,7 +77,7 @@ export function PlaceRestaurantDetailPage() {
         ) : (
           <EmptyState title="Not scouted yet" description="Be the first parent to log how fast kid-friendly starters arrive." />
         )}
-        <div className="stack gap-sm" style={{ marginTop: "1rem" }}>
+        <div className="mt-4 grid gap-2">
           <ButtonLink to={restaurantSubmitPath(entry)} fullWidth>
             {hasTtf ? "Log another visit" : "Log a visit"}
           </ButtonLink>

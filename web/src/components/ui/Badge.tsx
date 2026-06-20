@@ -1,19 +1,32 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import type { ReactNode } from "react";
 
-type Tone = "brand" | "neutral" | "success" | "warning";
+import { cn } from "../../lib/cn";
+
+const badgeVariants = cva(
+  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold tracking-wide",
+  {
+    variants: {
+      variant: {
+        neutral: "bg-bg text-text-muted",
+        brand: "bg-brand-soft text-brand",
+        success: "bg-success-soft text-success",
+        warning: "bg-warning-soft text-warning",
+      },
+    },
+    defaultVariants: {
+      variant: "neutral",
+    },
+  },
+);
 
 export function Badge({
   children,
-  tone = "neutral",
+  variant,
   className,
 }: {
   children: ReactNode;
-  tone?: Tone;
   className?: string;
-}) {
-  return (
-    <span className={["ui-badge", `ui-badge--${tone}`, className ?? ""].join(" ")}>
-      {children}
-    </span>
-  );
+} & VariantProps<typeof badgeVariants>) {
+  return <span className={cn(badgeVariants({ variant }), className)}>{children}</span>;
 }

@@ -11,6 +11,7 @@ import { RestaurantMap } from "../components/RestaurantMap";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { SkeletonList } from "../components/ui/Skeleton";
+import { cn } from "../lib/cn";
 import {
   mergeRestaurantMapEntries,
   useRestaurantMapEntries,
@@ -86,6 +87,10 @@ function formatPlaceCount(count: number) {
   return `${count} ${count === 1 ? "place" : "places"}`;
 }
 
+const exploreFilterClass =
+  "shrink-0 rounded-full border border-border bg-surface px-3 py-2 text-sm font-bold text-text-muted";
+const exploreFilterActiveClass = "border-brand/35 bg-brand-soft text-brand";
+
 function BrowseChip({
   label,
   count,
@@ -98,7 +103,7 @@ function BrowseChip({
   to: string;
 }) {
   return (
-    <Link className={`explore-filter${active ? " explore-filter--active" : ""}`} to={to}>
+    <Link className={cn(exploreFilterClass, active && exploreFilterActiveClass)} to={to}>
       {label} ({count})
     </Link>
   );
@@ -689,23 +694,23 @@ export function ExploreMapPage() {
   }
 
   return (
-    <div className="explore-map-page">
+    <div className="relative h-full min-h-0">
       {statusMessage && (
         <p
-          className={`map-status-toast${
-            statusMessage.includes("Sign in") ||
-            statusMessage.includes("denied") ||
-            statusMessage.includes("unavailable")
-              ? " map-status-toast--error"
-              : ""
-          }`}
+          className={cn(
+            "pointer-events-none absolute bottom-5 left-1/2 z-[6] m-0 max-w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 rounded-full border border-border bg-surface/95 px-3 py-2 text-center text-xs leading-snug text-text shadow-md",
+            (statusMessage.includes("Sign in") ||
+              statusMessage.includes("denied") ||
+              statusMessage.includes("unavailable")) &&
+              "border-error/25 text-error",
+          )}
           role="status"
         >
           {statusMessage}
         </p>
       )}
 
-      <div className="explore-map-page__map-stage">
+      <div className="relative h-full min-h-0">
         <RestaurantMap
           restaurants={mapRestaurants}
           focusId={focusId}
@@ -746,8 +751,8 @@ export function ExploreMapPage() {
         />
 
         {(isRadiusMode || isPendingPlaceMode) && (
-          <div className="radius-banner">
-            <span className="radius-banner__text">
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-brand/25 bg-brand-soft px-4 py-3 text-sm">
+            <span className="flex-1 font-semibold text-brand">
               {paramPlace
                 ? isPendingPlaceMode
                   ? `Places near ${paramPlace} · locating area`
@@ -756,8 +761,14 @@ export function ExploreMapPage() {
                   ? "Locating area…"
                   : `Within ${Math.round(radiusM / 1000)} km`}
             </span>
-            {radiusLoading && <span className="radius-banner__seeding">loading nearby…</span>}
-            <button type="button" className="radius-banner__clear" onClick={clearRadiusMode}>
+            {radiusLoading && (
+              <span className="text-xs text-text-muted italic">loading nearby…</span>
+            )}
+            <button
+              type="button"
+              className="cursor-pointer rounded-full border border-brand px-[0.6rem] py-[0.2rem] font-[inherit] text-xs font-bold text-brand transition-[background,color] duration-fast hover:bg-brand hover:text-text-inverse"
+              onClick={clearRadiusMode}
+            >
               Clear
             </button>
           </div>
@@ -769,7 +780,10 @@ export function ExploreMapPage() {
           restaurants.length > 0 && (
             <>
               {facets.cities.length > 0 && (
-                <nav className="explore-filters" aria-label="Browse by town">
+                <nav
+                  className="mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4"
+                  aria-label="Browse by town"
+                >
                   {facets.cities.slice(0, 8).map((facet) => (
                     <BrowseChip
                       key={facet.key}
@@ -788,7 +802,7 @@ export function ExploreMapPage() {
 
               {facets.zips.length > 1 && (
                 <nav
-                  className="explore-filters explore-filters--secondary"
+                  className="-mt-2 mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4"
                   aria-label="Browse by ZIP"
                 >
                   {facets.zips.slice(0, 8).map((facet) => (
@@ -809,7 +823,7 @@ export function ExploreMapPage() {
 
               {facets.tags.length > 0 && (
                 <nav
-                  className="explore-filters explore-filters--secondary"
+                  className="-mt-2 mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4"
                   aria-label="Browse by type"
                 >
                   {facets.tags.slice(0, 10).map((facet) => (
@@ -831,11 +845,17 @@ export function ExploreMapPage() {
           )}
 
         {!isRadiusMode && !isPendingPlaceMode && (
-          <nav className="explore-filters explore-filters--scout" aria-label="Scout quality filters">
+          <nav
+            className="mt-2 mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4"
+            aria-label="Scout quality filters"
+          >
             {(Object.keys(scoutFilterLabels) as ScoutFilter[]).map((filter) => (
               <Link
                 key={filter}
-                className={`explore-filter${filter === activeFilter ? " explore-filter--active" : ""}`}
+                className={cn(
+                  exploreFilterClass,
+                  filter === activeFilter && exploreFilterActiveClass,
+                )}
                 to={exploreUrl({ ...urlState, filter })}
               >
                 {scoutFilterLabels[filter]}
@@ -847,11 +867,11 @@ export function ExploreMapPage() {
         {!isRadiusMode &&
           !isPendingPlaceMode &&
           (browseCity || browseZip || browseTag) && (
-            <div className="explore-active-browse">
+            <div className="mb-3 flex flex-wrap gap-2">
               {browseCity && (
                 <button
                   type="button"
-                  className="explore-active-browse__chip"
+                  className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
                   onClick={() => clearBrowseParam("city")}
                 >
                   {browseCity} ×
@@ -860,7 +880,7 @@ export function ExploreMapPage() {
               {browseZip && (
                 <button
                   type="button"
-                  className="explore-active-browse__chip"
+                  className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
                   onClick={() => clearBrowseParam("zip")}
                 >
                   ZIP {browseZip} ×
@@ -869,7 +889,7 @@ export function ExploreMapPage() {
               {browseTag && (
                 <button
                   type="button"
-                  className="explore-active-browse__chip"
+                  className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
                   onClick={() => clearBrowseParam("tag")}
                 >
                   {browseTag} ×
@@ -879,31 +899,31 @@ export function ExploreMapPage() {
           )}
 
         {!showListLoading && !error && (
-          <div className="explore-summary">
-            <Badge tone="brand">{formatPlaceCount(filtered.length)}</Badge>
-            <span className="muted small">{summaryText}</span>
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <Badge variant="brand">{formatPlaceCount(filtered.length)}</Badge>
+            <span className="text-sm text-text-muted">{summaryText}</span>
           </div>
         )}
 
         {showListLoading && <SkeletonList count={6} />}
-        {error && <p className="error">{error}</p>}
+        {error && <p className="text-sm font-semibold text-error">{error}</p>}
 
         {!showListLoading && !error && filtered.length > 0 && grouped && (
-          <div className="explore-groups">
+          <div className="grid gap-6">
             {grouped.map(({ city, items }) => (
-              <section key={city} className="explore-group">
-                <header className="explore-group__header">
-                  <h2>{city}</h2>
-                  <span className="muted small">{formatPlaceCount(items.length)}</span>
+              <section key={city}>
+                <header className="mb-3 flex items-baseline justify-between gap-3">
+                  <h2 className="m-0 text-lg">{city}</h2>
+                  <span className="text-sm text-text-muted">{formatPlaceCount(items.length)}</span>
                 </header>
-                <ul className="list">{items.map(renderCard)}</ul>
+                <ul className="m-0 grid list-none gap-3 p-0">{items.map(renderCard)}</ul>
               </section>
             ))}
           </div>
         )}
 
         {!showListLoading && !error && filtered.length > 0 && !grouped && (
-          <ul className="list">{filtered.map(renderCard)}</ul>
+          <ul className="m-0 grid list-none gap-3 p-0">{filtered.map(renderCard)}</ul>
         )}
 
         {!showListLoading && !error && filtered.length === 0 && restaurants.length > 0 && (

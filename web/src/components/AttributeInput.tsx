@@ -1,4 +1,5 @@
 import type { MetricDefinition } from "../types";
+import { cn } from "../lib/cn";
 import { ChoiceChip, ChoiceChipGroup } from "./ui/ChoiceChip";
 
 type Value = boolean | number | string | undefined;
@@ -52,10 +53,15 @@ export function AttributeInput({
   const num = typeof value === "number" ? value : min;
 
   return (
-    <div className={`slider-field${unset ? " slider-field--unset" : " slider-field--set"}`}>
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-md border bg-bg px-3 py-2 transition-[border-color,background] duration-fast",
+        unset ? "border-border" : "border-brand bg-brand-soft",
+      )}
+    >
       <input
         type="range"
-        className="slider-field__input"
+        className="flex-1 border-0 bg-transparent p-0 accent-brand focus:shadow-none"
         min={min}
         max={max}
         value={num}
@@ -65,7 +71,14 @@ export function AttributeInput({
         aria-valuenow={num}
         aria-label={metric.label}
       />
-      <span className="slider-field__value">{unset ? "Tap slider" : num}</span>
+      <span
+        className={cn(
+          "min-w-[4.5rem] text-right font-bold",
+          unset ? "font-medium text-text-muted" : "text-brand",
+        )}
+      >
+        {unset ? "Tap slider" : num}
+      </span>
     </div>
   );
 }

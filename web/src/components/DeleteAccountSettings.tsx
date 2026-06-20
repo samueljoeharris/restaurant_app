@@ -146,14 +146,14 @@ export function DeleteAccountSettings() {
 
   if (step === "confirm") {
     return (
-      <div className="stack">
-        <p className="muted small">
+      <div className="grid gap-3">
+        <p className="text-sm text-text-muted">
           This permanently deletes your Little Scout account and all contributions
           (TTF observations, attribute ratings, and notes). Restaurant listings
           stay, but your data is removed from their aggregates.
         </p>
-        {error && <p className="error">{error}</p>}
-        <div className="row">
+        {error && <p className="text-sm font-semibold text-error">{error}</p>}
+        <div className="flex items-center gap-4">
           <Button
             variant="danger"
             onClick={handleConfirmDelete}
@@ -171,8 +171,8 @@ export function DeleteAccountSettings() {
 
   if (step === "reauth") {
     return (
-      <form className="stack" onSubmit={handleReauth}>
-        <p className="muted small">
+      <form className="grid gap-3" onSubmit={handleReauth}>
+        <p className="text-sm text-text-muted">
           Confirm it is you before we delete your account.
         </p>
         {hasPassword ? (
@@ -191,13 +191,13 @@ export function DeleteAccountSettings() {
             {busy ? "…" : "Confirm with Google"}
           </Button>
         ) : (
-          <p className="error">
+          <p className="text-sm font-semibold text-error">
             Sign out and back in, then try deleting your account again.
           </p>
         )}
-        {error && <p className="error">{error}</p>}
+        {error && <p className="text-sm font-semibold text-error">{error}</p>}
         {hasPassword && (
-          <div className="row">
+          <div className="flex items-center gap-4">
             <Button type="submit" disabled={busy || !password}>
               {busy ? "…" : "Confirm identity"}
             </Button>
@@ -222,8 +222,8 @@ export function DeleteAccountSettings() {
 
   if (step === "reauth-mfa" || reauthMfaResolver) {
     return (
-      <form className="stack" onSubmit={handleReauthMfa}>
-        <p className="muted small">
+      <form className="grid gap-3" onSubmit={handleReauthMfa}>
+        <p className="text-sm text-text-muted">
           Enter the code from your authenticator app to continue.
         </p>
         <label>
@@ -236,8 +236,8 @@ export function DeleteAccountSettings() {
             required
           />
         </label>
-        {error && <p className="error">{error}</p>}
-        <div className="row">
+        {error && <p className="text-sm font-semibold text-error">{error}</p>}
+        <div className="flex items-center gap-4">
           <Button type="submit" disabled={busy || !code.trim()}>
             {busy ? "…" : "Confirm and delete"}
           </Button>
@@ -250,8 +250,8 @@ export function DeleteAccountSettings() {
   }
 
   return (
-    <div className="stack">
-      <p className="muted small">
+    <div className="grid gap-3">
+      <p className="text-sm text-text-muted">
         Permanently remove your account and all contributions. This cannot be
         undone.
       </p>

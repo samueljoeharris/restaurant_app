@@ -10,6 +10,16 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      (function () {
+        var k = "ls-theme";
+        var s = localStorage.getItem(k);
+        var dark =
+          s === "dark" ||
+          (s !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.classList.add("dark");
+      })();
+    </script>
     <title>Little Scout — Admin</title>
   </head>
   <body>

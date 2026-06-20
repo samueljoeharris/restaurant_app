@@ -1,3 +1,5 @@
+import { cn } from "../lib/cn";
+
 interface MapLocateFabProps {
   busy?: boolean;
   active?: boolean;
@@ -9,7 +11,10 @@ export function MapLocateFab({ busy, active, onClick }: MapLocateFabProps) {
   return (
     <button
       type="button"
-      className={`map-locate-fab${active ? " map-locate-fab--active" : ""}`}
+      className={cn(
+        "absolute right-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-[9] grid h-12 w-12 place-items-center rounded-full border border-border bg-surface p-0 text-text shadow-md transition-[background,color,box-shadow] duration-fast ease-out hover:enabled:shadow-lg disabled:cursor-wait disabled:opacity-70",
+        active && "border-2 border-brand text-brand",
+      )}
       onClick={onClick}
       disabled={busy}
       aria-label={busy ? "Finding your location" : "Use my location"}
@@ -19,7 +24,7 @@ export function MapLocateFab({ busy, active, onClick }: MapLocateFabProps) {
         <span className="map-locate-fab__spinner" aria-hidden="true" />
       ) : (
         <svg
-          className="map-locate-fab__icon"
+          className="h-[1.35rem] w-[1.35rem]"
           viewBox="0 0 24 24"
           aria-hidden="true"
           focusable="false"

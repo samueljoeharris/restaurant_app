@@ -32,6 +32,9 @@ const KIND_LABELS: Record<UserContribution["kind"], string> = {
   note: "Note",
 };
 
+const backLinkClass =
+  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
+
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
     month: "short",
@@ -209,12 +212,12 @@ export function MyContributionsPage() {
       title="Your contributions"
       subtitle="View, edit, or remove your speed observations, ratings, and notes."
       back={
-        <Link to="/account" className="back-link">
+        <Link to="/account" className={backLinkClass}>
           ← Account
         </Link>
       }
     >
-      <div className="contribution-filters">
+      <div className="mb-4 flex flex-wrap gap-2">
         {FILTERS.map((opt) => (
           <Button
             key={opt.value}
@@ -228,30 +231,27 @@ export function MyContributionsPage() {
         ))}
       </div>
 
-      {loading && <p className="muted">Loading…</p>}
-      {error && <p className="error">{error}</p>}
+      {loading && <p className="text-text-muted">Loading…</p>}
+      {error && <p className="text-sm font-semibold text-error">{error}</p>}
 
       {!loading && !error && items.length === 0 && (
         <EmptyState
           emoji="📝"
           title="Nothing here yet"
           description="Your speed observations, parent ratings, and notes will show up here."
-          action={
-            <ButtonLink to="/map" variant="secondary">
-              Explore restaurants
-            </ButtonLink>
-          }
+          actionLabel="Explore restaurants"
+          actionTo="/map"
         />
       )}
 
       {!loading && !error && items.length > 0 && (
-        <p className="muted small">
+        <p className="text-sm text-text-muted">
           {total} contribution{total === 1 ? "" : "s"}
           {filter !== "all" ? ` · filtered` : ""}
         </p>
       )}
 
-      <ul className="contributions-list stack">
+      <ul className="m-0 grid list-none gap-3 p-0">
         {items.map((item) => {
           const isEditing = editingId === item.id;
           const isBusy = busyId === item.id;
@@ -259,24 +259,24 @@ export function MyContributionsPage() {
           return (
             <li key={`${item.kind}-${item.id}`}>
               <Card>
-                <div className="contribution-row">
-                  <div className="contribution-row__main">
-                    <div className="contribution-row__header">
-                      <Badge tone="neutral">{KIND_LABELS[item.kind]}</Badge>
-                      <time className="muted small">{fmtDate(item.submitted_at)}</time>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Badge variant="neutral">{KIND_LABELS[item.kind]}</Badge>
+                      <time className="text-sm text-text-muted">{fmtDate(item.submitted_at)}</time>
                     </div>
                     <Link
                       to={`/restaurants/${item.restaurant_id}`}
-                      className="contribution-row__restaurant linkish"
+                      className="mb-1 inline-block font-semibold text-brand"
                     >
                       {item.restaurant_name}
                     </Link>
                     {!isEditing && (
-                      <p className="contribution-row__summary">{contributionSummary(item)}</p>
+                      <p className="m-0 text-sm text-text-muted">{contributionSummary(item)}</p>
                     )}
                   </div>
 
-                  <div className="contribution-row__actions">
+                  <div className="flex shrink-0 gap-2">
                     {item.kind === "ttf" && !isEditing && (
                       <ButtonLink
                         to={`/account/contributions/ttf/${item.id}/edit`}
@@ -322,7 +322,7 @@ export function MyContributionsPage() {
 
                 {isEditing && item.kind === "note" && (
                   <form
-                    className="stack contribution-edit"
+                    className="mt-4 grid gap-3 border-t border-border pt-4"
                     onSubmit={(e) => {
                       e.preventDefault();
                       saveNote(item);
@@ -338,7 +338,7 @@ export function MyContributionsPage() {
                         required
                       />
                     </label>
-                    <div className="row-actions">
+                    <div className="grid gap-2">
                       <Button type="submit" disabled={isBusy || !editNoteText.trim()}>
                         {isBusy ? "Saving…" : "Save"}
                       </Button>
@@ -350,8 +350,8 @@ export function MyContributionsPage() {
                 )}
 
                 {isEditing && item.kind === "attribute" && (
-                  <div className="stack contribution-edit">
-                    <p className="small">
+                  <div className="mt-4 grid gap-3 border-t border-border pt-4">
+                    <p className="text-sm">
                       <strong>{item.metric_label}</strong>
                     </p>
                     {metricsByKey.get(item.metric_key) ? (
@@ -361,9 +361,9 @@ export function MyContributionsPage() {
                         onChange={setEditAttributeValue}
                       />
                     ) : (
-                      <p className="muted small">This metric is no longer available.</p>
+                      <p className="text-sm text-text-muted">This metric is no longer available.</p>
                     )}
-                    <div className="row-actions">
+                    <div className="grid gap-2">
                       <Button
                         type="button"
                         disabled={isBusy || editAttributeValue === undefined}

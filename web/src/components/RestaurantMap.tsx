@@ -8,6 +8,7 @@ import {
 } from "@vis.gl/react-google-maps";
 
 import { MapMarkerLayer } from "./MapMarkerLayer";
+import { cn } from "../lib/cn";
 import {
   formatTtfMedian,
   ttfTier,
@@ -169,7 +170,7 @@ function PanToLocation({ location }: { location: { lat: number; lng: number } | 
 function UserLocationMarker({ location }: { location: { lat: number; lng: number } }) {
   return (
     <AdvancedMarker position={location} zIndex={1000}>
-      <div className="map-user-location" aria-hidden="true">
+      <div className="relative h-6 w-6" aria-hidden="true">
         <span className="map-user-location__dot" />
         <span className="map-user-location__pulse" />
       </div>
@@ -214,10 +215,12 @@ function SearchArea({
   restaurants,
   busy,
   onSearchArea,
+  withSidebar,
 }: {
   restaurants: RestaurantMapEntry[];
   busy: boolean;
   onSearchArea: (lat: number, lng: number, radiusM: number) => void;
+  withSidebar: boolean;
 }) {
   const map = useMap();
   const [sparse, setSparse] = useState(false);
@@ -234,11 +237,16 @@ function SearchArea({
   if (!sparse) return null;
 
   return (
-    <div className="map-search-area">
+    <div
+      className={cn(
+        "pointer-events-none absolute top-4 z-[5]",
+        withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4",
+      )}
+    >
       <Button
         size="sm"
         variant="secondary"
-        className="map-search-area__button"
+        className="pointer-events-auto rounded-full bg-surface/95 shadow-md"
         disabled={busy || !map}
         onClick={() => {
           if (!map) return;
@@ -246,8 +254,8 @@ function SearchArea({
           if (center) onSearchArea(center.lat(), center.lng(), viewportRadiusM(map));
         }}
       >
-        <span className="map-search-area__label">
-          <svg className="map-search-area__icon" viewBox="0 0 24 24" aria-hidden="true">
+        <span className="inline-flex items-center gap-2">
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
             <path
               fill="currentColor"
               d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z"
@@ -260,34 +268,40 @@ function SearchArea({
   );
 }
 
-function MapLegend() {
+function MapLegend({ withSidebar }: { withSidebar: boolean }) {
   const tiers: TtfTier[] = ["fast", "ok", "slow"];
   return (
-    <div className="map-legend" aria-label="Map pin legend">
-      <span className="map-legend__heading">Speed tier</span>
+    <div
+      className={cn(
+        "absolute bottom-4 flex max-w-[min(36rem,calc(100%-var(--map-panel-width)-2rem))] flex-wrap items-center gap-2 rounded-md bg-surface/92 px-3 py-2 text-xs shadow-sm",
+        withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4",
+      )}
+      aria-label="Map pin legend"
+    >
+      <span className="mr-1 font-semibold">Speed tier</span>
       {tiers.map((tier) => (
-        <span key={tier} className="map-legend__item">
+        <span key={tier} className="inline-flex items-center gap-[0.35rem]">
           <span
-            className="map-legend__dot"
+            className="h-2.5 w-2.5 rounded-full"
             style={{ background: TTF_TIER_COLORS[tier] }}
           />
           {TTF_TIER_LABELS[tier]}
         </span>
       ))}
-      <span className="map-legend__item">
-        <span className="map-legend__dot map-legend__dot--dashed" />
+      <span className="inline-flex items-center gap-[0.35rem]">
+        <span className="h-2.5 w-2.5 rounded-full border-2 border-dashed border-text-muted bg-transparent" />
         1–2 visits
       </span>
-      <span className="map-legend__item">
-        <span className="map-legend__dot" style={{ background: "#7c6fe0" }} />
+      <span className="inline-flex items-center gap-[0.35rem]">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#7c6fe0" }} />
         Ratings
       </span>
-      <span className="map-legend__item">
-        <span className="map-legend__dot" style={{ background: "#4a90d9" }} />
+      <span className="inline-flex items-center gap-[0.35rem]">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#4a90d9" }} />
         Notes
       </span>
-      <span className="map-legend__item">
-        <span className="map-legend__dot" style={{ background: TTF_TIER_COLORS.unknown }} />
+      <span className="inline-flex items-center gap-[0.35rem]">
+        <span className="h-2.5 w-2.5 rounded-full" style={{ background: TTF_TIER_COLORS.unknown }} />
         No data
       </span>
     </div>
@@ -309,24 +323,27 @@ function MapRestaurantSheet({
   const googleMapsUrl = googleMapsUrlForEntry(entry);
 
   return (
-    <aside className="map-sheet" aria-label={`${entry.name} map details`}>
+    <aside
+      className="absolute top-4 right-4 bottom-4 z-[3] flex min-h-72 w-[var(--map-panel-width)] flex-col overflow-hidden rounded-lg bg-surface shadow-md"
+      aria-label={`${entry.name} map details`}
+    >
       <div
-        className="map-sheet__accent"
+        className="absolute top-0 bottom-0 left-0 w-1 rounded-l-lg"
         style={{ background: mapPinFill(entry) }}
         aria-hidden
       />
-      <div className="map-sheet__scroll">
-        <div className="map-sheet__head">
-          <div className="map-sheet__intro">
-            <h2 className="map-sheet__title">{entry.name}</h2>
-            <p className="map-sheet__address">{entry.address}</p>
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3 pl-[calc(1rem+4px)]">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="m-0 text-2xl leading-tight">{entry.name}</h2>
+            <p className="mt-2 text-sm leading-normal text-text-muted">{entry.address}</p>
             {googleOnly && (
-              <Badge tone="brand">Found on Google Maps · scout it in Little Scout</Badge>
+              <Badge variant="brand">Found on Google Maps · scout it in Little Scout</Badge>
             )}
             {entry.cuisine_tags.length > 0 && (
-              <div className="map-sheet__tags">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {entry.cuisine_tags.map((tag) => (
-                  <Badge key={tag} tone="neutral">
+                  <Badge key={tag} variant="neutral">
                     {tag}
                   </Badge>
                 ))}
@@ -335,7 +352,7 @@ function MapRestaurantSheet({
           </div>
           <button
             type="button"
-            className="map-sheet__close"
+            className="h-8 w-8 shrink-0 cursor-pointer rounded-md border-0 bg-bg text-xl leading-none text-text-muted hover:text-text"
             onClick={onClose}
             aria-label="Close"
           >
@@ -343,8 +360,10 @@ function MapRestaurantSheet({
           </button>
         </div>
 
-        <section className="map-sheet__section">
-          <h3 className="map-sheet__section-title">Kid food speed</h3>
+        <section className="flex flex-col gap-3">
+          <h3 className="m-0 text-xs font-semibold tracking-wide text-text-muted uppercase">
+            Kid food speed
+          </h3>
           {hasTtf ? (
             <>
               <StatGrid>
@@ -363,9 +382,9 @@ function MapRestaurantSheet({
                   hint={confirmedTtf ? undefined : "need 3 for tier"}
                 />
               </StatGrid>
-              <p className="map-sheet__tier">
+              <p className="m-0 flex items-center gap-2 text-sm text-text-muted">
                 <span
-                  className="map-sheet__tier-dot"
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{
                     background: confirmedTtf
                       ? TTF_TIER_COLORS[tier]
@@ -378,12 +397,16 @@ function MapRestaurantSheet({
               </p>
             </>
           ) : (
-            <p className="map-sheet__empty">No fries timer yet — be the first parent to clock a visit.</p>
+            <p className="m-0 rounded-md bg-bg p-3 text-sm text-text-muted">
+              No fries timer yet — be the first parent to clock a visit.
+            </p>
           )}
         </section>
 
-        <section className="map-sheet__section">
-          <h3 className="map-sheet__section-title">Parent contributions</h3>
+        <section className="flex flex-col gap-3">
+          <h3 className="m-0 text-xs font-semibold tracking-wide text-text-muted uppercase">
+            Parent contributions
+          </h3>
           <StatGrid>
             <Stat
               label="Ratings"
@@ -414,7 +437,7 @@ function MapRestaurantSheet({
         </section>
       </div>
 
-      <div className="map-sheet__actions">
+      <div className="shrink-0 border-t border-border bg-surface px-4 pt-3 pb-4">
         <ButtonLink to={restaurantDetailPath(entry)} fullWidth>
           {googleOnly ? "Scout this place" : "View full details"}
         </ButtonLink>
@@ -495,9 +518,11 @@ export function RestaurantMap({
 
   if (!MAPS_KEY) {
     return (
-      <div className="map-fallback">
-        <p className="error">Map unavailable — set <code>VITE_GOOGLE_MAPS_API_KEY</code> in <code>.env.local</code>.</p>
-        <p className="muted small">
+      <div className="p-5">
+        <p className="text-sm font-semibold text-error">
+          Map unavailable — set <code>VITE_GOOGLE_MAPS_API_KEY</code> in <code>.env.local</code>.
+        </p>
+        <p className="text-sm text-text-muted">
           Enable Maps JavaScript API and restrict the key to your dev host + Cloud Run URL.
         </p>
       </div>
@@ -505,18 +530,21 @@ export function RestaurantMap({
   }
 
   if (error) {
-    return <p className="error map-fallback">{error}</p>;
+    return <p className="p-5 text-sm font-semibold text-error">{error}</p>;
   }
 
   const showLoadingOverlay = loading && restaurants.length === 0;
 
   return (
     <APIProvider apiKey={MAPS_KEY}>
-      <div className={`map-shell${withSidebar ? " map-shell--with-sidebar" : ""}`}>
+      <div className="relative h-full">
         {showLoadingOverlay && (
-          <div className="map-loading-overlay" aria-live="polite">
-            <span className="map-loading-overlay__spinner" aria-hidden="true" />
-            <span className="muted small">Loading map…</span>
+          <div
+            className="pointer-events-none absolute inset-0 z-[5] flex flex-col items-center justify-center gap-2 bg-surface/70"
+            aria-live="polite"
+          >
+            <span className="map-loading-overlay__spinner h-7 w-7" aria-hidden="true" />
+            <span className="text-sm text-text-muted">Loading map…</span>
           </div>
         )}
         <Map
@@ -526,7 +554,7 @@ export function RestaurantMap({
           disableDefaultUI
           clickableIcons={false}
           mapId="DEMO_MAP_ID"
-          className="map-canvas"
+          className="h-full w-full"
         >
           <FitBounds
             restaurants={restaurants}
@@ -563,13 +591,14 @@ export function RestaurantMap({
           />
         </Map>
 
-        <MapLegend />
+        <MapLegend withSidebar={withSidebar} />
 
         {onSearchArea && (
           <SearchArea
             restaurants={restaurants}
             busy={searchBusy}
             onSearchArea={onSearchArea}
+            withSidebar={withSidebar}
           />
         )}
 
@@ -578,9 +607,13 @@ export function RestaurantMap({
         )}
 
         {selectedId && !sheetEntry && (
-          <aside className="map-sheet map-sheet--loading" aria-busy="true" aria-label="Loading restaurant">
-            <div className="map-sheet__scroll">
-              <p className="muted">Loading restaurant…</p>
+          <aside
+            className="absolute top-4 right-4 bottom-4 z-[3] flex min-h-72 w-[var(--map-panel-width)] flex-col overflow-hidden rounded-lg bg-surface shadow-md"
+            aria-busy="true"
+            aria-label="Loading restaurant"
+          >
+            <div className="grid min-h-32 flex-1 place-items-center overflow-y-auto px-4 py-4">
+              <p className="text-text-muted">Loading restaurant…</p>
             </div>
           </aside>
         )}

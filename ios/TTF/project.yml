@@ -42,6 +42,7 @@ targets:
           - Resources/Info.plist
     resources:
       - path: TTF/Resources/Assets.xcassets
+      - path: TTF/Resources/Colors.xcassets
     entitlements:
       path: TTF/TTF.entitlements
       properties:

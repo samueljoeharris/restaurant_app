@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 
+import { cn } from "../../lib/cn";
+import { Button } from "../ui/Button";
+
 export function DataTable({
   columns,
   rows,
@@ -10,18 +13,21 @@ export function DataTable({
   emptyMessage?: string;
 }) {
   if (rows.length === 0) {
-    return <p className="admin-empty">{emptyMessage}</p>;
+    return <p className="px-8 py-8 text-center text-text-muted">{emptyMessage}</p>;
   }
 
   return (
-    <div className="admin-table-wrap">
-      <table className="admin-table">
+    <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+      <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={col.align === "right" ? "admin-table__num" : undefined}
+                className={cn(
+                  "border-b border-border bg-bg px-4 py-3 text-left text-xs tracking-wide text-text-muted uppercase",
+                  col.align === "right" && "text-right tabular-nums",
+                )}
               >
                 {col.label}
               </th>
@@ -30,11 +36,14 @@ export function DataTable({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.key}>
+            <tr key={row.key} className="hover:bg-brand-soft/50">
               {columns.map((col) => (
                 <td
                   key={col.key}
-                  className={col.align === "right" ? "admin-table__num" : undefined}
+                  className={cn(
+                    "border-b border-border px-4 py-3 align-top last:border-b-0",
+                    col.align === "right" && "text-right tabular-nums",
+                  )}
                 >
                   {row.cells[col.key]}
                 </td>
@@ -64,24 +73,32 @@ export function Pagination({
   const next = offset + limit < total ? offset + limit : null;
 
   return (
-    <div className="admin-pagination">
-      <span className="muted small">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="text-sm text-text-muted">
         {total === 0 ? "0 rows" : `${offset + 1}–${Math.min(offset + limit, total)} of ${total}`}
       </span>
-      <div className="admin-pagination__controls">
-        <button type="button" disabled={offset === 0} onClick={() => onChange(prev)}>
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          disabled={offset === 0}
+          onClick={() => onChange(prev)}
+        >
           Previous
-        </button>
-        <span className="muted small">
+        </Button>
+        <span className="text-sm text-text-muted">
           Page {page} / {pages}
         </span>
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           disabled={next === null}
           onClick={() => next !== null && onChange(next)}
         >
           Next
-        </button>
+        </Button>
       </div>
     </div>
   );

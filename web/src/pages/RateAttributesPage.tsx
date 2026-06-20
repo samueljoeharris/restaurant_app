@@ -9,6 +9,7 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Page } from "../components/ui/Page";
 import { useToast } from "../components/ui/useToast";
+import { cn } from "../lib/cn";
 import type { MetricDefinition } from "../types";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -20,6 +21,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 type Ratings = Record<string, boolean | number | string | undefined>;
+
+const backLinkClass =
+  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
 
 export function RateAttributesPage() {
   const { id } = useParams<{ id: string }>();
@@ -85,7 +89,7 @@ export function RateAttributesPage() {
   if (loading) {
     return (
       <Page narrow title="Rate visit">
-        <p className="muted">Loading…</p>
+        <p className="text-text-muted">Loading…</p>
       </Page>
     );
   }
@@ -96,23 +100,28 @@ export function RateAttributesPage() {
       title="Rate visit"
       subtitle={restaurantName}
       back={
-        <Link to={`/restaurants/${id}`} className="back-link">
+        <Link to={`/restaurants/${id}`} className={backLinkClass}>
           ← Back
         </Link>
       }
     >
       <Card subtitle="Tap an option for each attribute — selected items highlight in orange.">
         {[...grouped.entries()].map(([category, items]) => (
-          <section key={category} className="rate-section">
-            <h2>{CATEGORY_LABELS[category] ?? category}</h2>
+          <section key={category} className="mb-4 grid gap-3">
+            <h2 className="mt-2 text-sm font-semibold capitalize text-text-muted first:mt-0">
+              {CATEGORY_LABELS[category] ?? category}
+            </h2>
             {items.map((metric) => {
               const isSet = ratings[metric.key] !== undefined;
               return (
                 <div
                   key={metric.key}
-                  className={["rate-field", isSet ? "rate-field--set" : ""].join(" ")}
+                  className={cn(
+                    "grid gap-2 rounded-md border bg-bg p-3 transition-[border-color,background] duration-fast",
+                    isSet ? "border-brand/35 bg-brand-soft" : "border-border",
+                  )}
                 >
-                  <span className="rate-field__label">{metric.label}</span>
+                  <span className="text-sm font-semibold">{metric.label}</span>
                   <AttributeInput
                     metric={metric}
                     value={ratings[metric.key]}
@@ -125,15 +134,15 @@ export function RateAttributesPage() {
             })}
           </section>
         ))}
-        <div className="rate-save-bar">
+        <div className="mt-4 grid gap-2 border-t border-border pt-4">
           {changedKeys.length === 0 ? (
-            <p className="field-hint">Select at least one attribute to save.</p>
+            <p className="m-0 text-xs text-text-muted">Select at least one attribute to save.</p>
           ) : (
-            <p className="field-hint">
+            <p className="m-0 text-xs text-text-muted">
               {changedKeys.length} attribute{changedKeys.length === 1 ? "" : "s"} ready to save.
             </p>
           )}
-          {error && <p className="error">{error}</p>}
+          {error && <p className="text-sm font-semibold text-error">{error}</p>}
           <Button fullWidth disabled={busy || changedKeys.length === 0} onClick={handleSubmit}>
             {busy ? "Saving…" : saveLabel}
           </Button>

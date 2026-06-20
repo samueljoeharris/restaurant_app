@@ -13,13 +13,14 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Little Scout")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.accent)
                         .textCase(.uppercase)
                     Text("What are you looking for?")
                         .font(.largeTitle.bold())
+                        .foregroundStyle(Color.text)
                     Text("Pick restaurants by starter speed, kid-friendly details, and notes from other caregivers.")
                         .font(.body)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.textMuted)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -91,21 +92,21 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.headline)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.text)
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.textMuted)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(Color.textMuted)
             }
             .padding()
-            .background(.background, in: RoundedRectangle(cornerRadius: 12))
+            .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
             .overlay {
                 RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Color.primary.opacity(0.08))
+                    .strokeBorder(Color.border)
             }
         }
         .buttonStyle(.plain)

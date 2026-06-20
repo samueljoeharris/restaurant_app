@@ -17,6 +17,9 @@ import { Stat, StatGrid } from "../components/ui/Stat";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
 
+const backLinkClass =
+  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
+
 export function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { idToken } = useAuth();
@@ -74,15 +77,15 @@ export function RestaurantDetailPage() {
 
   if (error) {
     return (
-      <Page narrow back={<Link to="/restaurants" className="back-link">← Explore</Link>}>
-        <p className="error">{error}</p>
+      <Page narrow back={<Link to="/restaurants" className={backLinkClass}>← Explore</Link>}>
+        <p className="text-sm font-semibold text-error">{error}</p>
       </Page>
     );
   }
 
   if (loading || !data) {
     return (
-      <Page narrow back={<Link to="/restaurants" className="back-link">← Explore</Link>}>
+      <Page narrow back={<Link to="/restaurants" className={backLinkClass}>← Explore</Link>}>
         <SkeletonList count={2} />
       </Page>
     );
@@ -95,12 +98,12 @@ export function RestaurantDetailPage() {
       narrow
       title={r.name}
       subtitle={r.address}
-      back={<Link to="/restaurants" className="back-link">← Explore</Link>}
+      back={<Link to="/restaurants" className={backLinkClass}>← Explore</Link>}
     >
       {r.cuisine_tags.length > 0 && (
-        <div className="tag-row">
+        <div className="flex flex-wrap gap-2">
           {r.cuisine_tags.map((tag) => (
-            <Badge key={tag} tone="neutral">
+            <Badge key={tag} variant="neutral">
               {tag}
             </Badge>
           ))}
@@ -117,7 +120,7 @@ export function RestaurantDetailPage() {
             Chat through your review
           </ButtonLink>
         ) : (
-          <p className="muted small">
+          <p className="text-sm text-text-muted">
             <Link to="/login">Sign in</Link> to use the review assistant.
           </p>
         )}
@@ -138,11 +141,8 @@ export function RestaurantDetailPage() {
             emoji="⏱️"
             title="No speed data yet"
             description="Be the first parent to clock a visit."
-            action={
-              <ButtonLink to={`/restaurants/${r.id}/submit`} fullWidth>
-                Start the timer
-              </ButtonLink>
-            }
+            actionLabel="Start the timer"
+            actionTo={`/restaurants/${r.id}/submit`}
           />
         ) : (
           <>
@@ -171,7 +171,7 @@ export function RestaurantDetailPage() {
       >
         <AttributeSummary entries={attributes} />
         {!idToken && (
-          <p className="muted small">
+          <p className="text-sm text-text-muted">
             <Link to="/login">Sign in</Link> to add ratings.
           </p>
         )}
@@ -179,22 +179,22 @@ export function RestaurantDetailPage() {
 
       <Card title="Parent notes" subtitle="Tips from other families">
         {notes.length === 0 ? (
-          <p className="muted small">No notes yet.</p>
+          <p className="text-sm text-text-muted">No notes yet.</p>
         ) : (
-          <ul className="notes-list">
+          <ul className="m-0 mb-4 grid list-none gap-3 p-0">
             {notes.map((note) => (
               <li key={note.id}>
-                <p>{note.text}</p>
+                <p className="mb-1">{note.text}</p>
                 {note.tags.length > 0 && (
-                  <div className="tag-row">
+                  <div className="flex flex-wrap gap-2">
                     {note.tags.map((tag) => (
-                      <Badge key={tag} tone="neutral">
+                      <Badge key={tag} variant="neutral">
                         {tag}
                       </Badge>
                     ))}
                   </div>
                 )}
-                <time className="muted small">
+                <time className="text-sm text-text-muted">
                   {new Date(note.created_at).toLocaleDateString()}
                 </time>
               </li>
@@ -202,7 +202,7 @@ export function RestaurantDetailPage() {
           </ul>
         )}
         {idToken ? (
-          <form className="stack" onSubmit={handleNoteSubmit}>
+          <form className="grid gap-3" onSubmit={handleNoteSubmit}>
             <label>
               Add a note
               <textarea
@@ -214,19 +214,19 @@ export function RestaurantDetailPage() {
                 required
               />
             </label>
-            {noteError && <p className="error">{noteError}</p>}
+            {noteError && <p className="text-sm font-semibold text-error">{noteError}</p>}
             <Button type="submit" disabled={noteBusy || !noteText.trim()}>
               {noteBusy ? "Posting…" : "Post note"}
             </Button>
           </form>
         ) : (
-          <p className="muted small">
+          <p className="text-sm text-text-muted">
             <Link to="/login">Sign in</Link> to leave a note.
           </p>
         )}
       </Card>
 
-      <div className="row-actions">
+      <div className="grid gap-2">
         <ButtonLink to={`/map?focus=${r.id}`} variant="secondary" fullWidth>
           View on map
         </ButtonLink>

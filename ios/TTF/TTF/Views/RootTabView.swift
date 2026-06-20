@@ -42,6 +42,7 @@ struct RootTabView: View {
             .tabItem { Label("Account", systemImage: "person.crop.circle") }
             .tag(AppTab.account)
         }
+        .tint(.brand)
         .onAppear {
             if placeSearchVM == nil {
                 placeSearchVM = PlaceSearchViewModel(api: api)

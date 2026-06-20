@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 
 import { useAuth } from "../auth/useAuth";
 import { useCollapsiblePanel } from "../hooks/useCollapsiblePanel";
+import { cn } from "../lib/cn";
 import { AppSidebar } from "./AppSidebar";
 import { Skeleton } from "./ui/Skeleton";
 
@@ -18,11 +19,11 @@ export function Layout({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="shell shell--no-nav">
-        <div className="shell__content">
-          <div className="shell__main page stack">
-            <Skeleton className="ui-skeleton--title" />
-            <Skeleton className="ui-skeleton--line" />
+      <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col">
+        <div className="flex w-full min-w-0 flex-1 flex-col">
+          <div className="grid w-full flex-1 gap-3 px-8 py-6">
+            <Skeleton className="h-4 w-[55%]" />
+            <Skeleton className="h-3 w-[85%]" />
           </div>
         </div>
       </div>
@@ -35,14 +36,11 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className={[
-        "shell",
-        hideNav ? "shell--no-nav" : "",
-        isMap ? "shell--map" : "",
-        !hideNav && navCollapsed ? "shell--nav-collapsed" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={cn(
+        "flex min-h-screen min-w-[var(--desktop-min-width)] flex-row items-stretch",
+        hideNav && "flex-col",
+        isMap && "h-screen overflow-hidden",
+      )}
     >
       {!hideNav && (
         <AppSidebar
@@ -51,8 +49,21 @@ export function Layout({ children }: { children: ReactNode }) {
           onLogout={() => logout()}
         />
       )}
-      <div className="shell__content">
-        <main className={`shell__main${isMap ? " shell__main--flush" : ""}`}>{children}</main>
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col",
+          hideNav && "w-full",
+          isMap && "h-full min-h-0",
+        )}
+      >
+        <main
+          className={cn(
+            "w-full flex-1",
+            isMap && "h-full min-h-0 overflow-hidden p-0",
+          )}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

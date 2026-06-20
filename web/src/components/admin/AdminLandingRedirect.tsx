@@ -10,10 +10,10 @@ export function AdminLandingRedirect() {
 
   if (loading) {
     return (
-      <div className="auth-page auth-page--admin">
-        <main className="page page--narrow">
-          <Skeleton className="ui-skeleton--title" />
-          <Skeleton className="ui-skeleton--line" />
+      <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col justify-center px-8 py-8">
+        <main className="mx-auto w-full max-w-[var(--page-narrow)]">
+          <Skeleton className="h-4 w-[55%]" />
+          <Skeleton className="mt-3 h-3 w-[85%]" />
         </main>
       </div>
     );

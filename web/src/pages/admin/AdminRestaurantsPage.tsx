@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
+import { cn } from "../../lib/cn";
 import type { AdminRestaurantRow } from "../../types";
 
 const PAGE_SIZE = 25;
@@ -47,14 +48,14 @@ export function AdminRestaurantsPage() {
   }, [idToken, offset, search]);
 
   return (
-    <div className="admin-page stack">
-      <header className="admin-page__header">
+    <div className="grid gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1>Restaurants</h1>
-          <p className="muted">All venues with contribution stats</p>
+          <h1 className="text-2xl">Restaurants</h1>
+          <p className="text-text-muted">All venues with contribution stats</p>
         </div>
         <form
-          className="admin-search"
+          className="min-w-[min(100%,16rem)]"
           onSubmit={(e) => {
             e.preventDefault();
             setOffset(0);
@@ -62,7 +63,6 @@ export function AdminRestaurantsPage() {
           }}
         >
           <input
-            className="search"
             placeholder="Search name…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -70,8 +70,8 @@ export function AdminRestaurantsPage() {
         </form>
       </header>
 
-      {loading && <p className="muted">Loading…</p>}
-      {error && <p className="error">{error}</p>}
+      {loading && <p className="text-text-muted">Loading…</p>}
+      {error && <p className="text-sm font-semibold text-error">{error}</p>}
 
       {!loading && !error && (
         <>
@@ -90,22 +90,22 @@ export function AdminRestaurantsPage() {
               cells: {
                 name: (
                   <div>
-                    <Link to={`/restaurants/${r.id}`} className="admin-link">
+                    <Link to={`/restaurants/${r.id}`} className="font-semibold text-brand hover:underline">
                       {r.name}
                     </Link>
-                    <div className="muted small">{r.address}</div>
+                    <div className="text-sm text-text-muted">{r.address}</div>
                     {r.cuisine_tags.length > 0 && (
-                      <div className="muted small">{r.cuisine_tags.join(" · ")}</div>
+                      <div className="text-sm text-text-muted">{r.cuisine_tags.join(" · ")}</div>
                     )}
                   </div>
                 ),
                 status: (
                   <div>
-                    <span className={r.status === "active" ? "" : "admin-badge--warn"}>
+                    <span className={cn(r.status !== "active" && "font-bold text-warning")}>
                       {r.status}
                     </span>
                     {r.tombstone_reason && (
-                      <div className="muted small">{r.tombstone_reason}</div>
+                      <div className="text-sm text-text-muted">{r.tombstone_reason}</div>
                     )}
                   </div>
                 ),

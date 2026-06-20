@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 
+import { cn } from "../lib/cn";
 import { Button } from "./ui/Button";
 
 const tabs = [
@@ -29,22 +30,48 @@ export function AppSidebar({
 
   return (
     <aside
-      className={`app-sidebar${collapsed ? " app-sidebar--collapsed" : ""}`}
+      className={cn(
+        "sticky top-0 flex h-screen shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-normal ease-out",
+        collapsed
+          ? "w-[var(--app-sidebar-width-collapsed)]"
+          : "w-[var(--app-sidebar-width)]",
+      )}
       aria-label="App navigation"
     >
-      <div className="app-sidebar__brand-row">
-        <Link to="/" className="app-sidebar__brand">
-          <span className="app-sidebar__brand-mark" aria-hidden>
+      <div
+        className={cn(
+          "flex items-start gap-2 border-b border-border px-3 pt-5",
+          collapsed && "flex-col items-center px-2",
+        )}
+      >
+        <Link
+          to="/"
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-3 pb-5",
+            collapsed && "justify-center pb-4",
+          )}
+        >
+          <span
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-brand-soft text-xl"
+            aria-hidden
+          >
             🔭
           </span>
-          <span className="app-sidebar__brand-text">
-            <span className="app-sidebar__brand-name">Little Scout</span>
-            <span className="app-sidebar__brand-tagline">Kid-food speed</span>
+          <span
+            className={cn(
+              "grid min-w-0 gap-0.5 overflow-hidden transition-opacity duration-fast ease-out",
+              collapsed && "hidden",
+            )}
+          >
+            <span className="text-base font-extrabold leading-tight tracking-tight">
+              Little Scout
+            </span>
+            <span className="text-xs font-medium text-text-muted">Kid-food speed</span>
           </span>
         </Link>
         <button
           type="button"
-          className="app-sidebar__toggle"
+          className="mt-[0.15rem] h-8 w-8 shrink-0 cursor-pointer rounded-sm border border-border bg-bg p-0 text-[1.1rem] leading-none text-text-muted transition-[color,border-color] duration-fast ease-out hover:border-border-strong hover:text-text"
           onClick={onToggleCollapsed}
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
@@ -54,30 +81,40 @@ export function AppSidebar({
         </button>
       </div>
 
-      <nav className="app-sidebar__nav" aria-label="Main">
+      <nav
+        className={cn(
+          "flex flex-1 flex-col gap-1 p-4 px-3",
+          collapsed && "px-2",
+        )}
+        aria-label="Main"
+      >
         {tabs.map((tab) => (
           <Link
             key={tab.to}
             to={tab.to}
-            className={[
-              "app-sidebar__link",
-              isActive(tab.to) ? "app-sidebar__link--active" : "",
-            ].join(" ")}
+            className={cn(
+              "flex items-center gap-3 rounded-md p-3 text-sm font-semibold text-text-muted transition-[color,background] duration-fast ease-out hover:bg-bg hover:text-text",
+              isActive(tab.to) && "bg-brand-soft text-brand",
+              collapsed && "justify-center px-2",
+            )}
             title={collapsed ? tab.label : undefined}
           >
-            <span className="app-sidebar__link-icon" aria-hidden>
+            <span className="w-6 shrink-0 text-center text-[1.1rem] leading-none" aria-hidden>
               {tab.icon}
             </span>
-            <span className="app-sidebar__link-label">{tab.label}</span>
+            <span className={cn("flex-1 overflow-hidden whitespace-nowrap", collapsed && "hidden")}>
+              {tab.label}
+            </span>
           </Link>
         ))}
       </nav>
 
-      <div className="app-sidebar__footer">
+      <div className={cn("border-t border-border p-4 px-3", collapsed && "px-2")}>
         <Button
           variant="ghost"
           size="sm"
           fullWidth
+          className={cn(collapsed && "justify-center px-2")}
           onClick={onLogout}
           title={collapsed ? "Sign out" : undefined}
         >

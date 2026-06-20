@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { usePlacesAutocomplete } from "../hooks/usePlacesAutocomplete";
+import { cn } from "../lib/cn";
 import type { PlaceSearchPending, RestaurantSearchSelection } from "../lib/searchNavigation";
 
 interface PlaceSearchBoxProps {
@@ -105,8 +106,8 @@ export function PlaceSearchBox({
     activeIndex >= 0 ? `${menuId}-option-${activeIndex}` : undefined;
 
   return (
-    <div className="place-search">
-      <div className="place-search__input-wrap">
+    <div className="place-search relative mb-4 w-full">
+      <div className="relative flex items-center">
         <input
           ref={inputRef}
           role="combobox"
@@ -115,7 +116,7 @@ export function PlaceSearchBox({
           aria-controls={isOpen ? menuId : undefined}
           aria-activedescendant={activeOptionId}
           aria-label={placeholder}
-          className="search place-search__input"
+          className="pr-10"
           type="text"
           value={inputValue}
           onChange={handleInputChange}
@@ -124,11 +125,11 @@ export function PlaceSearchBox({
           autoComplete="off"
         />
         {loading && (
-          <span className="place-search__spinner" aria-hidden="true" />
+          <span className="place-search__spinner absolute right-[0.65rem]" aria-hidden="true" />
         )}
         {inputValue && !loading && (
           <button
-            className="place-search__clear"
+            className="absolute right-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-0 bg-bg p-0 text-xs leading-none text-text-muted hover:bg-border hover:text-text"
             type="button"
             aria-label="Clear search"
             onClick={clearInput}
@@ -139,7 +140,7 @@ export function PlaceSearchBox({
       </div>
 
       {requiresSignIn && inputValue.trim().length > 0 && !loading && (
-        <p className="place-search__sign-in-hint muted small">
+        <p className="mt-1 text-sm text-text-muted">
           Sign in to search places and neighborhoods.
         </p>
       )}
@@ -149,7 +150,7 @@ export function PlaceSearchBox({
           ref={listRef}
           id={menuId}
           role="listbox"
-          className="place-search__menu"
+          className="absolute top-[calc(100%+4px)] right-0 left-0 z-40 m-0 max-h-72 list-none overflow-y-auto rounded-lg border border-border-strong bg-surface p-1 shadow-md"
           aria-label="Place suggestions"
         >
           {suggestions.map((s, i) => (
@@ -158,20 +159,23 @@ export function PlaceSearchBox({
               id={`${menuId}-option-${i}`}
               role="option"
               aria-selected={i === activeIndex}
-              className={`place-search__option${i === activeIndex ? " place-search__option--active" : ""} place-search__option--${s.type}`}
+              className={cn(
+                "flex cursor-pointer items-start gap-2 px-3 py-2 transition-[background] duration-fast",
+                i === activeIndex && "bg-brand-soft",
+              )}
               onMouseDown={(e) => {
                 e.preventDefault();
               }}
               onClick={() => selectSuggestion(i)}
               onMouseEnter={() => setActiveIndex(i)}
             >
-              <span className="place-search__option-icon" aria-hidden="true">
+              <span className="shrink-0 text-base leading-snug" aria-hidden="true">
                 {s.type === "restaurant" ? "🍽️" : "📍"}
               </span>
-              <span className="place-search__option-body">
-                <span className="place-search__option-primary">{s.primary_text}</span>
+              <span className="grid min-w-0 gap-0.5">
+                <span className="truncate text-sm font-semibold">{s.primary_text}</span>
                 {s.secondary_text && (
-                  <span className="place-search__option-secondary muted small">
+                  <span className="truncate text-sm text-text-muted">
                     {s.secondary_text}
                   </span>
                 )}

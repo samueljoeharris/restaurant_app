@@ -1,5 +1,6 @@
 import { AdvancedMarker } from "@vis.gl/react-google-maps";
 
+import { cn } from "../lib/cn";
 import {
   mapPinFill,
   mapPinHasBadges,
@@ -38,14 +39,14 @@ export function MapPin({
       zIndex={searchFocus ? 2000 : selected ? 1500 : undefined}
     >
       <div
-        className={[
+        className={cn(
           "map-pin-wrap",
-          selected ? "map-pin-wrap--selected" : "",
-          searchFocus ? "map-pin-wrap--search-focus" : "",
-          googleOnly ? "map-pin-wrap--discover" : "",
-          popIn ? "map-pin-wrap--pop-in" : "",
+          selected && "map-pin-wrap--selected",
+          searchFocus && "map-pin-wrap--search-focus",
+          googleOnly && "map-pin-wrap--discover",
+          popIn && "map-pin-wrap--pop-in",
           `map-pin-wrap--${kind}`,
-        ].join(" ")}
+        )}
         aria-label={tooltip.replace(/\n/g, ". ")}
       >
         <div className="map-pin-tooltip" role="tooltip">

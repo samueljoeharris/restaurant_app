@@ -156,6 +156,17 @@ if $RUN_SECRETS; then
 fi
 
 if $RUN_WEB; then
+  echo "→ design tokens: verify generated outputs are fresh"
+  node "$ROOT/scripts/generate-design-tokens.mjs"
+  if ! git diff --quiet -- \
+    "$ROOT/web/src/styles/tokens.generated.css" \
+    "$ROOT/web/src/lib/ttfTier.ts" \
+    "$ROOT/ios/TTF/TTF/Utilities/Theme.swift" \
+    "$ROOT/ios/TTF/TTF/Utilities/TtfTier.swift" \
+    "$ROOT/ios/TTF/TTF/Resources/Colors.xcassets" \
+    "$ROOT/ios/TTF/TTF/Resources/Assets.xcassets/AccentColor.colorset/Contents.json"; then
+    fail "Design token outputs are stale — run: cd web && npm run tokens:generate && commit"
+  fi
   echo "→ web: docker build (web/Dockerfile)"
   docker build "${VITE_CI_ARGS[@]}" -t ttf-web-ci ./web
   echo "✓ web build"

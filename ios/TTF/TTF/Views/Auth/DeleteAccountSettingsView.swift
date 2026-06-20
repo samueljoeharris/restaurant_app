@@ -37,7 +37,7 @@ struct DeleteAccountSettingsView: View {
                 "Permanently remove your account and all contributions. This cannot be undone."
             )
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Color.textMuted)
 
             Button("Delete account", role: .destructive) {
                 step = .confirm
@@ -54,7 +54,7 @@ struct DeleteAccountSettingsView: View {
                     + "stay, but your data is removed from their aggregates."
             )
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Color.textMuted)
 
             if let errorMessage {
                 Text(errorMessage)
@@ -82,7 +82,7 @@ struct DeleteAccountSettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Confirm it is you before we delete your account.")
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textMuted)
 
             if auth.hasPassword {
                 SecureField("Current password", text: $password)

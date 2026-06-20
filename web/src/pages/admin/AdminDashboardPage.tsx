@@ -43,9 +43,9 @@ export function AdminDashboardPage() {
     };
   }, [idToken, refreshClaims]);
 
-  if (!idToken || loading) return <p className="muted">Loading dashboard…</p>;
-  if (error) return <p className="error">{error}</p>;
-  if (!stats) return <p className="muted">No dashboard data yet.</p>;
+  if (!idToken || loading) return <p className="text-text-muted">Loading dashboard…</p>;
+  if (error) return <p className="text-sm font-semibold text-error">{error}</p>;
+  if (!stats) return <p className="text-text-muted">No dashboard data yet.</p>;
 
   const coveragePct =
     stats.restaurant_count > 0
@@ -53,11 +53,11 @@ export function AdminDashboardPage() {
       : 0;
 
   return (
-    <div className="admin-page stack">
-      <header className="admin-page__header">
+    <div className="grid gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1>Overview</h1>
-          <p className="muted">{stats.pilot_display_name}</p>
+          <h1 className="text-2xl">Overview</h1>
+          <p className="text-text-muted">{stats.pilot_display_name}</p>
         </div>
       </header>
 
@@ -84,21 +84,21 @@ export function AdminDashboardPage() {
         />
       </StatGrid>
 
-      <section className="admin-panel">
-        <h2>Activity (14 days)</h2>
+      <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
+        <h2 className="mb-3 text-lg">Activity (14 days)</h2>
         <ActivityChart days={activity} />
       </section>
 
-      <section className="admin-panel admin-panel--split">
+      <section className="grid gap-6 rounded-lg border border-border bg-surface p-5 shadow-sm [grid-template-columns:repeat(auto-fit,minmax(10rem,1fr))]">
         <div>
-          <h3>Restaurants with speed data</h3>
-          <p className="admin-panel__big">{stats.restaurants_with_ttf}</p>
-          <p className="muted small">of {stats.restaurant_count} seeded venues</p>
+          <h3 className="mb-3 text-lg">Restaurants with speed data</h3>
+          <p className="m-0 text-3xl font-extrabold text-brand">{stats.restaurants_with_ttf}</p>
+          <p className="text-sm text-text-muted">of {stats.restaurant_count} seeded venues</p>
         </div>
         <div>
-          <h3>Any parent data</h3>
-          <p className="admin-panel__big">{stats.restaurants_with_any_data}</p>
-          <p className="muted small">Speed, attributes, or notes</p>
+          <h3 className="mb-3 text-lg">Any parent data</h3>
+          <p className="m-0 text-3xl font-extrabold text-brand">{stats.restaurants_with_any_data}</p>
+          <p className="text-sm text-text-muted">Speed, attributes, or notes</p>
         </div>
       </section>
     </div>

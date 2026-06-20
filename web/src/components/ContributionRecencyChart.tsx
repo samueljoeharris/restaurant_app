@@ -13,29 +13,29 @@ export function ContributionRecencyChart({ recency }: { recency: ContributionRec
   const stale = isStaleContributionRecency(recency);
 
   return (
-    <div className="recency-chart">
+    <div className="flex flex-col gap-3">
       {stale && (
-        <p className="recency-chart__stale" role="status">
+        <p className="m-0 rounded-md bg-bg p-3 text-sm text-text-muted" role="status">
           No parent contributions in the last 6 months — ratings may be outdated.
         </p>
       )}
-      <ul className="recency-chart__rows" aria-label="Community activity by recency">
+      <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label="Community activity by recency">
         {rows.map((row) => {
           const barPercent = (row.count / maxCount) * 100;
           return (
-            <li key={row.key} className="recency-chart__row">
-              <span className="recency-chart__label">{row.label}</span>
+            <li key={row.key} className="grid grid-cols-[5.5rem_1fr_2rem] items-center gap-2">
+              <span className="text-sm text-text-muted">{row.label}</span>
               <div
-                className="recency-chart__bar-track"
+                className="h-2.5 overflow-hidden rounded-full bg-bg"
                 role="img"
                 aria-label={`${row.label}: ${parentContributionLabel(row.count)}`}
               >
                 <div
-                  className="recency-chart__bar-fill"
+                  className="h-full min-w-0 rounded-full bg-brand transition-[width] duration-200 ease-out"
                   style={{ width: `${barPercent}%` }}
                 />
               </div>
-              <span className="recency-chart__count" aria-hidden="true">
+              <span className="text-right text-sm tabular-nums text-text" aria-hidden="true">
                 {row.count}
               </span>
             </li>

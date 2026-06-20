@@ -76,7 +76,7 @@ struct AccountView: View {
             if let healthMessage {
                 Text(healthMessage)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textMuted)
             }
             Button("Ping API") {
                 Task {

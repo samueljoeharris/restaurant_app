@@ -49,16 +49,16 @@ export function AdminObservationsPage() {
   }, [idToken, offset]);
 
   return (
-    <div className="admin-page stack">
-      <header className="admin-page__header">
+    <div className="grid gap-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1>Observation log</h1>
-          <p className="muted">Recent kid food speed submissions</p>
+          <h1 className="text-2xl">Observation log</h1>
+          <p className="text-text-muted">Recent kid food speed submissions</p>
         </div>
       </header>
 
-      {loading && <p className="muted">Loading…</p>}
-      {error && <p className="error">{error}</p>}
+      {loading && <p className="text-text-muted">Loading…</p>}
+      {error && <p className="text-sm font-semibold text-error">{error}</p>}
 
       {!loading && !error && (
         <>
@@ -77,7 +77,7 @@ export function AdminObservationsPage() {
               cells: {
                 when: fmtDate(r.created_at),
                 restaurant: (
-                  <Link to={`/restaurants/${r.restaurant_id}`} className="admin-link">
+                  <Link to={`/restaurants/${r.restaurant_id}`} className="font-semibold text-brand hover:underline">
                     {r.restaurant_name}
                   </Link>
                 ),
@@ -85,7 +85,11 @@ export function AdminObservationsPage() {
                 item: r.item_type.replace("_", " "),
                 quality: `${r.item_quality}/5`,
                 daypart: r.daypart,
-                uid: <code className="admin-code">{r.firebase_uid.slice(0, 10)}…</code>,
+                uid: (
+                  <code className="rounded bg-bg px-1.5 py-0.5 text-xs">
+                    {r.firebase_uid.slice(0, 10)}…
+                  </code>
+                ),
               },
             }))}
             emptyMessage="No observations yet."

@@ -1,13 +1,14 @@
 import { Card } from "../components/ui/Card";
+import { Page } from "../components/ui/Page";
 
 export function PrivacyPage() {
   return (
-    <div className="auth-page">
-      <main className="page page--narrow page-enter">
-        <div className="auth-hero">
-          <div className="auth-hero__mark">🔭</div>
-          <h1 className="auth-hero__title">Privacy Policy</h1>
-          <p className="muted">Last updated: 18 June 2026</p>
+    <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col justify-center p-8">
+      <Page narrow className="py-0">
+        <div className="mb-6 text-center">
+          <div className="mb-3 text-5xl">🔭</div>
+          <h1 className="text-3xl tracking-tight">Privacy Policy</h1>
+          <p className="text-text-muted">Last updated: 18 June 2026</p>
         </div>
 
         <Card>
@@ -19,7 +20,7 @@ export function PrivacyPage() {
           </p>
           <p>
             Questions about this policy? Contact us at{" "}
-            <a className="linkish" href="mailto:privacy@littlescout.app">
+            <a className="font-semibold text-brand" href="mailto:privacy@littlescout.app">
               privacy@littlescout.app
             </a>
             .
@@ -127,7 +128,7 @@ export function PrivacyPage() {
             </li>
             <li>
               <strong>Help deleting:</strong> If you cannot access the app, email{" "}
-              <a className="linkish" href="mailto:privacy@littlescout.app">
+              <a className="font-semibold text-brand" href="mailto:privacy@littlescout.app">
                 privacy@littlescout.app
               </a>
               .
@@ -152,7 +153,7 @@ export function PrivacyPage() {
             notice.
           </p>
         </Card>
-      </main>
+      </Page>
     </div>
   );
 }

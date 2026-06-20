@@ -10,9 +10,9 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="admin-shell admin-shell--loading">
-        <Skeleton className="ui-skeleton--title" />
-        <Skeleton className="ui-skeleton--line" />
+      <div className="mx-auto block max-w-3xl px-8 py-8">
+        <Skeleton className="h-4 w-[55%]" />
+        <Skeleton className="h-3 w-[85%]" />
       </div>
     );
   }

@@ -34,6 +34,9 @@ const DAYPARTS: { value: TtfSubmission["daypart"]; label: string }[] = [
   { value: "late", label: "Late" },
 ];
 
+const backLinkClass =
+  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
+
 function currentDaypart(): TtfSubmission["daypart"] {
   const hour = new Date().getHours();
   if (hour < 11) return "breakfast";
@@ -165,7 +168,7 @@ export function TtfSubmitPage() {
   if (!restaurant) {
     return (
       <Page narrow title="Submit observation">
-        <p className="muted">Loading…</p>
+        <p className="text-text-muted">Loading…</p>
       </Page>
     );
   }
@@ -176,19 +179,19 @@ export function TtfSubmitPage() {
       title="Submit observation"
       subtitle={restaurant.restaurant.name}
       back={
-        <Link to={`/restaurants/${id}`} className="back-link">
+        <Link to={`/restaurants/${id}`} className={backLinkClass}>
           ← Back
         </Link>
       }
     >
       <Card>
-        <form className="stack" onSubmit={handleSubmit}>
-          <div className="timer-card">
-            <p className="muted small">Time from order to kid food on the table</p>
-            <div className="timer-display">
+        <form className="grid gap-3" onSubmit={handleSubmit}>
+          <div className="grid gap-3 rounded-md bg-brand-soft p-4 text-center">
+            <p className="text-sm text-text-muted">Time from order to kid food on the table</p>
+            <div className="font-display text-4xl font-bold leading-none text-brand">
               {timerStart === null ? "0:00" : formatTimer(timerMs)}
             </div>
-            <div className="timer-actions">
+            <div className="flex flex-wrap justify-center gap-2">
               {timerStart === null && (
                 <Button type="button" onClick={startTimer}>
                   Start timer
@@ -224,8 +227,8 @@ export function TtfSubmitPage() {
             </label>
           )}
 
-          <fieldset className="field-group">
-            <legend>What arrived?</legend>
+          <fieldset className="field-group grid gap-2">
+            <legend className="text-sm font-semibold">What arrived?</legend>
             <ChoiceChipGroup columns={2}>
               {ITEM_TYPES.map((item) => (
                 <ChoiceChip
@@ -239,13 +242,13 @@ export function TtfSubmitPage() {
             </ChoiceChipGroup>
           </fieldset>
 
-          <div className="field-group">
-            <span className="field-group__label">Quality</span>
+          <div className="grid gap-2">
+            <span className="text-sm font-semibold">Quality</span>
             <StarRating value={quality} onChange={setQuality} label="Item quality" />
           </div>
 
-          <fieldset className="field-group">
-            <legend>Portion</legend>
+          <fieldset className="field-group grid gap-2">
+            <legend className="text-sm font-semibold">Portion</legend>
             <ChoiceChipGroup columns={3}>
               {PORTIONS.map((opt) => (
                 <ChoiceChip
@@ -259,8 +262,8 @@ export function TtfSubmitPage() {
             </ChoiceChipGroup>
           </fieldset>
 
-          <fieldset className="field-group">
-            <legend>Daypart</legend>
+          <fieldset className="field-group grid gap-2">
+            <legend className="text-sm font-semibold">Daypart</legend>
             <ChoiceChipGroup columns={2}>
               {DAYPARTS.map((opt) => (
                 <ChoiceChip
@@ -295,8 +298,8 @@ export function TtfSubmitPage() {
             />
           </label>
 
-          {error && <p className="error">{error}</p>}
-          {submitHint && <p className="field-hint field-hint--warn">{submitHint}</p>}
+          {error && <p className="text-sm font-semibold text-error">{error}</p>}
+          {submitHint && <p className="m-0 text-xs text-warning">{submitHint}</p>}
           <Button type="submit" fullWidth disabled={!canSubmit}>
             {busy ? "Submitting…" : "Submit observation"}
           </Button>
