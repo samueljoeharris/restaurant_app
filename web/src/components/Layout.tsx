@@ -5,7 +5,9 @@ import { useAuth } from "../auth/useAuth";
 import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useCollapsiblePanel } from "../hooks/useCollapsiblePanel";
 import { cn } from "../lib/cn";
+import { AppBottomNav } from "./AppBottomNav";
 import { AppSidebar } from "./AppSidebar";
+import { MobileAppHeader } from "./MobileAppHeader";
 import { Skeleton } from "./ui/Skeleton";
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -16,14 +18,13 @@ export function Layout({ children }: { children: ReactNode }) {
     "(max-width: 87.5rem)",
   );
   const hideNav = location.pathname.includes("/submit");
-  // The combined map + search view renders full-bleed on both routes.
   const isMap = location.pathname === "/map" || location.pathname === "/restaurants";
 
   if (loading) {
     return (
-      <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col">
+      <div className="flex min-h-screen flex-col lg:min-w-[var(--desktop-min-width)]">
         <div className="flex w-full min-w-0 flex-1 flex-col">
-          <div className="grid w-full flex-1 gap-3 px-8 py-6">
+          <div className="grid w-full flex-1 gap-3 px-4 py-6 lg:px-8">
             <Skeleton className="h-4 w-[55%]" />
             <Skeleton className="h-3 w-[85%]" />
           </div>
@@ -39,35 +40,41 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div
       className={cn(
-        "flex min-h-screen min-w-[var(--desktop-min-width)] flex-row items-stretch",
-        hideNav && "flex-col",
-        isMap && "h-screen",
+        "flex min-h-screen flex-col lg:min-w-[var(--desktop-min-width)] lg:flex-row lg:items-stretch",
+        hideNav && "lg:flex-col",
+        isMap && "h-[100dvh] lg:h-screen",
       )}
     >
       {!hideNav && (
-        <AppSidebar
-          collapsed={navCollapsed}
-          onToggleCollapsed={toggleNavCollapsed}
-          onLogout={() => logout()}
-        />
+        <>
+          <div className="hidden lg:block">
+            <AppSidebar
+              collapsed={navCollapsed}
+              onToggleCollapsed={toggleNavCollapsed}
+              onLogout={() => logout()}
+            />
+          </div>
+          {!isMap && <MobileAppHeader />}
+        </>
       )}
       <div
         className={cn(
           "flex min-w-0 flex-1 flex-col",
           hideNav && "w-full",
-          isMap && "h-full min-h-0",
+          isMap && "min-h-0 flex-1",
+          !hideNav && "pb-[calc(3.75rem+env(safe-area-inset-bottom))] lg:pb-0",
         )}
       >
         <main
           className={cn(
             "w-full flex-1",
-            // Map routes: contain scroll inside main; any overlay must use a portal (see overlayStack.ts).
-            isMap && "h-full min-h-0 overflow-hidden p-0",
+            isMap && "min-h-0 overflow-hidden p-0",
           )}
         >
           {children}
         </main>
       </div>
+      {!hideNav && <AppBottomNav />}
     </div>
   );
 }

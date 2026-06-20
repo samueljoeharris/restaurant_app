@@ -7,6 +7,7 @@ import { authErrorMessage } from "../auth/errors";
 import { defaultAuthedPath, isAdminSite, PUBLIC_APP_URL } from "../buildTarget";
 import { MfaChallengeForm } from "../components/MfaChallengeForm";
 import { ScoutLogo } from "../components/ScoutLogo";
+import { ScoutMascot } from "../components/ScoutMascot";
 import { Button, ButtonAnchor } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Skeleton } from "../components/ui/Skeleton";
@@ -14,7 +15,7 @@ import { cn } from "../lib/cn";
 
 function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col justify-center bg-bg p-8">
+    <div className="flex min-h-screen flex-col justify-center bg-bg p-4 sm:p-8 lg:min-w-[var(--desktop-min-width)]">
       <main
         className={cn(
           "mx-auto max-w-[var(--page-narrow)] px-8 py-6 animate-page-enter",
@@ -147,9 +148,15 @@ export function LoginPage() {
   return (
     <AuthShell>
       <AuthHero>
-        <div className="mb-3 flex justify-center">
-          <ScoutLogo size={56} />
-        </div>
+        {!isAdminSite ? (
+          <div className="mb-3 flex justify-center">
+            <ScoutMascot className="h-36 w-36 object-contain sm:h-40 sm:w-40" size={160} />
+          </div>
+        ) : (
+          <div className="mb-3 flex justify-center">
+            <ScoutLogo size={56} />
+          </div>
+        )}
         {isAdminSite ? (
           <>
             <p className="mb-2 inline-block rounded-full bg-accent-soft px-2 py-1 text-xs font-semibold uppercase tracking-widest text-accent">

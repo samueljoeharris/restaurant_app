@@ -2,7 +2,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
-import { DesktopOnlyGate } from "./components/DesktopOnlyGate";
 import { Layout } from "./components/Layout";
 import { AccountPage } from "./pages/AccountPage";
 import { ActivityToast } from "./components/ActivityToast";
@@ -23,7 +22,6 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <DesktopOnlyGate>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
@@ -145,7 +143,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/map" replace />} />
         </Routes>
         <ActivityToast />
-        </DesktopOnlyGate>
       </BrowserRouter>
     </AuthProvider>
   );

@@ -9,6 +9,7 @@ import { WatchButton } from "../components/WatchButton";
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { Page } from "../components/ui/Page";
+import { ScoutMascot } from "../components/ScoutMascot";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
@@ -145,12 +146,15 @@ export function SavedPage() {
       {loading && <SkeletonList count={3} />}
       {!loading && items.length === 0 && (
         <Card title="No saved spots yet">
-          <p className="text-sm text-text-muted">
-            Tap ♡ Watch on a restaurant to follow updates here.
-          </p>
-          <Link to="/map" className="mt-3 inline-block text-sm font-semibold text-brand">
-            Explore the map →
-          </Link>
+          <div className="flex flex-col items-center py-4 text-center">
+            <ScoutMascot className="mb-4 h-28 w-28 object-contain" size={112} />
+            <p className="text-sm text-text-muted">
+              Tap 💛 Watch on a restaurant to follow updates here.
+            </p>
+            <Link to="/map" className="mt-3 inline-block text-sm font-semibold text-brand">
+              Explore the map →
+            </Link>
+          </div>
         </Card>
       )}
       {!loading && items.length > 0 && (

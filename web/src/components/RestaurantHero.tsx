@@ -40,7 +40,7 @@ export function RestaurantHero({ data, attributes, id, idToken, kidsAges = [] }:
     <section className="mb-4 overflow-hidden rounded-lg border border-brand/25 bg-gradient-to-b from-brand-soft to-surface to-40% p-5 shadow-sm">
       {ttf.sample_size === 0 ? (
         <EmptyState
-          emoji="⏱️"
+          mascot
           title="No speed data yet"
           description="Be the first parent to clock a visit."
           actionLabel="Start the timer"

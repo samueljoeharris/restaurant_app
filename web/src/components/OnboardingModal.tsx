@@ -7,6 +7,7 @@ import { Z } from "../lib/overlayStack";
 import { userStorage } from "../lib/userStorage";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
+import { ScoutMascot } from "./ScoutMascot";
 
 interface OnboardingModalProps {
   open: boolean;
@@ -62,6 +63,9 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
       aria-modal="true"
     >
       <Card title="Tell us about your kids" subtitle="We'll personalize speed tips for your family">
+        <div className="mb-4 flex justify-center">
+          <ScoutMascot className="h-28 w-28 object-contain" size={112} />
+        </div>
         <form className="grid gap-4" onSubmit={handleSubmit}>
           <label className="grid gap-2 text-sm">
             Kids&apos; ages (comma-separated)

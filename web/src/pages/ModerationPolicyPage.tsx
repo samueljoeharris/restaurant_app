@@ -6,7 +6,7 @@ import { Page } from "../components/ui/Page";
 
 export function ModerationPolicyPage() {
   return (
-    <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col justify-center p-8">
+    <div className="flex min-h-screen flex-col justify-center p-4 sm:p-8 lg:min-w-[var(--desktop-min-width)]">
       <Page narrow className="py-0">
         <div className="mb-6 text-center">
           <div className="mb-3 flex justify-center">
