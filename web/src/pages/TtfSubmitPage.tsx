@@ -11,6 +11,7 @@ import { Page } from "../components/ui/Page";
 import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
 import { EMPTY_CONTRIBUTION_RECENCY } from "../lib/contributionRecency";
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 import type { RestaurantDetailResponse, TtfSubmission } from "../types";
 
 const ITEM_TYPES: { value: TtfSubmission["item_type"]; label: string; emoji: string }[] = [
@@ -179,7 +180,13 @@ export function TtfSubmitPage() {
       title="Submit observation"
       subtitle={restaurant.restaurant.name}
       back={
-        <Link to={`/restaurants/${id}`} className={backLinkClass}>
+        <Link
+          to={restaurantDetailPath({
+            id: id ?? restaurant.restaurant.id,
+            google_place_id: placeId ?? restaurant.restaurant.google_place_id,
+          })}
+          className={backLinkClass}
+        >
           ← Back
         </Link>
       }
