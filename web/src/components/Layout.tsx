@@ -61,6 +61,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <main
           className={cn(
             "w-full flex-1",
+            // Map routes: contain scroll inside main; any overlay must use a portal (see overlayStack.ts).
             isMap && "h-full min-h-0 overflow-hidden p-0",
           )}
         >

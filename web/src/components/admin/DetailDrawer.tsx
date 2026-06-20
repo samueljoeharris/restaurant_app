@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { cn } from "../../lib/cn";
+import { Z } from "../../lib/overlayStack";
 import { Button } from "../ui/Button";
 
 export function DetailDrawer({
@@ -16,21 +19,27 @@ export function DetailDrawer({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  useBodyScrollLock(open);
+
   if (!open) return null;
 
-  return (
+  return createPortal(
     <>
       <button
         type="button"
-        className="fixed inset-0 z-40 cursor-default border-0 bg-black/30"
+        className="fixed inset-0 cursor-default border-0 bg-black/30"
+        style={{ zIndex: Z.modal - 1 }}
         aria-label="Close drawer"
         onClick={onClose}
       />
       <aside
         className={cn(
-          "fixed top-0 right-0 z-50 flex h-full w-[min(100%,28rem)] flex-col",
+          "fixed top-0 right-0 flex h-full w-[min(100%,28rem)] flex-col",
           "border-l border-border bg-surface shadow-lg",
         )}
+        style={{ zIndex: Z.modal }}
+        role="dialog"
+        aria-modal="true"
       >
         <header className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="m-0 text-lg">{title}</h2>
@@ -43,6 +52,7 @@ export function DetailDrawer({
           <footer className="border-t border-border px-5 py-4">{footer}</footer>
         ) : null}
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }

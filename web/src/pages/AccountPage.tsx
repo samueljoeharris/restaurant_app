@@ -103,10 +103,7 @@ export function AccountPage() {
                 ["push_enabled", "Push notifications"],
               ] as const
             ).map(([key, label]) => (
-              <label
-                key={key}
-                className="flex min-h-10 cursor-pointer items-center justify-between gap-4 text-sm font-normal"
-              >
+              <label key={key} className="field-row">
                 <span className="min-w-0 flex-1 leading-snug">{label}</span>
                 <input
                   type="checkbox"

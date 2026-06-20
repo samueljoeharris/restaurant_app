@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { useActivityBadge } from "../hooks/useActivityBadge";
 import { cn } from "../lib/cn";
+import { Z } from "../lib/overlayStack";
 import { ActivityInbox } from "./ActivityInbox";
 import { Button } from "./ui/Button";
 
@@ -33,11 +34,12 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        "sticky top-0 z-30 flex h-screen shrink-0 flex-col overflow-visible border-r border-border bg-surface transition-[width] duration-normal ease-out",
+        "sticky top-0 flex h-screen shrink-0 flex-col overflow-visible border-r border-border bg-surface transition-[width] duration-normal ease-out",
         collapsed
           ? "w-[var(--app-sidebar-width-collapsed)]"
           : "w-[var(--app-sidebar-width)]",
       )}
+      style={{ zIndex: Z.sidebar }}
       aria-label="App navigation"
     >
       <div

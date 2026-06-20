@@ -6,6 +6,7 @@ import {
 } from "react";
 
 import { cn } from "../../lib/cn";
+import { Z } from "../../lib/overlayStack";
 import { ToastContext, type ToastTone } from "./toast-context";
 
 type ToastItem = {
@@ -37,7 +38,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="pointer-events-none fixed bottom-5 left-1/2 z-50 grid w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 gap-2"
+        className="pointer-events-none fixed bottom-5 left-1/2 grid w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 gap-2"
+        style={{ zIndex: Z.toast }}
         aria-live="polite"
       >
         {items.map((item) => (

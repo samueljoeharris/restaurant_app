@@ -1,7 +1,10 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { usePlacesAutocomplete } from "../hooks/usePlacesAutocomplete";
+import { useFixedOverlayPosition } from "../hooks/useFixedOverlayPosition";
 import { cn } from "../lib/cn";
+import { Z } from "../lib/overlayStack";
 import type { PlaceSearchPending, RestaurantSearchSelection } from "../lib/searchNavigation";
 
 interface PlaceSearchBoxProps {
@@ -21,6 +24,7 @@ export function PlaceSearchBox({
 }: PlaceSearchBoxProps) {
   const [inputValue, setInputValue] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const menuId = useId();
@@ -29,6 +33,10 @@ export function PlaceSearchBox({
     usePlacesAutocomplete({ lat, lng });
 
   const isOpen = suggestions.length > 0 && inputValue.trim().length > 0;
+  const panelStyle = useFixedOverlayPosition(isOpen, anchorRef, {
+    matchAnchorWidth: true,
+    gap: 4,
+  });
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
@@ -105,9 +113,53 @@ export function PlaceSearchBox({
   const activeOptionId =
     activeIndex >= 0 ? `${menuId}-option-${activeIndex}` : undefined;
 
+  const suggestionsList = isOpen
+    ? createPortal(
+        <ul
+          ref={listRef}
+          id={menuId}
+          role="listbox"
+          className="fixed m-0 max-h-72 list-none overflow-y-auto rounded-lg border border-border-strong bg-surface p-1 shadow-md"
+          style={{ ...panelStyle, zIndex: Z.dropdown }}
+          aria-label="Place suggestions"
+        >
+          {suggestions.map((s, i) => (
+            <li
+              key={s.type === "restaurant" ? `r-${s.restaurant_id}` : `p-${s.place_id}`}
+              id={`${menuId}-option-${i}`}
+              role="option"
+              aria-selected={i === activeIndex}
+              className={cn(
+                "flex cursor-pointer items-start gap-2 px-3 py-2 transition-[background] duration-fast",
+                i === activeIndex && "bg-brand-soft",
+              )}
+              onMouseDown={(e) => {
+                e.preventDefault();
+              }}
+              onClick={() => selectSuggestion(i)}
+              onMouseEnter={() => setActiveIndex(i)}
+            >
+              <span className="shrink-0 text-base leading-snug" aria-hidden="true">
+                {s.type === "restaurant" ? "🍽️" : "📍"}
+              </span>
+              <span className="grid min-w-0 gap-0.5">
+                <span className="truncate text-sm font-semibold">{s.primary_text}</span>
+                {s.secondary_text && (
+                  <span className="truncate text-sm text-text-muted">
+                    {s.secondary_text}
+                  </span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>,
+        document.body,
+      )
+    : null;
+
   return (
-    <div className="place-search relative mb-4 w-full">
-      <div className="relative flex items-center">
+    <div className="place-search mb-4 w-full">
+      <div ref={anchorRef} className="relative flex items-center">
         <input
           ref={inputRef}
           role="combobox"
@@ -145,45 +197,7 @@ export function PlaceSearchBox({
         </p>
       )}
 
-      {isOpen && (
-        <ul
-          ref={listRef}
-          id={menuId}
-          role="listbox"
-          className="absolute top-[calc(100%+4px)] right-0 left-0 z-40 m-0 max-h-72 list-none overflow-y-auto rounded-lg border border-border-strong bg-surface p-1 shadow-md"
-          aria-label="Place suggestions"
-        >
-          {suggestions.map((s, i) => (
-            <li
-              key={s.type === "restaurant" ? `r-${s.restaurant_id}` : `p-${s.place_id}`}
-              id={`${menuId}-option-${i}`}
-              role="option"
-              aria-selected={i === activeIndex}
-              className={cn(
-                "flex cursor-pointer items-start gap-2 px-3 py-2 transition-[background] duration-fast",
-                i === activeIndex && "bg-brand-soft",
-              )}
-              onMouseDown={(e) => {
-                e.preventDefault();
-              }}
-              onClick={() => selectSuggestion(i)}
-              onMouseEnter={() => setActiveIndex(i)}
-            >
-              <span className="shrink-0 text-base leading-snug" aria-hidden="true">
-                {s.type === "restaurant" ? "🍽️" : "📍"}
-              </span>
-              <span className="grid min-w-0 gap-0.5">
-                <span className="truncate text-sm font-semibold">{s.primary_text}</span>
-                {s.secondary_text && (
-                  <span className="truncate text-sm text-text-muted">
-                    {s.secondary_text}
-                  </span>
-                )}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+      {suggestionsList}
     </div>
   );
 }

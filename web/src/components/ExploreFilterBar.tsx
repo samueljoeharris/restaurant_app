@@ -74,7 +74,7 @@ export function ExploreFilterBar({
         </label>
         <select
           id="explore-town-select"
-          className="rounded-md border border-border bg-surface px-2 py-2 text-xs font-semibold"
+          className="w-auto max-w-[14rem] min-w-[8rem] rounded-md border border-border bg-surface px-2 py-2 text-xs font-semibold"
           value={browseCity ?? ""}
           onChange={(e) => {
             const city = e.target.value || null;

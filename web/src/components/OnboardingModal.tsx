@@ -1,9 +1,12 @@
 import { type FormEvent, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { api } from "../api/client";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
+import { Z } from "../lib/overlayStack";
+import { userStorage } from "../lib/userStorage";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
-import { userStorage } from "../lib/userStorage";
 
 interface OnboardingModalProps {
   open: boolean;
@@ -18,6 +21,8 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useBodyScrollLock(open);
 
   if (!open) return null;
 
@@ -49,8 +54,13 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
+  return createPortal(
+    <div
+      className="fixed inset-0 grid place-items-center bg-black/40 p-4"
+      style={{ zIndex: Z.modal }}
+      role="dialog"
+      aria-modal="true"
+    >
       <Card title="Tell us about your kids" subtitle="We'll personalize speed tips for your family">
         <form className="grid gap-4" onSubmit={handleSubmit}>
           <label className="grid gap-2 text-sm">
@@ -69,6 +79,7 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
           </Button>
         </form>
       </Card>
-    </div>
+    </div>,
+    document.body,
   );
 }

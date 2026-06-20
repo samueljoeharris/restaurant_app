@@ -6,6 +6,7 @@ import { useAuth } from "../auth/useAuth";
 import type { ActivityEventItem } from "../types";
 import { userStorage } from "../lib/userStorage";
 import { cn } from "../lib/cn";
+import { Z } from "../lib/overlayStack";
 
 export function ActivityToast() {
   const { idToken } = useAuth();
@@ -43,9 +44,10 @@ export function ActivityToast() {
   return (
     <div
       className={cn(
-        "fixed right-4 bottom-4 z-[60] max-w-sm rounded-lg border border-border bg-surface p-4 shadow-lg",
+        "fixed right-4 bottom-4 max-w-sm rounded-lg border border-border bg-surface p-4 shadow-lg",
         "animate-in slide-in-from-bottom-2",
       )}
+      style={{ zIndex: Z.toast }}
       role="status"
     >
       <p className="m-0 text-sm font-semibold">{toast.restaurant_name}</p>

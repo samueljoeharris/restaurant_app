@@ -193,7 +193,7 @@ export function AdminUsersPage() {
                 <option value="restricted">Restricted</option>
               </select>
             </label>
-            <label className="flex items-center gap-2">
+              <label className="field-row flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={detail.auto_publish}

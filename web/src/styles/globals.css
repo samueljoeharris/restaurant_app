@@ -31,10 +31,14 @@
     @apply grid gap-2 text-sm font-semibold;
   }
 
-  input:not([type="checkbox"]):not([type="radio"]),
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
   select,
   textarea {
     @apply w-full rounded-md border border-border-strong bg-surface px-3 py-2.5 text-text font-[inherit] transition-[border-color,box-shadow] duration-fast;
+  }
+
+  input[type="range"] {
+    @apply h-2 w-auto min-w-0 flex-1 cursor-pointer accent-brand;
   }
 
   input[type="checkbox"],
@@ -55,6 +59,11 @@
 
   fieldset.field-group {
     @apply m-0 border-0 p-0;
+  }
+
+  /* Horizontal checkbox/radio rows — override base label { grid } */
+  label.field-row {
+    @apply flex min-h-10 cursor-pointer items-center justify-between gap-4 font-normal;
   }
 }
 
