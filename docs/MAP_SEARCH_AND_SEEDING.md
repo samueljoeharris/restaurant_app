@@ -27,9 +27,8 @@ Reference for how the pilot map loads and filters restaurants, how catalog seedi
 
 | Route | Component | Notes |
 |-------|-----------|-------|
-| `/map` | `ExploreMapPage` | Combined map + sidebar list |
+| `/map` | `ExploreMapPage` | Combined map + sidebar list; search, pins, shared catalog cache |
 | `/restaurants` | `ExploreMapPage` | Same component; filter links stay on current path |
-| `/` (Home) | `HomePage` | Search box navigates to map; landing stats from shared cache |
 
 There is no separate list-only page — explore is a single combined view.
 
@@ -94,7 +93,7 @@ URL params: `q`, `filter`, `city`, `zip`, `tag`, `focus`, `lat`, `lng`, `radius`
 - Google Maps JS via `@vis.gl/react-google-maps`
 - Default center: Dedham pilot (`42.2418, -71.1662`)
 - **`clickableIcons={false}`** — native Google POI clicks disabled; use Little Scout pins
-- Search-focus pin: brand orange; Google-only (not in SQL) pins: dashed discover ring
+- Search-focus pin: sky blue (`pinSearchFocus` / `#3FA7D6`); Google-only (not in SQL) pins: dashed discover ring
 - Venue search zoom 17; area/radius zoom 12
 - **Pin clustering** at zoom ≤ 13 when > 12 pins (`@googlemaps/markerclusterer`)
 - Full custom pins at higher zoom
@@ -234,7 +233,7 @@ Hooks: `useNearbyCoverage`, `useAreaCoverage`, `runBackgroundCoverage` in `web/s
 ```mermaid
 flowchart TB
   subgraph read [Read paths]
-    Home[HomePage] -->|full catalog once| Cache[restaurantMapCache]
+    Explore[ExploreMapPage] -->|full catalog once| Cache[restaurantMapCache]
     Explore[ExploreMapPage] -->|viewport bbox| MapAPI["GET /v1/restaurants/map"]
     Explore -->|?lat&lng| SearchAPI["GET /v1/restaurants/search"]
     Typeahead[PlaceSearchBox] --> Auto["GET /v1/places/autocomplete"]
@@ -242,7 +241,7 @@ flowchart TB
     SearchAPI --> PG[(PostgreSQL)]
     Auto --> PG
     Cache --> Explore
-    Cache --> Home
+    Cache --> Explore
   end
 
   subgraph seed [Seed paths]

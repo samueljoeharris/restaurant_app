@@ -1,6 +1,6 @@
 /* Little Scout — color tokens (Bluebird theme).
-   Base ramp first, then semantic aliases, then map basemap layers.
-   Maps 1:1 onto the app's design/tokens.json keys (noted in comments). */
+   REFERENCE MOCK for HTML UI kits — runtime source of truth is design/tokens.json.
+   Values below mirror tokens.json; regenerate comments after token changes. */
 :root {
   /* ---- Brand: sky blue ---- (tokens.json brand) */
   --ls-sky: #3FA7D6;
@@ -18,22 +18,22 @@
   --ls-paper: #FBF6EC;          /* bg */
   --ls-surface: #FFFFFF;        /* surface */
   --ls-surface-muted: #F3EAD8;  /* surfaceMuted */
-  --ls-border: #EADFC9;         /* border */
-  --ls-border-strong: #DCCDAE;  /* borderStrong */
+  --ls-border: #E8DFD0;         /* border */
+  --ls-border-strong: #D4C8B8;  /* borderStrong */
 
   /* ---- Ink ---- */
-  --ls-ink: #2C2722;            /* text */
-  --ls-ink-muted: #837766;      /* textMuted */
+  --ls-ink: #2F3A42;            /* text */
+  --ls-ink-muted: #6B7A85;      /* textMuted */
   --ls-ink-slate: #2F3A42;      /* cool ink for map/figure contexts */
 
   /* ---- Kid-food-speed (TTF) tiers — semantic, stay constant across themes ---- */
-  --ls-ttf-fast: #2E8B57;       /* ttfFast */
+  --ls-ttf-fast: #2D8F4E;       /* ttfFast */
   --ls-ttf-fast-soft: #DCEFE2;
-  --ls-ttf-ok: #E0A52E;         /* ttfOk */
+  --ls-ttf-ok: #D4A017;         /* ttfOk */
   --ls-ttf-ok-soft: #FBE5C5;
-  --ls-ttf-slow: #D6543B;       /* ttfSlow */
+  --ls-ttf-slow: #C0392B;       /* ttfSlow */
   --ls-ttf-slow-soft: #F7DDD6;
-  --ls-ttf-none: #B4AA98;       /* ttfUnknown */
+  --ls-ttf-none: #9CA3AF;       /* ttfUnknown */
   --ls-ttf-none-soft: #EFEAE0;
 
   /* ---- Semantic status ---- */

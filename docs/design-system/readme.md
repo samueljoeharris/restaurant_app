@@ -6,7 +6,7 @@ This is the **"Bluebird" whimsical theme**: subtle whimsy on a clean, trustworth
 
 ## Sources
 
-- **App codebase:** `github.com/samueljoeharris/restaurant_app` — web pilot (Vite + React, `web/src`), API (Cloud Run), iOS (SwiftUI + MapKit, planned). Tokens were aligned to `design/tokens.json`.
+- **App codebase:** `github.com/samueljoeharris/restaurant_app` — web pilot (Vite + React, `web/src`), API (Cloud Run), iOS (SwiftUI + MapKit). **Runtime tokens:** `design/tokens.json` (see [DESIGN_TOKENS.md](../DESIGN_TOKENS.md)); kit CSS here is reference mock only.
 - **Originating UX exploration:** the low-fi wireframe flows + admin console, preserved in `reference/` (open the `.dc.html` files). The hi-fi system here is their successor.
 - Don't assume the reader has access to the repo; key values are captured below.
 

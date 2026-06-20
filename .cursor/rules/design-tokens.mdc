@@ -1,0 +1,35 @@
+---
+description: Design token workflow for Bluebird theme — edit tokens.json, regenerate, use semantic classes
+globs:
+  - design/**
+  - web/src/styles/**
+  - web/src/components/**
+  - ios/TTF/TTF/Utilities/Theme.swift
+  - ios/TTF/TTF/Resources/Colors.xcassets/**
+alwaysApply: false
+---
+
+# Design tokens
+
+**Source of truth:** [design/tokens.json](../../design/tokens.json) — not hand-edited generated files.
+
+## Workflow
+
+1. Edit `design/tokens.json`
+2. Run `cd web && npm run tokens:generate` (or `node scripts/generate-design-tokens.mjs`)
+3. Commit generated outputs: `web/src/styles/tokens.generated.css`, iOS `Colors.xcassets`, `Theme.swift`, `TtfTier.swift`, `web/src/lib/ttfTier.ts`, `web/src/lib/mapPin.ts`
+
+## Visual design docs
+
+- Kit (voice, mocks, reference components): [docs/design-system/readme.md](../../docs/design-system/readme.md)
+- Token reference: [docs/DESIGN_TOKENS.md](../../docs/DESIGN_TOKENS.md)
+- Map basemap: [docs/MAP_STYLE.md](../../docs/MAP_STYLE.md)
+- Live QA: [docs/TEST_FLOWS.md](../../docs/TEST_FLOWS.md)
+
+Kit CSS under `docs/design-system/tokens/` uses `--ls-*` names for HTML mocks only. Production uses generated Tailwind `@theme` vars.
+
+## Code rules
+
+- Web: use semantic Tailwind classes (`bg-brand`, `text-text-muted`, `font-display`) — not raw hex in components
+- iOS: use `Color.brand`, `Color.text`, `Color.ttfFast`, etc. from generated Theme — not `.primary` / hardcoded hex
+- ScoutLogo and map pin fallbacks should use CSS vars or generated constants

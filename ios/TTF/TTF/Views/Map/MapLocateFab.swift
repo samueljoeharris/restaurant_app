@@ -23,7 +23,7 @@ struct MapLocateFab: View {
         .background(.regularMaterial, in: Circle())
         .overlay {
             Circle()
-                .strokeBorder(active ? Color.accentColor : Color.primary.opacity(0.08), lineWidth: active ? 2 : 1)
+                .strokeBorder(active ? Color.brand : Color.text.opacity(0.08), lineWidth: active ? 2 : 1)
         }
         .shadow(color: .black.opacity(0.12), radius: 8, y: 2)
         .disabled(busy)

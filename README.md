@@ -29,6 +29,9 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 | [docs/README.md](docs/README.md) | Documentation index and recommended reading order |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component map, runtime topology, auth/data flows, and CI/CD |
 | [docs/DESIGN.md](docs/DESIGN.md) | Product vision, data model, TTF spec, architecture, naming conventions |
+| [docs/design-system/readme.md](docs/design-system/readme.md) | Bluebird visual design kit — voice, UI kits, reference components |
+| [docs/DESIGN_TOKENS.md](docs/DESIGN_TOKENS.md) | Theme tokens — `design/tokens.json` workflow |
+| [docs/MAP_STYLE.md](docs/MAP_STYLE.md) | Google Map Style basemap + MapKit POI-off |
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Phased onboarding checklist |
 | [docs/WEB_AUTH.md](docs/WEB_AUTH.md) | Public app sign-up, sign-in, Google, MFA, and local dev |
 | [docs/ADMIN_AUTH.md](docs/ADMIN_AUTH.md) | Operator console — IAP, admin claims, Firebase SSO |

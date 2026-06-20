@@ -74,6 +74,18 @@ function generateWebCss(tokens) {
   lines.push(`  --font-sans: ${tokens.font.webSans};`);
   lines.push(`  --font-display: ${tokens.font.webDisplay};`);
 
+  if (tokens.typography) {
+    for (const [key, value] of Object.entries(tokens.typography)) {
+      lines.push(`  --text-${camelToKebab(key)}: ${value};`);
+    }
+  }
+
+  if (tokens.paper) {
+    for (const [key, value] of Object.entries(tokens.paper)) {
+      lines.push(`  --paper-${camelToKebab(key)}: ${value};`);
+    }
+  }
+
   for (const [key, value] of Object.entries(tokens.radius)) {
     lines.push(`  --radius-${key}: ${value};`);
   }

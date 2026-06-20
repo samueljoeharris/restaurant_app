@@ -9,8 +9,8 @@ import { Button } from "./ui/Button";
 
 const tabs = [
   { to: "/map", label: "Explore", icon: "🗺️" },
-  { to: "/saved", label: "Saved", icon: "♥" },
-  { to: "/account", label: "You", icon: "👤" },
+  { to: "/saved", label: "Saved", icon: "💛" },
+  { to: "/account", label: "You", icon: "🙂" },
 ] as const;
 
 export function AppSidebar({

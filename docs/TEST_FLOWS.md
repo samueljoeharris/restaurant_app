@@ -2,7 +2,7 @@
 
 Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally during development). Fill the **Audit** table on each run.
 
-**Theme gate (Bluebird #63):** Quicksand + Nunito fonts, paper `#FBF6EC`, sky brand `#3FA7D6`, mango accent `#FBA63C`, teardrop tier pins, no legacy forest green `#2d5a3d`.
+**Theme gate (Bluebird #64):** Quicksand + Nunito fonts, paper `#FBF6EC`, sky brand `#3FA7D6`, mango accent `#FBA63C`, teardrop tier pins, no legacy forest green `#2d5a3d`.
 
 ---
 
@@ -434,4 +434,4 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 
 ---
 
-*Last updated: Whimsical Bluebird rebrand (#63).*
+*Last updated: Whimsical Bluebird rebrand (#64).*

@@ -18,13 +18,13 @@ export function Stat({
         highlight ? "bg-brand-soft" : "bg-bg",
       )}
     >
-      <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+      <span className="text-[length:var(--text-label)] font-extrabold uppercase tracking-[var(--text-tracking-label)] text-text-muted">
         {label}
       </span>
       <span
         className={cn(
-          "text-xl font-extrabold tracking-tight",
-          highlight && "text-brand",
+          "font-display font-bold leading-[var(--text-leading-tight)] tracking-tight",
+          highlight ? "text-[length:var(--text-number)] text-brand" : "text-[length:var(--text-h2)]",
         )}
       >
         {value}

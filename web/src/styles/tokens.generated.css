@@ -5,6 +5,7 @@
   --color-brand-hover: #3296C4;
   --color-brand-soft: #D6EDF7;
   --color-accent: #FBA63C;
+  --color-accent-pop: #F08A2E;
   --color-accent-soft: #FFF0DC;
   --color-bg: #FBF6EC;
   --color-surface: #FFFFFF;
@@ -31,8 +32,23 @@
   --color-map-land: #FBF6EC;
   --color-map-water: #D6EDF7;
   --color-map-park: #A8C9A0;
+  --color-paper-dot: #D4C8B8;
   --font-sans: Nunito, system-ui, -apple-system, sans-serif;
   --font-display: Quicksand, Nunito, system-ui, -apple-system, sans-serif;
+  --text-display: 2.125rem;
+  --text-h1: 1.625rem;
+  --text-h2: 1.3125rem;
+  --text-h3: 1.125rem;
+  --text-number: 2.375rem;
+  --text-body: 0.90625rem;
+  --text-sm: 0.78125rem;
+  --text-label: 0.65625rem;
+  --text-tracking-label: 0.14em;
+  --text-leading-body: 1.55;
+  --text-leading-tight: 1.1;
+  --paper-dot-size: 1.4px;
+  --paper-dot-spacing: 26px;
+  --paper-dot-opacity: 0.35;
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 20px;
@@ -49,6 +65,7 @@
   --shadow-sm: 0 1px 2px rgb(47 58 66 / 6%);
   --shadow-md: 0 4px 12px rgb(47 58 66 / 8%);
   --shadow-lg: 0 12px 32px rgb(47 58 66 / 10%);
+  --shadow-brand: 0 4px 14px rgb(63 167 214 / 35%);
   --app-sidebar-width: 14rem;
   --app-sidebar-width-collapsed: 4.25rem;
   --desktop-min-width: 64rem;
@@ -71,6 +88,7 @@
   --color-brand-hover: #3FA7D6;
   --color-brand-soft: #1E3A4A;
   --color-accent: #FFC066;
+  --color-accent-pop: #FF9A40;
   --color-accent-soft: #3D2E1A;
   --color-bg: #1A2332;
   --color-surface: #243038;
@@ -97,4 +115,5 @@
   --color-map-land: #FBF6EC;
   --color-map-water: #D6EDF7;
   --color-map-park: #A8C9A0;
+  --color-paper-dot: #4A5A65;
 }

@@ -7,6 +7,7 @@ extension Color {
     static let brandHover = Color("BrandHover")
     static let brandSoft = Color("BrandSoft")
     static let accent = Color("Accent")
+    static let accentPop = Color("AccentPop")
     static let accentSoft = Color("AccentSoft")
     static let bg = Color("Bg")
     static let surface = Color("Surface")
@@ -33,4 +34,5 @@ extension Color {
     static let mapLand = Color("MapLand")
     static let mapWater = Color("MapWater")
     static let mapPark = Color("MapPark")
+    static let paperDot = Color("PaperDot")
 }

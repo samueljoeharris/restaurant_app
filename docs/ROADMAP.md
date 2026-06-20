@@ -23,7 +23,7 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 | Issue | Summary |
 |-------|---------|
-| **Theme epic** | **Whimsical Bluebird rebrand** — tokens, teardrop pins, Google Map Style, iOS parity, [TEST_FLOWS.md](TEST_FLOWS.md) |
+| [#64](https://github.com/samueljoeharris/restaurant_app/issues/64) | **Whimsical Bluebird rebrand** — design kit integration audit + build ([TEST_FLOWS.md](TEST_FLOWS.md)) |
 | [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline (blocked on [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) secrets) |
 
 ---

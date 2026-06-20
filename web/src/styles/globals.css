@@ -15,6 +15,12 @@
 
   body {
     @apply m-0 font-sans text-base leading-normal text-text bg-bg;
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--color-paper-dot) calc(var(--paper-dot-opacity) * 100%), transparent)
+        var(--paper-dot-size),
+      transparent var(--paper-dot-size)
+    );
+    background-size: var(--paper-dot-spacing) var(--paper-dot-spacing);
   }
 
   a {
@@ -89,6 +95,10 @@
 
 @utility ease-out {
   transition-timing-function: var(--ease-out);
+}
+
+@utility shadow-brand {
+  box-shadow: var(--shadow-brand);
 }
 
 @utility animate-page-enter {

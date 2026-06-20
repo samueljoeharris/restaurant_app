@@ -385,6 +385,13 @@ Note the docker-compose stack runs on your Mac, not in the simulator — `localh
 - Tapping a pin shows a compact card (name, TTF badge) → navigates to detail.
 - Core Location: request when-in-use on first map appearance; degrade gracefully to the Dedham default if denied. No geo-querying server-side in MVP — `/v1/restaurants/map` returns the whole pilot city (~115 rows), filter client-side if needed.
 
+### Theme & tokens (Bluebird)
+
+- **Runtime colors:** generated from [`design/tokens.json`](../design/tokens.json) into `Resources/Colors.xcassets/` and `Utilities/Theme.swift` — use `Color.brand`, `Color.bg`, `Color.ttfFast`, etc. Do not hardcode hex in views.
+- **Regenerate:** from repo root, `cd web && npm run tokens:generate` (same script updates iOS asset catalog).
+- **Typography:** web loads Quicksand + Nunito; iOS currently uses **system fonts** with semantic colors. Bundled custom fonts are a follow-up issue — see design kit [design-system/readme.md](design-system/readme.md).
+- **Map basemap:** teardrop tier pins match web; MapKit uses Apple default land/water with POIs off ([MAP_STYLE.md](MAP_STYLE.md)). Custom basemap colors are web-only (Google Map Style).
+
 ---
 
 ## 11. Testing Strategy
@@ -456,4 +463,4 @@ Suggested branch naming per repo convention: `feature/ttf-ios-scaffold`, `featur
 
 ---
 
-*Companion docs: [DESIGN.md](DESIGN.md) (product spec), [ARCHITECTURE.md](ARCHITECTURE.md) (system as built), [FIREBASE_AUTH.md](FIREBASE_AUTH.md) / [WEB_AUTH.md](WEB_AUTH.md) (auth details), [GETTING_STARTED.md](GETTING_STARTED.md) (phase checklist).*
+*Companion docs: [DESIGN.md](DESIGN.md) (product spec), [DESIGN_TOKENS.md](DESIGN_TOKENS.md) (theme tokens), [MAP_STYLE.md](MAP_STYLE.md) (map styling), [design-system/readme.md](design-system/readme.md) (visual kit), [ARCHITECTURE.md](ARCHITECTURE.md) (system as built), [FIREBASE_AUTH.md](FIREBASE_AUTH.md) / [WEB_AUTH.md](WEB_AUTH.md) (auth details), [GETTING_STARTED.md](GETTING_STARTED.md) (phase checklist).*

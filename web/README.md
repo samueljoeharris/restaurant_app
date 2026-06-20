@@ -42,6 +42,15 @@ docker compose run --rm terraform -chdir=environments/dev output -raw cloud_run_
 
 Admin deploys from the same `web/` source tree using `.github/workflows/reusable-admin-web.yml` and `web/Dockerfile.admin`, then serves at `https://admin.dev.littlescout.app` behind IAP. See [docs/ADMIN_AUTH.md](../docs/ADMIN_AUTH.md).
 
+## Design & theme (Bluebird)
+
+- **Tokens:** edit [`design/tokens.json`](../design/tokens.json), then `npm run tokens:generate` — updates `web/src/styles/tokens.generated.css` and shared Tailwind `@theme` vars.
+- **Visual kit:** [docs/design-system/readme.md](../docs/design-system/readme.md) — voice, UI kits, reference components.
+- **Map basemap:** [docs/MAP_STYLE.md](../docs/MAP_STYLE.md) — optional `VITE_GOOGLE_MAPS_MAP_ID` for ivory/sky Bluebird tiles.
+- **QA:** [docs/TEST_FLOWS.md](../docs/TEST_FLOWS.md) theme gates after deploy.
+
+Use semantic Tailwind classes (`bg-brand`, `text-text-muted`, `font-display`) — not raw hex in components.
+
 ## Local API instead of Cloud Run
 
 ```bash

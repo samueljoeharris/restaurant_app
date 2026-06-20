@@ -242,7 +242,7 @@ Little Scout is crowd-sourced, not verified-purchase. Trust comes from structure
 - Median TTF + p25/p75, not just mean.
 - Sample size + last updated (“12 visits · updated 3 days ago”).
 - Hide aggregates below `min_sample_size`; show “Be the first to rate.”
-- Map pin tiers: green / yellow / red / gray (unknown) — see [DESIGN.md § TTF Tiers](DESIGN.md#5-ttf-metric--detailed-spec).
+- Map pin tiers: green / yellow / red / gray (unknown) — token names `ttfFast`, `ttfOk`, `ttfSlow`, `ttfUnknown` in [DESIGN_TOKENS.md](DESIGN_TOKENS.md); rules in [DESIGN.md § TTF Tiers](DESIGN.md#5-ttf-metric--detailed-spec).
 
 ### Moderation (before broad launch)
 

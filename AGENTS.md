@@ -143,6 +143,10 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 | Doc | When to read |
 |-----|--------------|
 | [docs/DESIGN.md](docs/DESIGN.md) | Architecture, data model, API sketch, Terraform scope |
+| [docs/design-system/readme.md](docs/design-system/readme.md) | Bluebird visual design kit — voice, UI kits, reference components |
+| [docs/DESIGN_TOKENS.md](docs/DESIGN_TOKENS.md) | Theme tokens — edit `design/tokens.json`, run `npm run tokens:generate` |
+| [docs/MAP_STYLE.md](docs/MAP_STYLE.md) | Google Map Style basemap + MapKit POI-off |
+| [docs/TEST_FLOWS.md](docs/TEST_FLOWS.md) | Live UI theme QA catalog |
 | [docs/IOS_DESIGN.md](docs/IOS_DESIGN.md) | Phase 3 iOS implementation plan and milestones |
 | [ios/TTF/README.md](ios/TTF/README.md) | iOS Xcode setup and local runbook |
 | [docs/BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Auth, account deletion, caching, map search, moderation |

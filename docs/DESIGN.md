@@ -282,12 +282,14 @@ TTFObservation {
 
 ### TTF Tiers (Map Pin Colors)
 
-| Tier | Median TTF | Pin color |
-|------|------------|-----------|
-| Fast | ≤ 8 min | Green |
-| OK | 9–15 min | Yellow |
-| Slow | > 15 min | Red |
-| Unknown | < 3 samples | Gray |
+| Tier | Median TTF | Pin color | Token name |
+|------|------------|-----------|------------|
+| Fast | ≤ 8 min | Green | `ttfFast` |
+| OK | 9–15 min | Yellow | `ttfOk` |
+| Slow | > 15 min | Red | `ttfSlow` |
+| Unknown | < 3 samples | Gray | `ttfUnknown` |
+
+Visual palette and codegen: [DESIGN_TOKENS.md](DESIGN_TOKENS.md) · design kit: [design-system/readme.md](design-system/readme.md).
 
 ---
 

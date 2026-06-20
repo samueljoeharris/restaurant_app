@@ -39,10 +39,15 @@ node scripts/generate-design-tokens.mjs
 | `bg` | `#FBF6EC` | Warm paper |
 | `brand` | `#3FA7D6` | Sky blue primary |
 | `accent` | `#FBA63C` | Mango secondary |
+| `accentPop` | `#F08A2E` | Alert / “new” pop |
 | `brandSoft` | `#D6EDF7` | Sky tint |
 | `text` | `#2F3A42` | Body text |
 
-**Typography:** Quicksand (display) + Nunito (body) on web.
+**Typography:** Quicksand (display) + Nunito (body) on web. Scale tokens (`text-display`, `text-number`, etc.) in generated CSS.
+
+**Paper texture:** `--paper-dot-*` vars for subtle dot-grid on `body` (see `globals.css`).
+
+**Shadows:** `--shadow-brand` for primary button glow.
 
 **TTF tiers** (`ttfFast`, `ttfOk`, `ttfSlow`, `ttfUnknown`) stay semantic across themes.
 

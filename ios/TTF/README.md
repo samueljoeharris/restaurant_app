@@ -14,8 +14,6 @@ Native **SwiftUI + MapKit + MVVM** client for the Dedham pilot. Connects to the 
 open ios/TTF/TTF.xcodeproj
 ```
 
-**Important:** The iOS app lives on branch `cursor/ios-scaffold-9c9f` until merged to `main`. If you are on `main`, run `git checkout cursor/ios-scaffold-9c9f` first.
-
 ### Troubleshooting “project is damaged”
 
 The checked-in `project.pbxproj` must use **comma-separated** UUID lists (valid Xcode plist syntax). If Xcode refuses to open the project after adding files, regenerate it:
@@ -141,5 +139,7 @@ RUNNER_TEMP=$(mktemp -d) \
 
 - [docs/GETTING_STARTED.md](../../docs/GETTING_STARTED.md) — Phase 3 checklist
 - [docs/DESIGN.md](../../docs/DESIGN.md) — product + iOS stack
+- [docs/DESIGN_TOKENS.md](../../docs/DESIGN_TOKENS.md) — Bluebird theme tokens (`npm run tokens:generate` from `web/`)
+- [docs/IOS_DESIGN.md](../../docs/IOS_DESIGN.md) — iOS architecture and milestones
 - [api/openapi.yaml](../../api/openapi.yaml) — REST contract
 - [web/src/api/client.ts](../../web/src/api/client.ts) — reference client

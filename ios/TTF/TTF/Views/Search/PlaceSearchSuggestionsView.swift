@@ -30,13 +30,13 @@ struct PlaceSearchSuggestionsView: View {
     private func suggestionRow(_ suggestion: PlaceSuggestion) -> some View {
         HStack(spacing: 12) {
             Image(systemName: suggestion.type == "restaurant" ? "fork.knife" : "mappin.circle.fill")
-                .foregroundStyle(suggestion.type == "restaurant" ? Color.accentColor : .secondary)
+                .foregroundStyle(suggestion.type == "restaurant" ? Color.brand : Color.textMuted)
                 .frame(width: 20)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(suggestion.primaryText)
                     .font(.body)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.text)
                     .lineLimit(1)
                 Text(suggestion.secondaryText ?? "")
                     .font(.caption)
