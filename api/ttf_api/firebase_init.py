@@ -13,6 +13,18 @@ from ttf_api.config import settings
 _firebase_initialized = False
 
 
+def _resolve_service_account_path(raw: str) -> Path:
+    path = Path(raw)
+    if path.is_file():
+        return path
+    if not path.is_absolute():
+        repo_root = Path(__file__).resolve().parents[2]
+        candidate = repo_root / raw
+        if candidate.is_file():
+            return candidate
+    return path
+
+
 def using_emulator() -> bool:
     return bool(settings.firebase_auth_emulator_host)
 
@@ -33,7 +45,7 @@ def init_firebase() -> None:
         except ValueError:
             firebase_admin.initialize_app(options=options)
     elif settings.firebase_service_account_path:
-        path = Path(settings.firebase_service_account_path)
+        path = _resolve_service_account_path(settings.firebase_service_account_path)
         if not path.is_file():
             raise RuntimeError(f"Firebase service account not found: {path}")
         cred = credentials.Certificate(str(path))
