@@ -233,6 +233,15 @@ PY
   echo "  DEV_TEST_* (optional)"
 fi
 
+# ── Synthetic agent user registry ───────────────────────────────────────────
+AGENT_REGISTRY="$(fetch_secret ttf-agent-users-registry)"
+if [[ -n "$AGENT_REGISTRY" ]]; then
+  AGENT_REGISTRY_PATH="$SECRETS_DIR/agent-users-registry.json"
+  printf '%s' "$AGENT_REGISTRY" >"$AGENT_REGISTRY_PATH"
+  chmod 600 "$AGENT_REGISTRY_PATH"
+  echo "  agent-users-registry.json"
+fi
+
 echo ""
 echo "Sync complete. Run ./scripts/audit-env.sh to verify."
 

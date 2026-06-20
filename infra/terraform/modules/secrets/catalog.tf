@@ -87,6 +87,18 @@ locals {
       placeholder_data   = "{\"email\":\"\",\"password\":\"\",\"note\":\"Replace via gcloud secrets versions add\"}"
       seed_hint          = "echo '{\"email\":\"you@example.com\",\"password\":\"...\"}' | gcloud secrets versions add ttf-dev-test-credentials --data-file=-"
     }
+    ttf-agent-users-registry = {
+      title              = "Synthetic agent user pool (JSON)"
+      env_alias          = ".secrets/agent-users-registry.json"
+      purpose            = "Cursor Automation synthetic users — emails, passwords, observation ids"
+      consumers          = "dev-sync → .secrets/agent-users-registry.json, scripts/synthetic-users/registry.py"
+      category           = "dev-tool"
+      confidentiality    = "secret"
+      sync_dev           = true
+      version_managed_by = null
+      placeholder_data   = "{\"email_domain\":\"littlescout.app\",\"email_prefix\":\"scout-agent\",\"next_index\":1,\"users\":[]}"
+      seed_hint          = "echo '{\"email_domain\":\"littlescout.app\",\"email_prefix\":\"scout-agent\",\"next_index\":1,\"users\":[]}' | gcloud secrets versions add ttf-agent-users-registry --data-file=-"
+    }
     ttf-apple-sign-in-key = {
       title              = "Apple Sign-In key for token revoke (JSON)"
       env_alias          = "APPLE_* / APPLE_SIGN_IN_KEY_JSON"
