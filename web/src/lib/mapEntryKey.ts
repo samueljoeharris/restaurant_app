@@ -27,3 +27,19 @@ export function restaurantSubmitPath(entry: Pick<RestaurantMapEntry, "id" | "goo
   }
   return "/restaurants";
 }
+
+export function restaurantReviewPath(entry: Pick<RestaurantMapEntry, "id" | "google_place_id">): string {
+  if (entry.id) return `/restaurants/${entry.id}/review`;
+  if (entry.google_place_id) {
+    return `/restaurants/place/${encodeURIComponent(entry.google_place_id)}/review`;
+  }
+  return "/restaurants";
+}
+
+export function restaurantRatePath(entry: Pick<RestaurantMapEntry, "id" | "google_place_id">): string {
+  if (entry.id) return `/restaurants/${entry.id}/rate`;
+  if (entry.google_place_id) {
+    return `/restaurants/place/${encodeURIComponent(entry.google_place_id)}/rate`;
+  }
+  return "/restaurants";
+}

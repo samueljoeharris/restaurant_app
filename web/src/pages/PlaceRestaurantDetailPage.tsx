@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useCallback, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
@@ -10,8 +10,13 @@ import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { Stat, StatGrid } from "../components/ui/Stat";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
-import { restaurantSubmitPath } from "../lib/mapEntryKey";
+import {
+  restaurantRatePath,
+  restaurantReviewPath,
+  restaurantSubmitPath,
+} from "../lib/mapEntryKey";
 import { googleMapsUrlForEntry } from "../lib/googleMapsUrl";
+import { reviewChatAvailable } from "../lib/reviewChat";
 import type { RestaurantMapEntry } from "../types";
 
 const backLinkClass =
@@ -60,43 +65,86 @@ export function PlaceRestaurantDetailPage() {
     );
   }
 
+  if (entry.id) {
+    return <Navigate to={`/restaurants/${entry.id}`} replace />;
+  }
+
   const hasTtf = entry.ttf.sample_size > 0;
   const googleMapsUrl = googleMapsUrlForEntry(entry);
+  const showReviewChat = reviewChatAvailable();
+
   return (
     <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>} title={entry.name} subtitle={entry.address}>
       <Card title="Hours & directions" subtitle="Live info from Google Maps">
         <PlacePracticalInfo target={entry} showWeekdayHours />
       </Card>
 
+      {showReviewChat && (
+        <Card
+          title="Share your visit"
+          subtitle="Describe your meal in your own words"
+          accent
+        >
+          <ButtonLink to={restaurantReviewPath(entry)} fullWidth>
+            Chat through your review
+          </ButtonLink>
+        </Card>
+      )}
+
+      <Card title="Kid food speed" subtitle="How fast did kid food arrive?" accent>
+        {hasTtf ? (
+          <>
+            <StatGrid>
+              <Stat label="Median" value={`${entry.ttf.median_minutes ?? "—"}m`} highlight />
+              <Stat label="Quality" value={entry.ttf.avg_quality?.toFixed(1) ?? "—"} />
+              <Stat label="Visits" value={entry.ttf.sample_size} />
+            </StatGrid>
+            <ButtonLink to={restaurantSubmitPath(entry)} fullWidth>
+              Log another visit
+            </ButtonLink>
+          </>
+        ) : (
+          <>
+            <EmptyState
+              emoji="⏱️"
+              title="Not scouted yet"
+              description="Be the first parent to log how fast kid-friendly starters arrive."
+            />
+            <ButtonLink to={restaurantSubmitPath(entry)} fullWidth>
+              Log a visit
+            </ButtonLink>
+          </>
+        )}
+      </Card>
+
+      <Card
+        title="Parent ratings"
+        subtitle="Stroller access, noise, kids menu, and more"
+        action={
+          <ButtonLink to={restaurantRatePath(entry)} variant="secondary" size="sm">
+            Rate visit
+          </ButtonLink>
+        }
+      >
+        <p className="text-sm text-text-muted">
+          No parent ratings yet — be the first to share stroller access, noise level, and other
+          kid-friendly details.
+        </p>
+      </Card>
+
+      <div className="grid gap-2">
+        {googleMapsUrl && (
+          <ButtonAnchor href={googleMapsUrl} target="_blank" rel="noreferrer" variant="secondary" fullWidth>
+            View on Google Maps
+          </ButtonAnchor>
+        )}
+      </div>
+
       <Card>
         <p className="text-sm text-text-muted">
-          Listed via Google Places — not in the Little Scout catalog yet. Log a visit to add parent
-          speed and kid-friendly details.
+          Listed via Google Places — not in the Little Scout catalog yet. Your first contribution
+          adds this spot for other parents.
         </p>
-        {hasTtf ? (
-          <StatGrid>
-            <Stat label="Median TTF" value={entry.ttf.median_minutes?.toFixed(0) ?? "—"} hint="minutes" />
-            <Stat label="Quality" value={entry.ttf.avg_quality?.toFixed(1) ?? "—"} />
-            <Stat label="Visits" value={entry.ttf.sample_size} />
-          </StatGrid>
-        ) : (
-          <EmptyState title="Not scouted yet" description="Be the first parent to log how fast kid-friendly starters arrive." />
-        )}
-        <div className="mt-4 grid gap-2">
-          <ButtonLink to={restaurantSubmitPath(entry)} fullWidth>
-            {hasTtf ? "Log another visit" : "Log a visit"}
-          </ButtonLink>
-          {googleMapsUrl && (
-            <ButtonAnchor href={googleMapsUrl} target="_blank" rel="noreferrer" variant="secondary" fullWidth>
-              View on Google Maps
-            </ButtonAnchor>
-          )}
-          {entry.id && (
-            <ButtonLink to={`/restaurants/${entry.id}`} variant="ghost" fullWidth>
-              Open rated profile
-            </ButtonLink>
-          )}
-        </div>
       </Card>
     </Page>
   );

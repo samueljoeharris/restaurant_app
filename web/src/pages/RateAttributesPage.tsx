@@ -26,7 +26,7 @@ const backLinkClass =
   "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
 
 export function RateAttributesPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, placeId } = useParams<{ id?: string; placeId?: string }>();
   const navigate = useNavigate();
   const { idToken } = useAuth();
   const { toast } = useToast();
@@ -38,15 +38,25 @@ export function RateAttributesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
-    Promise.all([api.listMetrics(), api.getRestaurant(id)])
-      .then(([metricList, detail]) => {
+    if (id) {
+      Promise.all([api.listMetrics(), api.getRestaurant(id)])
+        .then(([metricList, detail]) => {
+          setMetrics(metricList);
+          setRestaurantName(detail.restaurant.name);
+        })
+        .catch((err) => setError(err instanceof Error ? err.message : "Load failed"))
+        .finally(() => setLoading(false));
+      return;
+    }
+    if (!placeId || !idToken) return;
+    Promise.all([api.listMetrics(), api.getPlaceEntry(placeId, idToken)])
+      .then(([metricList, entry]) => {
         setMetrics(metricList);
-        setRestaurantName(detail.restaurant.name);
+        setRestaurantName(entry.name);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Load failed"))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, placeId, idToken]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, MetricDefinition[]>();
@@ -64,26 +74,45 @@ export function RateAttributesPage() {
       ? "Save ratings"
       : `Save ${changedKeys.length} rating${changedKeys.length === 1 ? "" : "s"}`;
 
+  const backTo = id ? `/restaurants/${id}` : `/restaurants/place/${encodeURIComponent(placeId!)}`;
+  const needsAuth = Boolean(placeId && !id && !idToken);
+
   async function handleSubmit() {
-    if (!id || !idToken || changedKeys.length === 0) return;
+    if ((!id && !placeId) || !idToken || changedKeys.length === 0) return;
     setBusy(true);
     setError(null);
     try {
+      let restaurantId = id ?? null;
+      if (!restaurantId && placeId) {
+        const materialized = await api.materializePlace(placeId, idToken);
+        restaurantId = materialized.restaurant.id;
+      }
+      if (!restaurantId) throw new Error("Restaurant not found");
       for (const metric of changedKeys) {
         const value = ratings[metric.key];
         if (value === undefined) continue;
-        await api.submitAttribute(id, metric.key, value, idToken);
+        await api.submitAttribute(restaurantId, metric.key, value, idToken);
       }
       toast(
         `Saved ${changedKeys.length} rating${changedKeys.length === 1 ? "" : "s"} — check Parent ratings on the restaurant page.`,
         "success",
       );
-      navigate(`/restaurants/${id}`);
+      navigate(`/restaurants/${restaurantId}`);
     } catch (err) {
       setError(authErrorMessage(err));
     } finally {
       setBusy(false);
     }
+  }
+
+  if (needsAuth) {
+    return (
+      <Page narrow title="Rate visit">
+        <p className="text-text-muted">
+          <Link to="/login">Sign in</Link> to rate this place.
+        </p>
+      </Page>
+    );
   }
 
   if (loading) {
@@ -100,7 +129,7 @@ export function RateAttributesPage() {
       title="Rate visit"
       subtitle={restaurantName}
       back={
-        <Link to={`/restaurants/${id}`} className={backLinkClass}>
+        <Link to={backTo} className={backLinkClass}>
           ← Back
         </Link>
       }

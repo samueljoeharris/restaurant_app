@@ -165,6 +165,12 @@ export function TtfSubmitPage() {
     setTimerNow(Date.now());
   }
 
+  const backTo = id
+    ? `/restaurants/${id}`
+    : placeId
+      ? `/restaurants/place/${encodeURIComponent(placeId)}`
+      : "/restaurants";
+
   if (!restaurant) {
     return (
       <Page narrow title="Submit observation">
@@ -179,7 +185,7 @@ export function TtfSubmitPage() {
       title="Submit observation"
       subtitle={restaurant.restaurant.name}
       back={
-        <Link to={`/restaurants/${id}`} className={backLinkClass}>
+        <Link to={backTo} className={backLinkClass}>
           ← Back
         </Link>
       }
