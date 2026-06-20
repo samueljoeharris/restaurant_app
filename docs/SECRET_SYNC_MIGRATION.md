@@ -28,8 +28,10 @@ PROJECT=ttf-restaurant-dev
 echo -n "ghp_..." | gcloud secrets versions add ttf-github-pat-mcp --project=$PROJECT --data-file=-
 
 # Optional test login
-echo '{"email":"you@example.com","password":"..."}' \
-  | gcloud secrets versions add ttf-dev-test-credentials --project=$PROJECT --data-file=-
+./scripts/seed-dev-test-credentials.sh
+# Or manually:
+# echo '{"email":"contrib-1781961579@ttf.test","password":"..."}' \
+#   | gcloud secrets versions add ttf-dev-test-credentials --project=$PROJECT --data-file=-
 
 # Apple Sign-In (when ready — then set apple_sign_in_key_configured = true in terraform.tfvars)
 echo '{"team_id":"...","key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----","client_id":"com.samueljoeharris.ttf"}' \

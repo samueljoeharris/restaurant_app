@@ -78,6 +78,11 @@ gh workflow run reusable-web.yml --repo samueljoeharris/restaurant_app --ref mai
 # API health
 curl -sf https://api.dev.littlescout.app/health
 
+# Browser UI — load shared test login (never echo password)
+source scripts/load-dev-test-env.sh
+# Sign in at https://app.dev.littlescout.app/login with $DEV_TEST_EMAIL / $DEV_TEST_PASSWORD
+# Flows: docs/TEST_FLOWS.md (WEB-AUTH-01, WEB-MAP-01, …)
+
 # Example authenticated dev token (local compose only)
 curl -sf -H "Authorization: Bearer dev:pilot" \
   http://localhost:8080/v1/restaurants/map

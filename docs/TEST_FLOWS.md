@@ -14,7 +14,7 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 | Dev | `https://app.dev.littlescout.app` |
 | Admin dev | `https://admin.dev.littlescout.app` (IAP + admin claim) |
 
-1. Sign in with Firebase test user ([WEB_AUTH.md](./WEB_AUTH.md)).
+1. Sign in with the shared dev test account — `DEV_TEST_EMAIL` / `DEV_TEST_PASSWORD` from `.secrets/dev-test.env` (see [AGENTS.md](../AGENTS.md) § Browser / UI test plan). Canonical email: `contrib-1781961579@ttf.test`.
 2. Run **P0** flows in light mode; repeat **WEB-SHELL-03** + one flow per area in dark mode.
 3. Mark Audit columns: date, runner, pass/fail, notes.
 

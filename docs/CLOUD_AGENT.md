@@ -48,6 +48,16 @@ cd web && npm run dev
 ./scripts/audit-env.sh
 ```
 
+### Browser test login (optional)
+
+Shared email/password for UI validation live in **`ttf-dev-test-credentials`** (JSON: `email`, `password`). Sync writes `.secrets/dev-test.env` as `DEV_TEST_EMAIL` / `DEV_TEST_PASSWORD`.
+
+- **Canonical email:** `contrib-1781961579@ttf.test`
+- **One-time seed:** `./scripts/seed-dev-test-credentials.sh` (requires SM admin — dev-sync SA is read-only)
+- **Agents:** after bootstrap, `source scripts/load-dev-test-env.sh` before browser sign-in; never print the password
+
+See [AGENTS.md](../AGENTS.md) § Browser / UI test plan and [TEST_FLOWS.md](TEST_FLOWS.md).
+
 ## Emulator mode (optional)
 
 Add visible env `FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099` and `VITE_USE_AUTH_EMULATOR=true` — skips Secret Manager.

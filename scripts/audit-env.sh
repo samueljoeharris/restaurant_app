@@ -33,6 +33,7 @@ file_size() {
 API_SECRETS="${ROOT}/.secrets/api.env"
 WEB_SECRETS="${ROOT}/.secrets/web.env.local"
 MCP_SECRETS="${ROOT}/.secrets/mcp.env"
+DEV_TEST_SECRETS="${ROOT}/.secrets/dev-test.env"
 FIREBASE_SA="${ROOT}/.secrets/firebase-sa.json"
 LEGACY_FIREBASE_SA="${ROOT}/firebase-sa.json"
 
@@ -58,6 +59,14 @@ echo "  VITE_FIREBASE_API_KEY:        $(status "$(read_kv "$WEB_SECRETS" VITE_FI
 echo ""
 echo "MCP (.secrets/mcp.env):"
 echo "  GITHUB_PERSONAL_ACCESS_TOKEN: $(status "$(read_kv "$MCP_SECRETS" GITHUB_PERSONAL_ACCESS_TOKEN)")"
+echo ""
+echo "Browser test login (.secrets/dev-test.env — optional):"
+dev_test_email="$(read_kv "$DEV_TEST_SECRETS" DEV_TEST_EMAIL)"
+echo "  DEV_TEST_EMAIL:               $(status "$dev_test_email")${dev_test_email:+ ($dev_test_email)}"
+echo "  DEV_TEST_PASSWORD:            $(status "$(read_kv "$DEV_TEST_SECRETS" DEV_TEST_PASSWORD)")"
+if [[ -z "$dev_test_email" ]]; then
+  echo "  hint: run ./scripts/seed-dev-test-credentials.sh once (needs SM admin, not dev-sync SA)"
+fi
 echo ""
 echo "Config (.env.defaults — committed, non-secret):"
 echo "  AUTH_DEV_MODE:                $(read_kv .env.defaults AUTH_DEV_MODE || echo unset)"

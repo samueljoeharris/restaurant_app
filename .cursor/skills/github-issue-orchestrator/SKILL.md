@@ -86,7 +86,7 @@ Pick checks that prove the issue acceptance criteria:
 | Surface | Base URL | Typical checks |
 |---------|----------|----------------|
 | API | `https://api.dev.littlescout.app` | `curl` health + issue-specific endpoint |
-| Web | `https://app.dev.littlescout.app` | Browser MCP: navigate, exercise changed UI |
+| Web | `https://app.dev.littlescout.app` | Browser MCP: `source scripts/load-dev-test-env.sh`, sign in at `/login`, run [TEST_FLOWS.md](docs/TEST_FLOWS.md) P0 |
 | Admin | `https://admin.dev.littlescout.app` | API-only unless issue is admin UI (IAP) |
 | Local fallback | `localhost:8080` / `:5173` | When push/deploy not required (docs-only, local-only) |
 

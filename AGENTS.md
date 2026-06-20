@@ -187,6 +187,29 @@ bash .cursor/scripts/cloud-eval-up.sh   # postgres + native API (real Firebase J
 cd web && npm run dev
 ```
 
+### Browser / UI test plan (cloud agents)
+
+When validating web UI flows (issue delivery, [TEST_FLOWS.md](docs/TEST_FLOWS.md)), sign in with the **shared dev test account** — not a personal Google account.
+
+| Item | Detail |
+|------|--------|
+| **Email (public)** | `contrib-1781961579@ttf.test` |
+| **Password** | Secret Manager `ttf-dev-test-credentials` → `.secrets/dev-test.env` |
+| **One-time setup** | Human with SM admin runs `./scripts/seed-dev-test-credentials.sh` (creates GSM version + Firebase user) |
+| **Agent bootstrap** | Automatic — `sync-secrets.sh` writes `DEV_TEST_EMAIL` / `DEV_TEST_PASSWORD` |
+| **Load in shell** | `source scripts/load-dev-test-env.sh` (never echo `$DEV_TEST_PASSWORD` in chat) |
+
+**Test steps (local or app.dev):**
+
+1. `./scripts/audit-env.sh` — confirm `DEV_TEST_EMAIL` and `DEV_TEST_PASSWORD` are set.
+2. Start stack: `bash .cursor/scripts/cloud-eval-up.sh` then `cd web && npm run dev` (local) or use `https://app.dev.littlescout.app`.
+3. Open `/login` → email/password → expect redirect to `/map`.
+4. Run P0 flows from [TEST_FLOWS.md](docs/TEST_FLOWS.md) (WEB-AUTH-01, WEB-MAP-01, etc.).
+
+**Emulator fallback:** if `FIREBASE_AUTH_EMULATOR_HOST` is set, the same `DEV_TEST_*` vars seed the emulator user (`seed-emulator-user.sh`); default fallback is `pilot@ttf.test` / `pilotpass123`.
+
+**Do not:** paste test passwords into Cursor Runtime Secrets, commit them, or create ad-hoc test users per agent run.
+
 ### Local full-stack — real Firebase (default)
 
 Same auth as `app.dev` — use your real `web/.env.local` Firebase config and `.secrets/firebase-sa.json` (via `./scripts/sync-secrets.sh`). Full steps: [docs/WEB_AUTH.md](docs/WEB_AUTH.md#option-a--real-firebase-locally-recommended).

@@ -97,7 +97,7 @@ locals {
       sync_dev           = true
       version_managed_by = null
       placeholder_data   = "{\"email\":\"\",\"password\":\"\",\"note\":\"Replace via gcloud secrets versions add\"}"
-      seed_hint          = "echo '{\"email\":\"you@example.com\",\"password\":\"...\"}' | gcloud secrets versions add ttf-dev-test-credentials --data-file=-"
+      seed_hint          = "echo '{\"email\":\"contrib-1781961579@ttf.test\",\"password\":\"...\"}' | gcloud secrets versions add ttf-dev-test-credentials --data-file=-  # or ./scripts/seed-dev-test-credentials.sh"
     }
     ttf-apple-sign-in-key = {
       title              = "Apple Sign-In key for token revoke (JSON)"

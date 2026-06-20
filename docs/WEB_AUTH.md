@@ -77,6 +77,19 @@ Same auth as `app.dev` and Cursor Cloud agents. Use when testing Google sign-in,
 
 For Cursor Cloud, see [CLOUD_AGENT.md](CLOUD_AGENT.md) — one Runtime Secret `GCP_DEV_SYNC_SA_JSON`; sync pulls everything else.
 
+### Shared dev browser-test account
+
+For cloud agents and repeatable UI smoke tests on **real Firebase** (`app.dev` or local Option A):
+
+| | |
+|--|--|
+| Email | `contrib-1781961579@ttf.test` |
+| Password | GSM `ttf-dev-test-credentials` → `.secrets/dev-test.env` (`DEV_TEST_*`) |
+| Setup (once) | `./scripts/seed-dev-test-credentials.sh` |
+| Verify | `./scripts/audit-env.sh` |
+
+Agents: `source scripts/load-dev-test-env.sh` then sign in at `/login`. Do not commit or paste the password.
+
 ### Option B — Firebase Auth emulator (optional, no secrets)
 
 No real Firebase credentials needed. Useful for CI-like sandboxes or when you cannot use Runtime Secrets.

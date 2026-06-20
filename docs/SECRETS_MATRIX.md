@@ -29,7 +29,7 @@ You → GCP Secret Manager (source of truth)
 | `ttf-firebase-admin-sa` | `.secrets/firebase-sa.json` | api | secret | API JWT verify | yes |
 | `ttf-gemini-api-key` | `GEMINI_API_KEY` | api | secret | Review chat | yes |
 | `ttf-github-pat-mcp` | `GITHUB_PERSONAL_ACCESS_TOKEN` | dev-tool | secret | Cursor GitHub MCP | yes |
-| `ttf-dev-test-credentials` | `DEV_TEST_*` | dev-tool | secret | Optional browser tests | yes |
+| `ttf-dev-test-credentials` | `DEV_TEST_*` | dev-tool | secret | Cloud-agent / local browser UI tests (`contrib-1781961579@ttf.test`) | yes |
 | `ttf-apple-sign-in-key` | `APPLE_*` / `APPLE_SIGN_IN_KEY_JSON` | api | secret | Apple revoke on delete | yes |
 | `ttf-iap-oauth` | Terraform IAP vars | terraform | secret | Admin IAP OAuth | no |
 | `ttf-db-url` | `DATABASE_URL` | infra | secret | Cloud SQL DSN | no |
@@ -74,7 +74,7 @@ echo -n "VALUE" | gcloud secrets versions add SECRET_ID --project=$PROJECT --dat
 
 Secret **containers** are created by Terraform (`catalog.tf` + environment `secret_ids`). Do not `gcloud secrets create` manually — add new IDs to the catalog first.
 
-Optional dev placeholders: Terraform can seed initial JSON for `ttf-dev-test-credentials` and `ttf-apple-sign-in-key` when `create_placeholders = true` (dev only). Replace with real values via `gcloud secrets versions add`.
+Optional dev placeholders: Terraform can seed initial JSON for `ttf-dev-test-credentials` and `ttf-apple-sign-in-key` when `create_placeholders = true` (dev only). Replace with real values via `./scripts/seed-dev-test-credentials.sh` or `gcloud secrets versions add`.
 
 ## Pull secrets (dev)
 

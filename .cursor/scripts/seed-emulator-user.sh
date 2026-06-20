@@ -5,15 +5,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
-read_env_file() {
-  local key="$1"
-  grep -E "^${key}=" .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '\r' | sed 's/^"//;s/"$//'
-}
+# shellcheck disable=SC1091
+source "$ROOT/scripts/load-dev-test-env.sh"
 
-EMAIL="${DEV_TEST_EMAIL:-$(read_env_file DEV_TEST_EMAIL)}"
-PASSWORD="${DEV_TEST_PASSWORD:-$(read_env_file DEV_TEST_PASSWORD)}"
-EMAIL="${EMAIL:-pilot@ttf.test}"
-PASSWORD="${PASSWORD:-pilotpass123}"
+EMAIL="${DEV_TEST_EMAIL:-pilot@ttf.test}"
+PASSWORD="${DEV_TEST_PASSWORD:-pilotpass123}"
 
 if ! curl -sf http://localhost:9099/ >/dev/null 2>&1; then
   echo "Firebase emulator not reachable on :9099 — skip user seed"

@@ -84,6 +84,14 @@ fi
 
 github_pat="$(read_kv "$ROOT/.secrets/mcp.env" GITHUB_PERSONAL_ACCESS_TOKEN)"
 echo "  GITHUB_PERSONAL_ACCESS_TOKEN (MCP): $(key_status "$github_pat")"
+
+dev_test_email="$(read_kv "$ROOT/.secrets/dev-test.env" DEV_TEST_EMAIL)"
+dev_test_pass="$(read_kv "$ROOT/.secrets/dev-test.env" DEV_TEST_PASSWORD)"
+echo "  DEV_TEST_EMAIL (UI tests): $(key_status "$dev_test_email")"
+echo "  DEV_TEST_PASSWORD (UI tests): $(key_status "$dev_test_pass")"
+if [[ "$(key_status "$dev_test_email")" == MISSING || "$(key_status "$dev_test_pass")" == MISSING ]]; then
+  echo "  WARN: browser/UI validation needs ttf-dev-test-credentials in SM — see AGENTS.md"
+fi
 echo ""
 
 if [[ "$fail" -ne 0 ]]; then
