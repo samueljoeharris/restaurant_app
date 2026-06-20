@@ -39,6 +39,7 @@ from ttf_api.user_profiles import (
     validate_kids_ages,
     watch_count,
 )
+from ttf_api.security import require_write_access
 
 router = APIRouter(prefix="/v1/me", tags=["me"])
 
@@ -117,7 +118,7 @@ def get_profile(user: Annotated[AuthUser, Depends(get_current_user)]) -> Extende
 @router.patch("/profile", response_model=ExtendedUserProfile)
 def patch_profile(
     body: UserProfilePatch,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> ExtendedUserProfile:
     with get_conn() as conn:
         ensure_user_profile(conn, user.firebase_uid)
@@ -180,7 +181,7 @@ def list_watches(
 @router.post("/watches/{restaurant_id}", status_code=status.HTTP_201_CREATED)
 def watch_restaurant(
     restaurant_id: UUID,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> dict[str, bool]:
     with get_conn() as conn:
         ensure_user_profile(conn, user.firebase_uid)
@@ -203,7 +204,7 @@ def watch_restaurant(
 )
 def unwatch_restaurant(
     restaurant_id: UUID,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> Response:
     with get_conn() as conn:
         deleted = conn.execute(
@@ -281,7 +282,7 @@ def get_unread_count(
 @router.post("/activity/mark-read")
 def mark_activity_read(
     body: ActivityMarkReadRequest,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> ActivityUnreadCountResponse:
     through = body.through
     if through.tzinfo is None:
@@ -317,7 +318,7 @@ def get_notification_preferences(
 @router.patch("/notification-preferences", response_model=NotificationPreferences)
 def patch_notification_preferences(
     body: NotificationPreferencesUpdate,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> NotificationPreferences:
     with get_conn() as conn:
         ensure_user_profile(conn, user.firebase_uid)
@@ -363,7 +364,7 @@ def patch_notification_preferences(
 @router.post("/push-tokens", response_model=DevicePushTokenResponse, status_code=status.HTTP_201_CREATED)
 def register_push_token(
     body: DevicePushTokenRequest,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> DevicePushTokenResponse:
     with get_conn() as conn:
         ensure_user_profile(conn, user.firebase_uid)
@@ -392,7 +393,7 @@ def register_push_token(
 )
 def delete_push_token(
     token_id: UUID,
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> Response:
     with get_conn() as conn:
         deleted = conn.execute(
