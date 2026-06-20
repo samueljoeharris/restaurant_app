@@ -77,6 +77,20 @@ final class APIClient {
         )
     }
 
+    /// Live Google practical info for detail surfaces. Requires sign-in.
+    func getPlacePractical(placeId: String) async throws -> PlacePracticalResponse {
+        if let cached = PlacePracticalCache.get(placeId) {
+            return cached
+        }
+        let encodedId = placeId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? placeId
+        let response: PlacePracticalResponse = try await request(
+            path: "/v1/places/\(encodedId)/practical",
+            authenticated: true
+        )
+        PlacePracticalCache.set(placeId, data: response)
+        return response
+    }
+
     /// Radius-based restaurant search around a point. Public — no auth required.
     func searchRestaurants(
         lat: Double,

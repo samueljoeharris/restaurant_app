@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 @MainActor
 struct RestaurantDetailView: View {
@@ -20,12 +21,13 @@ struct RestaurantDetailView: View {
                 ProgressView("Loading…")
             } else if let error = viewModel.errorMessage, viewModel.detail == nil {
                 ErrorStateView(message: error) {
-                    Task { await viewModel.load(api: api) }
+                    Task { await viewModel.load(api: api, fetchPractical: auth.isSignedIn) }
                 }
             } else if let detail = viewModel.detail {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         header(for: detail)
+                        practicalInfoSection(for: detail.restaurant)
                         ttfCard(for: detail.ttf)
                         actionLinks
                         if !viewModel.notes.isEmpty {
@@ -39,8 +41,82 @@ struct RestaurantDetailView: View {
         .navigationTitle(viewModel.detail?.restaurant.name ?? "Restaurant")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            await viewModel.load(api: api)
+            await viewModel.load(api: api, fetchPractical: auth.isSignedIn)
         }
+        .onChange(of: auth.isSignedIn) { _, signedIn in
+            Task { await viewModel.load(api: api, fetchPractical: signedIn) }
+        }
+    }
+
+    @ViewBuilder
+    private func practicalInfoSection(for restaurant: RestaurantDetail) -> some View {
+        if let practical = viewModel.practical {
+            VStack(alignment: .leading, spacing: 10) {
+                Label("Hours & directions", systemImage: "clock")
+                    .font(.headline)
+
+                HStack(spacing: 8) {
+                    if let openNow = practical.openNow {
+                        Text(openNow ? "Open now" : "Closed")
+                            .font(.caption.bold())
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(openNow ? Color.successSoft : Color.surfaceMuted, in: Capsule())
+                            .foregroundStyle(openNow ? Color.success : Color.textMuted)
+                    }
+                    if let summary = practical.hoursSummary {
+                        Text(summary)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.textMuted)
+                    }
+                }
+
+                if let rating = practical.googleRating {
+                    let countText = practical.googleRatingCount.map { " · \($0) reviews" } ?? ""
+                    Text("Google rating \(rating, specifier: "%.1f")\(countText)")
+                        .font(.caption)
+                        .foregroundStyle(Color.textMuted)
+                }
+
+                HStack(spacing: 12) {
+                    Button {
+                        openDirections(to: restaurant)
+                    } label: {
+                        Label("Directions", systemImage: "arrow.triangle.turn.up.right.diamond")
+                    }
+                    .buttonStyle(.bordered)
+
+                    if let phone = practical.phone, let url = URL(string: "tel:\(phone)") {
+                        Link(destination: url) {
+                            Label("Call", systemImage: "phone")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+
+                    if let website = practical.website, let url = URL(string: website) {
+                        Link(destination: url) {
+                            Label("Website", systemImage: "globe")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+
+                Text("Powered by Google")
+                    .font(.caption2)
+                    .foregroundStyle(Color.textMuted)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private func openDirections(to restaurant: RestaurantDetail) {
+        let coordinate = CLLocationCoordinate2D(latitude: restaurant.lat, longitude: restaurant.lng)
+        let placemark = MKPlacemark(coordinate: coordinate)
+        let item = MKMapItem(placemark: placemark)
+        item.name = restaurant.name
+        item.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving])
     }
 
     @ViewBuilder
@@ -119,7 +195,7 @@ struct RestaurantDetailView: View {
                 .accessibilityHint("Sign in to submit TTF observations and rate attributes")
             }
 
-            if let urlString = viewModel.detail?.restaurant.googleMapsUrl,
+            if let urlString = googleMapsUrl(for: viewModel.detail?.restaurant),
                let url = URL(string: urlString) {
                 Link(destination: url) {
                     Label("Open in Google Maps", systemImage: "map")
@@ -143,6 +219,19 @@ struct RestaurantDetailView: View {
         .onChange(of: auth.isSignedIn) { _, signedIn in
             if signedIn { showSignIn = false }
         }
+    }
+
+    private func googleMapsUrl(for restaurant: RestaurantDetail?) -> String? {
+        guard let restaurant else { return nil }
+        if let url = restaurant.googleMapsUrl?.trimmingCharacters(in: .whitespacesAndNewlines), !url.isEmpty {
+            return url
+        }
+        if let placeId = restaurant.googlePlaceId {
+            let query = restaurant.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? restaurant.name
+            let encodedPlaceId = placeId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? placeId
+            return "https://www.google.com/maps/search/?api=1&query=\(query)&query_place_id=\(encodedPlaceId)"
+        }
+        return "https://www.google.com/maps/search/?api=1&query=\(restaurant.lat),\(restaurant.lng)"
     }
 
     @ViewBuilder

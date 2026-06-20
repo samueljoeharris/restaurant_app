@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { useCallback, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { PlacePracticalInfo } from "../components/PlacePracticalInfo";
 import { ButtonLink, ButtonAnchor } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -63,6 +64,10 @@ export function PlaceRestaurantDetailPage() {
   const googleMapsUrl = googleMapsUrlForEntry(entry);
   return (
     <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>} title={entry.name} subtitle={entry.address}>
+      <Card title="Hours & directions" subtitle="Live info from Google Maps">
+        <PlacePracticalInfo target={entry} showWeekdayHours />
+      </Card>
+
       <Card>
         <p className="text-sm text-text-muted">
           Listed via Google Places — not in the Little Scout catalog yet. Log a visit to add parent

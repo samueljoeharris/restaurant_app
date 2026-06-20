@@ -6,6 +6,7 @@ import { useAuth } from "../auth/useAuth";
 import { authErrorMessage } from "../auth/errors";
 import { AttributeSummary } from "../components/AttributeSummary";
 import { ContributionRecencyChart } from "../components/ContributionRecencyChart";
+import { PlacePracticalInfo } from "../components/PlacePracticalInfo";
 import { Badge } from "../components/ui/Badge";
 import { Button, ButtonAnchor, ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -15,6 +16,7 @@ import { SkeletonList } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/useToast";
 import { Stat, StatGrid } from "../components/ui/Stat";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import { googleMapsUrlForEntry } from "../lib/googleMapsUrl";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
 
 const backLinkClass =
@@ -109,6 +111,19 @@ export function RestaurantDetailPage() {
           ))}
         </div>
       )}
+
+      <Card title="Hours & directions" subtitle="Live info from Google Maps">
+        <PlacePracticalInfo
+          target={{
+            google_place_id: r.google_place_id,
+            google_maps_url: r.google_maps_url,
+            lat: r.lat,
+            lng: r.lng,
+            name: r.name,
+          }}
+          showWeekdayHours
+        />
+      </Card>
 
       <Card
         title="Share your visit"
@@ -230,9 +245,23 @@ export function RestaurantDetailPage() {
         <ButtonLink to={`/map?focus=${r.id}`} variant="secondary" fullWidth>
           View on map
         </ButtonLink>
-        {r.google_maps_url && (
+        {googleMapsUrlForEntry({
+          google_place_id: r.google_place_id,
+          google_maps_url: r.google_maps_url,
+          lat: r.lat,
+          lng: r.lng,
+          name: r.name,
+        }) && (
           <ButtonAnchor
-            href={r.google_maps_url}
+            href={
+              googleMapsUrlForEntry({
+                google_place_id: r.google_place_id,
+                google_maps_url: r.google_maps_url,
+                lat: r.lat,
+                lng: r.lng,
+                name: r.name,
+              })!
+            }
             target="_blank"
             rel="noreferrer"
             variant="ghost"

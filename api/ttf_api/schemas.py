@@ -559,3 +559,16 @@ class PlaceResolveResponse(BaseModel):
     lat: float
     lng: float
     label: str
+
+
+class PlacePracticalResponse(BaseModel):
+    place_id: str
+    open_now: bool | None = None
+    hours_summary: str | None = None
+    weekday_hours: list[str] | None = None
+    phone: str | None = None
+    website: str | None = None
+    google_maps_url: str | None = None
+    google_rating: float | None = None
+    google_rating_count: int | None = None
+    business_status: str | None = None

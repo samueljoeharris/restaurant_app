@@ -341,6 +341,109 @@ paths:
         "503":
           description: MAPS_API_KEY not configured
 
+  /v1/places/nearby:
+    get:
+      tags: [places]
+      summary: Nearby restaurants from Google Places merged with Scout catalog
+      security: [{ firebase: [] }]
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema: { type: number, format: double, minimum: -90, maximum: 90 }
+        - name: lng
+          in: query
+          required: true
+          schema: { type: number, format: double, minimum: -180, maximum: 180 }
+        - name: radius_m
+          in: query
+          schema: { type: integer, minimum: 500, maximum: 25000, default: 8000 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 20, default: 20 }
+      responses:
+        "200":
+          description: Nearby map entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RestaurantMapEntry"
+        "401":
+          description: Not authenticated
+        "403":
+          description: App Check verification failed
+
+  /v1/places/{place_id}/entry:
+    get:
+      tags: [places]
+      summary: Live Google place merged with Scout aggregates
+      security: [{ firebase: [] }]
+      parameters:
+        - name: place_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Map entry for the place
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantMapEntry"
+        "404":
+          description: Place not found
+
+  /v1/places/{place_id}/practical:
+    get:
+      tags: [places]
+      summary: Live Google practical info (hours, phone, rating)
+      description: |
+        On-demand Place Details (Enterprise SKU fields). Not persisted to Postgres.
+        Intended for restaurant detail surfaces only.
+      security: [{ firebase: [] }]
+      parameters:
+        - name: place_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Practical place info for display
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlacePracticalResponse"
+        "401":
+          description: Not authenticated
+        "403":
+          description: App Check verification failed
+        "404":
+          description: Place not found
+        "503":
+          description: MAPS_API_KEY not configured
+
+  /v1/places/{place_id}/materialize:
+    post:
+      tags: [places]
+      summary: Upsert a Google place into the Scout catalog
+      security: [{ firebase: [] }]
+      parameters:
+        - name: place_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Materialized restaurant detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantDetailResponse"
+        "404":
+          description: Place not found
+
   /v1/metrics:
     get:
       tags: [metrics]
@@ -574,6 +677,24 @@ components:
         lat: { type: number, format: double }
         lng: { type: number, format: double }
         label: { type: string, description: "Human-readable place name (formattedAddress)" }
+
+    PlacePracticalResponse:
+      type: object
+      required: [place_id]
+      properties:
+        place_id: { type: string }
+        open_now: { type: boolean, nullable: true }
+        hours_summary: { type: string, nullable: true }
+        weekday_hours:
+          type: array
+          nullable: true
+          items: { type: string }
+        phone: { type: string, nullable: true }
+        website: { type: string, nullable: true }
+        google_maps_url: { type: string, nullable: true }
+        google_rating: { type: number, format: double, nullable: true }
+        google_rating_count: { type: integer, nullable: true }
+        business_status: { type: string, nullable: true }
 
     MetricDefinition:
       type: object

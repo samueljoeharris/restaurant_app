@@ -19,9 +19,23 @@ from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.places_client import autocomplete_places, place_details, search_nearby_places
 from ttf_api.places_nearby import map_entry_from_place_details, merge_nearby_places
-from ttf_api.places_seed import PlacesSeedError, ensure_restaurant_for_place, fetch_place_details, require_maps_api_key
+from ttf_api.places_practical import place_to_practical
+from ttf_api.places_seed import (
+    PRACTICAL_FIELD_MASK,
+    PlacesSeedError,
+    ensure_restaurant_for_place,
+    fetch_place_details,
+    require_maps_api_key,
+)
 from ttf_api.routers.restaurants import build_restaurant_detail_response, _row_to_detail
-from ttf_api.schemas import AutocompleteResponse, PlaceSuggestion, PlaceResolveResponse, RestaurantDetailResponse, RestaurantMapEntry
+from ttf_api.schemas import (
+    AutocompleteResponse,
+    PlacePracticalResponse,
+    PlaceResolveResponse,
+    PlaceSuggestion,
+    RestaurantDetailResponse,
+    RestaurantMapEntry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -201,6 +215,28 @@ def nearby_places(
         entries = merge_nearby_places(conn, places)
     entries.sort(key=lambda e: (e.lat - lat) ** 2 + (e.lng - lng) ** 2)
     return entries[:limit]
+
+
+@router.get("/{place_id}/practical", response_model=PlacePracticalResponse)
+def get_place_practical(
+    request: Request,
+    place_id: str,
+    user: Annotated[AuthUser, Depends(get_current_user)] = None,
+) -> PlacePracticalResponse:
+    """Live Google practical info (hours, phone, rating) for detail surfaces.
+
+    Auth: sign-in + App Check. Enterprise SKU fields — not persisted to Postgres.
+    """
+    verify_app_check(request)
+    try:
+        api_key = require_maps_api_key()
+    except PlacesSeedError as exc:
+        _raise_seed_error(exc)
+    with httpx.Client() as client:
+        place = fetch_place_details(client, api_key, place_id, field_mask=PRACTICAL_FIELD_MASK)
+    if place is None:
+        raise HTTPException(status_code=404, detail="Place not found")
+    return place_to_practical(place)
 
 
 @router.get("/{place_id}/entry", response_model=RestaurantMapEntry)

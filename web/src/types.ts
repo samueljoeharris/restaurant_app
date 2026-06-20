@@ -364,6 +364,19 @@ export interface PlaceResolveResponse {
   label: string;
 }
 
+export interface PlacePracticalResponse {
+  place_id: string;
+  open_now?: boolean | null;
+  hours_summary?: string | null;
+  weekday_hours?: string[] | null;
+  phone?: string | null;
+  website?: string | null;
+  google_maps_url?: string | null;
+  google_rating?: number | null;
+  google_rating_count?: number | null;
+  business_status?: string | null;
+}
+
 export interface ContributionSchema {
   version: number;
   description: string;

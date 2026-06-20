@@ -17,6 +17,7 @@ import type {
   LocationRefreshConfigSaveResponse,
   MetricDefinition,
   Paginated,
+  PlacePracticalResponse,
   PlaceResolveResponse,
   PlaceSuggestion,
   RestaurantChangelogRow,
@@ -511,6 +512,13 @@ export const api = {
     request<RestaurantDetailResponse>(
       `/v1/places/${encodeURIComponent(placeId)}/materialize`,
       { method: "POST" },
+      token,
+    ),
+
+  getPlacePractical: (placeId: string, token: string) =>
+    request<PlacePracticalResponse>(
+      `/v1/places/${encodeURIComponent(placeId)}/practical`,
+      {},
       token,
     ),
 

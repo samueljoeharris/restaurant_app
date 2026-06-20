@@ -519,19 +519,26 @@ PLACE_DETAILS_URL = "https://places.googleapis.com/v1/places"
 DETAILS_FIELD_MASK = (
     "id,displayName,formattedAddress,location,types,googleMapsUri,businessStatus"
 )
+# Enterprise SKU — fetch on demand via GET /v1/places/{id}/practical only.
+PRACTICAL_FIELD_MASK = (
+    "id,googleMapsUri,websiteUri,nationalPhoneNumber,businessStatus,"
+    "currentOpeningHours,regularOpeningHours,rating,userRatingCount"
+)
 
 
 def fetch_place_details(
     client: httpx.Client,
     api_key: str,
     place_id: str,
+    *,
+    field_mask: str = DETAILS_FIELD_MASK,
 ) -> dict | None:
     """Fetch Place Details for one place id. Returns None when the place is gone."""
     resp = client.get(
         f"{PLACE_DETAILS_URL}/{place_id}",
         headers={
             "X-Goog-Api-Key": api_key,
-            "X-Goog-FieldMask": DETAILS_FIELD_MASK,
+            "X-Goog-FieldMask": field_mask,
         },
         timeout=20.0,
     )

@@ -87,6 +87,31 @@ struct RestaurantDetailResponse: Codable, Hashable {
     let ttf: TtfAggregate
 }
 
+struct PlacePracticalResponse: Codable, Hashable {
+    let placeId: String
+    let openNow: Bool?
+    let hoursSummary: String?
+    let weekdayHours: [String]?
+    let phone: String?
+    let website: String?
+    let googleMapsUrl: String?
+    let googleRating: Double?
+    let googleRatingCount: Int?
+    let businessStatus: String?
+
+    enum CodingKeys: String, CodingKey {
+        case placeId = "place_id"
+        case openNow = "open_now"
+        case hoursSummary = "hours_summary"
+        case weekdayHours = "weekday_hours"
+        case phone, website
+        case googleMapsUrl = "google_maps_url"
+        case googleRating = "google_rating"
+        case googleRatingCount = "google_rating_count"
+        case businessStatus = "business_status"
+    }
+}
+
 struct HealthResponse: Codable {
     let status: String
     let pilotCity: String

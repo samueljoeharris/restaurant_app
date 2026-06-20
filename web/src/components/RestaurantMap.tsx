@@ -8,6 +8,7 @@ import {
 } from "@vis.gl/react-google-maps";
 
 import { MapMarkerLayer } from "./MapMarkerLayer";
+import { PlacePracticalInfo } from "./PlacePracticalInfo";
 import { cn } from "../lib/cn";
 import {
   formatTtfMedian,
@@ -359,6 +360,8 @@ function MapRestaurantSheet({
             ×
           </button>
         </div>
+
+        <PlacePracticalInfo target={entry} compact />
 
         <section className="flex flex-col gap-3">
           <h3 className="m-0 text-xs font-semibold tracking-wide text-text-muted uppercase">
