@@ -61,12 +61,6 @@
       }
     },
     {
-      "id": "infrastructure.urbanArea",
-      "geometry": {
-        "fillColor": "#fbf6ec"
-      }
-    },
-    {
       "id": "natural.land",
       "geometry": {
         "fillColor": "#fbf6ec"
@@ -111,12 +105,6 @@
       "label": {
         "textFillColor": "#6b7a85",
         "textStrokeColor": "#fbf6ec"
-      }
-    },
-    {
-      "id": "political.landParcel",
-      "label": {
-        "visible": false
       }
     },
     {
