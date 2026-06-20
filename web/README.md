@@ -45,15 +45,7 @@ Admin deploys from the same `web/` source tree using `.github/workflows/reusable
 ## Local API instead of Cloud Run
 
 ```bash
-# repo root
-docker compose up postgres api firebase-emulator
+# repo root — native API (default)
+./scripts/start-local.sh
+# Emulator: docker compose --profile emulator up -d postgres firebase-emulator && ./scripts/run-api.sh
 ```
-
-Set in `.env.local`:
-
-```
-VITE_API_URL=http://localhost:8080
-VITE_USE_AUTH_EMULATOR=true
-```
-
-Use the Auth emulator with `docker compose --profile emulator up postgres api firebase-emulator`.

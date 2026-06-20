@@ -22,6 +22,7 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [MCP_SETUP.md](MCP_SETUP.md) | Cursor MCP setup for GitHub, GCP, Postgres, and Firebase |
 | [CLOUD_AGENT.md](CLOUD_AGENT.md) | **Cloud Agents** — paste `.env`, local stack, `/map` debugging |
 | [SECRETS_MATRIX.md](SECRETS_MATRIX.md) | **Where secrets live** — local vs GCP vs deploy; rotation |
+| [SECRETS_AUDIT.md](SECRETS_AUDIT.md) | Audit of the secrets design + Docker/runtime consistency (2026-06-20) |
 | [DESIGN.md](DESIGN.md) | Product design, data model, architecture, and roadmap |
 | [IOS_DESIGN.md](IOS_DESIGN.md) | Phase 3 iOS implementation plan — Cursor/Xcode workflow, architecture, milestones |
 | [../ios/TTF/README.md](../ios/TTF/README.md) | iOS Xcode setup and local runbook |

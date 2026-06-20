@@ -34,6 +34,7 @@ API_SECRETS="${ROOT}/.secrets/api.env"
 WEB_SECRETS="${ROOT}/.secrets/web.env.local"
 MCP_SECRETS="${ROOT}/.secrets/mcp.env"
 FIREBASE_SA="${ROOT}/.secrets/firebase-sa.json"
+LEGACY_FIREBASE_SA="${ROOT}/firebase-sa.json"
 
 echo "=== Environment audit ($(date -u +%Y-%m-%dT%H:%MZ)) ==="
 echo ""
@@ -42,7 +43,7 @@ echo "  .secrets/ dir:       $( [[ -d .secrets ]] && echo present || echo missin
 echo "  api.env:             $(file_size "$API_SECRETS")"
 echo "  web.env.local:       $(file_size "$WEB_SECRETS")"
 echo "  mcp.env:             $(file_size "$MCP_SECRETS")"
-echo "  firebase-sa.json:    $(file_size "$FIREBASE_SA")"
+echo "  .secrets/firebase-sa.json: $(file_size "$FIREBASE_SA")"
 echo ""
 echo "API secrets (.secrets/api.env):"
 echo "  MAPS_API_KEY:                 $(status "$(read_kv "$API_SECRETS" MAPS_API_KEY)")"
@@ -59,16 +60,39 @@ echo "  GITHUB_PERSONAL_ACCESS_TOKEN: $(status "$(read_kv "$MCP_SECRETS" GITHUB_
 echo ""
 echo "Config (.env.defaults — committed, non-secret):"
 echo "  AUTH_DEV_MODE:                $(read_kv .env.defaults AUTH_DEV_MODE || echo unset)"
+echo "  FIREBASE_SERVICE_ACCOUNT_PATH: $(read_kv .env.defaults FIREBASE_SERVICE_ACCOUNT_PATH || echo unset)"
 echo "  FIREBASE_AUTH_EMULATOR_HOST:  $(status "$(read_kv .env.defaults FIREBASE_AUTH_EMULATOR_HOST)")"
 echo ""
+defaults_sa_path="$(read_kv .env.defaults FIREBASE_SERVICE_ACCOUNT_PATH)"
+if [[ "$defaults_sa_path" != ".secrets/firebase-sa.json" ]]; then
+  echo "WARN: .env.defaults FIREBASE_SERVICE_ACCOUNT_PATH should be .secrets/firebase-sa.json (got: ${defaults_sa_path:-unset})"
+fi
+env_sa_path="$(read_kv .env FIREBASE_SERVICE_ACCOUNT_PATH)"
+if [[ -n "$env_sa_path" && "$env_sa_path" == "firebase-sa.json" ]]; then
+  echo "WARN: .env overrides FIREBASE_SERVICE_ACCOUNT_PATH=firebase-sa.json (legacy repo-root path)"
+fi
+if [[ -f "$LEGACY_FIREBASE_SA" ]]; then
+  echo "WARN: legacy repo-root firebase-sa.json still present — safe to delete after sync"
+fi
 sa_size=0
 if [[ -f "$FIREBASE_SA" ]]; then
   sa_size="$(wc -c <"$FIREBASE_SA" | tr -d ' ')"
 fi
 if [[ "$sa_size" -le 4 ]]; then
-  echo "firebase-sa.json: empty/minimal (OK for emulator)"
+  echo ".secrets/firebase-sa.json: empty/minimal (OK for emulator)"
 else
-  echo "firebase-sa.json: non-empty ($sa_size bytes) — prod JWT verify"
+  echo ".secrets/firebase-sa.json: non-empty ($sa_size bytes) — prod JWT verify"
+fi
+echo ""
+echo "Native API runtime:"
+if [[ -d .venv ]]; then echo "  .venv: present"
+else echo "  .venv: missing (created on first ./scripts/run-api.sh)"; fi
+if docker compose ps api --status running 2>/dev/null | grep -q api; then
+  echo "  API mode: Docker container (legacy --docker-api or manual compose)"
+elif curl -sf http://localhost:8080/health >/dev/null 2>&1; then
+  echo "  API mode: native uvicorn on :8080 (up)"
+else
+  echo "  API mode: not running"
 fi
 echo ""
 echo "Legacy (optional fallback during migration):"

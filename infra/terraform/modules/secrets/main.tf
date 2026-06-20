@@ -5,10 +5,11 @@ resource "google_secret_manager_secret" "secrets" {
   secret_id = each.key
 
   labels = {
-    managed_by  = "terraform"
-    environment = var.environment
-    category    = each.value.category
-    sync_dev    = each.value.sync_dev ? "true" : "false"
+    managed_by      = "terraform"
+    environment     = var.environment
+    category        = each.value.category
+    confidentiality = each.value.confidentiality
+    sync_dev        = each.value.sync_dev ? "true" : "false"
   }
 
   annotations = {

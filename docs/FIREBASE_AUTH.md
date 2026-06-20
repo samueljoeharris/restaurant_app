@@ -20,7 +20,7 @@ Identity lives entirely in **Firebase Auth**. Postgres stores `firebase_uid` on 
 |------|------|------------|
 | **Dev tokens** | Quick curl tests | `AUTH_DEV_MODE=true`, `Bearer dev:<uid>` |
 | **Auth Emulator** | Real JWT flow on Windows | `FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099` |
-| **Production** | Cloud Run / real users | `AUTH_DEV_MODE=false` + `firebase-sa.json` |
+| **Production** | Cloud Run / real users | `AUTH_DEV_MODE=false` + `.secrets/firebase-sa.json` |
 
 ---
 
@@ -57,11 +57,11 @@ Copy into `web/.env.local` as `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAI
 ### Service account (production API)
 
 1. Project **Settings** → **Service accounts**
-2. **Generate new private key** → save as `firebase-sa.json` at repo root (gitignored)
-3. API env:
+2. **Generate new private key** → `./scripts/sync-secrets.sh` writes `.secrets/firebase-sa.json`, or upload via `./api/scripts/upload_firebase_admin_sa.sh .secrets/firebase-sa.json`
+3. API env (defaults in `.env.defaults`):
    ```bash
    AUTH_DEV_MODE=false
-   FIREBASE_SERVICE_ACCOUNT_PATH=firebase-sa.json
+   FIREBASE_SERVICE_ACCOUNT_PATH=.secrets/firebase-sa.json
    ```
 
 ---
@@ -71,7 +71,8 @@ Copy into `web/.env.local` as `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAI
 Use the **`emulator` profile** when you want emulator JWTs instead of production Firebase:
 
 ```bash
-docker compose --profile emulator up firebase-emulator api postgres
+docker compose --profile emulator up -d postgres firebase-emulator
+./scripts/run-api.sh
 ```
 
 Set in `.env`:
@@ -80,14 +81,16 @@ Set in `.env`:
 FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
 ```
 
-**Default (no profile):** API verifies **production** Firebase tokens — matches `web/.env.local` sign-in. Mounts `firebase-sa.json` from repo root (download via `scripts/start-local.sh` or Secret Manager).
+(`load-dev-env.sh` rewrites `firebase-emulator` → `localhost` for native API.)
+
+**Default (no profile):** API verifies **production** Firebase tokens — matches `web/.env.local` sign-in. SA at `.secrets/firebase-sa.json` (via `./scripts/start-local.sh` or `./scripts/sync-secrets.sh`).
 
 Emulator UI: http://localhost:4000
 
 ### Get a test ID token
 
 ```bash
-docker compose run --rm api python scripts/get_emulator_token.py \
+./scripts/run-api-script.sh get_emulator_token.py \
   --email pilot@ttf.test --password pilotpass123
 ```
 
@@ -135,7 +138,7 @@ No Firebase required. **Disable in production** (`AUTH_DEV_MODE=false`).
 
 ```bash
 # Download key: Firebase Console → Project settings → Service accounts → Generate new private key
-./api/scripts/upload_firebase_admin_sa.sh firebase-sa.json
+./api/scripts/upload_firebase_admin_sa.sh .secrets/firebase-sa.json
 ```
 
 Then in `infra/terraform/environments/dev/terraform.tfvars` (gitignored):
@@ -201,6 +204,6 @@ Firebase Auth SDK + Sign in with Apple → `user.getIDToken()` → same `Authori
 | Problem | Fix |
 |---------|-----|
 | `Invalid or expired Firebase token` | Token expired (~1h); get a fresh one |
-| `Firebase service account not found` | Download `firebase-sa.json` or use emulator |
+| `Firebase service account not found` | Run `./scripts/sync-secrets.sh` or use emulator |
 | Emulator connection refused | `docker compose up firebase-emulator` |
 | `aud` / project mismatch | `FIREBASE_PROJECT_ID` must match token project |

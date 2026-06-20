@@ -295,7 +295,7 @@ flowchart TB
 
 Common local modes:
 
-- API smoke test: `docker compose up -d postgres api`, then call
+- API smoke test: `./scripts/start-local.sh`, then call
   `http://localhost:8080/health`.
 - Full web POC: run Postgres/API in Compose and `npm run dev` in `web/`.
 - Emulator auth: run Compose with the `emulator` profile and configure the web

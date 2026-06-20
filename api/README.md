@@ -7,7 +7,8 @@ REST API for **Little Scout** — parent-focused restaurant ratings.
 From repo root (Postgres must be healthy):
 
 ```bash
-docker compose up --build api
+./scripts/start-local.sh          # default: postgres (Docker) + native uvicorn
+# Legacy Docker API: ./scripts/start-local.sh --docker-api
 ```
 
 ## Endpoints
@@ -40,10 +41,10 @@ curl http://localhost:8080/v1/restaurants
 
 ## Seed restaurants (Places API)
 
-Requires `MAPS_API_KEY` in repo-root `.env` (same key as `ttf-maps-dev`).
+Requires `MAPS_API_KEY` in `.secrets/api.env` (via `./scripts/sync-secrets.sh`).
 
 ```bash
-docker compose run --rm api python scripts/seed_restaurants.py
+./scripts/run-api-script.sh seed_restaurants.py
 curl http://localhost:8080/v1/restaurants
 ```
 
@@ -51,7 +52,7 @@ Or pass from Secret Manager (one-off):
 
 ```bash
 export MAPS_API_KEY=$(gcloud secrets versions access latest --secret=ttf-maps-api-key --project=ttf-restaurant-dev)
-docker compose run --rm -e MAPS_API_KEY api python scripts/seed_restaurants.py
+./scripts/run-api-script.sh seed_restaurants.py
 ```
 
 Re-running the script upserts by `google_place_id` and soft-hides closed/out-of-area venues
@@ -116,15 +117,15 @@ curl -X POST http://localhost:8080/v1/restaurants/{id}/ttf \
 ### Production / real Apple Sign-In tokens
 
 1. Firebase Console → Project Settings → Service accounts → **Generate new private key**
-2. Save as `firebase-sa.json` (gitignored) at repo root
-3. Set `AUTH_DEV_MODE=false` and `FIREBASE_SERVICE_ACCOUNT_PATH=firebase-sa.json`
+2. `./scripts/sync-secrets.sh` writes `.secrets/firebase-sa.json`, or upload via `./api/scripts/upload_firebase_admin_sa.sh .secrets/firebase-sa.json`
+3. Set `AUTH_DEV_MODE=false` (`.env.defaults` sets `FIREBASE_SERVICE_ACCOUNT_PATH=.secrets/firebase-sa.json`)
 4. iOS app sends Firebase ID token from Apple Sign-In
 
 ## Config (env)
 
 | Variable | Default |
 |----------|---------|
-| `DATABASE_URL` | `postgresql://ttf_app:ttf_local@postgres:5432/ttf` |
+| `DATABASE_URL` | `postgresql://ttf_app:ttf_local@localhost:5432/ttf` (native) or `@postgres:5432` (Docker API) |
 | `PILOT_CITY` | `dedham-ma` (opaque catalog key) |
 | `PILOT_DISPLAY_NAME` | `Little Scout` |
 | `FIREBASE_PROJECT_ID` | `ttf-restaurant-dev` |
@@ -132,7 +133,7 @@ curl -X POST http://localhost:8080/v1/restaurants/{id}/ttf \
 | `APP_CHECK_ENFORCE` | `false` locally; `true` when reCAPTCHA configured |
 | `RATE_LIMIT_MAX_WRITES` | Max writes per user per window (default `60`) |
 | `RATE_LIMIT_WINDOW_MINUTES` | Rate limit window (default `60`) |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to service account JSON (prod) |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | `.secrets/firebase-sa.json` locally; `/secrets/firebase-admin/firebase-sa.json` on Cloud Run |
 | `MAPS_API_KEY` | Server key for Geocoding + Places API |
 | `RESTAURANT_SEED_DEFAULT_LAT` / `RESTAURANT_SEED_DEFAULT_LNG` | Fallback refresh center |
 | `RESTAURANT_SEED_DEFAULT_RADIUS_M` | Fallback refresh radius (default `8000`) |

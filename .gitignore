@@ -13,7 +13,7 @@ ttf-dev-sync-key.json
 *.key
 credentials.json
 service-account*.json
-firebase-sa.json
+firebase-sa.json  # legacy repo-root copy — canonical path is .secrets/firebase-sa.json
 .firebase/
 
 # Terraform

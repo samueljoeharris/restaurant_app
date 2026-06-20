@@ -2,9 +2,11 @@
 
 **Write secrets once in GCP Secret Manager.** Dev machines and CI pull from there — no copy-paste into `.env`, Cursor UI, or GitHub Secrets (except one-time bootstrap).
 
-Never commit filled `.env`, `web/.env.local`, `.secrets/`, or `firebase-sa.json`.
+Never commit filled `.env`, `web/.env.local`, or `.secrets/`.
 
-**Canonical source of truth:** [`infra/terraform/modules/secrets/catalog.tf`](../infra/terraform/modules/secrets/catalog.tf) — every secret has labels (`category`, `environment`, `sync_dev`) and annotations (`title`, `purpose`, `env-alias`, `seed-hint`).
+**Canonical source of truth:** [`infra/terraform/modules/secrets/catalog.tf`](../infra/terraform/modules/secrets/catalog.tf) — every SM entry has labels (`category`, `confidentiality`, `environment`, `sync_dev`) and annotations (`title`, `purpose`, `env-alias`, `seed-hint`).
+
+**Important:** GSM stores both **confidential secrets** and **public build-time config** (browser bundle keys). Presence in SM is for distribution convenience — check the **Type** column before treating a leak as an incident.
 
 ## Mental model
 
@@ -19,23 +21,37 @@ You → GCP Secret Manager (source of truth)
 
 ## Secret inventory
 
-| SM secret ID | Env alias | Category | Purpose | Dev sync? |
-|--------------|-----------|----------|---------|-----------|
-| `ttf-maps-api-key` | `MAPS_API_KEY` | api | Server Places/Geocoding | yes |
-| `ttf-maps-web-api-key` | `VITE_GOOGLE_MAPS_API_KEY` | web | Browser Maps JS API | yes |
-| `ttf-firebase-web-env` | `web/.env.local` VITE_* | web | Firebase web SDK JSON | yes |
-| `ttf-firebase-admin-sa` | `firebase-sa.json` | api | API JWT verify | yes |
-| `ttf-gemini-api-key` | `GEMINI_API_KEY` | api | Review chat | yes |
-| `ttf-github-pat-mcp` | `GITHUB_PERSONAL_ACCESS_TOKEN` | dev-tool | Cursor GitHub MCP | yes |
-| `ttf-dev-test-credentials` | `DEV_TEST_*` | dev-tool | Optional browser tests | yes |
-| `ttf-apple-sign-in-key` | `APPLE_*` / `APPLE_SIGN_IN_KEY_JSON` | api | Apple revoke on delete | yes |
-| `ttf-recaptcha-site-key` | `VITE_APP_CHECK_RECAPTCHA_SITE_KEY` | web | App Check (optional local) | yes |
-| `ttf-iap-oauth` | Terraform IAP vars | terraform | Admin IAP OAuth | no |
-| `ttf-db-url` | `DATABASE_URL` | infra | Cloud SQL DSN | no |
-| `ttf-internal-job-secret` | `INTERNAL_JOB_SECRET` | infra | Scheduler job token | no |
-| `ttf-api-public-url` | api origin | infra | CI deploy URL | no |
-| `ttf-web-public-url` | app origin | infra | CI deploy URL | no |
-| `ttf-admin-public-url` | admin origin | infra | CI deploy URL | no |
+### Confidential secrets (leak is an incident)
+
+| SM secret ID | Env alias | Category | Type | Purpose | Dev sync? |
+|--------------|-----------|----------|------|---------|-----------|
+| `ttf-maps-api-key` | `MAPS_API_KEY` | api | secret | Server Places/Geocoding | yes |
+| `ttf-firebase-admin-sa` | `.secrets/firebase-sa.json` | api | secret | API JWT verify | yes |
+| `ttf-gemini-api-key` | `GEMINI_API_KEY` | api | secret | Review chat | yes |
+| `ttf-github-pat-mcp` | `GITHUB_PERSONAL_ACCESS_TOKEN` | dev-tool | secret | Cursor GitHub MCP | yes |
+| `ttf-dev-test-credentials` | `DEV_TEST_*` | dev-tool | secret | Optional browser tests | yes |
+| `ttf-apple-sign-in-key` | `APPLE_*` / `APPLE_SIGN_IN_KEY_JSON` | api | secret | Apple revoke on delete | yes |
+| `ttf-iap-oauth` | Terraform IAP vars | terraform | secret | Admin IAP OAuth | no |
+| `ttf-db-url` | `DATABASE_URL` | infra | secret | Cloud SQL DSN | no |
+| `ttf-internal-job-secret` | `INTERNAL_JOB_SECRET` | infra | secret | Scheduler job token | no |
+
+### Public build-time config (GSM-distributed; ends up in browser bundle)
+
+Protected by API-key referrer restrictions and App Check — not by secrecy.
+
+| SM secret ID | Env alias | Category | Type | Purpose | Dev sync? |
+|--------------|-----------|----------|------|---------|-----------|
+| `ttf-maps-web-api-key` | `VITE_GOOGLE_MAPS_API_KEY` | web | public-build | Browser Maps JS API | yes |
+| `ttf-firebase-web-env` | `web/.env.local` VITE_* | web | public-build | Firebase web SDK JSON | yes |
+| `ttf-recaptcha-site-key` | `VITE_APP_CHECK_RECAPTCHA_SITE_KEY` | web | public-build | App Check (optional local) | yes |
+
+### Deploy metadata (public URLs for CI wiring)
+
+| SM secret ID | Env alias | Category | Type | Purpose | Dev sync? |
+|--------------|-----------|----------|------|---------|-----------|
+| `ttf-api-public-url` | api origin | infra | deploy-config | CI deploy URL | no |
+| `ttf-web-public-url` | app origin | infra | deploy-config | CI deploy URL | no |
+| `ttf-admin-public-url` | admin origin | infra | deploy-config | CI deploy URL | no |
 
 Non-secrets: [`.env.defaults`](../.env.defaults) (committed).
 
@@ -131,6 +147,7 @@ See [SECRET_SYNC_MIGRATION.md](SECRET_SYNC_MIGRATION.md).
 
 ## Related
 
+- [SECRETS_AUDIT_REMEDIATION_CHECKLIST.md](SECRETS_AUDIT_REMEDIATION_CHECKLIST.md) — post-audit verification
 - [CLOUD_AGENT.md](CLOUD_AGENT.md) — Cursor one-secret setup
 - [MCP_SETUP.md](MCP_SETUP.md) — GitHub MCP uses `.secrets/mcp.env`
 - [CI.md](CI.md) — pipeline behavior

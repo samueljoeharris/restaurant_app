@@ -147,9 +147,7 @@ FIREBASE_SA="$(fetch_secret ttf-firebase-admin-sa)"
 if [[ -n "$FIREBASE_SA" ]]; then
   printf '%s' "$FIREBASE_SA" >"$SECRETS_DIR/firebase-sa.json"
   chmod 600 "$SECRETS_DIR/firebase-sa.json"
-  cp "$SECRETS_DIR/firebase-sa.json" "$ROOT/firebase-sa.json"
-  chmod 600 "$ROOT/firebase-sa.json"
-  echo "  firebase-sa.json"
+  echo "  .secrets/firebase-sa.json"
 else
   echo "  WARN: ttf-firebase-admin-sa missing — API JWT verify needs emulator or SA" >&2
 fi
