@@ -1,4 +1,5 @@
 -- Admin moderation: trust on user_profiles, moderation queue, content visibility, merge support.
+-- Applied automatically on API startup (run_migrations).
 
 -- Trust columns on existing user_profiles (009).
 ALTER TABLE user_profiles
