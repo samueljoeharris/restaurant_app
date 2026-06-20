@@ -118,21 +118,25 @@ After importing JSON, open **Customize → Map settings** and set POI density to
 
 ### Part D — Wire the Map ID into builds
 
-**Local** — add to `web/.env.local` (after `./scripts/sync-secrets.sh`):
+**Recommended (Terraform + Secret Manager)** — dev default is already set in `infra/terraform/environments/dev/variables.tf` (`maps_web_map_id = a0014d38b56dea36144d06af`):
 
-```bash
-VITE_GOOGLE_MAPS_MAP_ID=your-map-id-here
-```
+1. Merge infra changes and let CI/CD Terraform apply (or apply dev manually).
+2. That writes `ttf-maps-web-map-id` → web deploy reads it automatically.
+3. Local: `./scripts/sync-secrets.sh` → `VITE_GOOGLE_MAPS_MAP_ID` in `.secrets/web.env.local` / `web/.env.local`.
 
-Restart Vite (`cd web && npm run dev`).
-
-**GitHub Actions (app.dev deploys)** — repo **Variables**:
+**Manual override** — repo **Variables** (fallback if SM secret not set yet):
 
 1. Repo → **Settings → Secrets and variables → Actions → Variables**
 2. Add `VITE_GOOGLE_MAPS_MAP_ID` = your Map ID
-3. Re-run web deploy (push a web change or **workflow_dispatch** on `reusable-web.yml`)
+3. Re-run web deploy
 
-The web Dockerfile and [`.github/workflows/reusable-web.yml`](../.github/workflows/reusable-web.yml) pass this at build time. It is **not** a secret (same as Firebase public config).
+**Local only** — add to `web/.env.local`:
+
+```bash
+VITE_GOOGLE_MAPS_MAP_ID=a0014d38b56dea36144d06af
+```
+
+Restart Vite (`cd web && npm run dev`).
 
 **Fallback:** if unset, the app uses `DEMO_MAP_ID` (default Google basemap). Teardrop pins and overlays still work.
 

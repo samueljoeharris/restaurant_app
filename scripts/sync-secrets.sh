@@ -185,6 +185,9 @@ fi
 MAPS_WEB="$(fetch_secret ttf-maps-web-api-key)"
 [[ -n "$MAPS_WEB" ]] && write_env_kv "$WEB_ENV" VITE_GOOGLE_MAPS_API_KEY "$MAPS_WEB" && echo "  VITE_GOOGLE_MAPS_API_KEY"
 
+MAPS_MAP_ID="$(fetch_secret ttf-maps-web-map-id)"
+[[ -n "$MAPS_MAP_ID" ]] && write_env_kv "$WEB_ENV" VITE_GOOGLE_MAPS_MAP_ID "$MAPS_MAP_ID" && echo "  VITE_GOOGLE_MAPS_MAP_ID"
+
 RECAPTCHA="$(fetch_secret ttf-recaptcha-site-key)"
 [[ -n "$RECAPTCHA" ]] && write_env_kv "$WEB_ENV" VITE_APP_CHECK_RECAPTCHA_SITE_KEY "$RECAPTCHA" && echo "  VITE_APP_CHECK_RECAPTCHA_SITE_KEY (optional)"
 

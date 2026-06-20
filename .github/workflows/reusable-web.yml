@@ -88,6 +88,16 @@ jobs:
             MAPS_API_KEY="$MAPS_JSON"
           fi
 
+          MAPS_MAP_ID=""
+          if MAP_ID_JSON="$(gcloud secrets versions access latest \
+            --secret=ttf-maps-web-map-id \
+            --project="${{ env.PROJECT_ID }}" 2>/dev/null)"; then
+            MAPS_MAP_ID="$MAP_ID_JSON"
+          fi
+          if [[ -z "${MAPS_MAP_ID// }" ]]; then
+            MAPS_MAP_ID="${{ vars.VITE_GOOGLE_MAPS_MAP_ID || '' }}"
+          fi
+
           ADMIN_APP_URL="https://admin.dev.littlescout.app"
           if ADMIN_JSON="$(gcloud secrets versions access latest \
             --secret=ttf-admin-public-url \
@@ -102,7 +112,7 @@ jobs:
             WEB_PUBLIC_URL="$WEB_JSON"
           fi
 
-          export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY MAPS_API_KEY ADMIN_APP_URL WEB_PUBLIC_URL
+          export API_URL FIREBASE_JSON RECAPTCHA_SITE_KEY MAPS_API_KEY MAPS_MAP_ID ADMIN_APP_URL WEB_PUBLIC_URL
           if [[ -z "${MAPS_API_KEY// }" ]]; then
             echo "::error::Secret ttf-maps-web-api-key is empty — run Terraform apply (maps-web.tf) then re-run this workflow"
             exit 1
@@ -115,6 +125,7 @@ jobs:
           api_url = os.environ["API_URL"]
           recaptcha = os.environ.get("RECAPTCHA_SITE_KEY", "").strip()
           maps_key = os.environ.get("MAPS_API_KEY", "").strip()
+          maps_map_id = os.environ.get("MAPS_MAP_ID", "").strip()
           admin_app_url = os.environ.get("ADMIN_APP_URL", "").strip()
           web_public_url = os.environ.get("WEB_PUBLIC_URL", "").strip()
           auth_domain = cfg["VITE_FIREBASE_AUTH_DOMAIN"]
@@ -130,6 +141,7 @@ jobs:
               out.write(f"firebase_app_id={cfg.get('VITE_FIREBASE_APP_ID', '')}\n")
               out.write(f"recaptcha_site_key={recaptcha}\n")
               out.write(f"maps_api_key={maps_key}\n")
+              out.write(f"maps_map_id={maps_map_id}\n")
               out.write(f"admin_app_url={admin_app_url}\n")
           PY
 
@@ -145,7 +157,7 @@ jobs:
             --build-arg VITE_FIREBASE_APP_ID="${{ steps.env.outputs.firebase_app_id }}" \
             --build-arg VITE_APP_CHECK_RECAPTCHA_SITE_KEY="${{ steps.env.outputs.recaptcha_site_key }}" \
             --build-arg VITE_GOOGLE_MAPS_API_KEY="${{ steps.env.outputs.maps_api_key }}" \
-            --build-arg VITE_GOOGLE_MAPS_MAP_ID="${{ vars.VITE_GOOGLE_MAPS_MAP_ID || '' }}" \
+            --build-arg VITE_GOOGLE_MAPS_MAP_ID="${{ steps.env.outputs.maps_map_id }}" \
             --build-arg VITE_ENABLE_REVIEW_CHAT=true \
             -t "${IMAGE_BASE}:${{ github.sha }}" \
             -t "${IMAGE_BASE}:latest" \

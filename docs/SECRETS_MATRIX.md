@@ -42,6 +42,7 @@ Protected by API-key referrer restrictions and App Check — not by secrecy.
 | SM secret ID | Env alias | Category | Type | Purpose | Dev sync? |
 |--------------|-----------|----------|------|---------|-----------|
 | `ttf-maps-web-api-key` | `VITE_GOOGLE_MAPS_API_KEY` | web | public-build | Browser Maps JS API | yes |
+| `ttf-maps-web-map-id` | `VITE_GOOGLE_MAPS_MAP_ID` | web | public-build | Cloud Map Style Map ID (basemap) | yes |
 | `ttf-firebase-web-env` | `web/.env.local` VITE_* | web | public-build | Firebase web SDK JSON | yes |
 | `ttf-recaptcha-site-key` | `VITE_APP_CHECK_RECAPTCHA_SITE_KEY` | web | public-build | App Check (optional local) | yes |
 

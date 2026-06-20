@@ -50,3 +50,21 @@ resource "google_secret_manager_secret_iam_member" "github_deploy_maps_web_api_k
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${module.iam.github_deploy_email}"
 }
+
+resource "google_secret_manager_secret_version" "maps_web_map_id" {
+  count = var.enable_web_cloud_run && var.maps_web_map_id != "" ? 1 : 0
+
+  secret      = module.secrets.secret_resource_names["ttf-maps-web-map-id"]
+  secret_data = var.maps_web_map_id
+
+  depends_on = [module.secrets]
+}
+
+resource "google_secret_manager_secret_iam_member" "github_deploy_maps_web_map_id" {
+  count = var.enable_web_cloud_run && var.maps_web_map_id != "" ? 1 : 0
+
+  project   = var.project_id
+  secret_id = module.secrets.secret_ids["ttf-maps-web-map-id"]
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${module.iam.github_deploy_email}"
+}
