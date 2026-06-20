@@ -1,0 +1,65 @@
+/* Little Scout — color tokens (Bluebird theme).
+   Base ramp first, then semantic aliases, then map basemap layers.
+   Maps 1:1 onto the app's design/tokens.json keys (noted in comments). */
+:root {
+  /* ---- Brand: sky blue ---- (tokens.json brand) */
+  --ls-sky: #3FA7D6;
+  --ls-sky-deep: #2B8CBC;       /* brandHover */
+  --ls-sky-soft: #D6EDF7;       /* brandSoft */
+
+  /* ---- Accent: mango ---- (tokens.json accent) */
+  --ls-mango: #FBA63C;
+  --ls-mango-deep: #E08A1E;
+  --ls-mango-soft: #FCE6C8;     /* accentSoft */
+  --ls-pop: #F08A2E;            /* "new / alert" pop */
+  --ls-pop-soft: #FCE6C8;
+
+  /* ---- Warm-ivory neutrals ---- */
+  --ls-paper: #FBF6EC;          /* bg */
+  --ls-surface: #FFFFFF;        /* surface */
+  --ls-surface-muted: #F3EAD8;  /* surfaceMuted */
+  --ls-border: #EADFC9;         /* border */
+  --ls-border-strong: #DCCDAE;  /* borderStrong */
+
+  /* ---- Ink ---- */
+  --ls-ink: #2C2722;            /* text */
+  --ls-ink-muted: #837766;      /* textMuted */
+  --ls-ink-slate: #2F3A42;      /* cool ink for map/figure contexts */
+
+  /* ---- Kid-food-speed (TTF) tiers — semantic, stay constant across themes ---- */
+  --ls-ttf-fast: #2E8B57;       /* ttfFast */
+  --ls-ttf-fast-soft: #DCEFE2;
+  --ls-ttf-ok: #E0A52E;         /* ttfOk */
+  --ls-ttf-ok-soft: #FBE5C5;
+  --ls-ttf-slow: #D6543B;       /* ttfSlow */
+  --ls-ttf-slow-soft: #F7DDD6;
+  --ls-ttf-none: #B4AA98;       /* ttfUnknown */
+  --ls-ttf-none-soft: #EFEAE0;
+
+  /* ---- Semantic status ---- */
+  --ls-success: #2E8B57;
+  --ls-warning: #E0A52E;
+  --ls-error: #D6543B;
+
+  /* ---- Map basemap layers (hand to Google cloud style / Mapbox / MapLibre) ---- */
+  --ls-map-land: #F6EFE1;
+  --ls-map-water: #CDE7F4;
+  --ls-map-park: #DCEAD2;
+  --ls-map-road-major: #F0E2C2;
+  --ls-map-road-minor: #EFE7D6;
+  --ls-map-label: #8A98A0;
+
+  /* ---- Semantic aliases (prefer these in product code) ---- */
+  --brand: var(--ls-sky);
+  --brand-hover: var(--ls-sky-deep);
+  --brand-soft: var(--ls-sky-soft);
+  --accent: var(--ls-mango);
+  --accent-soft: var(--ls-mango-soft);
+  --surface-page: var(--ls-paper);
+  --surface-card: var(--ls-surface);
+  --surface-muted: var(--ls-surface-muted);
+  --border-default: var(--ls-border);
+  --text-body: var(--ls-ink);
+  --text-muted: var(--ls-ink-muted);
+  --text-on-brand: #ffffff;
+}

@@ -1,0 +1,63 @@
+<!-- @dsCard group="Components" viewport="700x540" subtitle="Button · AttributeChip · SpeedBadge · UpdateCard · Toggle · BottomNav" name="Core components" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;font-family:var(--ls-font-body);background:var(--ls-paper);padding:22px}
+h4{font-family:var(--ls-font-body);font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ls-ink-muted);margin:0 0 10px}
+.sec{margin-bottom:22px}.rowwrap{display:flex;gap:10px;flex-wrap:wrap;align-items:center}</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/plain" id="card-src">
+const NS = window.LittleScout || window.LittleScoutDesignSystem || window.DS ||
+  Object.values(window).find(v => v && typeof v === "object" && v.Button && v.SpeedBadge) || {};
+const { Button, AttributeChip, SpeedBadge, UpdateCard, Toggle, BottomNav } = NS;
+function App(){
+  return (
+    <div>
+      <div className="sec"><h4>Buttons</h4><div className="rowwrap">
+        <Button>＋ Log a visit</Button>
+        <Button variant="secondary">Save spot</Button>
+        <Button variant="soft">＋ Add a kid</Button>
+        <Button variant="ghost">Skip for now</Button>
+      </div></div>
+      <div className="sec"><h4>Attribute chips</h4><div className="rowwrap">
+        <AttributeChip label="TTF < 10" active/>
+        <AttributeChip label="High chairs" icon="🪑"/>
+        <AttributeChip label="Changing table" icon="🚼"/>
+        <AttributeChip label="more" dashed/>
+      </div></div>
+      <div className="sec"><h4>Speed badge · flagship</h4>
+        <div style={{maxWidth:300}}><SpeedBadge minutes={6} tier="fast" meta="12 visits · 4.2/5 quality"/></div>
+      </div>
+      <div className="sec"><h4>Update card</h4>
+        <div style={{maxWidth:300,display:'flex',flexDirection:'column',gap:8}}>
+          <UpdateCard name="Maria's Cantina" tier="fast" time="2h">Kid food now <b>6 min</b> (was 9) 🎉</UpdateCard>
+          <UpdateCard name="Tello's Pizza" tier="ok" isNew>New note added.</UpdateCard>
+        </div>
+      </div>
+      <div className="sec"><h4>Toggle &amp; bottom nav</h4>
+        <Toggle checked={true} label="Weekly digest"/>
+        <div style={{maxWidth:300,marginTop:12,border:'1px solid var(--ls-border)',borderRadius:18,overflow:'hidden'}}>
+          <BottomNav items={[{icon:'🧭',label:'Feed',active:true},{icon:'🗺️',label:'Explore'},{icon:'💛',label:'Saved'},{icon:'🙂',label:'You'}]}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<script>
+window.addEventListener('load',function(){
+  try{
+    var src=document.getElementById('card-src').textContent;
+    var out=Babel.transform(src,{presets:[['react',{runtime:'classic'}]]}).code;
+    (0,eval)(out);
+  }catch(err){
+    document.getElementById('root').innerHTML='<pre style="color:#b00;white-space:pre-wrap;font:12px monospace">'+err.message+'</pre>';
+  }
+});
+</script>
+</body></html>

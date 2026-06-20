@@ -1,0 +1,139 @@
+<!-- @dsCard group="Admin" viewport="1200x720" subtitle="Operator console — Overview re-themed (Bluebird)" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--ls-font-body);background:var(--ls-paper);background-image:radial-gradient(var(--ls-paper-dot) 1.4px,transparent 1.4px);background-size:26px 26px;padding:28px;color:var(--ls-ink)}
+  .disp{font-family:var(--ls-font-display);font-weight:700}
+  .eyebrow{font-family:var(--ls-font-body);font-weight:800;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ls-ink-muted)}
+  .navitem{padding:9px 12px;border-radius:10px;color:var(--ls-ink-muted);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .navitem.on{background:var(--ls-sky-soft);color:var(--ls-sky-deep)}
+  .badge{border-radius:999px;font-size:10px;font-weight:800;padding:1px 7px}
+  .card{background:#fff;border:1px solid var(--ls-border);border-radius:var(--ls-radius-lg);box-shadow:var(--ls-shadow-sm)}
+  th,td{text-align:left;padding:11px 14px;font-size:12.5px}
+  thead th{font-family:var(--ls-font-body);font-weight:800;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ls-ink-muted);border-bottom:1px solid var(--ls-border)}
+  tbody tr{border-bottom:1px solid #F2EADB}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+</style></head>
+<body>
+<div style="max-width:1180px;margin:0 auto">
+  <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:16px">
+    <span class="disp" style="font-size:13px;color:#fff;background:var(--ls-ink-slate);padding:6px 13px;border-radius:999px">ADMIN</span>
+    <span class="disp" style="font-size:22px">Operator console — re-themed</span>
+    <span style="font-weight:700;font-size:12.5px;color:var(--ls-ink-muted)">web-only · IAP-gated · leads with what needs attention today</span>
+  </div>
+
+  <div class="card" style="overflow:hidden;border-color:#DCD3C2;box-shadow:var(--ls-shadow-lg)">
+    <!-- browser chrome -->
+    <div style="display:flex;align-items:center;gap:7px;padding:11px 15px;background:#F1E9DA;border-bottom:1px solid var(--ls-border)">
+      <span style="width:11px;height:11px;border-radius:50%;background:#F08A2E"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#FBA63C"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:#2E8B57"></span>
+      <span class="disp" style="margin-left:12px;font-weight:600;font-size:11px;color:var(--ls-ink-muted)">admin.littlescout.app/admin</span>
+    </div>
+    <div style="display:flex;min-height:620px;background:#fff">
+      <!-- sidebar -->
+      <div style="width:222px;flex:none;border-right:1px solid var(--ls-border);padding:20px 14px;display:flex;flex-direction:column;gap:16px;background:#FBF8F0">
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="width:30px;height:30px;border-radius:9px;background:var(--ls-sky);display:flex;align-items:center;justify-content:center"><div style="width:18px;height:18px;border-radius:50%;background:var(--ls-paper);position:relative;display:flex;align-items:center;justify-content:center"><div style="width:8px;height:8px;background:var(--ls-pop);transform:rotate(45deg);border-radius:2px;position:absolute;top:2px"></div><div style="width:8px;height:8px;background:var(--ls-mango);transform:rotate(45deg);border-radius:2px;position:absolute;bottom:2px"></div></div></div>
+          <span class="disp" style="font-size:15px">Little Scout</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div class="navitem on">Overview</div>
+          <div class="navitem">Moderation <span class="badge" style="background:var(--ls-ttf-slow);color:#fff">7</span></div>
+          <div class="navitem">Restaurants</div>
+          <div class="navitem">Contributors</div>
+          <div class="navitem">Data &amp; observations <span class="badge" style="background:var(--ls-mango-soft);color:#9A6A2E">3</span></div>
+          <div class="navitem">Location seeding</div>
+          <div class="navitem">Security</div>
+        </div>
+        <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:11px;color:var(--ls-ink-muted)">ops@littlescout.app</div>
+          <div class="disp" style="font-size:13px;color:var(--ls-sky-deep)">← Public app</div>
+          <div class="disp" style="font-size:13px;color:var(--ls-sky-deep)">Sign out</div>
+        </div>
+      </div>
+      <!-- main -->
+      <div style="flex:1;padding:24px 28px;display:flex;flex-direction:column;gap:20px;min-width:0">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div><div class="disp" style="font-size:24px">Overview</div><div style="font-weight:600;font-size:13px;color:var(--ls-ink-muted);margin-top:2px">Dedham pilot · updated 9:41 AM</div></div>
+          <div style="display:flex;gap:8px">
+            <div style="border:1.5px solid var(--ls-sky-soft);background:#fff;border-radius:12px;padding:9px 14px;font-family:var(--ls-font-display);font-weight:700;font-size:13px;color:var(--ls-sky-deep)">Last 14 days ▾</div>
+            <div style="background:var(--ls-sky);border-radius:12px;padding:9px 14px;font-family:var(--ls-font-display);font-weight:700;font-size:13px;color:#fff;box-shadow:var(--ls-shadow-brand)">Export</div>
+          </div>
+        </div>
+
+        <!-- needs attention -->
+        <div>
+          <div class="eyebrow" style="margin-bottom:10px">Needs attention</div>
+          <div style="display:flex;gap:14px">
+            <div class="card" style="flex:1;padding:15px 16px;background:#FBF1EE;border-color:#F1D9D2">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;font-size:13px;color:#9A3A2A">Pending moderation</span><span style="color:var(--ls-ttf-slow)">→</span></div>
+              <div class="disp" style="font-size:30px;color:var(--ls-ttf-slow);margin-top:6px;line-height:1">7</div>
+              <div style="font-weight:600;font-size:12px;color:#A05248;margin-top:5px">5 notes · 2 reported reviews</div>
+            </div>
+            <div class="card" style="flex:1;padding:15px 16px;background:var(--ls-mango-soft);border-color:#F2DCB4">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;font-size:13px;color:#8A5E1E">Flagged data points</span><span style="color:var(--ls-mango-deep)">→</span></div>
+              <div class="disp" style="font-size:30px;color:var(--ls-mango-deep);margin-top:6px;line-height:1">3</div>
+              <div style="font-weight:600;font-size:12px;color:#9A6A2E;margin-top:5px">Speed outliers to review</div>
+            </div>
+            <div class="card" style="flex:1;padding:15px 16px;background:var(--ls-sky-soft);border-color:#BFE2F1">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;font-size:13px;color:var(--ls-sky-deep)">New this week</span><span style="color:var(--ls-sky-deep)">→</span></div>
+              <div class="disp" style="font-size:30px;color:var(--ls-sky-deep);margin-top:6px;line-height:1">+128</div>
+              <div style="font-weight:600;font-size:12px;color:#3F7C99;margin-top:5px">observations logged</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- stats + chart -->
+        <div style="display:flex;gap:18px;flex-wrap:wrap">
+          <div class="card" style="flex:1;min-width:280px;padding:16px 18px">
+            <div class="eyebrow" style="margin-bottom:12px">Pilot at a glance</div>
+            <div style="display:flex;gap:22px;flex-wrap:wrap">
+              <div><div class="disp" style="font-size:26px;color:var(--ls-sky)">312</div><div style="font-weight:700;font-size:11px;color:var(--ls-ink-muted)">restaurants</div></div>
+              <div><div class="disp" style="font-size:26px;color:var(--ls-sky)">1,940</div><div style="font-weight:700;font-size:11px;color:var(--ls-ink-muted)">observations</div></div>
+              <div><div class="disp" style="font-size:26px;color:var(--ls-mango)">486</div><div style="font-weight:700;font-size:11px;color:var(--ls-ink-muted)">contributors</div></div>
+              <div><div class="disp" style="font-size:26px;color:var(--ls-ttf-fast)">8.4m</div><div style="font-weight:700;font-size:11px;color:var(--ls-ink-muted)">median TTF</div></div>
+            </div>
+          </div>
+          <div class="card" style="flex:1;min-width:280px;padding:16px 18px">
+            <div class="eyebrow" style="margin-bottom:12px">Activity · last 14 days</div>
+            <div style="display:flex;align-items:flex-end;gap:5px;height:80px">
+              <div style="flex:1;height:40%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:55%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:35%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:60%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:75%;background:var(--ls-sky);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:50%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:65%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:85%;background:var(--ls-sky);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:70%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:90%;background:var(--ls-sky);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:60%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:78%;background:var(--ls-sky-soft);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:95%;background:var(--ls-mango);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:82%;background:var(--ls-sky);border-radius:4px 4px 0 0"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- moderation queue table -->
+        <div class="card" style="overflow:hidden">
+          <div style="padding:14px 16px;border-bottom:1px solid var(--ls-border);display:flex;align-items:center;justify-content:space-between">
+            <span class="disp" style="font-size:15px">Moderation queue</span>
+            <span style="font-weight:700;font-size:12px;color:var(--ls-sky-deep)">View all 7 →</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse">
+            <thead><tr><th>Item</th><th>Venue</th><th>Type</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:700">"Kids eat free Tuesdays"</td><td>Maria's Cantina</td><td><span class="dot" style="background:var(--ls-mango)"></span>Note</td><td style="color:var(--ls-ttf-slow);font-weight:700">Pending</td><td style="text-align:right;color:var(--ls-sky-deep);font-weight:700">Review</td></tr>
+              <tr><td style="font-weight:700">90-min observation</td><td>Tello's Pizza</td><td><span class="dot" style="background:var(--ls-ttf-slow)"></span>Outlier</td><td style="color:var(--ls-mango-deep);font-weight:700">Flagged</td><td style="text-align:right;color:var(--ls-sky-deep);font-weight:700">Review</td></tr>
+              <tr><td style="font-weight:700">Reported review</td><td>Birch &amp; Bell</td><td><span class="dot" style="background:var(--ls-ttf-slow)"></span>Report</td><td style="color:var(--ls-ttf-slow);font-weight:700">Pending</td><td style="text-align:right;color:var(--ls-sky-deep);font-weight:700">Review</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

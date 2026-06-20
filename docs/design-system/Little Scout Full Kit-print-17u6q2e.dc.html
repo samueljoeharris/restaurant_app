@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-print-defaults>
+@media print {
+  @page { margin: 0; }
+  body { padding: 0.5in; box-sizing: border-box; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  figure, table, pre, blockquote, img, svg, tr, [class~="card" i] { break-inside: avoid; }
+  img, svg { max-width: 100%; }
+  p { orphans: 3; widows: 3; }
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#3FA7D6"/><circle cx="50" cy="50" r="22" fill="#FBF6EC"/><rect x="44" y="30" width="12" height="12" rx="3" fill="#F08A2E" transform="rotate(45 50 36)"/><rect x="44" y="58" width="12" height="12" rx="3" fill="#FBA63C" transform="rotate(45 50 64)"/><circle cx="50" cy="50" r="4" fill="#2F3A42"/></svg></template>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .ls-sticker{transform:rotate(-2deg);}
+  .pin{position:absolute;width:30px;height:30px;border-radius:50% 50% 50% 2px;border:3px solid #fff;box-shadow:0 4px 10px rgba(47,58,66,.28);transform:rotate(45deg);display:flex;align-items:center;justify-content:center;}
+  .pin > span{transform:rotate(-45deg);font-family:'Quicksand';font-weight:700;font-size:10px;color:#fff;}
+</style>
+</helmet>
+<div style="width:max-content;min-width:100%;background:#2F3A42;padding:30px 48px;">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div style="width:52px;height:52px;border-radius:16px;background:#3FA7D6;display:flex;align-items:center;justify-content:center;flex:none;"><div style="width:32px;height:32px;border-radius:50%;background:#FBF6EC;position:relative;display:flex;align-items:center;justify-content:center;"><div style="width:12px;height:12px;background:#F08A2E;transform:rotate(45deg);border-radius:3px;position:absolute;top:4px;"></div><div style="width:12px;height:12px;background:#FBA63C;transform:rotate(45deg);border-radius:3px;position:absolute;bottom:4px;"></div><div style="width:6px;height:6px;border-radius:50%;background:#2F3A42;z-index:2;"></div></div></div>
+    <div>
+      <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#7E8B93;margin-bottom:3px;">Little Scout · complete handoff</div>
+      <div style="font-family:'Quicksand';font-weight:700;font-size:28px;color:#fff;line-height:1;">Whimsical Theme — Full Kit <span style="color:#FBA63C;">🧭</span></div>
+    </div>
+  </div>
+  <div style="font-family:'Nunito';font-weight:600;font-size:13.5px;color:#A9B3B9;margin-top:14px;max-width:780px;line-height:1.5;">Everything in one scroll: the <b style="color:#fff;">theme &amp; component kit</b>, the <b style="color:#fff;">color exploration</b> it came from, and the <b style="color:#fff;">themed map views</b>. Scroll down through all three sections.</div>
+</div>
+<div style="width:max-content;min-width:100%;background:#2F3A42;padding:20px 48px;display:flex;align-items:baseline;gap:14px;border-top:3px solid rgba(255,255,255,.25);">
+  <span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#3FA7D6;background:#fff;padding:6px 13px;border-radius:999px;">01</span>
+  <span style="font-family:'Quicksand';font-weight:700;font-size:22px;color:#fff;">Theme &amp; component kit</span>
+  <span style="font-family:'Nunito';font-weight:700;font-size:13px;color:rgba(255,255,255,.7);">Foundations, tokens, components, re-themed pages</span>
+</div>
+<div style="width:max-content;min-width:100%;min-height:100vh;padding:56px 48px 80px;background:#FBF6EC;font-family:'Nunito',system-ui,sans-serif;color:#2C2722;background-image:radial-gradient(#EFE4CE 1.4px, transparent 1.4px);background-size:26px 26px;">
+
+  <!-- ============ MASTHEAD ============ -->
+  <div style="max-width:1180px;margin:0 auto 44px;">
+    <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px;">
+      <!-- compass scout emblem -->
+      <div style="width:64px;height:64px;border-radius:20px;background:#3FA7D6;box-shadow:0 6px 18px rgba(63,167,214,.30);display:flex;align-items:center;justify-content:center;position:relative;flex:none;">
+        <div style="width:40px;height:40px;border-radius:50%;background:#FBF6EC;display:flex;align-items:center;justify-content:center;position:relative;">
+          <div style="width:15px;height:15px;background:#F08A2E;transform:rotate(45deg);border-radius:3px;position:absolute;top:5px;"></div>
+          <div style="width:15px;height:15px;background:#FBA63C;transform:rotate(45deg);border-radius:3px;position:absolute;bottom:5px;"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:#2C2722;position:relative;z-index:2;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#A8927A;margin-bottom:4px;">Little Scout · Design System</div>
+        <div style="font-family:'Quicksand';font-weight:700;font-size:34px;line-height:1;color:#2C2722;">The Whimsical Theme <span style="color:#3FA7D6;">Kit</span></div>
+      </div>
+    </div>
+    <div style="font-size:16px;line-height:1.55;color:#6E6354;max-width:760px;">A warm, friendly refresh for the kid-food-speed app parents actually open twice. <b style="color:#2C2722;">Subtle whimsy on a clean, trustworthy base</b> — the friendly TTF speed tiers stay; the palette turns light &amp; sunny (sky blue · mango · warm ivory), corners soften, and a little scout spirit threads through. Everything below maps to <span style="font-family:'Quicksand';font-weight:700;background:#fff;border:1px solid #EADFC9;border-radius:7px;padding:1px 7px;">design/tokens.json</span> so a refactor is a 1-to-1 swap.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+      <span style="font-weight:700;font-size:13px;padding:8px 14px;background:#D6EDF7;color:#2B8CBC;border-radius:999px;">🧭 Friendly &amp; rounded</span>
+      <span style="font-weight:700;font-size:13px;padding:8px 14px;background:#FCE6C8;color:#B5701A;border-radius:999px;">🥭 Ivory paper &amp; mango</span>
+      <span style="font-weight:700;font-size:13px;padding:8px 14px;background:#D6EDF7;color:#2B8CBC;border-radius:999px;">⚡ Keeps the TTF speed tiers</span>
+    </div>
+  </div>
+
+  <!-- ============ PART LABEL 1 ============ -->
+  <div style="max-width:1180px;margin:0 auto 26px;display:flex;align-items:center;gap:14px;">
+    <span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#fff;background:#2C2722;padding:6px 13px;border-radius:999px;">PART 1</span>
+    <span style="font-family:'Quicksand';font-weight:700;font-size:22px;color:#2C2722;">Foundations &amp; components</span>
+    <div style="flex:1;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,#DCCDAE,#DCCDAE 6px,transparent 6px,transparent 12px);"></div>
+  </div>
+
+  <!-- ===== ROW: BRAND + COLOR ===== -->
+  <div style="max-width:1180px;margin:0 auto 26px;display:flex;gap:24px;align-items:stretch;flex-wrap:wrap;">
+
+    <!-- BRAND CARD -->
+    <div style="flex:1;min-width:360px;background:#fff;border:1px solid #EADFC9;border-radius:22px;box-shadow:0 6px 18px rgba(60,45,25,.06);padding:26px;">
+      <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#A8927A;margin-bottom:18px;">Brand mark · the scout compass</div>
+      <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;">
+        <!-- big emblem -->
+        <div style="width:104px;height:104px;border-radius:30px;background:#3FA7D6;box-shadow:0 10px 26px rgba(63,167,214,.30);display:flex;align-items:center;justify-content:center;flex:none;">
+          <div style="width:66px;height:66px;border-radius:50%;background:#FBF6EC;display:flex;align-items:center;justify-content:center;position:relative;">
+            <div style="width:24px;height:24px;background:#F08A2E;transform:rotate(45deg);border-radius:5px;position:absolute;top:8px;"></div>
+            <div style="width:24px;height:24px;background:#FBA63C;transform:rotate(45deg);border-radius:5px;position:absolute;bottom:8px;"></div>
+            <div style="width:11px;height:11px;border-radius:50%;background:#2C2722;position:relative;z-index:2;"></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:160px;">
+          <div style="font-family:'Quicksand';font-weight:700;font-size:27px;color:#2C2722;line-height:1;display:flex;align-items:center;gap:8px;">Little Scout</div>
+          <div style="font-size:13.5px;color:#6E6354;line-height:1.5;margin-top:8px;">A compass needle, not a literal character — so it scales to a 16px favicon and a map pin alike. The sky-blue badge = trust; the mango needle = the playful spark.</div>
+        </div>
+      </div>
+      <!-- mascot placeholder -->
+      <div style="margin-top:20px;display:flex;gap:14px;align-items:stretch;">
+        <div style="flex:none;width:120px;border-radius:16px;border:2px dashed #DCCDAE;background:repeating-linear-gradient(45deg,#F6EEDD,#F6EEDD 8px,#FBF6EC 8px,#FBF6EC 16px);display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;">
+          <span style="font-family:'Quicksand';font-weight:600;font-size:11px;color:#A8927A;line-height:1.3;">Scout mascot<br>illustration<br>goes here</span>
+        </div>
+        <div style="flex:1;font-size:13px;color:#6E6354;line-height:1.5;display:flex;align-items:center;">Pair the emblem with an optional illustrated scout character for onboarding &amp; empty states. Keep it geometric &amp; friendly — supply the art; don't auto-generate it.</div>
+      </div>
+    </div>
+
+    <!-- COLOR CARD -->
+    <div style="flex:1.4;min-width:440px;background:#fff;border:1px solid #EADFC9;border-radius:22px;box-shadow:0 6px 18px rgba(60,45,25,.06);padding:26px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;">
+        <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#A8927A;">Color · light tokens</div>
+        <sc-if value="{{ showTokens }}" hint-placeholder-val="{{ true }}"><span style="font-family:'Quicksand';font-weight:600;font-size:11px;color:#A8927A;">token = tokens.json key</span></sc-if>
+      </div>
+
+      <div style="font-family:'Quicksand';font-weight:700;font-size:11px;color:#837766;margin-bottom:10px;">CORE</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">
+        <sc-for list="{{ coreSwatches }}" as="sw" hint-placeholder-count="8">
+          <div>
+            <div style="height:54px;border-radius:13px;border:1px solid rgba(0,0,0,.06);background:{{ sw.bg }};box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);"></div>
+            <div style="font-family:'Quicksand';font-weight:700;font-size:12px;color:#2C2722;margin-top:7px;">{{ sw.name }}</div>
+            <sc-if value="{{ showTokens }}" hint-placeholder-val="{{ true }}"><div style="font-family:'Quicksand';font-weight:600;font-size:10.5px;color:#A8927A;">{{ sw.token }}</div></sc-if>
+            <div style="font-size:10.5px;color:#9A8C77;font-weight:700;letter-spacing:.02em;">{{ sw.hex }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="font-family:'Quicksand';font-weight:700;font-size:11px;color:#837766;margin-bottom:10px;">KID FOOD SPEED · TTF TIERS</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+        <sc-for list="{{ ttfSwatches }}" as="sw" hint-placeholder-count="4">
+          <div>
+            <div style="height:46px;border-radius:13px;background:{{ sw.bg }};display:flex;align-items:center;justify-content:center;">
+              <span style="width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);"></span>
+            </div>
+            <div style="font-family:'Quicksand';font-weight:700;font-size:12px;color:#2C2722;margin-top:7px;">{{ sw.name }}</div>
+            <sc-if value="{{ showTokens }}" hint-placeholder-val="{{ true }}"><div style="font-family:'Quicksand';font-weight:600;font-size:10.5px;color:#A8927A;">{{ sw.token }}</div></sc-if>
+            <div style="font-size:10.5px;color:#9A8C77;font-weight:700;">{{ sw.hex }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROW: TYPE + SHAPE ===== -->
+  <div style="max-width:1180px;margin:0 auto 26px;display:flex;gap:24px;align-items:stretch;flex-wrap:wrap;">
+
+    <!-- TYPE -->
+    <div style="flex:1.5;min-width:460px;background:#fff;border:1px solid #EADFC9;border-radius:22px;box-shadow:0 6px 18px rgba(60,45,25,.06);padding:26px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;">
+        <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#A8927A;">Typography</div>
+        <div style="font-family:'Quicksand';font-weight:600;font-size:11px;color:#A8927A;">Quicksand · Nunito — both Google Fonts</div>
+      </div>
+      <div style="display:flex;gap:26px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:230px;">
+          <div style="font-family:'Quicksand';font-weight:600;font-size:11px;color:#837766;letter-spacing:.05em;margin-bottom:6px;">DISPLAY &amp; NUMBERS — Quicksand</div>
+          <div style="font-family:'Quicksand';font-weight:700;font-size:40px;line-height:1.02;color:#2C2722;">Scout it<br>out, fast.</div>
+          <div style="font-family:'Quicksand';font-weight:700;font-size:46px;color:#3FA7D6;margin-top:8px;line-height:1;">6 min</div>
+          <div style="font-size:11.5px;color:#9A8C77;margin-top:6px;">Rounded, warm, optimistic. Headings 600–700, big TTF numbers 700.</div>
+        </div>
+        <div style="flex:1;min-width:230px;">
+          <div style="font-family:'Quicksand';font-weight:600;font-size:11px;color:#837766;letter-spacing:.05em;margin-bottom:6px;">UI &amp; BODY — Nunito</div>
+          <div style="font-family:'Nunito';font-weight:800;font-size:18px;color:#2C2722;">High chairs &amp; a play corner</div>
+          <div style="font-family:'Nunito';font-weight:400;font-size:14.5px;color:#5E5446;line-height:1.55;margin-top:6px;">Body copy stays in Nunito — exceptionally legible at small sizes for tired parents reading one-handed. Use 400 for prose, 700–800 for labels and buttons.</div>
+          <div style="margin-top:12px;font-family:'Nunito';font-weight:800;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#A8927A;">Eyebrow label · Nunito 800 tracked</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHAPE -->
+    <div style="flex:1;min-width:330px;background:#fff;border:1px solid #EADFC9;border-radius:22px;box-shadow:0 6px 18px rgba(60,45,25,.06);padding:26px;">
+      <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#A8927A;margin-bottom:18px;">Shape · radius &amp; elevation</div>
+      <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;">
+        <div style="text-align:center;"><div style="width:46px;height:46px;background:#D6EDF7;border:1px solid #BFE2F1;border-radius:8px;"></div><div style="font-family:'Quicksand';font-weight:700;font-size:11px;margin-top:6px;">sm · 8</div></div>
+        <div style="text-align:center;"><div style="width:46px;height:46px;background:#D6EDF7;border:1px solid #BFE2F1;border-radius:12px;"></div><div style="font-family:'Quicksand';font-weight:700;font-size:11px;margin-top:6px;">md · 12</div></div>
+        <div style="text-align:center;"><div style="width:46px;height:46px;background:#D6EDF7;border:1px solid #BFE2F1;border-radius:18px;"></div><div style="font-family:'Quicksand';font-weight:700;font-size:11px;margin-top:6px;">lg · 18</div></div>
+        <div style="text-align:center;"><div style="width:46px;height:46px;background:#D6EDF7;border:1px solid #BFE2F1;border-radius:999px;"></div><div style="font-family:'Quicksand';font-weight:700;font-size:11px;margin-top:6px;">full</div></div>
+      </div>
+      <div style="font-size:12px;color:#6E6354;line-height:1.5;margin-bottom:18px;">Whimsy = <b>generous rounding</b>. Bump cards lg 16→18, keep pills full. Nothing sharp.</div>
+      <div style="display:flex;gap:14px;">
+        <div style="flex:1;height:54px;background:#fff;border-radius:14px;box-shadow:0 1px 2px rgba(60,45,25,.06);border:1px solid #F0E7D6;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:11px;color:#837766;">sm</div>
+        <div style="flex:1;height:54px;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(60,45,25,.08);display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:11px;color:#837766;">md</div>
+        <div style="flex:1;height:54px;background:#fff;border-radius:14px;box-shadow:0 16px 40px rgba(60,45,25,.12);display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:11px;color:#837766;">lg</div>
+      </div>
+      <div style="font-size:11.5px;color:#9A8C77;margin-top:10px;">Shadows are warm-tinted (brown, not gray) &amp; soft.</div>
+    </div>
+  </div>
+
+  <!-- ===== COMPONENTS CARD ===== -->
+  <div style="max-width:1180px;margin:0 auto 26px;background:#fff;border:1px solid #EADFC9;border-radius:22px;box-shadow:0 6px 18px rgba(60,45,25,.06);padding:28px;">
+    <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#A8927A;margin-bottom:22px;">Components</div>
+    <div style="display:flex;gap:32px;flex-wrap:wrap;">
+
+      <!-- buttons -->
+      <div style="flex:1;min-width:200px;">
+        <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2C2722;margin-bottom:14px;">Buttons</div>
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;">
+          <div style="background:#3FA7D6;color:#fff;font-family:'Quicksand';font-weight:700;font-size:14px;padding:12px 22px;border-radius:14px;box-shadow:0 4px 12px rgba(63,167,214,.28);">Log a visit</div>
+          <div style="background:#fff;color:#2B8CBC;border:1.5px solid #BFE2F1;font-family:'Quicksand';font-weight:700;font-size:14px;padding:11px 20px;border-radius:14px;">Save spot</div>
+          <div style="background:#FCE6C8;color:#B5701A;font-family:'Quicksand';font-weight:700;font-size:14px;padding:11px 20px;border-radius:14px;">＋ Add a kid</div>
+          <div style="color:#837766;font-family:'Quicksand';font-weight:700;font-size:14px;padding:6px 4px;">Skip for now</div>
+        </div>
+      </div>
+
+      <!-- chips -->
+      <div style="flex:1;min-width:200px;">
+        <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2C2722;margin-bottom:14px;">Attribute chips</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span style="font-family:'Nunito';font-weight:700;font-size:12px;padding:8px 13px;background:#3FA7D6;color:#fff;border-radius:999px;">TTF &lt; 10 min</span>
+          <span style="font-family:'Nunito';font-weight:700;font-size:12px;padding:8px 13px;background:#fff;border:1.5px solid #E3D8C2;color:#5E5446;border-radius:999px;">🪑 High chairs</span>
+          <span style="font-family:'Nunito';font-weight:700;font-size:12px;padding:8px 13px;background:#fff;border:1.5px solid #E3D8C2;color:#5E5446;border-radius:999px;">🚼 Changing table</span>
+          <span style="font-family:'Nunito';font-weight:700;font-size:12px;padding:8px 13px;background:#fff;border:1.5px solid #E3D8C2;color:#5E5446;border-radius:999px;">🔇 Low noise</span>
+          <span style="font-family:'Nunito';font-weight:700;font-size:12px;padding:8px 13px;background:#fff;border:1.5px dashed #D8C8A8;color:#A8927A;border-radius:999px;">＋ more</span>
+        </div>
+        <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2C2722;margin:20px 0 12px;">Toggle</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:42px;height:24px;border-radius:999px;background:#3FA7D6;position:relative;box-shadow:inset 0 1px 2px rgba(0,0,0,.15);"><span style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);"></span></span>
+          <span style="font-family:'Nunito';font-weight:700;font-size:13px;">Kid food gets faster</span>
+        </div>
+      </div>
+
+      <!-- TTF badge -->
+      <div style="flex:1;min-width:230px;">
+        <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2C2722;margin-bottom:14px;">⭐ Flagship · Kid food speed badge</div>
+        <div style="background:#FBF8F0;border:1px solid #EFE6D3;border-radius:18px;padding:16px;">
+          <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#A8927A;margin-bottom:8px;">Kid food speed</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="width:16px;height:16px;border-radius:50%;background:#2E8B57;box-shadow:0 0 0 4px #DCEFE2;"></span>
+            <span style="font-family:'Quicksand';font-weight:700;font-size:38px;line-height:1;color:#2C2722;">6 min</span>
+            <span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2E8B57;background:#DCEFE2;padding:5px 11px;border-radius:999px;">Fast</span>
+          </div>
+          <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#837766;margin-top:8px;">12 visits · 4.2/5 quality · great for age 2</div>
+        </div>
+      </div>
+
+      <!-- update card -->
+      <div style="flex:1.2;min-width:250px;">
+        <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2C2722;margin-bottom:14px;">Update card &amp; bottom nav</div>
+        <div style="background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:13px;box-shadow:0 1px 2px rgba(60,45,25,.05);margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;">Maria's Cantina</span><span style="font-family:'Nunito';font-weight:700;font-size:11px;color:#C2701A;background:#FCE6C8;padding:2px 8px;border-radius:999px;margin-left:auto;">New</span></div>
+          <div style="font-family:'Nunito';font-weight:600;font-size:12.5px;color:#5E5446;line-height:1.4;">Kid food now <b style="color:#3FA7D6;">6 min</b> — down from 9. 🎉</div>
+        </div>
+        <div style="display:flex;background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:9px 6px;box-shadow:0 1px 2px rgba(60,45,25,.05);">
+          <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#3FA7D6;">🧭<br>Feed</div>
+          <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">🗺️<br>Explore</div>
+          <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">💛<br>Saved</div>
+          <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">🙂<br>You</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- do / don't -->
+    <div style="display:flex;gap:16px;margin-top:26px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:280px;background:#EAF6FB;border:1px solid #C8E7F5;border-radius:14px;padding:16px 18px;">
+        <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2B8CBC;margin-bottom:10px;">✓ Do</div>
+        <div style="font-family:'Nunito';font-weight:600;font-size:13px;color:#2F5563;line-height:1.6;">Round generously · let ivory paper breathe · one playful accent per surface · use emoji as friendly wayfinding only where the brand already does · keep the TTF number the loudest thing on a detail page.</div>
+      </div>
+      <div style="flex:1;min-width:280px;background:#FDF4EC;border:1px solid #F4E2C8;border-radius:14px;padding:16px 18px;">
+        <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#C2701A;margin-bottom:10px;">✗ Don't</div>
+        <div style="font-family:'Nunito';font-weight:600;font-size:13px;color:#8A6A3E;line-height:1.6;">No gradients-on-everything · no cool gray surfaces (warm ivory only) · don't stack accents (sky-blue AND mango fighting on one card) · no sharp corners · don't let whimsy bury the data parents came for.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PART LABEL 2 ============ -->
+  <div style="max-width:1180px;margin:48px auto 8px;display:flex;align-items:center;gap:14px;">
+    <span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#fff;background:#2C2722;padding:6px 13px;border-radius:999px;">PART 2</span>
+    <span style="font-family:'Quicksand';font-weight:700;font-size:22px;color:#2C2722;">Re-themed pages</span>
+    <div style="flex:1;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,#DCCDAE,#DCCDAE 6px,transparent 6px,transparent 12px);"></div>
+  </div>
+  <div style="max-width:1180px;margin:0 auto 24px;font-size:14px;color:#6E6354;line-height:1.5;">The real app screens — Login, Feed/Home, Explore map, Restaurant detail, the kid-food-speed timer, and Account — dressed in the theme above. <b style="color:#2C2722;">Route names from <span style="font-family:'Quicksand';font-weight:700;">web/src/pages</span> are noted on each.</b></div>
+
+  <!-- ===== MOBILE ROW ===== -->
+  <div style="display:flex;gap:30px;align-items:flex-start;padding:0 0 14px;width:max-content;margin:0 auto;">
+
+    <!-- 1 ONBOARDING / LOGIN -->
+    <div style="flex:none;width:296px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">01 · Onboarding</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">LoginPage</span></div>
+      <div style="background:#2C2722;border-radius:42px;padding:8px;box-shadow:0 18px 40px rgba(60,45,25,.18);">
+        <div style="border-radius:34px;overflow:hidden;background:#FBF6EC;height:600px;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:12px;color:#2C2722;"><span>9:41</span><span style="color:#A8927A;letter-spacing:1px;">···▮</span></div>
+          <div style="flex:1;padding:20px 22px 0;display:flex;flex-direction:column;gap:14px;">
+            <div style="width:54px;height:54px;border-radius:17px;background:#3FA7D6;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(63,167,214,.3);"><div style="width:32px;height:32px;border-radius:50%;background:#FBF6EC;position:relative;display:flex;align-items:center;justify-content:center;"><div style="width:12px;height:12px;background:#F08A2E;transform:rotate(45deg);border-radius:3px;position:absolute;top:4px;"></div><div style="width:12px;height:12px;background:#FBA63C;transform:rotate(45deg);border-radius:3px;position:absolute;bottom:4px;"></div><div style="width:6px;height:6px;border-radius:50%;background:#2C2722;z-index:2;"></div></div></div>
+            <div style="font-family:'Quicksand';font-weight:700;font-size:26px;line-height:1.1;color:#2C2722;">Who are you scouting for?</div>
+            <div style="font-family:'Nunito';font-weight:600;font-size:13.5px;color:#837766;line-height:1.45;">We tune kid-food-speed &amp; menu signals to your kids' ages.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;">
+              <span style="font-family:'Nunito';font-weight:700;font-size:12.5px;padding:9px 15px;background:#3FA7D6;color:#fff;border-radius:999px;">Toddler · 2</span>
+              <span style="font-family:'Nunito';font-weight:700;font-size:12.5px;padding:9px 15px;background:#fff;border:1.5px solid #E3D8C2;color:#5E5446;border-radius:999px;">Kid · 6</span>
+              <span style="font-family:'Nunito';font-weight:700;font-size:12.5px;padding:9px 15px;background:#fff;border:1.5px dashed #D8C8A8;color:#A8927A;border-radius:999px;">＋ add</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:20px;display:flex;flex-direction:column;gap:10px;">
+              <div style="background:#2C2722;color:#fff;border-radius:14px;padding:14px;text-align:center;font-family:'Quicksand';font-weight:700;font-size:14px;"> Continue with Apple</div>
+              <div style="background:#fff;border:1.5px solid #E3D8C2;border-radius:14px;padding:13px;text-align:center;font-family:'Quicksand';font-weight:700;font-size:14px;color:#2C2722;">Continue with Google</div>
+              <div style="text-align:center;font-family:'Quicksand';font-weight:700;font-size:13px;color:#837766;margin-top:2px;">Browse first, sign in later →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:280px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">Warm paper + compass mark set the friendly tone before a single tap.</span></div>
+      </sc-if>
+    </div>
+
+    <!-- 2 FEED / HOME -->
+    <div style="flex:none;width:296px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">02 · Feed (Home)</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">HomePage</span></div>
+      <div style="background:#2C2722;border-radius:42px;padding:8px;box-shadow:0 18px 40px rgba(60,45,25,.18);">
+        <div style="border-radius:34px;overflow:hidden;background:#FBF6EC;height:600px;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:12px;color:#2C2722;"><span>9:41</span><span style="color:#A8927A;letter-spacing:1px;">···▮</span></div>
+          <div style="padding:8px 18px 12px;display:flex;align-items:center;justify-content:space-between;">
+            <div><div style="font-family:'Quicksand';font-weight:700;font-size:22px;color:#2C2722;">Hi, Sam 👋</div><div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#837766;">Dedham · scouting for age 2</div></div>
+            <div style="width:38px;height:38px;border-radius:50%;background:#D6EDF7;border:1.5px solid #BFE2F1;"></div>
+          </div>
+          <div style="flex:1;padding:0 15px;display:flex;flex-direction:column;gap:11px;overflow:hidden;">
+            <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C2701A;">💛 Updates on your spots</div>
+            <div style="background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:13px;box-shadow:0 2px 6px rgba(60,45,25,.05);">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;">Maria's Cantina</span><span style="font-family:'Nunito';font-weight:700;font-size:10px;color:#837766;margin-left:auto;">2h</span></div>
+              <div style="font-family:'Nunito';font-weight:600;font-size:12.5px;color:#5E5446;line-height:1.4;">Kid food now <b style="color:#3FA7D6;">6 min</b> <span style="color:#3FA7D6;">(was 9)</span> — 3 new visits. 🎉</div>
+            </div>
+            <div style="background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:13px;box-shadow:0 2px 6px rgba(60,45,25,.05);">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#E0A52E;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;">Tello's Pizza</span><span style="font-family:'Nunito';font-weight:700;font-size:10px;color:#837766;margin-left:auto;">1d</span></div>
+              <div style="font-family:'Nunito';font-weight:600;font-size:12.5px;color:#5E5446;line-height:1.4;font-style:italic;">"crayons + a little play corner by the window."</div>
+            </div>
+            <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#A8927A;margin-top:2px;">🧭 New near you</div>
+            <div style="background:#FCE6C8;border:1px solid #F6D6A4;border-radius:16px;padding:13px;">
+              <div style="font-family:'Nunito';font-weight:600;font-size:12.5px;color:#8A5E1E;line-height:1.4;"><b style="color:#2C2722;">Birch &amp; Bell</b> — high chairs, changing table. Be the first to log speed!</div>
+            </div>
+          </div>
+          <div style="display:flex;border-top:1px solid #EFE6D3;padding:9px 6px 13px;background:#fff;">
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#3FA7D6;">🧭<br>Feed</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">🗺️<br>Explore</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">💛<br>Saved</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">🙂<br>You</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:280px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">The return reason — changes to saved spots greet you, gently celebratory.</span></div>
+      </sc-if>
+    </div>
+
+    <!-- 3 EXPLORE MAP -->
+    <div style="flex:none;width:296px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">03 · Explore</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">ExploreMapPage</span></div>
+      <div style="background:#2C2722;border-radius:42px;padding:8px;box-shadow:0 18px 40px rgba(60,45,25,.18);">
+        <div style="border-radius:34px;overflow:hidden;background:#FBF6EC;height:600px;display:flex;flex-direction:column;position:relative;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:12px;color:#2C2722;z-index:3;"><span>9:41</span><span style="color:#A8927A;letter-spacing:1px;">···▮</span></div>
+          <div style="position:absolute;top:46px;left:0;right:0;bottom:236px;background:#E7EEDF;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,#D6DEC9 40px,#D6DEC9 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,#D6DEC9 40px,#D6DEC9 41px);"></div>
+            <div style="position:absolute;top:30%;left:18%;width:60%;height:5px;background:#CFD7C2;border-radius:5px;transform:rotate(20deg);"></div>
+            <div style="position:absolute;top:55%;left:10%;width:70%;height:5px;background:#CFD7C2;border-radius:5px;transform:rotate(-12deg);"></div>
+            <span style="position:absolute;top:88px;left:60px;width:26px;height:26px;border-radius:50% 50% 50% 2px;background:#2E8B57;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.2);transform:rotate(45deg);"></span>
+            <span style="position:absolute;top:150px;left:170px;width:26px;height:26px;border-radius:50% 50% 50% 2px;background:#2E8B57;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.2);transform:rotate(45deg);"></span>
+            <span style="position:absolute;top:120px;left:110px;width:22px;height:22px;border-radius:50% 50% 50% 2px;background:#E0A52E;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.2);transform:rotate(45deg);"></span>
+          </div>
+          <div style="position:absolute;top:50px;left:14px;right:14px;background:#fff;border-radius:14px;padding:12px 14px;font-family:'Nunito';font-weight:700;font-size:12.5px;color:#A8927A;box-shadow:0 4px 12px rgba(60,45,25,.12);z-index:2;">🔍 &nbsp;Search area or restaurant</div>
+          <div style="position:absolute;top:96px;left:14px;right:14px;display:flex;gap:7px;flex-wrap:wrap;z-index:2;">
+            <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:7px 12px;background:#3FA7D6;color:#fff;border-radius:999px;box-shadow:0 2px 6px rgba(63,167,214,.25);">TTF &lt; 10</span>
+            <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:7px 12px;background:#fff;color:#5E5446;border-radius:999px;box-shadow:0 1px 4px rgba(60,45,25,.12);">High chair</span>
+            <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:7px 12px;background:#fff;color:#5E5446;border-radius:999px;box-shadow:0 1px 4px rgba(60,45,25,.12);">Changing</span>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -6px 22px rgba(60,45,25,.10);padding:12px 16px 16px;height:236px;">
+            <div style="width:38px;height:5px;border-radius:5px;background:#E3D8C2;margin:0 auto 12px;"></div>
+            <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#A8927A;margin-bottom:10px;">3 spots in view</div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <div style="background:#FBF8F0;border:1px solid #EFE6D3;border-radius:14px;padding:11px;display:flex;align-items:center;gap:10px;"><span style="width:11px;height:11px;border-radius:50%;background:#2E8B57;"></span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:13px;">Maria's Cantina</div><div style="font-family:'Nunito';font-weight:600;font-size:11px;color:#837766;">6 min · high chairs · 0.4 mi</div></div><span style="font-family:'Quicksand';font-weight:700;font-size:12px;color:#3FA7D6;">💛</span></div>
+              <div style="background:#FBF8F0;border:1px solid #EFE6D3;border-radius:14px;padding:11px;display:flex;align-items:center;gap:10px;"><span style="width:11px;height:11px;border-radius:50%;background:#2E8B57;"></span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:13px;">Birch &amp; Bell</div><div style="font-family:'Nunito';font-weight:600;font-size:11px;color:#837766;">7 min · changing table · 0.6 mi</div></div><span style="font-family:'Quicksand';font-weight:700;font-size:12px;color:#B8AB97;">🤍</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:280px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">Map pins become little teardrop badges in TTF-tier colors — playful but still legible at a glance.</span></div>
+      </sc-if>
+    </div>
+
+    <!-- 4 DETAIL -->
+    <div style="flex:none;width:296px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">04 · Detail</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">RestaurantDetailPage</span></div>
+      <div style="background:#2C2722;border-radius:42px;padding:8px;box-shadow:0 18px 40px rgba(60,45,25,.18);">
+        <div style="border-radius:34px;overflow:hidden;background:#FBF6EC;height:600px;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:12px;color:#2C2722;"><span>9:41</span><span style="color:#A8927A;letter-spacing:1px;">···▮</span></div>
+          <div style="height:104px;background:linear-gradient(135deg,#E7EEDF,#F2E7D2);display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:11px;color:#A8927A;position:relative;">
+            <span style="position:absolute;top:12px;left:14px;width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.12);">‹</span>
+            [ restaurant photo ]
+          </div>
+          <div style="flex:1;padding:16px 16px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:21px;line-height:1.05;color:#2C2722;">Maria's Cantina</div><div style="font-family:'Nunito';font-weight:600;font-size:12.5px;color:#837766;margin-top:3px;">Mexican · 0.4 mi · $$</div></div>
+              <div style="width:42px;height:42px;border-radius:14px;background:#3FA7D6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;box-shadow:0 4px 12px rgba(63,167,214,.28);">💛</div>
+            </div>
+            <div style="background:#fff;border:1px solid #EFE6D3;border-radius:18px;padding:15px;box-shadow:0 2px 6px rgba(60,45,25,.05);">
+              <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#A8927A;margin-bottom:8px;">Kid food speed · great for age 2</div>
+              <div style="display:flex;align-items:center;gap:9px;"><span style="width:14px;height:14px;border-radius:50%;background:#2E8B57;box-shadow:0 0 0 4px #DCEFE2;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:32px;line-height:1;color:#2C2722;">6 min</span><span style="font-family:'Quicksand';font-weight:700;font-size:12px;color:#2E8B57;background:#DCEFE2;padding:5px 11px;border-radius:999px;">Fast</span></div>
+              <div style="font-family:'Nunito';font-weight:600;font-size:11.5px;color:#837766;margin-top:7px;">12 visits · 4.2/5 quality</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:6px 11px;background:#fff;border:1.5px solid #E3D8C2;color:#5E5446;border-radius:999px;">🪑 High chairs</span>
+              <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:6px 11px;background:#fff;border:1.5px solid #E3D8C2;color:#5E5446;border-radius:999px;">🚼 Changing</span>
+              <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:6px 11px;background:#fff;border:1.5px solid #E3D8C2;color:#5E5446;border-radius:999px;">🔇 Low noise</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:16px;background:#3FA7D6;color:#fff;border-radius:14px;padding:14px;text-align:center;font-family:'Quicksand';font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(63,167,214,.28);">＋ Log a visit</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:280px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">The speed number stays the hero — whimsy never competes with the data.</span></div>
+      </sc-if>
+    </div>
+
+    <!-- 5 TTF TIMER -->
+    <div style="flex:none;width:296px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">05 · Speed timer</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">TtfSubmitPage</span></div>
+      <div style="background:#2C2722;border-radius:42px;padding:8px;box-shadow:0 18px 40px rgba(60,45,25,.18);">
+        <div style="border-radius:34px;overflow:hidden;background:#3FA7D6;height:600px;display:flex;flex-direction:column;position:relative;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:12px;color:#fff;"><span>9:41</span><span style="color:rgba(255,255,255,.7);letter-spacing:1px;">···▮</span></div>
+          <div style="padding:10px 22px 0;font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.7);">Maria's Cantina</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:0 24px;">
+            <div style="font-family:'Quicksand';font-weight:700;font-size:17px;color:rgba(255,255,255,.85);text-align:center;line-height:1.3;">Kid food's on the way? <br>Start the stopwatch! ⏱️</div>
+            <div style="width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.10);border:3px solid rgba(255,255,255,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:14px 0;box-shadow:inset 0 4px 20px rgba(0,0,0,.12);">
+              <div style="font-family:'Quicksand';font-weight:700;font-size:58px;color:#fff;line-height:1;letter-spacing:.01em;">{{ timerLabel }}</div>
+              <div style="font-family:'Nunito';font-weight:700;font-size:12px;color:rgba(255,255,255,.7);margin-top:6px;">since you sat down</div>
+            </div>
+            <div onClick="{{ toggleTimer }}" style="background:#fff;color:#2B8CBC;border-radius:14px;padding:14px 40px;font-family:'Quicksand';font-weight:700;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer;">{{ timerBtn }}</div>
+            <div style="font-family:'Nunito';font-weight:700;font-size:12px;color:rgba(255,255,255,.7);margin-top:4px;">Food arrived? Tap to log it.</div>
+          </div>
+          <div style="background:rgba(255,255,255,.10);padding:13px 22px;display:flex;justify-content:space-between;align-items:center;"><span style="font-family:'Nunito';font-weight:700;font-size:12px;color:rgba(255,255,255,.8);">⚡ Logged in ~20 sec</span><span style="font-family:'Quicksand';font-weight:700;font-size:12px;color:#fff;">Enter time manually →</span></div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:280px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">The flagship contribution moment becomes a delightful, tappable stopwatch (live — try it!). Brand-green full-bleed marks it as special.</span></div>
+      </sc-if>
+    </div>
+
+    <!-- 6 ACCOUNT -->
+    <div style="flex:none;width:296px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">06 · You</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">AccountPage</span></div>
+      <div style="background:#2C2722;border-radius:42px;padding:8px;box-shadow:0 18px 40px rgba(60,45,25,.18);">
+        <div style="border-radius:34px;overflow:hidden;background:#FBF6EC;height:600px;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:12px;color:#2C2722;"><span>9:41</span><span style="color:#A8927A;letter-spacing:1px;">···▮</span></div>
+          <div style="flex:1;padding:18px 18px 0;display:flex;flex-direction:column;gap:14px;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:13px;"><div style="width:56px;height:56px;border-radius:50%;background:#D6EDF7;border:2px solid #BFE2F1;display:flex;align-items:center;justify-content:center;font-size:24px;">🙂</div><div><div style="font-family:'Quicksand';font-weight:700;font-size:19px;color:#2C2722;">Sam H.</div><div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#837766;">Scouting for a 2-year-old</div></div></div>
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:13px;text-align:center;"><div style="font-family:'Quicksand';font-weight:700;font-size:24px;color:#3FA7D6;">14</div><div style="font-family:'Nunito';font-weight:700;font-size:10.5px;color:#837766;">visits logged</div></div>
+              <div style="flex:1;background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:13px;text-align:center;"><div style="font-family:'Quicksand';font-weight:700;font-size:24px;color:#FBA63C;">8</div><div style="font-family:'Nunito';font-weight:700;font-size:10.5px;color:#837766;">saved spots</div></div>
+              <div style="flex:1;background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:13px;text-align:center;"><div style="font-family:'Quicksand';font-weight:700;font-size:24px;color:#F08A2E;">★</div><div style="font-family:'Nunito';font-weight:700;font-size:10.5px;color:#837766;">Trail Scout</div></div>
+            </div>
+            <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#A8927A;margin-top:2px;">Settings</div>
+            <div style="background:#fff;border:1px solid #EFE6D3;border-radius:14px;padding:13px;display:flex;align-items:center;justify-content:between;gap:8px;"><span style="font-family:'Nunito';font-weight:700;font-size:13px;flex:1;">Weekly digest</span><span style="width:42px;height:24px;border-radius:999px;background:#3FA7D6;position:relative;flex:none;"><span style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#fff;"></span></span></div>
+            <div style="background:#fff;border:1px solid #EFE6D3;border-radius:14px;padding:13px;display:flex;align-items:center;gap:8px;"><span style="font-family:'Nunito';font-weight:700;font-size:13px;flex:1;">My contributions</span><span style="color:#B8AB97;">›</span></div>
+            <div style="background:#fff;border:1px solid #EFE6D3;border-radius:14px;padding:13px;display:flex;align-items:center;gap:8px;"><span style="font-family:'Nunito';font-weight:700;font-size:13px;flex:1;">Privacy &amp; data</span><span style="color:#B8AB97;">›</span></div>
+          </div>
+          <div style="display:flex;border-top:1px solid #EFE6D3;padding:9px 6px 13px;background:#fff;">
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">🧭<br>Feed</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">🗺️<br>Explore</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#B8AB97;">💛<br>Saved</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:10px;color:#3FA7D6;">🙂<br>You</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:280px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">Light gamification — a "Trail Scout" badge rewards contributions without feeling gimmicky.</span></div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- ===== WEB ROW ===== -->
+  <div style="display:flex;gap:30px;align-items:flex-start;padding:14px 0 0;width:max-content;margin:36px auto 0;">
+
+    <!-- WEB: EXPLORE SPLIT -->
+    <div style="flex:none;width:620px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">Web · Explore</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">ExploreMapPage · desktop</span></div>
+      <div style="background:#fff;border-radius:14px;box-shadow:0 16px 40px rgba(60,45,25,.12);overflow:hidden;border:1px solid #EADFC9;">
+        <div style="display:flex;align-items:center;gap:7px;padding:11px 15px;background:#F4ECDD;border-bottom:1px solid #EADFC9;"><span style="width:11px;height:11px;border-radius:50%;background:#F08A2E;"></span><span style="width:11px;height:11px;border-radius:50%;background:#FBA63C;"></span><span style="width:11px;height:11px;border-radius:50%;background:#2E8B57;"></span><span style="margin-left:12px;font-family:'Quicksand';font-weight:600;font-size:11px;color:#A8927A;">littlescout.app/restaurants</span></div>
+        <div style="height:430px;display:flex;">
+          <!-- sidebar nav -->
+          <div style="width:160px;border-right:1px solid #EFE6D3;padding:16px 12px;display:flex;flex-direction:column;gap:5px;background:#FBF8F0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><div style="width:30px;height:30px;border-radius:10px;background:#3FA7D6;display:flex;align-items:center;justify-content:center;"><div style="width:18px;height:18px;border-radius:50%;background:#FBF6EC;position:relative;display:flex;align-items:center;justify-content:center;"><div style="width:8px;height:8px;background:#F08A2E;transform:rotate(45deg);border-radius:2px;position:absolute;top:2px;"></div><div style="width:8px;height:8px;background:#FBA63C;transform:rotate(45deg);border-radius:2px;position:absolute;bottom:2px;"></div></div></div><span style="font-family:'Quicksand';font-weight:700;font-size:15px;">Little Scout</span></div>
+            <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#837766;padding:9px 11px;border-radius:10px;">🧭 Feed</div>
+            <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2B8CBC;background:#D6EDF7;padding:9px 11px;border-radius:10px;">🗺️ Explore</div>
+            <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#837766;padding:9px 11px;border-radius:10px;">💛 Saved</div>
+            <div style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#837766;padding:9px 11px;border-radius:10px;">🙂 You</div>
+          </div>
+          <!-- results list -->
+          <div style="width:230px;border-right:1px solid #EFE6D3;display:flex;flex-direction:column;">
+            <div style="padding:14px 14px 10px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #EFE6D3;"><span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:6px 11px;background:#3FA7D6;color:#fff;border-radius:999px;">TTF &lt; 10</span><span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:6px 11px;background:#fff;border:1.5px solid #E3D8C2;color:#5E5446;border-radius:999px;">High chair</span></div>
+            <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:9px;background:#FBF8F0;overflow:hidden;">
+              <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#A8927A;">3 spots in view</div>
+              <div style="background:#fff;border:1px solid #EFE6D3;border-radius:13px;padding:11px;display:flex;align-items:center;gap:9px;box-shadow:0 1px 3px rgba(60,45,25,.05);"><span style="width:11px;height:11px;border-radius:50%;background:#2E8B57;"></span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:13px;">Maria's Cantina</div><div style="font-family:'Nunito';font-weight:600;font-size:11px;color:#837766;">6 min · high chairs</div></div><span>💛</span></div>
+              <div style="background:#fff;border:1px solid #EFE6D3;border-radius:13px;padding:11px;display:flex;align-items:center;gap:9px;box-shadow:0 1px 3px rgba(60,45,25,.05);"><span style="width:11px;height:11px;border-radius:50%;background:#2E8B57;"></span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:13px;">Birch &amp; Bell</div><div style="font-family:'Nunito';font-weight:600;font-size:11px;color:#837766;">7 min · changing table</div></div><span>🤍</span></div>
+              <div style="background:#fff;border:1px solid #EFE6D3;border-radius:13px;padding:11px;display:flex;align-items:center;gap:9px;box-shadow:0 1px 3px rgba(60,45,25,.05);"><span style="width:11px;height:11px;border-radius:50%;background:#E0A52E;"></span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:13px;">Tello's Pizza</div><div style="font-family:'Nunito';font-weight:600;font-size:11px;color:#837766;">11 min · play corner</div></div><span>🤍</span></div>
+            </div>
+          </div>
+          <!-- map -->
+          <div style="flex:1;background:#E7EEDF;position:relative;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 46px,#D6DEC9 46px,#D6DEC9 47px),repeating-linear-gradient(90deg,transparent,transparent 46px,#D6DEC9 46px,#D6DEC9 47px);"></div>
+            <div style="position:absolute;top:35%;left:10%;width:80%;height:6px;background:#CFD7C2;border-radius:6px;transform:rotate(14deg);"></div>
+            <span style="position:absolute;top:90px;left:70px;width:30px;height:30px;border-radius:50% 50% 50% 2px;background:#2E8B57;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.2);transform:rotate(45deg);"></span>
+            <span style="position:absolute;top:220px;left:200px;width:30px;height:30px;border-radius:50% 50% 50% 2px;background:#2E8B57;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.2);transform:rotate(45deg);"></span>
+            <span style="position:absolute;top:150px;left:140px;width:26px;height:26px;border-radius:50% 50% 50% 2px;background:#E0A52E;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.2);transform:rotate(45deg);"></span>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:560px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">Desktop keeps the AppSidebar model — warm cream rail, green active state, map center-stage with teardrop pins.</span></div>
+      </sc-if>
+    </div>
+
+    <!-- WEB: HOME DASHBOARD -->
+    <div style="flex:none;width:540px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">Web · Home</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">HomePage · desktop</span></div>
+      <div style="background:#fff;border-radius:14px;box-shadow:0 16px 40px rgba(60,45,25,.12);overflow:hidden;border:1px solid #EADFC9;">
+        <div style="display:flex;align-items:center;gap:7px;padding:11px 15px;background:#F4ECDD;border-bottom:1px solid #EADFC9;"><span style="width:11px;height:11px;border-radius:50%;background:#F08A2E;"></span><span style="width:11px;height:11px;border-radius:50%;background:#FBA63C;"></span><span style="width:11px;height:11px;border-radius:50%;background:#2E8B57;"></span><span style="margin-left:12px;font-family:'Quicksand';font-weight:600;font-size:11px;color:#A8927A;">littlescout.app</span></div>
+        <div style="height:430px;padding:22px;background:#FBF6EC;display:flex;flex-direction:column;gap:16px;overflow:hidden;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;"><div style="font-family:'Quicksand';font-weight:700;font-size:24px;color:#2C2722;">Hi, Sam 👋</div><div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#837766;">Dedham · scouting for age 2</div></div>
+          <div>
+            <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#C2701A;margin-bottom:10px;">💛 Updates on your spots</div>
+            <div style="display:flex;gap:12px;">
+              <div style="flex:1;background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:14px;box-shadow:0 2px 6px rgba(60,45,25,.05);"><div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;">Maria's Cantina</span></div><div style="font-family:'Nunito';font-weight:700;font-size:12px;color:#3FA7D6;margin-top:6px;">↓ now 6 min (was 9) 🎉</div></div>
+              <div style="flex:1;background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:14px;box-shadow:0 2px 6px rgba(60,45,25,.05);"><div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#E0A52E;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;">Tello's Pizza</span></div><div style="font-family:'Nunito';font-weight:700;font-size:12px;color:#837766;margin-top:6px;">new note added</div></div>
+              <div style="flex:1;background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:14px;box-shadow:0 2px 6px rgba(60,45,25,.05);"><div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;">Birch &amp; Bell</span></div><div style="font-family:'Nunito';font-weight:700;font-size:12px;color:#837766;margin-top:6px;">new kids menu</div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#A8927A;margin-bottom:10px;">🧭 New near you</div>
+            <div style="background:#fff;border:1px solid #EFE6D3;border-radius:16px;padding:14px;display:flex;align-items:center;gap:11px;box-shadow:0 2px 6px rgba(60,45,25,.05);"><span style="width:12px;height:12px;border-radius:50%;background:#2E8B57;"></span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:14px;">Pine Street Diner</div><div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#837766;">8 min · high chairs · 0.5 mi</div></div><span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#fff;background:#3FA7D6;padding:8px 16px;border-radius:12px;">Save</span></div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:520px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">Modules go multi-column on desktop; the dot-grid paper texture carries the warmth across breakpoints.</span></div>
+      </sc-if>
+    </div>
+  </div>
+
+</div>
+<div style="width:max-content;min-width:100%;background:#3A4A52;padding:20px 48px;display:flex;align-items:baseline;gap:14px;border-top:3px solid rgba(255,255,255,.25);">
+  <span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#3FA7D6;background:#fff;padding:6px 13px;border-radius:999px;">02</span>
+  <span style="font-family:'Quicksand';font-weight:700;font-size:22px;color:#fff;">Color exploration</span>
+  <span style="font-family:'Nunito';font-weight:700;font-size:13px;color:rgba(255,255,255,.7);">The four directions — Bluebird was chosen</span>
+</div>
+<div style="width:max-content;min-width:100%;min-height:100vh;padding:56px 48px 80px;background:#F6F1E8;font-family:'Nunito',system-ui,sans-serif;color:#2C2722;background-image:radial-gradient(#E8E0D2 1.4px, transparent 1.4px);background-size:26px 26px;">
+
+  <!-- MASTHEAD -->
+  <div style="max-width:1240px;margin:0 auto 40px;">
+    <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#A8927A;margin-bottom:8px;">Little Scout · Color exploration</div>
+    <div style="font-family:'Quicksand';font-weight:700;font-size:34px;line-height:1.05;color:#2C2722;margin-bottom:12px;">Four happier directions 🎈</div>
+    <div style="font-size:16px;line-height:1.55;color:#6E6354;max-width:780px;">Dropping the dark forest green for something <b style="color:#2C2722;">light, warm and made-for-kids</b>. Each option keeps the same friendly rounded shapes, Quicksand + Nunito type, and the TTF speed tiers (those stay semantic) — only the brand color &amp; paper change. Same home screen, four moods. <b style="color:#2C2722;">Tell me which one (or a mix) and I'll reskin the whole kit.</b></div>
+  </div>
+
+  <!-- OPTIONS ROW -->
+  <div style="display:flex;gap:34px;align-items:flex-start;width:max-content;margin:0 auto;">
+
+    <!-- ============ 1 · SUNNY SCOUT ============ -->
+    <div style="flex:none;width:286px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#2C2722;">Sunny Scout</span><span style="width:18px;height:18px;border-radius:50%;background:#F2913D;"></span></div>
+        <div style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A8775;margin-top:2px;">Tangerine + coral · buttercream</div>
+      </div>
+      <!-- phone -->
+      <div style="background:#43352A;border-radius:40px;padding:8px;box-shadow:0 18px 40px rgba(60,45,25,.18);">
+        <div style="border-radius:33px;overflow:hidden;background:#FFF6E9;height:540px;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:11.5px;color:#43352A;"><span>9:41</span><span style="color:#C2A98F;">···▮</span></div>
+          <div style="padding:8px 18px 12px;display:flex;align-items:center;justify-content:space-between;">
+            <div><div style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#43352A;">Hi, Sam 👋</div><div style="font-family:'Nunito';font-weight:600;font-size:11.5px;color:#9A8775;">Dedham · for age 2</div></div>
+            <div style="width:42px;height:42px;border-radius:14px;background:#F2913D;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 14px rgba(242,145,61,.35);"><div style="width:24px;height:24px;border-radius:50%;background:#FFF6E9;position:relative;display:flex;align-items:center;justify-content:center;"><div style="width:9px;height:9px;background:#F2645C;transform:rotate(45deg);border-radius:2px;position:absolute;top:3px;"></div><div style="width:9px;height:9px;background:#F2913D;transform:rotate(45deg);border-radius:2px;position:absolute;bottom:3px;"></div><div style="width:5px;height:5px;border-radius:50%;background:#43352A;z-index:2;"></div></div></div>
+          </div>
+          <div style="flex:1;padding:0 15px;display:flex;flex-direction:column;gap:10px;overflow:hidden;">
+            <div style="font-family:'Nunito';font-weight:800;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#F2645C;">💛 Updates on your spots</div>
+            <div style="background:#fff;border:1px solid #F0E2CC;border-radius:16px;padding:13px;box-shadow:0 2px 6px rgba(60,45,25,.05);">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#43352A;">Maria's Cantina</span></div>
+              <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#6E5A48;line-height:1.4;">Kid food now <b style="color:#DE7A26;">6 min</b> (was 9) 🎉</div>
+            </div>
+            <div style="background:#FCE6CC;border:1px solid #F6D6AE;border-radius:16px;padding:13px;">
+              <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#8A5A1E;line-height:1.4;"><b style="color:#43352A;">Birch &amp; Bell</b> — high chairs nearby. Be first to log speed!</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;">
+              <span style="font-family:'Nunito';font-weight:700;font-size:10.5px;padding:6px 11px;background:#F2913D;color:#fff;border-radius:999px;">TTF &lt; 10</span>
+              <span style="font-family:'Nunito';font-weight:700;font-size:10.5px;padding:6px 11px;background:#fff;border:1.5px solid #F0E2CC;color:#6E5A48;border-radius:999px;">🪑 High chair</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:12px;background:#F2913D;color:#fff;border-radius:13px;padding:13px;text-align:center;font-family:'Quicksand';font-weight:700;font-size:13.5px;box-shadow:0 5px 14px rgba(242,145,61,.32);">＋ Log a visit</div>
+          </div>
+          <div style="display:flex;border-top:1px solid #F0E2CC;padding:9px 6px 13px;background:#fff;">
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#F2913D;">🧭<br>Feed</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#C2A98F;">🗺️<br>Explore</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#C2A98F;">💛<br>Saved</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#C2A98F;">🙂<br>You</div>
+          </div>
+        </div>
+      </div>
+      <!-- swatches -->
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;height:36px;border-radius:9px;background:#FFF6E9;border:1px solid #EADFC9;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#F2913D;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#F2645C;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#FCE6CC;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#43352A;"></div>
+      </div>
+      <sc-if value="{{ showHex }}" hint-placeholder-val="{{ true }}"><div style="font-family:'Quicksand';font-weight:600;font-size:10px;color:#9A8775;letter-spacing:.02em;">#FFF6E9 · #F2913D · #F2645C · #FCE6CC · #43352A</div></sc-if>
+      <div style="font-family:'Nunito';font-weight:700;font-size:12px;color:#6E6354;line-height:1.45;">Sunniest, most energetic. Reads instantly as "for families" — warm and citrusy.</div>
+    </div>
+
+    <!-- ============ 2 · STRAWBERRY CREAM ============ -->
+    <div style="flex:none;width:286px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#2C2722;">Strawberry Cream</span><span style="width:18px;height:18px;border-radius:50%;background:#EC5E86;"></span></div>
+        <div style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A8775;margin-top:2px;">Raspberry + sunshine · blush</div>
+      </div>
+      <div style="background:#4A2F37;border-radius:40px;padding:8px;box-shadow:0 18px 40px rgba(74,47,55,.20);">
+        <div style="border-radius:33px;overflow:hidden;background:#FFF3F1;height:540px;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:11.5px;color:#4A2F37;"><span>9:41</span><span style="color:#C9A8B0;">···▮</span></div>
+          <div style="padding:8px 18px 12px;display:flex;align-items:center;justify-content:space-between;">
+            <div><div style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#4A2F37;">Hi, Sam 👋</div><div style="font-family:'Nunito';font-weight:600;font-size:11.5px;color:#A98D93;">Dedham · for age 2</div></div>
+            <div style="width:42px;height:42px;border-radius:14px;background:#EC5E86;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 14px rgba(236,94,134,.35);"><div style="width:24px;height:24px;border-radius:50%;background:#FFF3F1;position:relative;display:flex;align-items:center;justify-content:center;"><div style="width:9px;height:9px;background:#F6B73C;transform:rotate(45deg);border-radius:2px;position:absolute;top:3px;"></div><div style="width:9px;height:9px;background:#EC5E86;transform:rotate(45deg);border-radius:2px;position:absolute;bottom:3px;"></div><div style="width:5px;height:5px;border-radius:50%;background:#4A2F37;z-index:2;"></div></div></div>
+          </div>
+          <div style="flex:1;padding:0 15px;display:flex;flex-direction:column;gap:10px;overflow:hidden;">
+            <div style="font-family:'Nunito';font-weight:800;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#EC5E86;">💛 Updates on your spots</div>
+            <div style="background:#fff;border:1px solid #F6DDD8;border-radius:16px;padding:13px;box-shadow:0 2px 6px rgba(74,47,55,.05);">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#4A2F37;">Maria's Cantina</span></div>
+              <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#6E5560;line-height:1.4;">Kid food now <b style="color:#D6436D;">6 min</b> (was 9) 🎉</div>
+            </div>
+            <div style="background:#FCEBC8;border:1px solid #F6DDA8;border-radius:16px;padding:13px;">
+              <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#8A6420;line-height:1.4;"><b style="color:#4A2F37;">Birch &amp; Bell</b> — high chairs nearby. Be first to log speed!</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;">
+              <span style="font-family:'Nunito';font-weight:700;font-size:10.5px;padding:6px 11px;background:#EC5E86;color:#fff;border-radius:999px;">TTF &lt; 10</span>
+              <span style="font-family:'Nunito';font-weight:700;font-size:10.5px;padding:6px 11px;background:#fff;border:1.5px solid #F6DDD8;color:#6E5560;border-radius:999px;">🪑 High chair</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:12px;background:#EC5E86;color:#fff;border-radius:13px;padding:13px;text-align:center;font-family:'Quicksand';font-weight:700;font-size:13.5px;box-shadow:0 5px 14px rgba(236,94,134,.32);">＋ Log a visit</div>
+          </div>
+          <div style="display:flex;border-top:1px solid #F6DDD8;padding:9px 6px 13px;background:#fff;">
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#EC5E86;">🧭<br>Feed</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#C9A8B0;">🗺️<br>Explore</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#C9A8B0;">💛<br>Saved</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#C9A8B0;">🙂<br>You</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;height:36px;border-radius:9px;background:#FFF3F1;border:1px solid #F0DDD6;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#EC5E86;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#F6B73C;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#FBDDE5;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#4A2F37;"></div>
+      </div>
+      <sc-if value="{{ showHex }}" hint-placeholder-val="{{ true }}"><div style="font-family:'Quicksand';font-weight:600;font-size:10px;color:#9A8775;letter-spacing:.02em;">#FFF3F1 · #EC5E86 · #F6B73C · #FBDDE5 · #4A2F37</div></sc-if>
+      <div style="font-family:'Nunito';font-weight:700;font-size:12px;color:#6E6354;line-height:1.45;">Sweetest &amp; softest. Playful and friendly without skewing too young.</div>
+    </div>
+
+    <!-- ============ 3 · BLUEBIRD ============ -->
+    <div style="flex:none;width:286px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#2C2722;">Bluebird</span><span style="width:18px;height:18px;border-radius:50%;background:#3FA7D6;"></span></div>
+        <div style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A8775;margin-top:2px;">Sky blue + mango · warm ivory</div>
+      </div>
+      <div style="background:#2F3A42;border-radius:40px;padding:8px;box-shadow:0 18px 40px rgba(47,58,66,.20);">
+        <div style="border-radius:33px;overflow:hidden;background:#FBF6EC;height:540px;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:11.5px;color:#2F3A42;"><span>9:41</span><span style="color:#A9B3B9;">···▮</span></div>
+          <div style="padding:8px 18px 12px;display:flex;align-items:center;justify-content:space-between;">
+            <div><div style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#2F3A42;">Hi, Sam 👋</div><div style="font-family:'Nunito';font-weight:600;font-size:11.5px;color:#8A98A0;">Dedham · for age 2</div></div>
+            <div style="width:42px;height:42px;border-radius:14px;background:#3FA7D6;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 14px rgba(63,167,214,.35);"><div style="width:24px;height:24px;border-radius:50%;background:#FBF6EC;position:relative;display:flex;align-items:center;justify-content:center;"><div style="width:9px;height:9px;background:#FBA63C;transform:rotate(45deg);border-radius:2px;position:absolute;top:3px;"></div><div style="width:9px;height:9px;background:#3FA7D6;transform:rotate(45deg);border-radius:2px;position:absolute;bottom:3px;"></div><div style="width:5px;height:5px;border-radius:50%;background:#2F3A42;z-index:2;"></div></div></div>
+          </div>
+          <div style="flex:1;padding:0 15px;display:flex;flex-direction:column;gap:10px;overflow:hidden;">
+            <div style="font-family:'Nunito';font-weight:800;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#E08A1E;">💛 Updates on your spots</div>
+            <div style="background:#fff;border:1px solid #E7E0D2;border-radius:16px;padding:13px;box-shadow:0 2px 6px rgba(47,58,66,.05);">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#2F3A42;">Maria's Cantina</span></div>
+              <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#566069;line-height:1.4;">Kid food now <b style="color:#2B8CBC;">6 min</b> (was 9) 🎉</div>
+            </div>
+            <div style="background:#FCE6C8;border:1px solid #F6D6A4;border-radius:16px;padding:13px;">
+              <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#8A5E1E;line-height:1.4;"><b style="color:#2F3A42;">Birch &amp; Bell</b> — high chairs nearby. Be first to log speed!</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;">
+              <span style="font-family:'Nunito';font-weight:700;font-size:10.5px;padding:6px 11px;background:#3FA7D6;color:#fff;border-radius:999px;">TTF &lt; 10</span>
+              <span style="font-family:'Nunito';font-weight:700;font-size:10.5px;padding:6px 11px;background:#fff;border:1.5px solid #E7E0D2;color:#566069;border-radius:999px;">🪑 High chair</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:12px;background:#3FA7D6;color:#fff;border-radius:13px;padding:13px;text-align:center;font-family:'Quicksand';font-weight:700;font-size:13.5px;box-shadow:0 5px 14px rgba(63,167,214,.32);">＋ Log a visit</div>
+          </div>
+          <div style="display:flex;border-top:1px solid #E7E0D2;padding:9px 6px 13px;background:#fff;">
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#3FA7D6;">🧭<br>Feed</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#A9B3B9;">🗺️<br>Explore</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#A9B3B9;">💛<br>Saved</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#A9B3B9;">🙂<br>You</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;height:36px;border-radius:9px;background:#FBF6EC;border:1px solid #E7E0D2;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#3FA7D6;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#FBA63C;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#D6EDF7;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#2F3A42;"></div>
+      </div>
+      <sc-if value="{{ showHex }}" hint-placeholder-val="{{ true }}"><div style="font-family:'Quicksand';font-weight:600;font-size:10px;color:#9A8775;letter-spacing:.02em;">#FBF6EC · #3FA7D6 · #FBA63C · #D6EDF7 · #2F3A42</div></sc-if>
+      <div style="font-family:'Nunito';font-weight:700;font-size:12px;color:#6E6354;line-height:1.45;">Calm &amp; trustworthy but still cheerful — sky blue + mango is bright without sugar.</div>
+    </div>
+
+    <!-- ============ 4 · LEMON MEADOW ============ -->
+    <div style="flex:none;width:286px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#2C2722;">Lemon Meadow</span><span style="width:18px;height:18px;border-radius:50%;background:#6BB94F;"></span></div>
+        <div style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A8775;margin-top:2px;">Fresh green + sunflower · lemon</div>
+      </div>
+      <div style="background:#36402E;border-radius:40px;padding:8px;box-shadow:0 18px 40px rgba(54,64,46,.20);">
+        <div style="border-radius:33px;overflow:hidden;background:#FBFBEA;height:540px;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:11.5px;color:#36402E;"><span>9:41</span><span style="color:#AEB59E;">···▮</span></div>
+          <div style="padding:8px 18px 12px;display:flex;align-items:center;justify-content:space-between;">
+            <div><div style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#36402E;">Hi, Sam 👋</div><div style="font-family:'Nunito';font-weight:600;font-size:11.5px;color:#8C9683;">Dedham · for age 2</div></div>
+            <div style="width:42px;height:42px;border-radius:14px;background:#6BB94F;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 14px rgba(107,185,79,.35);"><div style="width:24px;height:24px;border-radius:50%;background:#FBFBEA;position:relative;display:flex;align-items:center;justify-content:center;"><div style="width:9px;height:9px;background:#F4B940;transform:rotate(45deg);border-radius:2px;position:absolute;top:3px;"></div><div style="width:9px;height:9px;background:#6BB94F;transform:rotate(45deg);border-radius:2px;position:absolute;bottom:3px;"></div><div style="width:5px;height:5px;border-radius:50%;background:#36402E;z-index:2;"></div></div></div>
+          </div>
+          <div style="flex:1;padding:0 15px;display:flex;flex-direction:column;gap:10px;overflow:hidden;">
+            <div style="font-family:'Nunito';font-weight:800;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#D89A1E;">💛 Updates on your spots</div>
+            <div style="background:#fff;border:1px solid #E8EBCF;border-radius:16px;padding:13px;box-shadow:0 2px 6px rgba(54,64,46,.05);">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span><span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#36402E;">Maria's Cantina</span></div>
+              <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#5A6151;line-height:1.4;">Kid food now <b style="color:#549C3B;">6 min</b> (was 9) 🎉</div>
+            </div>
+            <div style="background:#FBEBC6;border:1px solid #F4DC9E;border-radius:16px;padding:13px;">
+              <div style="font-family:'Nunito';font-weight:600;font-size:12px;color:#8A6A1A;line-height:1.4;"><b style="color:#36402E;">Birch &amp; Bell</b> — high chairs nearby. Be first to log speed!</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;">
+              <span style="font-family:'Nunito';font-weight:700;font-size:10.5px;padding:6px 11px;background:#6BB94F;color:#fff;border-radius:999px;">TTF &lt; 10</span>
+              <span style="font-family:'Nunito';font-weight:700;font-size:10.5px;padding:6px 11px;background:#fff;border:1.5px solid #E8EBCF;color:#5A6151;border-radius:999px;">🪑 High chair</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:12px;background:#6BB94F;color:#fff;border-radius:13px;padding:13px;text-align:center;font-family:'Quicksand';font-weight:700;font-size:13.5px;box-shadow:0 5px 14px rgba(107,185,79,.32);">＋ Log a visit</div>
+          </div>
+          <div style="display:flex;border-top:1px solid #E8EBCF;padding:9px 6px 13px;background:#fff;">
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#6BB94F;">🧭<br>Feed</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#AEB59E;">🗺️<br>Explore</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#AEB59E;">💛<br>Saved</div>
+            <div style="flex:1;text-align:center;font-family:'Quicksand';font-weight:700;font-size:9.5px;color:#AEB59E;">🙂<br>You</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;height:36px;border-radius:9px;background:#FBFBEA;border:1px solid #E8EBCF;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#6BB94F;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#F4B940;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#E2F2D6;"></div>
+        <div style="flex:1;height:36px;border-radius:9px;background:#36402E;"></div>
+      </div>
+      <sc-if value="{{ showHex }}" hint-placeholder-val="{{ true }}"><div style="font-family:'Quicksand';font-weight:600;font-size:10px;color:#9A8775;letter-spacing:.02em;">#FBFBEA · #6BB94F · #F4B940 · #E2F2D6 · #36402E</div></sc-if>
+      <div style="font-family:'Nunito';font-weight:700;font-size:12px;color:#6E6354;line-height:1.45;">Keeps a green identity but light &amp; fresh — meadow grass, not forest. Sunny &amp; healthy.</div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER NOTE -->
+  <div style="max-width:1240px;margin:40px auto 0;background:#fff;border:1px solid #EADFC9;border-radius:18px;box-shadow:0 6px 18px rgba(60,45,25,.06);padding:20px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <span style="font-size:22px;">🎨</span>
+    <span style="font-family:'Nunito';font-weight:700;font-size:14px;color:#6E6354;line-height:1.5;flex:1;min-width:300px;">Pick a favorite — or mix-and-match (e.g. "Bluebird paper with Sunny Scout's coral accent"). Once you choose, I'll reskin the full <b style="color:#2C2722;">Little Scout Theme Kit</b> — every component &amp; page — and update the token map.</span>
+  </div>
+
+</div>
+<div style="width:max-content;min-width:100%;background:#2F3A42;padding:20px 48px;display:flex;align-items:baseline;gap:14px;border-top:3px solid rgba(255,255,255,.25);">
+  <span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#3FA7D6;background:#fff;padding:6px 13px;border-radius:999px;">03</span>
+  <span style="font-family:'Quicksand';font-weight:700;font-size:22px;color:#fff;">Themed map views</span>
+  <span style="font-family:'Nunito';font-weight:700;font-size:13px;color:rgba(255,255,255,.7);">Custom basemap + how to ship it</span>
+</div>
+<div style="width:max-content;min-width:100%;min-height:100vh;padding:56px 48px 80px;background:#FBF6EC;font-family:'Nunito',system-ui,sans-serif;color:#2F3A42;background-image:radial-gradient(#ECE2CE 1.4px, transparent 1.4px);background-size:26px 26px;">
+
+  <!-- MASTHEAD -->
+  <div style="max-width:1240px;margin:0 auto 36px;">
+    <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#A8927A;margin-bottom:8px;">Little Scout · Explore map · themed</div>
+    <div style="font-family:'Quicksand';font-weight:700;font-size:32px;line-height:1.05;color:#2F3A42;margin-bottom:12px;">A map that feels like <span style="color:#3FA7D6;">Little Scout</span>, not Google 🗺️</div>
+    <div style="font-size:15.5px;line-height:1.55;color:#6E6354;max-width:820px;">Same Dedham pins &amp; speed tiers — but the basemap is restyled to the Bluebird palette: <b style="color:#2F3A42;">warm-ivory land, soft sky-blue water, sage parks, and the visual clutter (business POIs, dense labels) turned off</b> so our teardrop tier pins are the only thing that pops. Below: the mobile &amp; web views, then exactly how to ship this for real.</div>
+  </div>
+
+  <!-- VIEWS ROW -->
+  <div style="display:flex;gap:34px;align-items:flex-start;width:max-content;margin:0 auto;">
+
+    <!-- MOBILE -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">Mobile · Explore</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">ExploreMapPage</span></div>
+      <div style="background:#2F3A42;border-radius:42px;padding:8px;box-shadow:0 18px 40px rgba(47,58,66,.20);">
+        <div style="border-radius:34px;overflow:hidden;background:#FBF6EC;height:620px;display:flex;flex-direction:column;position:relative;">
+          <!-- map base -->
+          <div style="position:absolute;inset:0;background:#F6EFE1;">
+            <!-- parks -->
+            <div style="position:absolute;top:60px;left:-20px;width:150px;height:130px;background:#DCEAD2;border-radius:50% 40% 45% 55%;"></div>
+            <div style="position:absolute;bottom:150px;right:-30px;width:170px;height:150px;background:#DCEAD2;border-radius:45% 55% 50% 50%;"></div>
+            <div style="position:absolute;bottom:40px;left:20px;width:120px;height:100px;background:#DCEAD2;border-radius:50%;"></div>
+            <!-- water / river -->
+            <div style="position:absolute;top:0;left:120px;width:46px;height:680px;background:#CDE7F4;border-radius:40px;transform:rotate(18deg);"></div>
+            <div style="position:absolute;top:300px;right:24px;width:90px;height:70px;background:#CDE7F4;border-radius:48% 52% 50% 50%;"></div>
+            <!-- major roads -->
+            <div style="position:absolute;top:-40px;left:40px;width:14px;height:760px;background:#F0E2C2;transform:rotate(-24deg);"></div>
+            <div style="position:absolute;top:240px;left:-40px;width:420px;height:11px;background:#F0E2C2;transform:rotate(8deg);"></div>
+            <!-- minor roads -->
+            <div style="position:absolute;top:120px;left:-20px;width:380px;height:4px;background:#EFE7D6;transform:rotate(-6deg);"></div>
+            <div style="position:absolute;top:430px;left:-20px;width:400px;height:4px;background:#EFE7D6;transform:rotate(5deg);"></div>
+            <div style="position:absolute;top:0;left:210px;width:4px;height:620px;background:#EFE7D6;transform:rotate(10deg);"></div>
+          </div>
+
+          <!-- status bar -->
+          <div style="position:relative;display:flex;justify-content:space-between;padding:13px 22px 4px;font-family:'Nunito';font-weight:800;font-size:12px;color:#2F3A42;z-index:5;"><span>9:41</span><span style="color:#A9B3B9;letter-spacing:1px;">···▮</span></div>
+
+          <!-- search -->
+          <div style="position:absolute;top:50px;left:14px;right:14px;background:#fff;border-radius:14px;padding:12px 14px;font-family:'Nunito';font-weight:700;font-size:12.5px;color:#A8927A;box-shadow:0 4px 14px rgba(47,58,66,.14);z-index:5;">🔍 &nbsp;Search by name, place, or neighborhood…</div>
+          <!-- filter chips -->
+          <div style="position:absolute;top:96px;left:14px;right:14px;display:flex;gap:7px;flex-wrap:wrap;z-index:5;">
+            <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:7px 12px;background:#3FA7D6;color:#fff;border-radius:999px;box-shadow:0 2px 8px rgba(63,167,214,.3);">Quick starters</span>
+            <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:7px 12px;background:#fff;color:#566069;border-radius:999px;box-shadow:0 1px 5px rgba(47,58,66,.12);">Parent-rated</span>
+            <span style="font-family:'Nunito';font-weight:700;font-size:11px;padding:7px 12px;background:#fff;color:#566069;border-radius:999px;box-shadow:0 1px 5px rgba(47,58,66,.12);">Needs scouting</span>
+          </div>
+
+          <!-- pins -->
+          <div class="pin" style="top:200px;left:70px;background:#2E8B57;"><span>7m</span></div>
+          <div class="pin" style="top:300px;left:180px;background:#2E8B57;"><span>6m</span></div>
+          <div class="pin" style="top:250px;left:120px;background:#E0A52E;"><span>12m</span></div>
+          <div class="pin" style="top:360px;left:60px;background:#B4AA98;"><span></span></div>
+          <!-- cluster -->
+          <div style="position:absolute;top:330px;left:215px;width:38px;height:38px;border-radius:50%;background:#3FA7D6;border:3px solid #fff;box-shadow:0 4px 10px rgba(47,58,66,.28);display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:13px;color:#fff;z-index:6;">5</div>
+          <!-- you-are-here -->
+          <div style="position:absolute;top:420px;left:150px;width:18px;height:18px;border-radius:50%;background:#3FA7D6;border:3px solid #fff;box-shadow:0 0 0 8px rgba(63,167,214,.18),0 3px 8px rgba(47,58,66,.25);z-index:5;"></div>
+
+          <!-- selected callout card -->
+          <div style="position:absolute;left:14px;right:14px;bottom:118px;background:#fff;border-radius:18px;padding:13px 14px;box-shadow:0 10px 28px rgba(47,58,66,.18);z-index:7;display:flex;align-items:center;gap:11px;">
+            <span style="width:42px;height:42px;border-radius:13px;background:#DCEFE2;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:14px;color:#2E8B57;flex:none;">6m</span>
+            <div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:14px;color:#2F3A42;">Maria's Cantina</div><div style="font-family:'Nunito';font-weight:600;font-size:11.5px;color:#8A98A0;">Fast · high chairs · 0.4 mi</div></div>
+            <span style="font-family:'Quicksand';font-weight:700;font-size:13px;color:#fff;background:#3FA7D6;padding:9px 14px;border-radius:11px;">💛</span>
+          </div>
+
+          <!-- legend -->
+          <div style="position:absolute;left:10px;right:10px;bottom:54px;background:rgba(255,255,255,.95);border-radius:14px;padding:9px 12px;box-shadow:0 4px 14px rgba(47,58,66,.14);z-index:6;display:flex;gap:11px;align-items:center;flex-wrap:wrap;">
+            <span style="font-family:'Nunito';font-weight:800;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#A8927A;">Speed</span>
+            <span style="display:flex;align-items:center;gap:4px;font-family:'Nunito';font-weight:700;font-size:10px;color:#566069;"><span style="width:9px;height:9px;border-radius:50%;background:#2E8B57;"></span>Fast</span>
+            <span style="display:flex;align-items:center;gap:4px;font-family:'Nunito';font-weight:700;font-size:10px;color:#566069;"><span style="width:9px;height:9px;border-radius:50%;background:#E0A52E;"></span>OK</span>
+            <span style="display:flex;align-items:center;gap:4px;font-family:'Nunito';font-weight:700;font-size:10px;color:#566069;"><span style="width:9px;height:9px;border-radius:50%;background:#D6543B;"></span>Slow</span>
+            <span style="display:flex;align-items:center;gap:4px;font-family:'Nunito';font-weight:700;font-size:10px;color:#566069;"><span style="width:9px;height:9px;border-radius:50%;background:#B4AA98;"></span>No data</span>
+          </div>
+
+          <!-- locate fab -->
+          <div style="position:absolute;right:14px;bottom:170px;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(47,58,66,.18);display:flex;align-items:center;justify-content:center;font-size:18px;z-index:6;">🧭</div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:296px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">POI icons &amp; business labels are switched off — only our teardrop speed pins, clusters, and the "you are here" dot read on the map.</span></div>
+      </sc-if>
+    </div>
+
+    <!-- WEB -->
+    <div style="flex:none;width:660px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Quicksand';font-weight:700;font-size:18px;">Web · Explore</span><span style="font-family:'Quicksand';font-weight:700;font-size:10.5px;color:#A8927A;">ExploreMapPage · desktop</span></div>
+      <div style="background:#fff;border-radius:14px;box-shadow:0 16px 40px rgba(47,58,66,.14);overflow:hidden;border:1px solid #E7E0D2;">
+        <div style="display:flex;align-items:center;gap:7px;padding:11px 15px;background:#F1E9DA;border-bottom:1px solid #E7E0D2;"><span style="width:11px;height:11px;border-radius:50%;background:#F08A2E;"></span><span style="width:11px;height:11px;border-radius:50%;background:#FBA63C;"></span><span style="width:11px;height:11px;border-radius:50%;background:#2E8B57;"></span><span style="margin-left:12px;font-family:'Quicksand';font-weight:600;font-size:11px;color:#A8927A;">littlescout.app/restaurants</span></div>
+        <div style="height:470px;display:flex;">
+          <!-- list rail -->
+          <div style="width:228px;border-right:1px solid #EFE6D3;display:flex;flex-direction:column;background:#FBF8F0;">
+            <div style="padding:15px 15px 11px;border-bottom:1px solid #EFE6D3;">
+              <div style="font-family:'Quicksand';font-weight:700;font-size:17px;color:#2F3A42;">Explore</div>
+              <div style="font-family:'Nunito';font-weight:700;font-size:11px;color:#8A98A0;">16 places · Dedham</div>
+            </div>
+            <div style="flex:1;padding:11px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+              <div style="background:#fff;border:1px solid #EFE6D3;border-radius:13px;padding:10px 11px;display:flex;align-items:center;gap:9px;box-shadow:0 1px 3px rgba(47,58,66,.05);"><span style="width:30px;height:30px;border-radius:9px;background:#DCEFE2;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:11px;color:#2E8B57;flex:none;">6m</span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:12.5px;">Maria's Cantina</div><div style="font-family:'Nunito';font-weight:600;font-size:10.5px;color:#8A98A0;">Fast · high chairs</div></div><span style="font-size:13px;">💛</span></div>
+              <div style="background:#fff;border:1px solid #EFE6D3;border-radius:13px;padding:10px 11px;display:flex;align-items:center;gap:9px;box-shadow:0 1px 3px rgba(47,58,66,.05);"><span style="width:30px;height:30px;border-radius:9px;background:#DCEFE2;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:11px;color:#2E8B57;flex:none;">7m</span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:12.5px;">Birch &amp; Bell</div><div style="font-family:'Nunito';font-weight:600;font-size:10.5px;color:#8A98A0;">Fast · changing table</div></div><span style="font-size:13px;">🤍</span></div>
+              <div style="background:#fff;border:1px solid #EFE6D3;border-radius:13px;padding:10px 11px;display:flex;align-items:center;gap:9px;box-shadow:0 1px 3px rgba(47,58,66,.05);"><span style="width:30px;height:30px;border-radius:9px;background:#FBE5C5;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:11px;color:#B5701A;flex:none;">12m</span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:12.5px;">Chipotle</div><div style="font-family:'Nunito';font-weight:600;font-size:10.5px;color:#8A98A0;">OK · counter service</div></div><span style="font-size:13px;">🤍</span></div>
+              <div style="background:#fff;border:1px solid #EFE6D3;border-radius:13px;padding:10px 11px;display:flex;align-items:center;gap:9px;box-shadow:0 1px 3px rgba(47,58,66,.05);"><span style="width:30px;height:30px;border-radius:9px;background:#EFEAE0;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:9px;color:#9A9483;flex:none;">—</span><div style="flex:1;"><div style="font-family:'Quicksand';font-weight:700;font-size:12.5px;">Yard House</div><div style="font-family:'Nunito';font-weight:600;font-size:10.5px;color:#8A98A0;">No speed yet</div></div><span style="font-size:13px;">🤍</span></div>
+            </div>
+          </div>
+          <!-- map -->
+          <div style="flex:1;position:relative;background:#F6EFE1;overflow:hidden;">
+            <!-- parks -->
+            <div style="position:absolute;top:-30px;left:30px;width:220px;height:180px;background:#DCEAD2;border-radius:50% 45% 55% 50%;"></div>
+            <div style="position:absolute;bottom:-40px;right:40px;width:260px;height:200px;background:#DCEAD2;border-radius:45% 55% 50% 50%;"></div>
+            <div style="position:absolute;top:160px;right:-30px;width:150px;height:140px;background:#DCEAD2;border-radius:50%;"></div>
+            <!-- water -->
+            <div style="position:absolute;top:-40px;left:230px;width:54px;height:560px;background:#CDE7F4;border-radius:40px;transform:rotate(20deg);"></div>
+            <div style="position:absolute;bottom:60px;left:60px;width:120px;height:80px;background:#CDE7F4;border-radius:50% 50% 48% 52%;"></div>
+            <!-- major roads -->
+            <div style="position:absolute;top:-60px;left:120px;width:16px;height:640px;background:#F0E2C2;transform:rotate(-22deg);"></div>
+            <div style="position:absolute;top:200px;left:-60px;width:560px;height:13px;background:#F0E2C2;transform:rotate(7deg);"></div>
+            <!-- minor roads -->
+            <div style="position:absolute;top:90px;left:-40px;width:520px;height:5px;background:#EFE7D6;transform:rotate(-5deg);"></div>
+            <div style="position:absolute;top:330px;left:-40px;width:540px;height:5px;background:#EFE7D6;transform:rotate(4deg);"></div>
+            <div style="position:absolute;top:-40px;left:340px;width:5px;height:560px;background:#EFE7D6;transform:rotate(9deg);"></div>
+
+            <!-- pins -->
+            <div class="pin" style="top:150px;left:120px;background:#2E8B57;"><span>6m</span></div>
+            <div class="pin" style="top:250px;left:250px;background:#2E8B57;"><span>7m</span></div>
+            <div class="pin" style="top:200px;left:330px;background:#E0A52E;"><span>12m</span></div>
+            <div class="pin" style="top:320px;left:160px;background:#B4AA98;"><span></span></div>
+            <div style="position:absolute;top:120px;left:280px;width:40px;height:40px;border-radius:50%;background:#3FA7D6;border:3px solid #fff;box-shadow:0 4px 10px rgba(47,58,66,.28);display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:14px;color:#fff;">8</div>
+            <div style="position:absolute;top:300px;left:380px;width:18px;height:18px;border-radius:50%;background:#3FA7D6;border:3px solid #fff;box-shadow:0 0 0 9px rgba(63,167,214,.16),0 3px 8px rgba(47,58,66,.25);"></div>
+
+            <!-- zoom control -->
+            <div style="position:absolute;top:16px;right:16px;background:#fff;border-radius:12px;box-shadow:0 4px 14px rgba(47,58,66,.16);overflow:hidden;display:flex;flex-direction:column;">
+              <div style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:18px;color:#2F3A42;border-bottom:1px solid #EFE6D3;">＋</div>
+              <div style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:18px;color:#2F3A42;">−</div>
+            </div>
+            <div style="position:absolute;bottom:16px;right:16px;width:44px;height:44px;border-radius:50%;background:#3FA7D6;box-shadow:0 4px 14px rgba(63,167,214,.4);display:flex;align-items:center;justify-content:center;font-size:18px;">🧭</div>
+            <!-- legend -->
+            <div style="position:absolute;bottom:16px;left:16px;background:rgba(255,255,255,.95);border-radius:13px;padding:9px 13px;box-shadow:0 4px 14px rgba(47,58,66,.14);display:flex;gap:12px;align-items:center;">
+              <span style="font-family:'Nunito';font-weight:800;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#A8927A;">Speed</span>
+              <span style="display:flex;align-items:center;gap:4px;font-family:'Nunito';font-weight:700;font-size:10.5px;color:#566069;"><span style="width:10px;height:10px;border-radius:50%;background:#2E8B57;"></span>Fast</span>
+              <span style="display:flex;align-items:center;gap:4px;font-family:'Nunito';font-weight:700;font-size:10.5px;color:#566069;"><span style="width:10px;height:10px;border-radius:50%;background:#E0A52E;"></span>OK</span>
+              <span style="display:flex;align-items:center;gap:4px;font-family:'Nunito';font-weight:700;font-size:10.5px;color:#566069;"><span style="width:10px;height:10px;border-radius:50%;background:#D6543B;"></span>Slow</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:7px;align-items:flex-start;max-width:640px;"><span style="color:#F08A2E;">✦</span><span style="font-family:'Nunito';font-weight:700;font-size:12.5px;color:#9A6A2E;line-height:1.35;">List rail mirrors the pins with the same tier swatch; zoom + locate controls are restyled to rounded, soft-shadowed chips in the theme.</span></div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- HOW-TO -->
+  <div style="max-width:1240px;margin:42px auto 0;background:#fff;border:1px solid #E7E0D2;border-radius:20px;box-shadow:0 6px 18px rgba(47,58,66,.07);padding:28px 30px;">
+    <div style="font-family:'Nunito';font-weight:800;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#A8927A;margin-bottom:6px;">How to ship this for real</div>
+    <div style="font-family:'Quicksand';font-weight:700;font-size:21px;color:#2F3A42;margin-bottom:6px;">Three ways to get a custom basemap</div>
+    <div style="font-size:13.5px;color:#6E6354;line-height:1.5;max-width:840px;margin-bottom:20px;">A styled basemap is the one piece you can't do in plain CSS in production — it comes from the map provider. The pins, clusters, callouts &amp; controls above are all your own DOM/markers on top, so those port directly. Pick a basemap path:</div>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:250px;background:#FBF8F0;border:1px solid #EFE6D3;border-radius:16px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="width:26px;height:26px;border-radius:8px;background:#3FA7D6;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:13px;">1</span><span style="font-family:'Quicksand';font-weight:700;font-size:15px;color:#2F3A42;">Stay on Google</span></div>
+        <div style="font-family:'Nunito';font-weight:600;font-size:12.5px;color:#5E5446;line-height:1.55;">Lowest lift — you already use MapKit/Google. Create a <b>cloud-based Map Style</b> in Google Cloud Console, attach it to a <b>Map ID</b>, and pass that ID to the map. Set land/water/park colors to our tokens and turn <b>POI &amp; transit labels off</b>. (Legacy inline JSON styling is deprecated for new maps — use the Map ID.)</div>
+      </div>
+      <div style="flex:1;min-width:250px;background:#FBF8F0;border:1px solid #EFE6D3;border-radius:16px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="width:26px;height:26px;border-radius:8px;background:#3FA7D6;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:13px;">2</span><span style="font-family:'Quicksand';font-weight:700;font-size:15px;color:#2F3A42;">Mapbox Studio</span></div>
+        <div style="font-family:'Nunito';font-weight:600;font-size:12.5px;color:#5E5446;line-height:1.55;">Most design control. Fork a light base in <b>Mapbox Studio</b>, recolor land/water/parks/roads to the tokens, hide POI layers, publish, and load the style URL via Mapbox GL JS / the iOS SDK. Custom marker images = our teardrop pins.</div>
+      </div>
+      <div style="flex:1;min-width:250px;background:#FBF8F0;border:1px solid #EFE6D3;border-radius:16px;padding:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="width:26px;height:26px;border-radius:8px;background:#3FA7D6;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Quicksand';font-weight:700;font-size:13px;">3</span><span style="font-family:'Quicksand';font-weight:700;font-size:15px;color:#2F3A42;">MapLibre + MapTiler</span></div>
+        <div style="font-family:'Nunito';font-weight:600;font-size:12.5px;color:#5E5446;line-height:1.55;">Open-source, no per-load vendor lock. <b>MapLibre GL</b> renders a free vector style (e.g. MapTiler) you edit as JSON to match the tokens. Same marker/cluster API as Mapbox. Good if map cost or independence matters.</div>
+      </div>
+    </div>
+
+    <!-- token strip -->
+    <div style="margin-top:20px;border-top:1px dashed #E3D8C2;padding-top:18px;">
+      <div style="font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#A8927A;margin-bottom:12px;">Basemap palette — hand these layer colors to whichever provider</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:9px;"><span style="width:30px;height:30px;border-radius:9px;background:#F6EFE1;border:1px solid #E7E0D2;"></span><div><div style="font-family:'Quicksand';font-weight:700;font-size:12px;">Land</div><div style="font-family:'Quicksand';font-weight:600;font-size:10.5px;color:#9A8775;">#F6EFE1</div></div></div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="width:30px;height:30px;border-radius:9px;background:#CDE7F4;"></span><div><div style="font-family:'Quicksand';font-weight:700;font-size:12px;">Water</div><div style="font-family:'Quicksand';font-weight:600;font-size:10.5px;color:#9A8775;">#CDE7F4</div></div></div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="width:30px;height:30px;border-radius:9px;background:#DCEAD2;"></span><div><div style="font-family:'Quicksand';font-weight:700;font-size:12px;">Parks</div><div style="font-family:'Quicksand';font-weight:600;font-size:10.5px;color:#9A8775;">#DCEAD2</div></div></div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="width:30px;height:30px;border-radius:9px;background:#F0E2C2;"></span><div><div style="font-family:'Quicksand';font-weight:700;font-size:12px;">Major road</div><div style="font-family:'Quicksand';font-weight:600;font-size:10.5px;color:#9A8775;">#F0E2C2</div></div></div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="width:30px;height:30px;border-radius:9px;background:#EFE7D6;border:1px solid #E7E0D2;"></span><div><div style="font-family:'Quicksand';font-weight:700;font-size:12px;">Minor road</div><div style="font-family:'Quicksand';font-weight:600;font-size:10.5px;color:#9A8775;">#EFE7D6</div></div></div>
+        <div style="display:flex;align-items:center;gap:9px;"><span style="width:30px;height:30px;border-radius:9px;background:#8A98A0;"></span><div><div style="font-family:'Quicksand';font-weight:700;font-size:12px;">Labels</div><div style="font-family:'Quicksand';font-weight:600;font-size:10.5px;color:#9A8775;">#8A98A0</div></div></div>
+      </div>
+      <div style="font-family:'Nunito';font-weight:700;font-size:12px;color:#9A6A2E;line-height:1.5;margin-top:14px;background:#FCE6C8;border-radius:11px;padding:11px 14px;">🔑 The single biggest "de-Google" move: <b>hide POI/business icons + transit, and thin the labels</b>. Once the basemap is quiet, our teardrop tier pins carry the whole map.</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1340,&quot;height&quot;:900},&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showTokens&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showHex&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { seconds: 372, running: true };
+  componentDidMount() { this._t = setInterval(() => { if (this.state.running) this.setState(s => ({ seconds: s.seconds + 1 })); }, 1000); }
+  componentWillUnmount() { clearInterval(this._t); }
+  fmt(total) { const m = Math.floor(total / 60); const s = total % 60; return m + ":" + String(s).padStart(2, "0"); }
+  renderVals() {
+    return {
+      showAnnotations: this.props.showAnnotations ?? true,
+      showTokens: this.props.showTokens ?? true,
+      showHex: this.props.showHex ?? true,
+      timerLabel: this.fmt(this.state.seconds),
+      timerBtn: this.state.running ? "Food's here! 🍝" : "Resume",
+      toggleTimer: () => this.setState(s => ({ running: !s.running })),
+      coreSwatches: [
+        { name: "Paper", token: "bg.light", hex: "#FBF6EC", bg: "#FBF6EC" },
+        { name: "Surface", token: "surface", hex: "#FFFFFF", bg: "#FFFFFF" },
+        { name: "Muted", token: "surfaceMuted", hex: "#F3EAD8", bg: "#F3EAD8" },
+        { name: "Border", token: "border.light", hex: "#EADFC9", bg: "#EADFC9" },
+        { name: "Sky blue", token: "brand.light", hex: "#3FA7D6", bg: "#3FA7D6" },
+        { name: "Mango", token: "accent.light", hex: "#FBA63C", bg: "#FBA63C" },
+        { name: "Pop", token: "(new) pop", hex: "#F08A2E", bg: "#F08A2E" },
+        { name: "Ink", token: "text.light", hex: "#2C2722", bg: "#2C2722" }
+      ],
+      ttfSwatches: [
+        { name: "Fast", token: "ttfFast", hex: "#2E8B57", bg: "#2E8B57" },
+        { name: "OK", token: "ttfOk", hex: "#E0A52E", bg: "#E0A52E" },
+        { name: "Slow", token: "ttfSlow", hex: "#D6543B", bg: "#D6543B" },
+        { name: "Unknown", token: "ttfUnknown", hex: "#B4AA98", bg: "#B4AA98" }
+      ]
+    };
+  }
+}
+</script>
+<script>
+(async () => {
+  if (!document.title || !document.title.trim()) document.title = "Little Scout Full Kit";
+  // Prepend so page-supplied @page / break rules (deck-stage's margin:0,
+  // author CSS) keep source-order precedence over the baseline.
+  const baseCss = document.createElement('style');
+  baseCss.textContent = "@media print {\n  @page { margin: 0.5cm; }\n  figure, table { break-inside: avoid; }\n  *, *::before, *::after {\n    print-color-adjust: exact; -webkit-print-color-adjust: exact;\n    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;\n    animation-delay: -99s !important; animation-duration: .001s !important;\n    animation-iteration-count: 1 !important; animation-fill-mode: both !important;\n    animation-play-state: running !important; transition-duration: 0s !important;\n  }\n}";
+  document.head.prepend(baseCss);
+  if (document.readyState === 'loading') {
+    await new Promise((r) => document.addEventListener('DOMContentLoaded', r, { once: true }));
+  }
+  let ds = document.querySelector('deck-stage');
+  // whenDefined never resolves when nothing registers the element, so only
+  // await it when a <deck-stage> tag exists (and race a timeout regardless).
+  if (ds && !customElements.get('deck-stage')) {
+    try {
+      await Promise.race([
+        customElements.whenDefined('deck-stage'),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]);
+    } catch (e) {}
+    ds = document.querySelector('deck-stage');
+  }
+  // dc-runtime assigns window.DCLogic at init and mounts into #dc-root on
+  // DOMContentLoaded; settle on that subtree so React has rendered before
+  // print(). Non-DC pages fall through to weighing body.
+  const isDc = !ds && 'DCLogic' in window;
+  const settleRoot = ds || (isDc ? document.getElementById('dc-root') : null) || document.body;
+  if (settleRoot) {
+    // Weigh only content children — skip script/style/template so inline
+    // Babel/CSS doesn't register as stable "content" before the framework
+    // has mounted anything.
+    const MEDIA = 'img,svg,canvas,video,picture,iframe,embed,object';
+    const weigh = () => {
+      let text = 0, media = 0;
+      for (const c of settleRoot.children) {
+        const t = c.tagName;
+        if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+        text += (c.textContent || '').trim().length;
+        media += c.querySelectorAll(MEDIA).length + (c.matches(MEDIA) ? 1 : 0);
+      }
+      return text + media * 100;
+    };
+    // "Non-zero and stable" alone is not sufficient to mean rendered: generic
+    // body can carry a static shell while async main content is pending, and
+    // #dc-root can carry the root DC's static text while child refs are still
+    // .sc-placeholder boxes. Gate generic on readyState 'complete', and never
+    // accept stability while a dc-runtime placeholder is present.
+    const isGeneric = settleRoot === document.body;
+    const deadline = Date.now() + 15000;
+    let last = -1, stable = 0;
+    while (Date.now() < deadline) {
+      const n = weigh();
+      const ready =
+        (!isGeneric || document.readyState === 'complete') &&
+        !settleRoot.querySelector('.sc-placeholder');
+      if (n > 0 && n === last && ready) { if (++stable >= 2) break; } else { stable = 0; }
+      last = n;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+  // Reveal content gated on scroll or visibility before printing. Lazy <img>,
+  // IntersectionObserver fade-ins, and collapsed <details> don't render while
+  // off-screen, so a long page would print with them blank or closed. Open
+  // every <details>, force native-lazy images eager, and scroll the document
+  // through its full height to trip lazy-load + IO; then wait (bounded) for the
+  // newly-triggered images. Inert for deck-stage (slides aren't scroll-gated).
+  try {
+    for (const d of document.querySelectorAll('details')) d.open = true;
+    for (const img of document.querySelectorAll('img[loading="lazy"]'))
+      img.loading = 'eager';
+    const scroller = document.scrollingElement || document.documentElement;
+    const full = Math.max(scroller.scrollHeight, document.body.scrollHeight);
+    const step = window.innerHeight || 800;
+    for (let y = 0; y <= full; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    window.scrollTo(0, 0);
+    await Promise.race([
+      Promise.all(
+        [...document.images].map((img) =>
+          img.complete
+            ? null
+            : new Promise((res) => {
+                img.addEventListener('load', res, { once: true });
+                img.addEventListener('error', res, { once: true });
+              })
+        )
+      ),
+      new Promise((r) => setTimeout(r, 4000)),
+    ]);
+  } catch (e) {}
+  try { await document.fonts.ready; } catch (e) {}
+  // Jump every animation to its end state so print() never captures a slide
+  // mid-entrance. Ordering matters: the 0s-transition style must be live
+  // BEFORE data-deck-active is set so attribute-keyed transitions don't
+  // start a (now-0s) run from the pre-active base.
+  const st = document.createElement('style');
+  st.textContent = '*,*::before,*::after{animation-delay:-99s !important;animation-duration:.001s !important;animation-iteration-count:1 !important;animation-fill-mode:both !important;animation-play-state:running !important;transition-duration:0s !important}';
+  document.head.appendChild(st);
+  for (const d of document.querySelectorAll('deck-stage')) {
+    for (const c of d.children) {
+      const t = c.tagName;
+      if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+      c.setAttribute('data-deck-active', '');
+    }
+  }
+  // Re-append deck-stage's @page last so no author @page can add a margin and
+  // spill each full-bleed slide onto two sheets. Backstop for old copies.
+  if (ds) {
+    let pg = document.getElementById('deck-stage-print-page');
+    if (!pg) {
+      pg = document.createElement('style');
+      pg.textContent = '@page{size:' + (+ds.getAttribute('width') || 1920) +
+        'px ' + (+ds.getAttribute('height') || 1080) + 'px;margin:0}';
+    }
+    document.body.appendChild(pg);
+  }
+  try {
+    const sweep = () => {
+      for (const a of document.getAnimations()) {
+        try { a.finish(); } catch (e) {
+          try { a.currentTime = (a.effect && a.effect.getComputedTiming().duration) || 0; a.pause(); } catch (e2) {}
+        }
+      }
+    };
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+  } catch (e) {}
+  // Relax break-inside on oversized elements. An element taller than a
+  // printable page can't honor break-inside: avoid — browsers either overflow
+  // it or push it whole to the next page, leaving a blank gap, then break it
+  // anyway at an arbitrary point. After the final layout (content revealed,
+  // animations jumped), find elements taller than a page that still compute
+  // break-inside: avoid and reset them to auto, so the browser breaks them at
+  // their children's boundaries instead (children keep their own avoid). PAGE_PX
+  // is a conservative portrait estimate at 96 CSS px/in — Letter/A4 usable
+  // height minus our 0.5in margins — so only clearly-oversized elements are
+  // touched and under-page elements still stay whole. Skipped for decks, whose
+  // slides are sized to the page.
+  try {
+    if (!document.querySelector('deck-stage')) {
+      const PAGE_PX = 1024;
+      // Our print defaults add a body padding inset only when we also zero the
+      // @page margin; computed style can't tell us (it reports screen media),
+      // so read the injected rule directly.
+      const defaults = document.querySelector('style[data-omelette-print-defaults]');
+      const pageInset = /body\s*\{[^}]*padding/.test(defaults ? defaults.textContent || '' : '');
+      const SEL = 'section,article,figure,table,pre,blockquote,[class~="card" i],[class~="page" i],[class~="sheet" i]';
+      for (const el of document.body.querySelectorAll(SEL)) {
+        if (el instanceof HTMLElement && el.offsetHeight > PAGE_PX) {
+          el.setAttribute('data-om-oversized', '');
+          // Fake-paged docs simulate sheets with over-tall break-after:page
+          // boxes; honoring the break spills half-blank pages and ends a
+          // colored box mid-sheet. Flow them, and (only when we own the page
+          // inset) drop the redundant padding/background via the rule below.
+          const cs = getComputedStyle(el);
+          if (cs.breakAfter === 'page' || cs.pageBreakAfter === 'always') {
+            el.setAttribute('data-om-fakepage', '');
+          }
+        }
+      }
+      const ost = document.createElement('style');
+      ost.textContent = '@media print{' +
+        '[data-om-oversized]{break-inside:auto !important;page-break-inside:auto !important}' +
+        '[data-om-fakepage]{break-after:auto !important;page-break-after:auto !important}' +
+        (pageInset ? '[data-om-fakepage]{padding:0 !important;background:none !important}' : '') +
+        '}';
+      document.head.appendChild(ost);
+    }
+  } catch (e) {}
+  // macOS Preview renders Skia-PDF Luminosity soft-masks as opaque grey boxes;
+  // swap the CSS that triggers them for Preview-safe forms.
+  try {
+    for (const el of document.body.querySelectorAll('*')) {
+      const cs = getComputedStyle(el);
+
+      if (cs.boxShadow !== 'none' && cs.filter === 'none') {
+        const outs = [], kept = [];
+        for (const s of cs.boxShadow.split(/,(?![^(]*[)])/)) {
+          const t = s.trim();
+          const m = t.match(/^(rgba?[(][^)]+[)]) (-?[0-9.]+px) (-?[0-9.]+px) ([0-9.]+px) -?[0-9.]+px$/);
+          if (m && parseFloat(m[4]) > 0) outs.push('drop-shadow(' + m[2] + ' ' + m[3] + ' ' + m[4] + ' ' + m[1] + ')');
+          else kept.push(t);
+        }
+        if (outs.length) {
+          el.style.setProperty('filter', outs.join(' '), 'important');
+          el.style.setProperty('box-shadow', kept.join(', ') || 'none', 'important');
+        }
+      }
+
+      const mask = cs.maskImage && cs.maskImage !== 'none' ? cs.maskImage : cs.webkitMaskImage;
+      if (mask && mask !== 'none' && cs.filter === 'none') el.style.setProperty('filter', 'opacity(1)', 'important');
+    }
+  } catch (e) {}
+  setTimeout(() => { try { window.print(); } catch (e) {} }, 200);
+})();
+</script>
+</body>
+</html>

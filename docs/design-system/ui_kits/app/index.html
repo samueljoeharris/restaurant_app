@@ -1,0 +1,165 @@
+<!-- @dsCard group="App" viewport="980x680" subtitle="Interactive re-themed app — onboarding → feed → explore → detail → speed timer → you" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body{margin:0;font-family:var(--ls-font-body);background:var(--ls-paper);background-image:radial-gradient(var(--ls-paper-dot) 1.4px,transparent 1.4px);background-size:26px 26px;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px}
+  *{box-sizing:border-box}
+  .eyebrow{font-weight:800;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ls-ink-muted)}
+</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/plain" id="app-src">
+const {useState,useEffect,useRef} = React;
+const C = {
+  sky:'var(--ls-sky)',skyDeep:'var(--ls-sky-deep)',skySoft:'var(--ls-sky-soft)',
+  mango:'var(--ls-mango)',mangoSoft:'var(--ls-mango-soft)',pop:'var(--ls-pop)',popSoft:'var(--ls-pop-soft)',
+  paper:'var(--ls-paper)',surface:'var(--ls-surface)',border:'#EFE6D3',ink:'var(--ls-ink)',muted:'var(--ls-ink-muted)',
+  fast:'var(--ls-ttf-fast)',fastSoft:'var(--ls-ttf-fast-soft)',ok:'var(--ls-ttf-ok)',disp:'var(--ls-font-display)'
+};
+const Disp = {fontFamily:C.disp,fontWeight:700};
+
+function Emblem({size=42}){
+  const d=size*0.28;
+  return <div style={{width:size,height:size,borderRadius:size*0.33,background:C.sky,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 5px 14px rgba(63,167,214,.35)'}}>
+    <div style={{width:size*0.58,height:size*0.58,borderRadius:'50%',background:C.paper,position:'relative',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{width:d,height:d,background:C.pop,transform:'rotate(45deg)',borderRadius:3,position:'absolute',top:size*0.08}}/>
+      <div style={{width:d,height:d,background:C.mango,transform:'rotate(45deg)',borderRadius:3,position:'absolute',bottom:size*0.08}}/>
+      <div style={{width:size*0.13,height:size*0.13,borderRadius:'50%',background:C.ink,zIndex:2}}/>
+    </div></div>;
+}
+const Btn = ({children,onClick,variant='primary',style})=>{
+  const v={primary:{background:C.sky,color:'#fff',boxShadow:'0 4px 12px rgba(63,167,214,.28)'},
+    secondary:{background:'#fff',color:C.skyDeep,border:'1.5px solid '+C.skySoft},
+    ghost:{background:'transparent',color:C.muted}}[variant];
+  return <div onClick={onClick} style={{...Disp,fontSize:14,padding:'13px 18px',borderRadius:14,textAlign:'center',cursor:'pointer',...v,...style}}>{children}</div>;
+};
+const Chip = ({children,active,icon})=> <span style={{fontFamily:'var(--ls-font-body)',fontWeight:700,fontSize:11,padding:'7px 12px',borderRadius:999,background:active?C.sky:'#fff',color:active?'#fff':'#5E5446',border:active?'none':'1.5px solid var(--ls-border)',whiteSpace:'nowrap',display:'inline-flex',gap:4,alignItems:'center'}}>{icon&&<span>{icon}</span>}{children}</span>;
+function Status(){return <div style={{display:'flex',justifyContent:'space-between',padding:'13px 22px 4px',fontFamily:'var(--ls-font-body)',fontWeight:800,fontSize:12,color:C.ink}}><span>9:41</span><span style={{color:'#A9B3B9',letterSpacing:1}}>···▮</span></div>;}
+const TABS=[['🧭','Feed','feed'],['🗺️','Explore','explore'],['💛','Saved','account'],['🙂','You','account']];
+function Nav({screen,go}){return <div style={{display:'flex',borderTop:'1px solid '+C.border,padding:'9px 6px 13px',background:'#fff'}}>{TABS.map(([i,l,s],k)=>{const on=screen===s||(s==='feed'&&screen==='detail');return <div key={k} onClick={()=>go(s)} style={{flex:1,textAlign:'center',...Disp,fontSize:10,color:on?C.sky:'#B8AB97',cursor:'pointer'}}><div style={{fontSize:16}}>{i}</div>{l}</div>;})}</div>;}
+const Pin=({t,m,top,left})=>{const col={fast:C.fast,ok:C.ok,none:'var(--ls-ttf-none)'}[t];return <div style={{position:'absolute',top,left,width:30,height:30,borderRadius:'50% 50% 50% 2px',background:col,border:'3px solid #fff',boxShadow:'0 4px 10px rgba(47,58,66,.28)',transform:'rotate(45deg)',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{transform:'rotate(-45deg)',...Disp,fontSize:10,color:'#fff'}}>{m}</span></div>;};
+
+function Onboarding({go}){return <div style={{flex:1,display:'flex',flexDirection:'column',padding:'20px 22px 0'}}>
+  <Emblem size={54}/>
+  <div style={{...Disp,fontSize:26,lineHeight:1.1,color:C.ink,marginTop:16}}>Who are you scouting for?</div>
+  <div style={{fontWeight:600,fontSize:13.5,color:C.muted,lineHeight:1.45,marginTop:10}}>We tune kid-food-speed &amp; menu signals to your kids' ages.</div>
+  <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:16}}>
+    <Chip active>Toddler · 2</Chip><Chip>Kid · 6</Chip><span style={{fontWeight:700,fontSize:12,padding:'9px 14px',borderRadius:999,border:'1.5px dashed var(--ls-border-strong)',color:C.muted}}>＋ add</span></div>
+  <div style={{marginTop:'auto',marginBottom:20,display:'flex',flexDirection:'column',gap:10}}>
+    <Btn onClick={()=>go('feed')} style={{background:C.ink}}> Continue with Apple</Btn>
+    <Btn variant="secondary" onClick={()=>go('feed')}>Continue with Google</Btn>
+    <Btn variant="ghost" onClick={()=>go('feed')}>Browse first, sign in later →</Btn>
+  </div>
+</div>;}
+
+function Feed({go}){return <React.Fragment>
+  <div style={{padding:'8px 18px 12px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+    <div><div style={{...Disp,fontSize:22,color:C.ink}}>Hi, Sam 👋</div><div style={{fontWeight:600,fontSize:12,color:C.muted}}>Dedham · scouting for age 2</div></div>
+    <div onClick={()=>go('account')} style={{width:38,height:38,borderRadius:'50%',background:C.skySoft,border:'1.5px solid #BFE2F1',cursor:'pointer'}}/></div>
+  <div style={{flex:1,padding:'0 15px',display:'flex',flexDirection:'column',gap:11,overflow:'hidden'}}>
+    <div className="eyebrow" style={{color:C.pop}}>💛 Updates on your spots</div>
+    <div onClick={()=>go('detail')} style={{background:'#fff',border:'1px solid '+C.border,borderRadius:16,padding:13,boxShadow:'0 2px 6px rgba(60,45,25,.05)',cursor:'pointer'}}>
+      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:6}}><span style={{width:10,height:10,borderRadius:'50%',background:C.fast}}/><span style={{...Disp,fontSize:13}}>Maria's Cantina</span><span style={{fontWeight:700,fontSize:10,color:C.muted,marginLeft:'auto'}}>2h</span></div>
+      <div style={{fontWeight:600,fontSize:12.5,color:'#5E5446',lineHeight:1.4}}>Kid food now <b style={{color:C.skyDeep}}>6 min</b> (was 9) — 3 new visits. 🎉</div></div>
+    <div style={{background:'#fff',border:'1px solid '+C.border,borderRadius:16,padding:13,boxShadow:'0 2px 6px rgba(60,45,25,.05)'}}>
+      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:6}}><span style={{width:10,height:10,borderRadius:'50%',background:C.ok}}/><span style={{...Disp,fontSize:13}}>Tello's Pizza</span><span style={{fontWeight:700,fontSize:10,color:C.pop,background:C.popSoft,padding:'2px 8px',borderRadius:999,marginLeft:'auto'}}>New</span></div>
+      <div style={{fontWeight:600,fontSize:12.5,color:'#5E5446',lineHeight:1.4,fontStyle:'italic'}}>"crayons + a little play corner by the window."</div></div>
+    <div className="eyebrow">🧭 New near you</div>
+    <div style={{background:C.mangoSoft,border:'1px solid #F6D6A4',borderRadius:16,padding:13}}>
+      <div style={{fontWeight:600,fontSize:12.5,color:'#7A5A22',lineHeight:1.4}}><b style={{color:C.ink}}>Birch &amp; Bell</b> — high chairs, changing table. Be the first to log speed!</div></div>
+  </div></React.Fragment>;}
+
+function Explore({go}){return <div style={{flex:1,position:'relative'}}>
+  <div style={{position:'absolute',inset:0,background:'#F6EFE1'}}>
+    <div style={{position:'absolute',top:30,left:-20,width:150,height:130,background:'#DCEAD2',borderRadius:'50% 40% 45% 55%'}}/>
+    <div style={{position:'absolute',bottom:40,right:-30,width:160,height:140,background:'#DCEAD2',borderRadius:'45% 55% 50% 50%'}}/>
+    <div style={{position:'absolute',top:0,left:120,width:44,height:600,background:'#CDE7F4',borderRadius:40,transform:'rotate(18deg)'}}/>
+    <div style={{position:'absolute',top:-20,left:30,width:13,height:640,background:'#F0E2C2',transform:'rotate(-24deg)'}}/></div>
+  <div style={{position:'absolute',top:10,left:14,right:14,background:'#fff',borderRadius:14,padding:'12px 14px',fontWeight:700,fontSize:12.5,color:C.muted,boxShadow:'0 4px 14px rgba(47,58,66,.14)',zIndex:3}}>🔍 &nbsp;Search by name, place, or neighborhood…</div>
+  <div style={{position:'absolute',top:58,left:14,right:14,display:'flex',gap:7,flexWrap:'wrap',zIndex:3}}><Chip active>Quick starters</Chip><Chip>Parent-rated</Chip><Chip>Needs scouting</Chip></div>
+  <Pin t="fast" m="6m" top={180} left={70}/><Pin t="fast" m="7m" top={270} left={170}/><Pin t="ok" m="12m" top={220} left={120}/>
+  <div onClick={()=>go('detail')} style={{position:'absolute',left:14,right:14,bottom:14,background:'#fff',borderRadius:18,padding:'13px 14px',boxShadow:'0 10px 28px rgba(47,58,66,.18)',display:'flex',alignItems:'center',gap:11,zIndex:4,cursor:'pointer'}}>
+    <span style={{width:42,height:42,borderRadius:13,background:C.fastSoft,display:'flex',alignItems:'center',justifyContent:'center',...Disp,fontSize:14,color:C.fast}}>6m</span>
+    <div style={{flex:1}}><div style={{...Disp,fontSize:14}}>Maria's Cantina</div><div style={{fontWeight:600,fontSize:11.5,color:'#8A98A0'}}>Fast · high chairs · 0.4 mi</div></div>
+    <span style={{...Disp,fontSize:13,color:'#fff',background:C.sky,padding:'9px 14px',borderRadius:11}}>💛</span></div>
+</div>;}
+
+function Detail({go}){return <React.Fragment>
+  <div style={{height:104,background:'linear-gradient(135deg,#E7EEDF,#F2E7D2)',display:'flex',alignItems:'center',justifyContent:'center',...Disp,fontSize:11,color:C.muted,position:'relative'}}>
+    <span onClick={()=>go('feed')} style={{position:'absolute',top:12,left:14,width:30,height:30,borderRadius:'50%',background:'#fff',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 6px rgba(0,0,0,.12)',cursor:'pointer'}}>‹</span>[ restaurant photo ]</div>
+  <div style={{flex:1,padding:'16px 16px 0',display:'flex',flexDirection:'column',gap:12,overflow:'hidden'}}>
+    <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+      <div style={{flex:1}}><div style={{...Disp,fontSize:21,lineHeight:1.05,color:C.ink}}>Maria's Cantina</div><div style={{fontWeight:600,fontSize:12.5,color:C.muted,marginTop:3}}>Mexican · 0.4 mi · $$</div></div>
+      <div style={{width:42,height:42,borderRadius:14,background:C.sky,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:17,boxShadow:'0 4px 12px rgba(63,167,214,.28)'}}>💛</div></div>
+    <div style={{background:'#FBF8F0',border:'1px solid '+C.border,borderRadius:18,padding:15}}>
+      <div className="eyebrow" style={{marginBottom:8}}>Kid food speed · great for age 2</div>
+      <div style={{display:'flex',alignItems:'center',gap:9}}><span style={{width:14,height:14,borderRadius:'50%',background:C.fast,boxShadow:'0 0 0 4px '+C.fastSoft}}/><span style={{...Disp,fontSize:32,lineHeight:1,color:C.ink}}>6 min</span><span style={{...Disp,fontSize:12,color:C.fast,background:C.fastSoft,padding:'5px 11px',borderRadius:999}}>Fast</span></div>
+      <div style={{fontWeight:600,fontSize:11.5,color:C.muted,marginTop:7}}>12 visits · 4.2/5 quality</div></div>
+    <div style={{display:'flex',gap:6,flexWrap:'wrap'}}><Chip icon="🪑">High chairs</Chip><Chip icon="🚼">Changing</Chip><Chip icon="🔇">Low noise</Chip></div>
+    <Btn onClick={()=>go('timer')} style={{marginTop:'auto',marginBottom:16}}>＋ Log a visit</Btn>
+  </div></React.Fragment>;}
+
+function Timer({go}){const[s,setS]=useState(372);const[run,setRun]=useState(true);const r=useRef();
+  useEffect(()=>{r.current=setInterval(()=>setRun(rn=>{if(rn)setS(x=>x+1);return rn;}),1000);return()=>clearInterval(r.current);},[]);
+  const f=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  return <div style={{flex:1,background:C.sky,display:'flex',flexDirection:'column'}}>
+    <div style={{padding:'10px 22px 0',...Disp,fontSize:10,letterSpacing:'.14em',textTransform:'uppercase',color:'rgba(255,255,255,.7)'}}>Maria's Cantina</div>
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:6,padding:'0 24px'}}>
+      <div style={{...Disp,fontSize:17,color:'rgba(255,255,255,.9)',textAlign:'center',lineHeight:1.3}}>Kid food's on the way?<br/>Start the stopwatch! ⏱️</div>
+      <div style={{width:190,height:190,borderRadius:'50%',background:'rgba(255,255,255,.10)',border:'3px solid rgba(255,255,255,.22)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',margin:'14px 0'}}>
+        <div style={{...Disp,fontSize:54,color:'#fff',lineHeight:1}}>{f}</div><div style={{fontWeight:700,fontSize:12,color:'rgba(255,255,255,.7)',marginTop:6}}>since you sat down</div></div>
+      <div onClick={()=>setRun(!run)} style={{background:'#fff',color:C.skyDeep,borderRadius:14,padding:'14px 38px',...Disp,fontSize:15,boxShadow:'0 6px 18px rgba(0,0,0,.18)',cursor:'pointer'}}>{run?"Food's here! 🍝":'Resume'}</div>
+      <div onClick={()=>go('detail')} style={{fontWeight:700,fontSize:12,color:'rgba(255,255,255,.8)',marginTop:6,cursor:'pointer'}}>Enter time manually →</div></div>
+  </div>;}
+
+function Account(){return <div style={{flex:1,padding:'18px 18px 0',display:'flex',flexDirection:'column',gap:14,overflow:'hidden'}}>
+  <div style={{display:'flex',alignItems:'center',gap:13}}><div style={{width:56,height:56,borderRadius:'50%',background:C.skySoft,border:'2px solid #BFE2F1',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>🙂</div><div><div style={{...Disp,fontSize:19,color:C.ink}}>Sam H.</div><div style={{fontWeight:600,fontSize:12,color:C.muted}}>Scouting for a 2-year-old</div></div></div>
+  <div style={{display:'flex',gap:10}}>
+    {[['14',C.sky,'visits logged'],['8',C.mango,'saved spots'],['★',C.pop,'Trail Scout']].map(([n,c,l],k)=>
+      <div key={k} style={{flex:1,background:'#fff',border:'1px solid '+C.border,borderRadius:16,padding:13,textAlign:'center'}}><div style={{...Disp,fontSize:24,color:c}}>{n}</div><div style={{fontWeight:700,fontSize:10.5,color:C.muted}}>{l}</div></div>)}</div>
+  <div className="eyebrow">Settings</div>
+  {[['Weekly digest',true],['Push for big speed drops',true],['My contributions',null],['Privacy &amp; data',null]].map(([l,t],k)=>
+    <div key={k} style={{background:'#fff',border:'1px solid '+C.border,borderRadius:14,padding:13,display:'flex',alignItems:'center',gap:8}}><span style={{fontWeight:700,fontSize:13,flex:1}} dangerouslySetInnerHTML={{__html:l}}/>{t!=null?<span style={{width:42,height:24,borderRadius:999,background:C.sky,position:'relative'}}><span style={{position:'absolute',top:3,right:3,width:18,height:18,borderRadius:'50%',background:'#fff'}}/></span>:<span style={{color:'#B8AB97'}}>›</span>}</div>)}
+</div>;}
+
+function App(){
+  const[screen,setScreen]=useState('onboarding');
+  const go=setScreen;
+  const full = screen==='explore'||screen==='timer';
+  const showNav = ['feed','explore','account','detail'].includes(screen);
+  return <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:16}}>
+    <div style={{display:'flex',alignItems:'center',gap:10}}><Emblem size={34}/><div style={{...Disp,fontSize:20,color:C.ink}}>Little Scout — App UI Kit</div></div>
+    <div style={{display:'flex',gap:6,flexWrap:'wrap',justifyContent:'center'}}>
+      {['onboarding','feed','explore','detail','timer','account'].map(s=>
+        <span key={s} onClick={()=>go(s)} style={{fontWeight:700,fontSize:11,padding:'6px 12px',borderRadius:999,cursor:'pointer',background:screen===s?C.ink:'#fff',color:screen===s?'#fff':C.muted,border:'1px solid var(--ls-border)',textTransform:'capitalize'}}>{s}</span>)}</div>
+    <div style={{background:C.ink,borderRadius:42,padding:8,boxShadow:'0 18px 40px rgba(47,58,66,.20)'}}>
+      <div style={{width:300,height:620,borderRadius:34,overflow:'hidden',background:full?C.sky:C.paper,display:'flex',flexDirection:'column',position:'relative'}}>
+        {screen!=='explore'&&screen!=='timer'&&<Status/>}
+        {screen==='onboarding'&&<Onboarding go={go}/>}
+        {screen==='feed'&&<Feed go={go}/>}
+        {screen==='explore'&&<Explore go={go}/>}
+        {screen==='detail'&&<Detail go={go}/>}
+        {screen==='timer'&&<Timer go={go}/>}
+        {screen==='account'&&<Account/>}
+        {showNav&&<Nav screen={screen} go={go}/>}
+      </div></div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+<script>
+window.addEventListener('load',function(){
+  try{
+    var src=document.getElementById('app-src').textContent;
+    var out=Babel.transform(src,{presets:[['react',{runtime:'classic'}]]}).code;
+    (0,eval)(out);
+  }catch(err){
+    document.getElementById('root').innerHTML='<pre style="color:#b00;white-space:pre-wrap;font:13px monospace;padding:20px">'+err.message+'\n\n'+(err.stack||'')+'</pre>';
+  }
+});
+</script>
+</body></html>

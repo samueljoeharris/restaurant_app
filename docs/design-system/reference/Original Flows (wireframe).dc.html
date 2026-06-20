@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+</style>
+</helmet>
+
+<div style="width:max-content;min-width:100%;min-height:100vh;padding:48px;background:#ece8df;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#2b2a27;">
+
+  <!-- ===== HEADER ===== -->
+  <div style="max-width:1100px;margin-bottom:36px;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#a39b88;margin-bottom:10px;">Little Scout · UX flow review &amp; scaffold · wireframe</div>
+    <div style="font-family:'Caveat',cursive;font-size:46px;line-height:1.05;font-weight:700;margin-bottom:10px;">From login → discover → updates on your spots</div>
+    <div style="font-size:15px;line-height:1.5;color:#6f6a5d;max-width:720px;">Low-fi flows for families with young kids. Three distinct navigation models, each carrying the same job-to-be-done: get parents signed in fast, help them find kid-friendly spots, and give them a reason to come back — <b style="color:#c2502e;">updates from restaurants they've saved.</b></div>
+  </div>
+
+  <!-- ===== REVIEW PANEL ===== -->
+  <div style="display:flex;gap:20px;flex-wrap:wrap;max-width:1100px;margin-bottom:48px;">
+    <div style="flex:1;min-width:300px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:22px 24px;">
+      <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#4f9d69;margin-bottom:14px;">What works today</div>
+      <div style="display:flex;flex-direction:column;gap:11px;font-size:13.5px;line-height:1.45;color:#54503f;">
+        <div>✓ &nbsp;Discovery is map + list with TTF tier dots — browsing is public, sign-in only gates contributing.</div>
+        <div>✓ &nbsp;Restaurant detail leads with the flagship <b>kid food speed</b> number + parent attributes.</div>
+        <div>✓ &nbsp;Web &amp; iOS share the same vocabulary (tiers, notes, Apple sign-in).</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:300px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:22px 24px;">
+      <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#c2502e;margin-bottom:14px;">Gaps this scaffold fixes</div>
+      <div style="display:flex;flex-direction:column;gap:11px;font-size:13.5px;line-height:1.45;color:#54503f;">
+        <div>✗ &nbsp;No <b>Saved / favorites</b> — nowhere to collect spots you trust.</div>
+        <div>✗ &nbsp;No <b>updates feed</b> — new TTF data &amp; notes on saved spots are invisible.</div>
+        <div>✗ &nbsp;Onboarding skips <b>kids' ages</b>, so nothing is personalized.</div>
+        <div>✗ &nbsp;Home is a one-time chooser, not a destination worth reopening.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== APPROACH A — SCOUT FEED ===== -->
+  <!-- ============================================================ -->
+  <div style="margin-bottom:18px;max-width:1100px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#2b2a27;padding:5px 11px;border-radius:3px;">APPROACH A</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Scout Feed — feed-first &amp; social</div>
+    </div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:760px;">The app opens to a living feed of changes from spots you follow + nearby finds. Best if you want engagement and a social, return-daily loop. <b>Nav: Feed · Explore · Saved · Profile.</b></div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- A1 Onboarding -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">01 · Onboarding</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="flex:1;padding:18px 18px 0;display:flex;flex-direction:column;gap:14px;overflow:hidden;">
+            <div style="width:40px;height:40px;border-radius:11px;background:#e9e4d6;border:1px dashed #c5bda9;display:flex;align-items:center;justify-content:center;font:500 9px 'IBM Plex Mono';color:#a39b88;">logo</div>
+            <div style="font-size:21px;font-weight:700;line-height:1.15;">Who are you scouting for?</div>
+            <div style="font-size:12.5px;color:#8a8474;line-height:1.4;">We tune speed &amp; menu signals to your kids' ages.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <span style="font:600 11px 'IBM Plex Sans';padding:7px 13px;background:#2b2a27;color:#fff;border-radius:20px;">Toddler · 2</span>
+              <span style="font:500 11px 'IBM Plex Sans';padding:7px 13px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">Kid · 6</span>
+              <span style="font:500 11px 'IBM Plex Sans';padding:7px 13px;border:1px dashed #c5bda9;border-radius:20px;color:#a39b88;">+ add</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:18px;display:flex;flex-direction:column;gap:9px;">
+              <div style="background:#2b2a27;color:#fff;border-radius:10px;padding:13px;text-align:center;font:600 13px 'IBM Plex Sans';">Continue with Apple</div>
+              <div style="text-align:center;font:500 12px 'IBM Plex Sans';color:#8a8474;">Browse first, sign in later</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">↑ Captures kids' ages up front → every feed &amp; detail signal gets personalized.</div>
+      </sc-if>
+    </div>
+
+    <!-- A2 Feed -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">02 · Feed (home)</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 18px 10px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:19px;font-weight:700;">Feed</div>
+            <div style="width:26px;height:26px;border-radius:20px;background:#e9e4d6;"></div>
+          </div>
+          <div style="flex:1;padding:0 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;">
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:12px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.04);">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><span style="font:600 12px 'IBM Plex Sans';">Maria's Cantina</span><span style="font:500 10px 'IBM Plex Mono';color:#a39b88;margin-left:auto;">2h</span></div>
+              <div style="font-size:12.5px;line-height:1.4;color:#54503f;">Kid food now <b>6 min</b> <span style="color:#4f9d69;">(was 9)</span> — 3 new visits this week.</div>
+            </div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:12px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.04);">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;"></span><span style="font:600 12px 'IBM Plex Sans';">Tello's Pizza</span><span style="font:500 10px 'IBM Plex Mono';color:#a39b88;margin-left:auto;">1d</span></div>
+              <div style="font-size:12.5px;line-height:1.4;color:#54503f;">New note: <i>"crayons + small play corner by the window."</i></div>
+            </div>
+            <div style="background:#f3efe3;border:1px dashed #d8cfb8;border-radius:12px;padding:12px;">
+              <div style="font:500 10px 'IBM Plex Mono';color:#a39b88;margin-bottom:5px;">NEAR YOU</div>
+              <div style="font-size:12.5px;line-height:1.4;color:#54503f;"><b>Birch &amp; Bell</b> — high chairs, changing table. Be the first to log speed.</div>
+            </div>
+          </div>
+          <div style="display:flex;border-top:1px solid #ece6d8;padding:9px 6px 12px;background:#fff;">
+            <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#c2502e;">◆<br>Feed</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◎<br>Explore</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">♥<br>Saved</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◔<br>Profile</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(.5deg);max-width:280px;">★ The return reason: changes to saved spots surface the moment you open the app.</div>
+      </sc-if>
+    </div>
+
+    <!-- A3 Detail + Save -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-.5deg);">03 · Detail + Save</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="height:96px;background:#e9e4d6;border-bottom:1px solid #e0d9c8;display:flex;align-items:center;justify-content:center;font:500 10px 'IBM Plex Mono';color:#b0a894;">[ photo ]</div>
+          <div style="flex:1;padding:14px 16px 0;display:flex;flex-direction:column;gap:11px;overflow:hidden;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <div style="flex:1;"><div style="font-size:18px;font-weight:700;line-height:1.1;">Maria's Cantina</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;margin-top:2px;">Mexican · 0.4 mi</div></div>
+              <div style="width:34px;height:34px;border-radius:10px;background:#fff;border:1.5px solid #c2502e;display:flex;align-items:center;justify-content:center;color:#c2502e;font-size:15px;">♥</div>
+            </div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:12px;padding:12px;">
+              <div style="font:500 10px 'IBM Plex Mono';color:#a39b88;margin-bottom:4px;">KID FOOD SPEED</div>
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="width:11px;height:11px;border-radius:9px;background:#4f9d69;"></span><span style="font-size:26px;font-weight:700;">6 min</span><span style="font:500 12px 'IBM Plex Sans';color:#4f9d69;">Fast</span></div>
+              <div style="font:500 11px 'IBM Plex Sans';color:#8a8474;margin-top:3px;">12 visits · 4.2/5 quality</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="font:500 10px 'IBM Plex Sans';padding:5px 9px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">High chairs</span>
+              <span style="font:500 10px 'IBM Plex Sans';padding:5px 9px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">Changing table</span>
+              <span style="font:500 10px 'IBM Plex Sans';padding:5px 9px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">Low noise</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:16px;background:#2b2a27;color:#fff;border-radius:10px;padding:12px;text-align:center;font:600 12.5px 'IBM Plex Sans';">＋ Log a visit</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">♥ One tap to follow → this spot now feeds your updates.</div>
+      </sc-if>
+    </div>
+
+    <!-- A4 Update detail -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">04 · Update thread</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 16px 8px;display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">‹</span><div style="font-size:15px;font-weight:700;">Maria's Cantina</div></div>
+          <div style="flex:1;padding:4px 16px 0;display:flex;flex-direction:column;gap:0;overflow:hidden;">
+            <div style="display:flex;gap:10px;padding:11px 0;border-bottom:1px solid #ece6d8;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Speed improved → 6 min</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;line-height:1.4;">Down from 9 min. Based on 3 visits this week.</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">2h</span></div>
+            <div style="display:flex;gap:10px;padding:11px 0;border-bottom:1px solid #ece6d8;"><span style="width:9px;height:9px;border-radius:9px;background:#8a8474;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">New note from a parent</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;line-height:1.4;">"Booster seats + kids eat free on Tuesdays."</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">3d</span></div>
+            <div style="display:flex;gap:10px;padding:11px 0;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Noise level updated</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;line-height:1.4;">Now rated "moderate" at dinner.</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">5d</span></div>
+          </div>
+          <div style="padding:12px 16px;border-top:1px solid #ece6d8;background:#fff;font:600 12px 'IBM Plex Sans';color:#c2502e;text-align:center;">Following · tap to manage alerts</div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(.5deg);max-width:280px;">Per-spot timeline — tap any feed card to see the full history.</div>
+      </sc-if>
+    </div>
+
+    <!-- A5 Saved -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-.5deg);">05 · Saved + Profile</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 16px 10px;font-size:19px;font-weight:700;">Saved</div>
+          <div style="flex:1;padding:0 14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;">
+            <div style="font:600 10px 'IBM Plex Mono';color:#c2502e;letter-spacing:.05em;">● 2 WITH NEW UPDATES</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">6 min · faster this week</div></div><span style="width:7px;height:7px;border-radius:9px;background:#c2502e;"></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Tello's Pizza</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">new note added</div></div><span style="width:7px;height:7px;border-radius:9px;background:#c2502e;"></span></div>
+            <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-top:4px;">ALL SAVED · 8</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#b8b2a4;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">no speed logged yet</div></div></div>
+          </div>
+          <div style="display:flex;border-top:1px solid #ece6d8;padding:9px 6px 12px;background:#fff;">
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◆<br>Feed</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◎<br>Explore</div>
+            <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#c2502e;">♥<br>Saved</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◔<br>Profile</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">Saved doubles as a digest — "has updates" floats to the top.</div>
+      </sc-if>
+    </div>
+
+    <!-- A-WEB -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · same feed, desktop layout</div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:10px;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app</span></div>
+        <div style="height:430px;display:flex;">
+          <div style="width:150px;border-right:1px solid #ece6d8;padding:16px 12px;display:flex;flex-direction:column;gap:6px;">
+            <div style="font:700 14px 'IBM Plex Sans';margin-bottom:8px;">Little Scout</div>
+            <div style="font:600 12px 'IBM Plex Sans';color:#c2502e;background:#f7ebe5;padding:7px 10px;border-radius:7px;">◆ Feed</div>
+            <div style="font:500 12px 'IBM Plex Sans';color:#6f6a5d;padding:7px 10px;">◎ Explore</div>
+            <div style="font:500 12px 'IBM Plex Sans';color:#6f6a5d;padding:7px 10px;">♥ Saved</div>
+            <div style="font:500 12px 'IBM Plex Sans';color:#6f6a5d;padding:7px 10px;">◔ Profile</div>
+          </div>
+          <div style="flex:1;padding:18px;display:flex;flex-direction:column;gap:11px;background:#fbfaf6;">
+            <div style="font-size:17px;font-weight:700;">Updates from your spots</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:10px;padding:13px;display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 13px 'IBM Plex Sans';">Maria's Cantina — now 6 min <span style="color:#4f9d69;font-weight:500;">(was 9)</span></div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">3 new visits this week</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">2h</span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:10px;padding:13px;display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:9px;background:#d8a23a;"></span><div style="flex:1;"><div style="font:600 13px 'IBM Plex Sans';">Tello's Pizza — new note added</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">"crayons + small play corner"</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">1d</span></div>
+            <div style="background:#f3efe3;border:1px dashed #d8cfb8;border-radius:10px;padding:13px;font:500 12px 'IBM Plex Sans';color:#6f6a5d;">Near you · <b style="color:#2b2a27;">Birch &amp; Bell</b> — be the first to log kid food speed</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:520px;">Desktop keeps the exact same model — left rail nav, feed as the landing surface.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== APPROACH B — WATCHLIST ===== -->
+  <!-- ============================================================ -->
+  <div style="margin:52px 0 18px;max-width:1100px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#2b2a27;padding:5px 11px;border-radius:3px;">APPROACH B</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Watchlist — map-first &amp; quiet</div>
+    </div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:760px;">Discovery stays map-first; updates are opt-in and arrive as a calm digest, not a feed. Best if you want utility over engagement — no pressure to check in daily. <b>Nav: Explore · Saved · You.</b></div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- B1 Browse-first login -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">01 · Browse first</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="flex:1;background:#e9e4d6;position:relative;display:flex;align-items:center;justify-content:center;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px),repeating-linear-gradient(90deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px);"></div>
+            <span style="position:absolute;top:140px;left:70px;width:16px;height:16px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:230px;left:180px;width:16px;height:16px;border-radius:9px;background:#d8a23a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:300px;left:110px;width:16px;height:16px;border-radius:9px;background:#cf5b4a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <div style="position:absolute;top:14px;left:14px;right:14px;background:#fff;border-radius:10px;padding:11px 13px;font:500 12px 'IBM Plex Sans';color:#a39b88;box-shadow:0 2px 6px rgba(0,0,0,.08);">⌕ &nbsp;Search area or restaurant</div>
+            <div style="position:absolute;bottom:16px;left:14px;right:14px;background:#2b2a27;color:#fff;border-radius:11px;padding:13px;text-align:center;font:600 12.5px 'IBM Plex Sans';box-shadow:0 4px 12px rgba(0,0,0,.18);">No account needed to look around</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">No login wall — the map is the first thing you see, just like today.</div>
+      </sc-if>
+    </div>
+
+    <!-- B2 Explore filters -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">02 · Explore + filter</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 14px 10px;display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#2b2a27;color:#fff;border-radius:20px;">TTF &lt; 10 min</span>
+            <span style="font:500 10px 'IBM Plex Sans';padding:6px 11px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">High chair</span>
+            <span style="font:500 10px 'IBM Plex Sans';padding:6px 11px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">Changing table</span>
+          </div>
+          <div style="height:210px;background:#e9e4d6;position:relative;border-top:1px solid #e0d9c8;border-bottom:1px solid #e0d9c8;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 34px,#ded6c4 34px,#ded6c4 35px),repeating-linear-gradient(90deg,transparent,transparent 34px,#ded6c4 34px,#ded6c4 35px);"></div>
+            <span style="position:absolute;top:70px;left:60px;width:14px;height:14px;border-radius:9px;background:#4f9d69;border:2px solid #fff;"></span>
+            <span style="position:absolute;top:120px;left:160px;width:14px;height:14px;border-radius:9px;background:#4f9d69;border:2px solid #fff;"></span>
+          </div>
+          <div style="flex:1;padding:10px 14px 0;display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+            <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;">2 MATCHES IN VIEW</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:10px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">6 min · high chairs</div></div></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:10px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">7 min · changing table</div></div></div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(.5deg);max-width:280px;">Parent-specific filters up top — the signal families actually search by.</div>
+      </sc-if>
+    </div>
+
+    <!-- B3 Watch opt-in -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-.5deg);">03 · Watch this spot</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;position:relative;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="flex:1;padding:14px 16px 0;display:flex;flex-direction:column;gap:10px;opacity:.45;">
+            <div style="font-size:18px;font-weight:700;">Birch &amp; Bell</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:12px;padding:12px;"><div style="font:500 10px 'IBM Plex Mono';color:#a39b88;">KID FOOD SPEED</div><div style="font-size:24px;font-weight:700;margin-top:3px;">7 min</div></div>
+          </div>
+          <div style="position:absolute;left:10px;right:10px;bottom:10px;background:#fff;border:1px solid #e0d9c8;border-radius:18px;padding:16px;box-shadow:0 -6px 22px rgba(0,0,0,.10);">
+            <div style="width:34px;height:4px;border-radius:4px;background:#e0d9c8;margin:0 auto 12px;"></div>
+            <div style="font-size:15px;font-weight:700;margin-bottom:3px;">Watch Birch &amp; Bell</div>
+            <div style="font:500 11.5px 'IBM Plex Sans';color:#8a8474;margin-bottom:12px;">Tell me only when:</div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <div style="display:flex;align-items:center;gap:10px;"><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span><span style="font:500 12px 'IBM Plex Sans';">Kid food gets faster</span></div>
+              <div style="display:flex;align-items:center;gap:10px;"><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span><span style="font:500 12px 'IBM Plex Sans';">New kids menu or note</span></div>
+              <div style="display:flex;align-items:center;gap:10px;"><span style="width:34px;height:20px;border-radius:20px;background:#ddd6c6;position:relative;"><span style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span><span style="font:500 12px 'IBM Plex Sans';color:#8a8474;">Any new visit</span></div>
+            </div>
+            <div style="margin-top:14px;background:#2b2a27;color:#fff;border-radius:10px;padding:12px;text-align:center;font:600 12.5px 'IBM Plex Sans';">Watch · sign in with Apple</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">★ Granular opt-in. Saving and "what to be alerted about" are one decision — and that's the natural sign-in moment.</div>
+      </sc-if>
+    </div>
+
+    <!-- B4 Saved digest -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">04 · Saved digest</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 16px 8px;font-size:19px;font-weight:700;">Saved</div>
+          <div style="margin:0 14px 10px;background:#f3efe3;border:1px solid #e6dfcd;border-radius:12px;padding:12px;">
+            <div style="font:600 11px 'IBM Plex Sans';color:#2b2a27;">This week · 3 changes on your spots</div>
+            <div style="font:500 11px 'IBM Plex Sans';color:#8a8474;margin-top:3px;line-height:1.4;">2 got faster · 1 new kids menu. No need to check daily.</div>
+          </div>
+          <div style="flex:1;padding:0 14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;">
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 10.5px 'IBM Plex Sans';color:#4f9d69;">↓ 9 → 6 min</div></div><span style="width:7px;height:7px;border-radius:9px;background:#c2502e;"></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">new kids menu</div></div><span style="width:7px;height:7px;border-radius:9px;background:#c2502e;"></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Tello's Pizza</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">no change</div></div></div>
+          </div>
+          <div style="display:flex;border-top:1px solid #ece6d8;padding:9px 6px 12px;background:#fff;">
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◎<br>Explore</div>
+            <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#c2502e;">♥<br>Saved</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◔<br>You</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(.5deg);max-width:280px;">A weekly summary, not an endless feed — respects busy-parent attention.</div>
+      </sc-if>
+    </div>
+
+    <!-- B5 You / digest settings -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-.5deg);">05 · You</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="flex:1;padding:16px 16px 0;display:flex;flex-direction:column;gap:13px;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:11px;"><div style="width:46px;height:46px;border-radius:24px;background:#e9e4d6;"></div><div><div style="font-size:16px;font-weight:700;">Sam H.</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">14 visits logged · 8 watched</div></div></div>
+            <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;">HOW YOU HEAR ABOUT UPDATES</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:12px;display:flex;align-items:center;justify-content:space-between;"><span style="font:500 12px 'IBM Plex Sans';">Weekly digest</span><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:12px;display:flex;align-items:center;justify-content:space-between;"><span style="font:500 12px 'IBM Plex Sans';">Push for big speed drops</span><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:12px;display:flex;align-items:center;justify-content:space-between;"><span style="font:500 12px 'IBM Plex Sans';color:#8a8474;">My contributions</span><span style="color:#b0a894;">›</span></div>
+          </div>
+          <div style="display:flex;border-top:1px solid #ece6d8;padding:9px 6px 12px;background:#fff;">
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◎<br>Explore</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">♥<br>Saved</div>
+            <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#c2502e;">◔<br>You</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">Digest cadence lives here — opt into push only for the moments that matter.</div>
+      </sc-if>
+    </div>
+
+    <!-- B-WEB -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · map + watchlist split</div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:10px;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app/explore</span></div>
+        <div style="height:430px;display:flex;">
+          <div style="width:230px;border-right:1px solid #ece6d8;display:flex;flex-direction:column;">
+            <div style="padding:14px 14px 10px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #ece6d8;"><span style="font:600 10px 'IBM Plex Sans';padding:5px 10px;background:#2b2a27;color:#fff;border-radius:20px;">TTF &lt; 10</span><span style="font:500 10px 'IBM Plex Sans';padding:5px 10px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">High chair</span></div>
+            <div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:9px;background:#fbfaf6;overflow:hidden;">
+              <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;">WATCHLIST · 3 CHANGES</div>
+              <div style="background:#fff;border:1px solid #ece6d8;border-radius:10px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 10.5px 'IBM Plex Sans';color:#4f9d69;">↓ 9 → 6 min</div></div><span style="width:7px;height:7px;border-radius:9px;background:#c2502e;"></span></div>
+              <div style="background:#fff;border:1px solid #ece6d8;border-radius:10px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">new kids menu</div></div><span style="width:7px;height:7px;border-radius:9px;background:#c2502e;"></span></div>
+            </div>
+          </div>
+          <div style="flex:1;background:#e9e4d6;position:relative;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 44px,#ded6c4 44px,#ded6c4 45px),repeating-linear-gradient(90deg,transparent,transparent 44px,#ded6c4 44px,#ded6c4 45px);"></div>
+            <span style="position:absolute;top:120px;left:90px;width:18px;height:18px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:230px;left:200px;width:18px;height:18px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:170px;left:160px;width:18px;height:18px;border-radius:9px;background:#d8a23a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:520px;">Desktop puts the map center-stage with the watchlist + its update dots in the rail.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== APPROACH C — FOR YOU ===== -->
+  <!-- ============================================================ -->
+  <div style="margin:52px 0 18px;max-width:1100px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#2b2a27;padding:5px 11px;border-radius:3px;">APPROACH C</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">For You — one blended home</div>
+    </div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:760px;">Discovery and updates merge into a single scannable dashboard tuned to your kids &amp; neighborhood. Best if you want the simplest mental model — one home, no choosing between feed and map. <b>Nav: Home · Map · You.</b></div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- C1 Onboarding -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">01 · Set up For You</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="flex:1;padding:18px 18px 0;display:flex;flex-direction:column;gap:14px;overflow:hidden;">
+            <div style="font-size:21px;font-weight:700;line-height:1.15;">Let's tune your home</div>
+            <div style="font:500 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;">KIDS</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <span style="font:600 11px 'IBM Plex Sans';padding:7px 13px;background:#2b2a27;color:#fff;border-radius:20px;">Toddler · 2</span>
+              <span style="font:500 11px 'IBM Plex Sans';padding:7px 13px;border:1px dashed #c5bda9;border-radius:20px;color:#a39b88;">+ add</span>
+            </div>
+            <div style="font:500 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;">HOME AREA</div>
+            <div style="background:#fff;border:1px solid #e0d9c8;border-radius:10px;padding:11px 13px;font:500 12px 'IBM Plex Sans';color:#5c574c;">⌖ &nbsp;Dedham, MA</div>
+            <div style="background:#f3efe3;border:1px dashed #d8cfb8;border-radius:11px;padding:12px;font:500 11.5px 'IBM Plex Sans';color:#6f6a5d;line-height:1.4;">We'll blend nearby spots + changes on the ones you save into one home screen.</div>
+            <div style="margin-top:auto;margin-bottom:18px;background:#2b2a27;color:#fff;border-radius:10px;padding:13px;text-align:center;font:600 13px 'IBM Plex Sans';">Continue with Apple</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">Ages + home area seed one personalized surface from day one.</div>
+      </sc-if>
+    </div>
+
+    <!-- C2 Home dashboard -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">02 · Home dashboard</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 16px 6px;"><div style="font-size:19px;font-weight:700;">Good morning, Sam</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Dedham · for a 2-year-old</div></div>
+          <div style="flex:1;padding:4px 14px 0;display:flex;flex-direction:column;gap:11px;overflow:hidden;">
+            <div>
+              <div style="font:600 10px 'IBM Plex Mono';color:#c2502e;letter-spacing:.05em;margin-bottom:6px;">UPDATES FROM YOUR SPOTS</div>
+              <div style="display:flex;gap:8px;">
+                <div style="flex:1;background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:10px;"><div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:9px;background:#4f9d69;"></span><span style="font:600 11px 'IBM Plex Sans';">Maria's</span></div><div style="font:500 10px 'IBM Plex Sans';color:#4f9d69;margin-top:3px;">↓ now 6 min</div></div>
+                <div style="flex:1;background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:10px;"><div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:9px;background:#d8a23a;"></span><span style="font:600 11px 'IBM Plex Sans';">Tello's</span></div><div style="font:500 10px 'IBM Plex Sans';color:#8a8474;margin-top:3px;">new note</div></div>
+              </div>
+            </div>
+            <div>
+              <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:6px;">NEW NEAR YOU</div>
+              <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">7 min · high chairs · 0.3 mi</div></div></div>
+            </div>
+            <div style="background:#f3efe3;border:1px dashed #d8cfb8;border-radius:11px;padding:11px;"><div style="font:600 11.5px 'IBM Plex Sans';">Were you at Tello's yesterday?</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;margin-top:2px;">Log the kid food speed in 20 sec →</div></div>
+          </div>
+          <div style="display:flex;border-top:1px solid #ece6d8;padding:9px 6px 12px;background:#fff;">
+            <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#c2502e;">⌂<br>Home</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◎<br>Map</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◔<br>You</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(.5deg);max-width:280px;">★ Updates, discovery &amp; a contribution nudge in one scan — no tab-hunting.</div>
+      </sc-if>
+    </div>
+
+    <!-- C3 Detail + Save -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-.5deg);">03 · Detail + Save</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="height:96px;background:#e9e4d6;border-bottom:1px solid #e0d9c8;display:flex;align-items:center;justify-content:center;font:500 10px 'IBM Plex Mono';color:#b0a894;">[ photo ]</div>
+          <div style="flex:1;padding:14px 16px 0;display:flex;flex-direction:column;gap:11px;overflow:hidden;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <div style="flex:1;"><div style="font-size:18px;font-weight:700;line-height:1.1;">Birch &amp; Bell</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;margin-top:2px;">American · 0.3 mi</div></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:34px;height:34px;border-radius:10px;background:#c2502e;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;">♥</div><span style="font:600 8px 'IBM Plex Sans';color:#c2502e;">Saved</span></div>
+            </div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:12px;padding:12px;">
+              <div style="font:500 10px 'IBM Plex Mono';color:#a39b88;margin-bottom:4px;">KID FOOD SPEED · GREAT FOR AGE 2</div>
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="width:11px;height:11px;border-radius:9px;background:#4f9d69;"></span><span style="font-size:26px;font-weight:700;">7 min</span><span style="font:500 12px 'IBM Plex Sans';color:#4f9d69;">Fast</span></div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span style="font:500 10px 'IBM Plex Sans';padding:5px 9px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">High chairs</span>
+              <span style="font:500 10px 'IBM Plex Sans';padding:5px 9px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">Booster seats</span>
+              <span style="font:500 10px 'IBM Plex Sans';padding:5px 9px;border:1px solid #d8d2c4;border-radius:20px;color:#5c574c;">Play corner</span>
+            </div>
+            <div style="margin-top:auto;margin-bottom:16px;background:#2b2a27;color:#fff;border-radius:10px;padding:12px;text-align:center;font:600 12.5px 'IBM Plex Sans';">＋ Log a visit</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">Speed is framed against your kid's age — "great for age 2," not just a raw number.</div>
+      </sc-if>
+    </div>
+
+    <!-- C4 Updates module expanded -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">04 · All updates</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 16px 8px;display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">‹</span><div style="font-size:15px;font-weight:700;">Updates from your spots</div></div>
+          <div style="flex:1;padding:4px 16px 0;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #ece6d8;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Maria's Cantina · faster</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">9 → 6 min over 3 recent visits</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">2h</span></div>
+            <div style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #ece6d8;"><span style="width:9px;height:9px;border-radius:9px;background:#8a8474;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Tello's Pizza · new note</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">"crayons + play corner by window"</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">1d</span></div>
+            <div style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #ece6d8;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell · new menu</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Kids menu added, healthy options</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">2d</span></div>
+            <div style="display:flex;gap:10px;padding:12px 0;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Pine Diner · noise</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Now "moderate" at dinner</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">4d</span></div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(.5deg);max-width:280px;">"See all" from the home module opens the full cross-spot history.</div>
+      </sc-if>
+    </div>
+
+    <!-- C5 You / Saved -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-.5deg);">05 · You + Saved</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="flex:1;padding:16px 16px 0;display:flex;flex-direction:column;gap:13px;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:11px;"><div style="width:46px;height:46px;border-radius:24px;background:#e9e4d6;"></div><div><div style="font-size:16px;font-weight:700;">Sam H.</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Scouting for a 2-year-old</div></div></div>
+            <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;">SAVED · 8</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">6 min</div></div><span style="width:7px;height:7px;border-radius:9px;background:#c2502e;"></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">7 min</div></div><span style="width:7px;height:7px;border-radius:9px;background:#c2502e;"></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Tello's Pizza</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">11 min</div></div></div>
+          </div>
+          <div style="display:flex;border-top:1px solid #ece6d8;padding:9px 6px 12px;background:#fff;">
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">⌂<br>Home</div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◎<br>Map</div>
+            <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#c2502e;">◔<br>You</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">Saved folds into You — fewer tabs, since Home already carries updates.</div>
+      </sc-if>
+    </div>
+
+    <!-- C-WEB -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · dashboard home</div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:10px;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app</span></div>
+        <div style="height:430px;padding:18px;background:#fbfaf6;display:flex;flex-direction:column;gap:14px;overflow:hidden;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;"><div style="font-size:20px;font-weight:700;">Good morning, Sam</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Dedham · for a 2-year-old</div></div>
+          <div>
+            <div style="font:600 10px 'IBM Plex Mono';color:#c2502e;letter-spacing:.05em;margin-bottom:8px;">UPDATES FROM YOUR SPOTS</div>
+            <div style="display:flex;gap:11px;">
+              <div style="flex:1;background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:13px;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><span style="font:600 12px 'IBM Plex Sans';">Maria's Cantina</span></div><div style="font:500 11px 'IBM Plex Sans';color:#4f9d69;margin-top:4px;">↓ now 6 min (was 9)</div></div>
+              <div style="flex:1;background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:13px;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;"></span><span style="font:600 12px 'IBM Plex Sans';">Tello's Pizza</span></div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;margin-top:4px;">new note added</div></div>
+              <div style="flex:1;background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:13px;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><span style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell</span></div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;margin-top:4px;">new kids menu</div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:8px;">NEW NEAR YOU</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:13px;display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 13px 'IBM Plex Sans';">Pine Street Diner</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">8 min · high chairs · 0.5 mi</div></div><span style="font:600 11px 'IBM Plex Sans';color:#c2502e;">Save</span></div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:520px;">Web gets the roomiest version of the dashboard — modules become multi-column.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+
+  <div style="max-width:1100px;margin:70px 0 6px;border-top:2px solid #d8cfb8;padding-top:18px;font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#a39b88;">Part 2 · How watchlist updates surface</div>
+
+
+  <!-- HEADER -->
+  <div style="max-width:1100px;margin-bottom:34px;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#a39b88;margin-bottom:10px;">Little Scout · Watchlist updates · how they surface</div>
+    <div style="font-family:'Caveat',cursive;font-size:46px;line-height:1.05;font-weight:700;margin-bottom:10px;">"A new review landed" — without being a pest</div>
+    <div style="font-size:15px;line-height:1.5;color:#6f6a5d;max-width:760px;">One principle drives every screen below: <b style="color:#c2502e;">default to ambient, earn the interruption.</b> A new visit logged on a saved spot is quiet by default; only the changes a parent explicitly opted into — and only when bundled and outside quiet hours — ever earn a push.</div>
+  </div>
+
+  <!-- LADDER PANEL -->
+  <div style="background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:24px 26px;max-width:1100px;margin-bottom:22px;">
+    <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#8a8474;margin-bottom:4px;">The loudness ladder</div>
+    <div style="font-size:13.5px;color:#6f6a5d;margin-bottom:18px;">Quietest on the left. Most updates never climb past step 2.</div>
+    <div style="display:flex;gap:12px;align-items:stretch;">
+      <div style="flex:1;border:1px solid #e3ddcc;border-left:4px solid #7d9a86;border-radius:9px;padding:14px;">
+        <div style="display:flex;gap:3px;margin-bottom:9px;"><span style="width:14px;height:5px;border-radius:3px;background:#7d9a86;"></span><span style="width:14px;height:5px;border-radius:3px;background:#e3ddcc;"></span><span style="width:14px;height:5px;border-radius:3px;background:#e3ddcc;"></span><span style="width:14px;height:5px;border-radius:3px;background:#e3ddcc;"></span></div>
+        <div style="font:700 14px 'IBM Plex Sans';">1 · Ambient</div>
+        <div style="font:500 11px 'IBM Plex Mono';color:#7d9a86;margin:3px 0 8px;">always on · 0 interruption</div>
+        <div style="font-size:12px;line-height:1.45;color:#6f6a5d;">A dot on the Saved tab, a row marker, a tab-title count. Nothing pops. The app just quietly carries the news until you look.</div>
+      </div>
+      <div style="flex:1;border:1px solid #e3ddcc;border-left:4px solid #b0a06a;border-radius:9px;padding:14px;">
+        <div style="display:flex;gap:3px;margin-bottom:9px;"><span style="width:14px;height:5px;border-radius:3px;background:#b0a06a;"></span><span style="width:14px;height:5px;border-radius:3px;background:#b0a06a;"></span><span style="width:14px;height:5px;border-radius:3px;background:#e3ddcc;"></span><span style="width:14px;height:5px;border-radius:3px;background:#e3ddcc;"></span></div>
+        <div style="font:700 14px 'IBM Plex Sans';">2 · Inbox (pull)</div>
+        <div style="font:500 11px 'IBM Plex Mono';color:#b0a06a;margin:3px 0 8px;">on demand · you go to it</div>
+        <div style="font-size:12px;line-height:1.45;color:#6f6a5d;">Tap the bell / banner to open the full activity list, grouped by spot. You choose the moment — it never chooses for you.</div>
+      </div>
+      <div style="flex:1;border:1px solid #e3ddcc;border-left:4px solid #d8a23a;border-radius:9px;padding:14px;">
+        <div style="display:flex;gap:3px;margin-bottom:9px;"><span style="width:14px;height:5px;border-radius:3px;background:#d8a23a;"></span><span style="width:14px;height:5px;border-radius:3px;background:#d8a23a;"></span><span style="width:14px;height:5px;border-radius:3px;background:#d8a23a;"></span><span style="width:14px;height:5px;border-radius:3px;background:#e3ddcc;"></span></div>
+        <div style="font:700 14px 'IBM Plex Sans';">3 · In-app toast</div>
+        <div style="font:500 11px 'IBM Plex Mono';color:#d8a23a;margin:3px 0 8px;">only while app is open</div>
+        <div style="font-size:12px;line-height:1.45;color:#6f6a5d;">A slim, auto-dismissing bar when something relevant lands while you're already looking. Never stacks, never blocks a tap.</div>
+      </div>
+      <div style="flex:1;border:1px solid #e3ddcc;border-left:4px solid #c2502e;border-radius:9px;padding:14px;">
+        <div style="display:flex;gap:3px;margin-bottom:9px;"><span style="width:14px;height:5px;border-radius:3px;background:#c2502e;"></span><span style="width:14px;height:5px;border-radius:3px;background:#c2502e;"></span><span style="width:14px;height:5px;border-radius:3px;background:#c2502e;"></span><span style="width:14px;height:5px;border-radius:3px;background:#c2502e;"></span></div>
+        <div style="font:700 14px 'IBM Plex Sans';">4 · Push (out of app)</div>
+        <div style="font:500 11px 'IBM Plex Mono';color:#c2502e;margin:3px 0 8px;">opt-in · bundled · quiet-hours</div>
+        <div style="font-size:12px;line-height:1.45;color:#6f6a5d;">Only events you switched on, bundled into one message, suppressed 8pm–8am, capped at 1/spot/day. Off by default.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+      <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f3efe3;border:1px solid #e3ddcc;border-radius:20px;color:#5c574c;">⛔ Bundle — one summary, never N pings</span>
+      <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f3efe3;border:1px solid #e3ddcc;border-radius:20px;color:#5c574c;">🌙 Quiet hours 8pm–8am (family default)</span>
+      <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f3efe3;border:1px solid #e3ddcc;border-radius:20px;color:#5c574c;">⏱ Max 1 push / spot / day</span>
+      <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f3efe3;border:1px solid #e3ddcc;border-radius:20px;color:#5c574c;">🤝 Prime in context, never on launch</span>
+    </div>
+  </div>
+
+  <!-- EVENT → CHANNEL MATRIX -->
+  <div style="background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:22px 26px;max-width:1100px;margin-bottom:48px;">
+    <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#8a8474;margin-bottom:16px;">Which event earns which channel</div>
+    <div style="display:flex;flex-direction:column;gap:0;font-size:13px;">
+      <div style="display:flex;align-items:center;padding:0 0 9px;border-bottom:1.5px solid #e3ddcc;font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;">
+        <div style="flex:2.4;">EVENT ON A WATCHED SPOT</div>
+        <div style="flex:1;text-align:center;">AMBIENT</div>
+        <div style="flex:1;text-align:center;">INBOX</div>
+        <div style="flex:1;text-align:center;">TOAST*</div>
+        <div style="flex:1;text-align:center;">PUSH**</div>
+      </div>
+      <div style="display:flex;align-items:center;padding:11px 0;border-bottom:1px solid #f0ebdf;">
+        <div style="flex:2.4;font-weight:500;">A single new review / visit logged</div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#7d9a86;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#b0a06a;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;color:#cfc7b5;">—</div>
+        <div style="flex:1;text-align:center;color:#cfc7b5;">—</div>
+      </div>
+      <div style="display:flex;align-items:center;padding:11px 0;border-bottom:1px solid #f0ebdf;">
+        <div style="flex:2.4;font-weight:500;">Kid food speed crosses a tier (e.g. Slow → Fast)</div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#7d9a86;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#b0a06a;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#c2502e;display:inline-block;"></span></div>
+      </div>
+      <div style="display:flex;align-items:center;padding:11px 0;border-bottom:1px solid #f0ebdf;">
+        <div style="flex:2.4;font-weight:500;">New kids menu / high-chair / changing-table change</div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#7d9a86;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#b0a06a;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;color:#cfc7b5;">—</div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#c2502e;display:inline-block;"></span></div>
+      </div>
+      <div style="display:flex;align-items:center;padding:11px 0;">
+        <div style="flex:2.4;font-weight:500;">3+ of your spots changed this week</div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#7d9a86;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;"><span style="width:9px;height:9px;border-radius:9px;background:#b0a06a;display:inline-block;"></span></div>
+        <div style="flex:1;text-align:center;color:#cfc7b5;">—</div>
+        <div style="flex:1;text-align:center;"><span style="font:600 10px 'IBM Plex Sans';color:#c2502e;">digest</span></div>
+      </div>
+    </div>
+    <div style="font:500 11px 'IBM Plex Sans';color:#a39b88;margin-top:14px;line-height:1.5;">* Toast only fires if the app is already open. &nbsp; ** Push only if that event is switched on in settings — every push column is off until the parent opts in.</div>
+  </div>
+
+  <!-- ============= SECTION 1 · AMBIENT ============= -->
+  <div style="margin-bottom:18px;max-width:1100px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#7d9a86;padding:5px 11px;border-radius:3px;">STEP 1 · AMBIENT</div>
+      <div style="font-family:'Caveat',cursive;font-size:32px;font-weight:700;">The quiet default — nothing pops</div>
+    </div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:760px;">Every update first lands here and may stop here. A count rides the Saved tab; a dismissible strip tops the Saved list; the browser tab title carries the number. Zero modal, zero sound.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- iOS ambient -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">iOS · tab badge + "since you left" strip</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 16px 8px;font-size:19px;font-weight:700;">Saved</div>
+          <div style="margin:0 14px 12px;background:#f3efe3;border:1px solid #e6dfcd;border-radius:12px;padding:11px 12px;display:flex;align-items:center;gap:9px;">
+            <span style="width:8px;height:8px;border-radius:9px;background:#7d9a86;flex:none;"></span>
+            <div style="flex:1;font:600 11.5px 'IBM Plex Sans';color:#2b2a27;">2 updates since Tuesday</div>
+            <span style="font:500 14px 'IBM Plex Sans';color:#b0a894;">×</span>
+          </div>
+          <div style="flex:1;padding:0 14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;">
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 10.5px 'IBM Plex Sans';color:#4f9d69;">↓ 9 → 6 min</div></div><span style="width:7px;height:7px;border-radius:9px;background:#7d9a86;"></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">new kids menu</div></div><span style="width:7px;height:7px;border-radius:9px;background:#7d9a86;"></span></div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Tello's Pizza</div><div style="font:500 10.5px 'IBM Plex Sans';color:#a39b88;">no change</div></div></div>
+          </div>
+          <div style="display:flex;border-top:1px solid #ece6d8;padding:9px 6px 12px;background:#fff;">
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◎<br>Explore</div>
+            <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#c2502e;position:relative;">♥<br>Saved<span style="position:absolute;top:-3px;right:30px;min-width:15px;height:15px;border-radius:9px;background:#c2502e;color:#fff;font:600 9px 'IBM Plex Sans';display:flex;align-items:center;justify-content:center;padding:0 4px;">2</span></div>
+            <div style="flex:1;text-align:center;font:500 9px 'IBM Plex Sans';color:#b0a994;">◔<br>You</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">Badge + strip are the whole notification for most updates. No push needed.</div>
+      </sc-if>
+    </div>
+
+    <!-- Web ambient -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · tab-title count + bell, nothing modal</div>
+      <div style="display:flex;flex-direction:column;">
+        <!-- browser tab strip -->
+        <div style="display:flex;gap:6px;padding:7px 10px 0;background:#ded7c6;border-radius:8px 8px 0 0;">
+          <div style="display:flex;align-items:center;gap:7px;background:#fff;border-radius:7px 7px 0 0;padding:8px 12px;">
+            <span style="position:relative;width:13px;height:13px;border-radius:3px;background:#e9e4d6;display:inline-block;"><span style="position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:9px;background:#c2502e;border:1px solid #fff;"></span></span>
+            <span style="font:600 11px 'IBM Plex Sans';">(2) Little Scout</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;padding:8px 12px;opacity:.5;"><span style="width:13px;height:13px;border-radius:3px;background:#cfc7b5;"></span><span style="font:500 11px 'IBM Plex Sans';color:#6f6a5d;">Maps</span></div>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:0 0 8px 8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;border-top:none;margin-top:-11px;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;flex:1;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app/saved</span><span style="position:relative;font-size:15px;color:#6f6a5d;">♢<span style="position:absolute;top:-5px;right:-6px;min-width:14px;height:14px;border-radius:9px;background:#c2502e;color:#fff;font:600 9px 'IBM Plex Sans';display:flex;align-items:center;justify-content:center;padding:0 3px;">2</span></span></div>
+        <div style="height:386px;padding:20px;background:#fbfaf6;display:flex;flex-direction:column;gap:11px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:18px;font-weight:700;">Saved</div><div style="font:500 11px 'IBM Plex Sans';color:#7d9a86;">● 2 updates since Tuesday</div></div>
+          <div style="background:#fff;border:1px solid #ece6d8;border-radius:10px;padding:13px;display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 13px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 11px 'IBM Plex Sans';color:#4f9d69;">↓ 9 → 6 min</div></div><span style="width:7px;height:7px;border-radius:9px;background:#7d9a86;"></span></div>
+          <div style="background:#fff;border:1px solid #ece6d8;border-radius:10px;padding:13px;display:flex;align-items:center;gap:10px;"><span style="width:10px;height:10px;border-radius:9px;background:#4f9d69;"></span><div style="flex:1;"><div style="font:600 13px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">new kids menu</div></div><span style="width:7px;height:7px;border-radius:9px;background:#7d9a86;"></span></div>
+          <div style="background:#fff;border:1px solid #ece6d8;border-radius:10px;padding:13px;display:flex;align-items:center;gap:10px;opacity:.7;"><span style="width:10px;height:10px;border-radius:9px;background:#d8a23a;"></span><div style="flex:1;"><div style="font:600 13px 'IBM Plex Sans';">Tello's Pizza</div><div style="font:500 11px 'IBM Plex Sans';color:#a39b88;">no change</div></div></div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:520px;">The "(2)" in the tab title is the web answer to a badge — visible even on another tab, but silent.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ============= SECTION 2 · INBOX ============= -->
+  <div style="margin:52px 0 18px;max-width:1100px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#b0a06a;padding:5px 11px;border-radius:3px;">STEP 2 · INBOX</div>
+      <div style="font-family:'Caveat',cursive;font-size:32px;font-weight:700;">Pull, don't push — the activity list</div>
+    </div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:760px;">Tapping the badge or bell opens the full history, grouped by spot and recency. This is where a parent goes <i>on their own time</i> — the complete record lives here so nothing else has to shout.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- iOS inbox -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">iOS · activity inbox</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 16px 8px;display:flex;align-items:center;justify-content:space-between;"><div style="font-size:18px;font-weight:700;">Updates</div><div style="font:600 11px 'IBM Plex Sans';color:#c2502e;">Mark all read</div></div>
+          <div style="flex:1;padding:2px 16px 0;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;padding:6px 0;">TODAY</div>
+            <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #ece6d8;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Maria's Cantina · faster</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;line-height:1.4;">9 → 6 min over 3 recent visits</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">2h</span></div>
+            <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #ece6d8;"><span style="width:9px;height:9px;border-radius:9px;background:#8a8474;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Tello's Pizza · new note</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;line-height:1.4;">"crayons + play corner by window"</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">5h</span></div>
+            <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;padding:10px 0 6px;">EARLIER THIS WEEK</div>
+            <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #ece6d8;opacity:.6;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Birch &amp; Bell · new menu</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;line-height:1.4;">Kids menu added, healthy options</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">2d</span></div>
+            <div style="display:flex;gap:10px;padding:10px 0;opacity:.6;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">Pine Diner · noise</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;line-height:1.4;">Now "moderate" at dinner</div></div><span style="font:500 10px 'IBM Plex Mono';color:#b0a894;">4d</span></div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">Read items fade — the list self-quiets once you've seen it.</div>
+      </sc-if>
+    </div>
+
+    <!-- Web bell dropdown -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · bell dropdown (anchored, not modal)</div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;position:relative;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;flex:1;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app/explore</span><span style="position:relative;font-size:15px;color:#c2502e;">♢<span style="position:absolute;top:-5px;right:-6px;min-width:14px;height:14px;border-radius:9px;background:#c2502e;color:#fff;font:600 9px 'IBM Plex Sans';display:flex;align-items:center;justify-content:center;padding:0 3px;">2</span></span></div>
+        <div style="height:386px;background:#e9e4d6;position:relative;">
+          <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 44px,#ded6c4 44px,#ded6c4 45px),repeating-linear-gradient(90deg,transparent,transparent 44px,#ded6c4 44px,#ded6c4 45px);"></div>
+          <!-- dropdown -->
+          <div style="position:absolute;top:8px;right:10px;width:280px;background:#fff;border:1px solid #e0d9c8;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.18);overflow:hidden;">
+            <div style="padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ece6d8;"><span style="font:700 13px 'IBM Plex Sans';">Updates</span><span style="font:600 10px 'IBM Plex Sans';color:#c2502e;">Mark all read</span></div>
+            <div style="padding:4px 0;">
+              <div style="padding:10px 14px;display:flex;gap:9px;border-bottom:1px solid #f0ebdf;"><span style="width:8px;height:8px;border-radius:9px;background:#4f9d69;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 11.5px 'IBM Plex Sans';">Maria's Cantina · faster</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">9 → 6 min · 3 visits</div></div><span style="font:500 9px 'IBM Plex Mono';color:#b0a894;">2h</span></div>
+              <div style="padding:10px 14px;display:flex;gap:9px;border-bottom:1px solid #f0ebdf;"><span style="width:8px;height:8px;border-radius:9px;background:#8a8474;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 11.5px 'IBM Plex Sans';">Tello's Pizza · new note</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">crayons + play corner</div></div><span style="font:500 9px 'IBM Plex Mono';color:#b0a894;">5h</span></div>
+              <div style="padding:10px 14px;display:flex;gap:9px;opacity:.6;"><span style="width:8px;height:8px;border-radius:9px;background:#4f9d69;margin-top:3px;"></span><div style="flex:1;"><div style="font:600 11.5px 'IBM Plex Sans';">Birch &amp; Bell · new menu</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">healthy kids options</div></div><span style="font:500 9px 'IBM Plex Mono';color:#b0a894;">2d</span></div>
+            </div>
+            <div style="padding:10px 14px;border-top:1px solid #ece6d8;font:600 11px 'IBM Plex Sans';color:#6f6a5d;text-align:center;">Notification settings ›</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:520px;">Opens on click, closes on outside-click — anchored to the bell, never a full-screen takeover.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ============= SECTION 3 · TOAST ============= -->
+  <div style="margin:52px 0 18px;max-width:1100px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#d8a23a;padding:5px 11px;border-radius:3px;">STEP 3 · TOAST</div>
+      <div style="font-family:'Caveat',cursive;font-size:32px;font-weight:700;">A gentle nudge — only if you're already here</div>
+    </div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:760px;">If something relevant lands while the app is open, a slim bar slides in, offers one action, and auto-dismisses in ~4 seconds. It never stacks, never covers the bottom nav, and is swipe-to-dismiss. No toast ever fires in the background — that's push's job.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- iOS toast -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">iOS · in-app toast over the map</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;position:relative;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';z-index:2;"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="flex:1;background:#e9e4d6;position:relative;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px),repeating-linear-gradient(90deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px);"></div>
+            <span style="position:absolute;top:150px;left:80px;width:16px;height:16px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:240px;left:170px;width:16px;height:16px;border-radius:9px;background:#d8a23a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <!-- toast -->
+            <div style="position:absolute;left:12px;right:12px;bottom:14px;background:#2b2a27;color:#fff;border-radius:13px;padding:12px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 22px rgba(0,0,0,.28);">
+              <span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;flex:none;"></span>
+              <div style="flex:1;"><div style="font:600 12px 'IBM Plex Sans';">New review · Tello's Pizza</div><div style="font:500 10.5px 'IBM Plex Sans';color:#cfc7b5;">now 11 min · 1 new visit</div></div>
+              <span style="font:700 11px 'IBM Plex Sans';color:#f0b860;">View</span>
+            </div>
+            <div style="position:absolute;left:60px;right:60px;bottom:7px;height:3px;border-radius:3px;background:rgba(255,255,255,.35);"></div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">The thin bar underneath is the 4-second auto-dismiss timer. Swipe down to clear early.</div>
+      </sc-if>
+    </div>
+
+    <!-- Web toast -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · slide-in toast, bottom-right</div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;position:relative;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;flex:1;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app/explore</span><span style="font-size:15px;color:#6f6a5d;">♢</span></div>
+        <div style="height:386px;background:#e9e4d6;position:relative;">
+          <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 44px,#ded6c4 44px,#ded6c4 45px),repeating-linear-gradient(90deg,transparent,transparent 44px,#ded6c4 44px,#ded6c4 45px);"></div>
+          <span style="position:absolute;top:120px;left:120px;width:18px;height:18px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+          <span style="position:absolute;top:210px;left:240px;width:18px;height:18px;border-radius:9px;background:#d8a23a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+          <!-- toast -->
+          <div style="position:absolute;right:16px;bottom:16px;width:270px;background:#2b2a27;color:#fff;border-radius:12px;padding:13px 14px;display:flex;align-items:center;gap:11px;box-shadow:0 12px 30px rgba(0,0,0,.28);">
+            <span style="width:10px;height:10px;border-radius:9px;background:#d8a23a;flex:none;"></span>
+            <div style="flex:1;"><div style="font:600 12.5px 'IBM Plex Sans';">New review · Tello's Pizza</div><div style="font:500 11px 'IBM Plex Sans';color:#cfc7b5;">now 11 min · 1 new visit</div></div>
+            <span style="font:700 11px 'IBM Plex Sans';color:#f0b860;">View</span>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:520px;">Same content, same restraint as iOS — one toast at a time, auto-dismiss, dismiss-on-action.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ============= SECTION 4 · PUSH + PRIMING ============= -->
+  <div style="margin:52px 0 18px;max-width:1100px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#c2502e;padding:5px 11px;border-radius:3px;">STEP 4 · PUSH</div>
+      <div style="font-family:'Caveat',cursive;font-size:32px;font-weight:700;">The loud one — opt-in, bundled, earned</div>
+    </div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:760px;">Push is off until the parent turns it on, and we only ask <i>after</i> they've saved their first spot — in context, with a plain-language promise. When it does fire, it's one bundled message ("3 spots changed"), never one ping per review, and never between 8pm and 8am.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- iOS priming -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">iOS · soft pre-prompt (after 1st save)</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;position:relative;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="flex:1;padding:14px 16px 0;display:flex;flex-direction:column;gap:10px;opacity:.4;">
+            <div style="font-size:18px;font-weight:700;">Maria's Cantina</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:12px;padding:12px;"><div style="font:500 10px 'IBM Plex Mono';color:#a39b88;">KID FOOD SPEED</div><div style="font-size:24px;font-weight:700;margin-top:3px;">6 min</div></div>
+          </div>
+          <div style="position:absolute;inset:0;background:rgba(43,42,39,.32);"></div>
+          <div style="position:absolute;left:18px;right:18px;top:50%;transform:translateY(-50%);background:#fff;border-radius:20px;padding:22px 20px;box-shadow:0 18px 40px rgba(0,0,0,.3);text-align:center;">
+            <div style="width:44px;height:44px;border-radius:24px;background:#f7ebe5;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#c2502e;">⚡</div>
+            <div style="font-size:16px;font-weight:700;line-height:1.2;margin-bottom:8px;">Heads-up when Maria's gets faster?</div>
+            <div style="font:500 12px 'IBM Plex Sans';color:#8a8474;line-height:1.45;margin-bottom:18px;">We'll only ping for the changes you choose — bundled, and never more than once a day.</div>
+            <div style="background:#2b2a27;color:#fff;border-radius:11px;padding:12px;font:600 13px 'IBM Plex Sans';margin-bottom:9px;">Turn on alerts</div>
+            <div style="font:600 12px 'IBM Plex Sans';color:#8a8474;">Not now</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">★ Our prompt first, so a "Not now" doesn't burn the real iOS permission — we can ask again later.</div>
+      </sc-if>
+    </div>
+
+    <!-- iOS lock screen bundled -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">iOS · lock screen, one bundled push</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;height:600px;display:flex;flex-direction:column;border:1px solid #2b2a27;background:linear-gradient(160deg,#3a4a5a,#2b3340);position:relative;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';color:#fff;"><span>9:41</span><span style="letter-spacing:2px;opacity:.7;">●●●&nbsp;▮</span></div>
+          <div style="text-align:center;color:#fff;margin-top:24px;"><div style="font:500 13px 'IBM Plex Sans';opacity:.85;">Saturday, June 20</div><div style="font:300 62px 'IBM Plex Sans';line-height:1;">9:41</div></div>
+          <div style="margin:auto 12px 0;display:flex;flex-direction:column;gap:8px;padding-bottom:26px;">
+            <!-- main notif -->
+            <div style="background:rgba(255,255,255,.92);border-radius:16px;padding:13px 14px;backdrop-filter:blur(8px);">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><span style="width:18px;height:18px;border-radius:5px;background:#c2502e;"></span><span style="font:600 10px 'IBM Plex Sans';color:#6f6a5d;flex:1;letter-spacing:.02em;">LITTLE SCOUT</span><span style="font:500 10px 'IBM Plex Sans';color:#a39b88;">now</span></div>
+              <div style="font:600 13px 'IBM Plex Sans';color:#1a1a1a;margin-bottom:2px;">3 of your saved spots changed this week</div>
+              <div style="font:500 12px 'IBM Plex Sans';color:#54503f;line-height:1.4;">Maria's Cantina is now faster ⚡ · tap to see all three</div>
+            </div>
+            <!-- stacked hint -->
+            <div style="background:rgba(255,255,255,.55);border-radius:14px;height:14px;margin:0 10px;"></div>
+            <div style="background:rgba(255,255,255,.32);border-radius:12px;height:9px;margin:0 20px;"></div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(.5deg);max-width:280px;">Three changes → one notification. The stacked cards are other days, collapsed — we never flood the lock screen.</div>
+      </sc-if>
+    </div>
+
+    <!-- Web push + prime -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · in-page prime → OS notification</div>
+      <div style="display:flex;gap:18px;align-items:stretch;">
+        <!-- prime -->
+        <div style="flex:1;background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+          <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:6px;font:500 9px 'IBM Plex Mono';color:#a39b88;">littlescout.app</span></div>
+          <div style="height:300px;background:#fbfaf6;position:relative;padding:16px;">
+            <div style="font:600 12px 'IBM Plex Sans';color:#2b2a27;margin-bottom:5px;">Birch &amp; Bell · saved ♥</div>
+            <div style="background:#fff;border:1px solid #ece6d8;border-radius:9px;padding:10px;opacity:.55;"><div style="font:500 9px 'IBM Plex Mono';color:#a39b88;">KID FOOD SPEED</div><div style="font-size:19px;font-weight:700;">7 min</div></div>
+            <!-- our prime banner -->
+            <div style="position:absolute;left:14px;right:14px;bottom:14px;background:#fff;border:1px solid #e0d9c8;border-radius:12px;padding:13px;box-shadow:0 10px 26px rgba(0,0,0,.14);">
+              <div style="font:700 12.5px 'IBM Plex Sans';margin-bottom:4px;">Desktop alerts for your spots?</div>
+              <div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;line-height:1.4;margin-bottom:11px;">You pick which changes. Bundled, quiet 8pm–8am.</div>
+              <div style="display:flex;gap:8px;"><div style="flex:1;background:#2b2a27;color:#fff;border-radius:8px;padding:8px;text-align:center;font:600 11px 'IBM Plex Sans';">Enable</div><div style="flex:1;border:1px solid #d8d2c4;border-radius:8px;padding:8px;text-align:center;font:600 11px 'IBM Plex Sans';color:#6f6a5d;">Maybe later</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- OS notification -->
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;">
+          <div style="font:500 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;">…THEN, DAYS LATER, OS-LEVEL:</div>
+          <div style="background:#f4f3f1;border:1px solid #dcd8d0;border-radius:13px;padding:14px;box-shadow:0 10px 26px rgba(0,0,0,.12);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="width:20px;height:20px;border-radius:6px;background:#c2502e;"></span><span style="font:600 10px 'IBM Plex Sans';color:#6f6a5d;flex:1;">Little Scout · Chrome</span><span style="font:500 10px 'IBM Plex Sans';color:#a39b88;">now</span></div>
+            <div style="font:600 13px 'IBM Plex Sans';color:#1a1a1a;margin-bottom:2px;">3 of your spots changed this week</div>
+            <div style="font:500 11.5px 'IBM Plex Sans';color:#54503f;line-height:1.4;">Maria's Cantina is now faster. Click to review all three.</div>
+          </div>
+          <div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;line-height:1.45;">Same bundling rules as iOS. Browsers throttle web-push hard, so the weekly digest is the primary channel; real-time is opt-in on top.</div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:520px;">Never trigger the raw browser prompt cold — our banner explains the value first, the OS dialog only follows a yes.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ============= SECTION 5 · CONTROLS ============= -->
+  <div style="margin:52px 0 18px;max-width:1100px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#2b2a27;padding:5px 11px;border-radius:3px;">CONTROLS</div>
+      <div style="font-family:'Caveat',cursive;font-size:32px;font-weight:700;">Every promise is a real setting</div>
+    </div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:760px;">The guardrails aren't just copy — cadence, quiet hours, and per-event toggles all live in one place, mirrored on web and iOS. Default cadence is the gentle weekly digest.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- iOS settings -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">iOS · notification settings</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#fbfaf6;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:8px 16px 8px;font-size:18px;font-weight:700;">Updates &amp; alerts</div>
+          <div style="flex:1;padding:2px 14px 0;display:flex;flex-direction:column;gap:13px;overflow:hidden;">
+            <div>
+              <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:7px;">HOW OFTEN</div>
+              <div style="display:flex;background:#ece8df;border-radius:9px;padding:3px;">
+                <div style="flex:1;text-align:center;font:600 10.5px 'IBM Plex Sans';color:#8a8474;padding:7px 0;">Real-time</div>
+                <div style="flex:1;text-align:center;font:600 10.5px 'IBM Plex Sans';color:#8a8474;padding:7px 0;">Daily</div>
+                <div style="flex:1;text-align:center;font:600 10.5px 'IBM Plex Sans';color:#2b2a27;background:#fff;border-radius:7px;padding:7px 0;box-shadow:0 1px 2px rgba(0,0,0,.1);">Weekly</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #ece6d8;border-radius:11px;padding:12px;"><div><div style="font:600 12px 'IBM Plex Sans';">Quiet hours</div><div style="font:500 10px 'IBM Plex Sans';color:#8a8474;">8:00 PM – 8:00 AM</div></div><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+            <div>
+              <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:7px;">ALERT ME ABOUT</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:500 12px 'IBM Plex Sans';">Kid food gets faster</span><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:500 12px 'IBM Plex Sans';">New kids menu / facilities</span><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:500 12px 'IBM Plex Sans';color:#8a8474;">Every new review</span><span style="width:34px;height:20px;border-radius:20px;background:#ddd6c6;position:relative;"><span style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+              </div>
+            </div>
+            <div style="font:500 10.5px 'IBM Plex Sans';color:#a39b88;line-height:1.4;">Override any spot individually from its page.</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">"Every new review" is off by default — the noisy option you must reach for, not back out of.</div>
+      </sc-if>
+    </div>
+
+    <!-- Web settings -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · same controls, settings page</div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app/settings/notifications</span></div>
+        <div style="height:430px;padding:22px 24px;background:#fbfaf6;display:flex;flex-direction:column;gap:18px;overflow:hidden;">
+          <div style="font-size:18px;font-weight:700;">Updates &amp; alerts</div>
+          <div style="display:flex;gap:22px;">
+            <div style="flex:1;">
+              <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:8px;">HOW OFTEN</div>
+              <div style="display:flex;background:#ece8df;border-radius:9px;padding:3px;">
+                <div style="flex:1;text-align:center;font:600 11px 'IBM Plex Sans';color:#8a8474;padding:8px 0;">Real-time</div>
+                <div style="flex:1;text-align:center;font:600 11px 'IBM Plex Sans';color:#8a8474;padding:8px 0;">Daily</div>
+                <div style="flex:1;text-align:center;font:600 11px 'IBM Plex Sans';color:#2b2a27;background:#fff;border-radius:7px;padding:8px 0;box-shadow:0 1px 2px rgba(0,0,0,.1);">Weekly</div>
+              </div>
+            </div>
+            <div style="flex:1;">
+              <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:8px;">QUIET HOURS</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #ece6d8;border-radius:10px;padding:11px 13px;"><span style="font:600 12px 'IBM Plex Sans';">8:00 PM – 8:00 AM</span><span style="width:36px;height:21px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:17px;height:17px;border-radius:9px;background:#fff;"></span></span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font:600 10px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:10px;">ALERT ME ABOUT</div>
+            <div style="display:flex;flex-direction:column;gap:11px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0ebdf;padding-bottom:10px;"><div><div style="font:600 13px 'IBM Plex Sans';">Kid food gets faster</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">When a saved spot's speed crosses into a faster tier</div></div><span style="width:36px;height:21px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:17px;height:17px;border-radius:9px;background:#fff;"></span></span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0ebdf;padding-bottom:10px;"><div><div style="font:600 13px 'IBM Plex Sans';">New kids menu / facilities</div><div style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Kids menu, high chairs, changing table changes</div></div><span style="width:36px;height:21px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:17px;height:17px;border-radius:9px;background:#fff;"></span></span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;"><div><div style="font:600 13px 'IBM Plex Sans';color:#6f6a5d;">Every new review</div><div style="font:500 11px 'IBM Plex Sans';color:#a39b88;">Can get noisy — off unless you want it all</div></div><span style="width:36px;height:21px;border-radius:20px;background:#ddd6c6;position:relative;"><span style="position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:9px;background:#fff;"></span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:520px;">Identical model both platforms — a parent learns it once. Web just has room to explain each toggle inline.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+
+  <div style="max-width:1100px;margin:70px 0 6px;border-top:2px solid #d8cfb8;padding-top:18px;font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#a39b88;">Part 3 · Settings — where every promise lives</div>
+
+  <div style="max-width:1100px;margin-bottom:18px;">
+    <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;margin-top:8px;">One settings home, mirrored on web &amp; iOS</div>
+    <div style="font-size:14px;color:#6f6a5d;margin-top:6px;max-width:780px;">The notification controls aren't a standalone screen — they nest inside the broader settings a parent already expects: their family profile, account, and privacy. Notifications sit right where they'd look for them, tied to the same kids &amp; saved spots that drive every update.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- iOS full settings -->
+    <div style="flex:none;width:300px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(-1deg);">iOS · Settings (grouped)</div>
+      <div style="background:#fff;border:2px solid #2b2a27;border-radius:36px;padding:9px;box-shadow:0 8px 22px rgba(0,0,0,.10);">
+        <div style="border-radius:28px;overflow:hidden;background:#f1ede3;height:600px;display:flex;flex-direction:column;border:1px solid #e7e2d6;">
+          <div style="display:flex;justify-content:space-between;padding:11px 20px 4px;font:600 11px 'IBM Plex Sans';"><span>9:41</span><span style="letter-spacing:2px;color:#8a8474;">●●●&nbsp;▮</span></div>
+          <div style="padding:6px 16px 8px;font-size:18px;font-weight:700;">Settings</div>
+          <div style="flex:1;padding:0 12px 10px;display:flex;flex-direction:column;gap:13px;overflow:hidden;">
+            <div style="background:#fff;border-radius:12px;padding:11px 12px;display:flex;align-items:center;gap:11px;"><div style="width:42px;height:42px;border-radius:24px;background:#e9e4d6;"></div><div style="flex:1;"><div style="font:700 13px 'IBM Plex Sans';">Sam H.</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">Scouting for a 2-year-old</div></div><span style="color:#c5bda9;">›</span></div>
+
+            <div>
+              <div style="font:600 9px 'IBM Plex Mono';color:#a39b88;letter-spacing:.06em;margin:0 6px 6px;">YOUR FAMILY</div>
+              <div style="background:#fff;border-radius:12px;overflow:hidden;">
+                <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0ebdf;"><span style="font:500 12px 'IBM Plex Sans';flex:1;">Kids</span><span style="font:600 10px 'IBM Plex Sans';padding:4px 9px;background:#2b2a27;color:#fff;border-radius:14px;">Toddler · 2</span><span style="color:#c5bda9;">›</span></div>
+                <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;"><span style="font:500 12px 'IBM Plex Sans';flex:1;">Home area</span><span style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Dedham, MA</span><span style="color:#c5bda9;">›</span></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font:600 9px 'IBM Plex Mono';color:#c2502e;letter-spacing:.06em;margin:0 6px 6px;">UPDATES &amp; ALERTS</div>
+              <div style="background:#fff;border-radius:12px;overflow:hidden;">
+                <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0ebdf;"><span style="font:500 12px 'IBM Plex Sans';flex:1;">Cadence</span><span style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Weekly digest</span><span style="color:#c5bda9;">›</span></div>
+                <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0ebdf;"><span style="font:500 12px 'IBM Plex Sans';flex:1;">Quiet hours</span><span style="font:500 11px 'IBM Plex Sans';color:#8a8474;">8p – 8a</span><span style="width:30px;height:18px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:9px;background:#fff;"></span></span></div>
+                <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;"><span style="font:500 12px 'IBM Plex Sans';flex:1;">Alert types</span><span style="font:500 11px 'IBM Plex Sans';color:#8a8474;">2 on</span><span style="color:#c5bda9;">›</span></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font:600 9px 'IBM Plex Mono';color:#a39b88;letter-spacing:.06em;margin:0 6px 6px;">ACCOUNT &amp; PRIVACY</div>
+              <div style="background:#fff;border-radius:12px;overflow:hidden;">
+                <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0ebdf;"><span style="font:500 12px 'IBM Plex Sans';flex:1;">Apple ID &amp; sign-in</span><span style="font:500 11px 'IBM Plex Sans';color:#8a8474;">Connected</span><span style="color:#c5bda9;">›</span></div>
+                <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0ebdf;"><span style="font:500 12px 'IBM Plex Sans';flex:1;">My contributions</span><span style="font:500 11px 'IBM Plex Sans';color:#8a8474;">14</span><span style="color:#c5bda9;">›</span></div>
+                <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;"><span style="font:500 12px 'IBM Plex Sans';color:#c2502e;flex:1;">Delete account</span><span style="color:#e0a99b;">›</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;transform:rotate(-.5deg);max-width:280px;">Updates &amp; alerts is its own group — "Alert types ›" opens the granular toggles from Part 2.</div>
+      </sc-if>
+    </div>
+
+    <!-- Web full settings -->
+    <sc-if value="{{ showWeb }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:620px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;transform:rotate(.5deg);">Web · Settings with the alerts pane open</div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app/settings</span></div>
+        <div style="height:452px;display:flex;">
+          <div style="width:184px;border-right:1px solid #ece6d8;padding:16px 12px;display:flex;flex-direction:column;gap:3px;background:#fbfaf6;">
+            <div style="font:700 14px 'IBM Plex Sans';margin:0 4px 12px;">Settings</div>
+            <div style="font:500 12px 'IBM Plex Sans';color:#6f6a5d;padding:8px 10px;border-radius:7px;">Profile</div>
+            <div style="font:500 12px 'IBM Plex Sans';color:#6f6a5d;padding:8px 10px;border-radius:7px;">Family &amp; kids</div>
+            <div style="font:600 12px 'IBM Plex Sans';color:#c2502e;background:#f7ebe5;padding:8px 10px;border-radius:7px;">Updates &amp; alerts</div>
+            <div style="font:500 12px 'IBM Plex Sans';color:#6f6a5d;padding:8px 10px;border-radius:7px;">Account &amp; sign-in</div>
+            <div style="font:500 12px 'IBM Plex Sans';color:#6f6a5d;padding:8px 10px;border-radius:7px;">Privacy &amp; data</div>
+          </div>
+          <div style="flex:1;padding:20px 22px;display:flex;flex-direction:column;gap:16px;overflow:hidden;">
+            <div><div style="font-size:17px;font-weight:700;">Updates &amp; alerts</div><div style="font:500 11.5px 'IBM Plex Sans';color:#8a8474;margin-top:2px;">Updates from spots you've saved. Quiet by default.</div></div>
+            <div style="display:flex;gap:18px;">
+              <div style="flex:1;"><div style="font:600 9px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:7px;">CADENCE</div><div style="display:flex;background:#ece8df;border-radius:9px;padding:3px;"><div style="flex:1;text-align:center;font:600 10px 'IBM Plex Sans';color:#8a8474;padding:7px 0;">Real-time</div><div style="flex:1;text-align:center;font:600 10px 'IBM Plex Sans';color:#8a8474;padding:7px 0;">Daily</div><div style="flex:1;text-align:center;font:600 10px 'IBM Plex Sans';color:#2b2a27;background:#fff;border-radius:7px;padding:7px 0;box-shadow:0 1px 2px rgba(0,0,0,.1);">Weekly</div></div></div>
+              <div style="flex:1;"><div style="font:600 9px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:7px;">QUIET HOURS</div><div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #ece6d8;border-radius:9px;padding:9px 12px;"><span style="font:600 11.5px 'IBM Plex Sans';">8:00 PM – 8:00 AM</span><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div></div>
+            </div>
+            <div>
+              <div style="font:600 9px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:9px;">ALERT ME ABOUT</div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0ebdf;padding-bottom:9px;"><div><div style="font:600 12.5px 'IBM Plex Sans';">Kid food gets faster</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">A saved spot's speed crosses into a faster tier</div></div><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0ebdf;padding-bottom:9px;"><div><div style="font:600 12.5px 'IBM Plex Sans';">New kids menu / facilities</div><div style="font:500 10.5px 'IBM Plex Sans';color:#8a8474;">Kids menu, high chairs, changing table</div></div><span style="width:34px;height:20px;border-radius:20px;background:#4f9d69;position:relative;"><span style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;"><div><div style="font:600 12.5px 'IBM Plex Sans';color:#6f6a5d;">Every new review</div><div style="font:500 10.5px 'IBM Plex Sans';color:#a39b88;">Can get noisy — off unless you want it all</div></div><span style="width:34px;height:20px;border-radius:20px;background:#ddd6c6;position:relative;"><span style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:9px;background:#fff;"></span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.2;max-width:560px;">Left rail is the full settings IA; the alerts pane is the same model as iOS, just roomier. Identical toggles, identical defaults.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+  </div>
+
+
+  <div style="max-width:1100px;margin:70px 0 6px;border-top:2px solid #d8cfb8;padding-top:18px;font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#a39b88;">Part 4 · Web experience audit — Explore + Restaurant detail</div>
+
+
+  <!-- HEADER -->
+  <div style="max-width:1100px;margin-bottom:30px;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#a39b88;margin-bottom:10px;">Little Scout · Web experience audit · Explore + Restaurant detail</div>
+    <div style="font-family:'Caveat',cursive;font-size:46px;line-height:1.05;font-weight:700;margin-bottom:10px;">Fewer boxes, clearer hierarchy</div>
+    <div style="font-size:15px;line-height:1.5;color:#6f6a5d;max-width:760px;">Read from your real <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;">ExploreMapPage</span>, <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;">MapSearchSidebar</span>, and <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;">RestaurantDetailPage</span>. The two pages share one disease: <b style="color:#c2502e;">everything is an equally-weighted bordered box, stacked vertically.</b> Below: what's there now, the specific problems, and a calmer redesign for each.</div>
+  </div>
+
+  <!-- AUDIT PANEL -->
+  <div style="display:flex;gap:20px;flex-wrap:wrap;max-width:1100px;margin-bottom:48px;">
+    <div style="flex:1;min-width:330px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:22px 24px;">
+      <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#c2502e;margin-bottom:14px;">Explore — what's slowing it down</div>
+      <div style="display:flex;flex-direction:column;gap:12px;font-size:13.5px;line-height:1.45;color:#54503f;">
+        <div><b>4 stacked filter rows.</b> Town, ZIP, Type, and Quality each render as their own horizontally-scrolling chip nav with a bottom border — a wall of controls before a single result.</div>
+        <div><b>Heavy result cards.</b> Every row is a bordered + shadowed card carrying up to 3 badges (Speed · ★ · 💬). Dozens of boxes-in-boxes.</div>
+        <div><b>The map loses.</b> A tall, busy 24rem rail squeezes the thing people actually came for.</div>
+        <div><b>No saved / updates entry point</b> anywhere on the surface parents use most.</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:330px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:22px 24px;">
+      <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#c2502e;margin-bottom:14px;">Detail — what's slowing it down</div>
+      <div style="display:flex;flex-direction:column;gap:12px;font-size:13.5px;line-height:1.45;color:#54503f;">
+        <div><b>6 near-identical cards.</b> Hours, Share-your-visit, Community activity, Kid food speed, Parent ratings, Notes — all the same titled box, same weight, one on top of another.</div>
+        <div><b>The flagship is buried.</b> "Kid food speed" — the whole reason for the app — is the <b>5th</b> card down.</div>
+        <div><b>A CTA before any data.</b> "Share your visit" sits above the speed and ratings it's asking you to trust.</div>
+        <div><b>No hierarchy.</b> A phone number, a chart, and the headline metric all look equally important.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== EXPLORE ===================== -->
+  <div style="max-width:1100px;margin-bottom:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#2b2a27;padding:5px 11px;border-radius:3px;">PAGE 1</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Explore / Map</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:36px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- EXPLORE BEFORE -->
+    <sc-if value="{{ showBefore }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;"><span style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;color:#fff;background:#b08a7a;padding:4px 9px;border-radius:3px;">BEFORE</span><span style="font-family:'Caveat',cursive;font-size:19px;color:#8a7a6a;">today's build</span></div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app/map</span></div>
+        <div style="height:520px;display:flex;">
+          <!-- cramped sidebar -->
+          <div style="width:248px;border-right:1px solid #e2dccb;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:11px 12px 8px;border-bottom:1px solid #ece6d8;"><div style="font:700 14px 'IBM Plex Sans';">Explore</div><div style="font:500 10px 'IBM Plex Sans';color:#a39b88;">12 places</div></div>
+            <div style="padding:8px 12px;border-bottom:1px solid #ece6d8;"><div style="background:#f3efe3;border:1px solid #e0d9c8;border-radius:7px;padding:7px 9px;font:500 10.5px 'IBM Plex Sans';color:#a39b88;">⌕ Search by name, place…</div></div>
+            <!-- filter row 1 -->
+            <div style="padding:8px 12px;border-bottom:1px solid #ece6d8;"><div style="font:600 8px 'IBM Plex Mono';color:#b8b0a0;margin-bottom:5px;">BROWSE BY TOWN</div><div style="display:flex;gap:5px;overflow:hidden;"><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">Dedham (12)</span><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">Needham (4)</span><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">Westwo…</span></div></div>
+            <!-- filter row 2 -->
+            <div style="padding:8px 12px;border-bottom:1px solid #ece6d8;"><div style="font:600 8px 'IBM Plex Mono';color:#b8b0a0;margin-bottom:5px;">BROWSE BY ZIP</div><div style="display:flex;gap:5px;overflow:hidden;"><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">02026 (9)</span><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">02492 (3)</span><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">024…</span></div></div>
+            <!-- filter row 3 -->
+            <div style="padding:8px 12px;border-bottom:1px solid #ece6d8;"><div style="font:600 8px 'IBM Plex Mono';color:#b8b0a0;margin-bottom:5px;">BROWSE BY TYPE</div><div style="display:flex;gap:5px;overflow:hidden;"><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">Mexican</span><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">Pizza</span><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">Diner</span></div></div>
+            <!-- filter row 4 -->
+            <div style="padding:8px 12px;border-bottom:1px solid #ece6d8;"><div style="font:600 8px 'IBM Plex Mono';color:#b8b0a0;margin-bottom:5px;">SCOUT QUALITY</div><div style="display:flex;gap:5px;overflow:hidden;"><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #c2502e;background:#f7ebe5;border-radius:14px;color:#c2502e;white-space:nowrap;">All</span><span style="font:600 9px 'IBM Plex Sans';padding:5px 9px;border:1px solid #e0d9c8;border-radius:14px;color:#6f6a5d;white-space:nowrap;">Quick start…</span></div></div>
+            <!-- results -->
+            <div style="flex:1;padding:10px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;background:#fbfaf6;">
+              <div style="font:700 10px 'IBM Plex Sans';">Dedham <span style="font-weight:500;color:#a39b88;">· 12 places</span></div>
+              <div style="border:1px solid #e0d9c8;border-radius:8px;padding:9px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.05);"><div style="display:flex;justify-content:space-between;"><span style="font:700 11px 'IBM Plex Sans';">Maria's Cantina</span><span style="width:8px;height:8px;border-radius:9px;background:#4f9d69;"></span></div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;margin:2px 0 5px;">21 School St</div><div style="display:flex;gap:4px;"><span style="font:600 8px 'IBM Plex Sans';background:#f7ebe5;color:#c2502e;padding:3px 6px;border-radius:10px;">Speed 6m</span><span style="font:600 8px 'IBM Plex Sans';background:#efeadd;color:#6f6a5d;padding:3px 6px;border-radius:10px;">★ 3</span><span style="font:600 8px 'IBM Plex Sans';background:#efeadd;color:#6f6a5d;padding:3px 6px;border-radius:10px;">💬 2</span></div></div>
+              <div style="border:1px solid #e0d9c8;border-radius:8px;padding:9px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.05);"><div style="display:flex;justify-content:space-between;"><span style="font:700 11px 'IBM Plex Sans';">Tello's Pizza</span><span style="width:8px;height:8px;border-radius:9px;background:#d8a23a;"></span></div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;margin:2px 0 5px;">5 Bridge St</div><div style="display:flex;gap:4px;"><span style="font:600 8px 'IBM Plex Sans';background:#f7ebe5;color:#c2502e;padding:3px 6px;border-radius:10px;">Speed 11m</span><span style="font:600 8px 'IBM Plex Sans';background:#efeadd;color:#6f6a5d;padding:3px 6px;border-radius:10px;">★ 1</span></div></div>
+            </div>
+          </div>
+          <!-- map squeezed -->
+          <div style="flex:1;background:#e9e4d6;position:relative;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,#ded6c4 40px,#ded6c4 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,#ded6c4 40px,#ded6c4 41px);"></div>
+            <span style="position:absolute;top:120px;left:90px;width:16px;height:16px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:230px;left:150px;width:16px;height:16px;border-radius:9px;background:#d8a23a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.25;max-width:540px;">Four bordered filter rows + a search box = ~5 dividers before the first result. The map is an afterthought.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- EXPLORE AFTER -->
+    <div style="flex:none;width:620px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;"><span style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;color:#fff;background:#4f9d69;padding:4px 9px;border-radius:3px;">AFTER</span><span style="font-family:'Caveat',cursive;font-size:19px;color:#5a8a6a;">one filter bar, lighter results, map wins</span></div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;flex:1;font:500 10px 'IBM Plex Mono';color:#a39b88;">littlescout.app/map</span><span style="position:relative;font-size:14px;color:#c2502e;">♥<span style="position:absolute;top:-5px;right:-7px;min-width:13px;height:13px;border-radius:9px;background:#c2502e;color:#fff;font:600 8px 'IBM Plex Sans';display:flex;align-items:center;justify-content:center;padding:0 3px;">2</span></span></div>
+        <div style="height:520px;display:flex;">
+          <!-- calm sidebar -->
+          <div style="width:280px;border-right:1px solid #e2dccb;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:12px 14px 10px;">
+              <div style="background:#fff;border:1px solid #d8d0bf;border-radius:9px;padding:9px 11px;font:500 11px 'IBM Plex Sans';color:#8a8474;display:flex;align-items:center;gap:7px;"><span>⌕</span>Search name, place, neighborhood</div>
+            </div>
+            <!-- single filter bar -->
+            <div style="padding:0 14px 10px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;background:#ece8df;border-radius:9px;padding:3px;">
+                <div style="flex:1;text-align:center;font:600 10px 'IBM Plex Sans';color:#2b2a27;background:#fff;border-radius:7px;padding:6px 0;box-shadow:0 1px 2px rgba(0,0,0,.1);">All</div>
+                <div style="flex:1;text-align:center;font:600 10px 'IBM Plex Sans';color:#8a8474;padding:6px 0;">Quick</div>
+                <div style="flex:1;text-align:center;font:600 10px 'IBM Plex Sans';color:#8a8474;padding:6px 0;">Rated</div>
+              </div>
+              <div style="display:flex;gap:7px;">
+                <div style="flex:1;border:1px solid #d8d0bf;border-radius:8px;padding:7px 10px;font:600 10px 'IBM Plex Sans';color:#2b2a27;display:flex;align-items:center;justify-content:space-between;">Dedham <span style="color:#b0a894;">▾</span></div>
+                <div style="border:1px solid #d8d0bf;border-radius:8px;padding:7px 11px;font:600 10px 'IBM Plex Sans';color:#6f6a5d;display:flex;align-items:center;gap:5px;">⚙ Filters <span style="background:#c2502e;color:#fff;border-radius:9px;font-size:8px;padding:1px 5px;">1</span></div>
+              </div>
+            </div>
+            <div style="height:1px;background:#ece6d8;margin:2px 14px 0;"></div>
+            <div style="padding:9px 14px 4px;display:flex;align-items:center;justify-content:space-between;"><span style="font:700 11px 'IBM Plex Sans';">12 places</span><span style="font:500 9.5px 'IBM Plex Sans';color:#a39b88;">sorted by distance</span></div>
+            <!-- light rows -->
+            <div style="flex:1;overflow:hidden;padding:0 6px;">
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid #f0ebdf;"><span style="width:10px;height:10px;border-radius:9px;background:#4f9d69;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font:700 12px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 10px 'IBM Plex Sans';color:#8a8474;"><b style="color:#4f9d69;">6 min</b> · 4.2★ · 0.4 mi · Mexican</div></div><span style="font-size:13px;color:#c2502e;">♥</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid #f0ebdf;"><span style="width:10px;height:10px;border-radius:9px;background:#d8a23a;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font:700 12px 'IBM Plex Sans';">Tello's Pizza</div><div style="font:500 10px 'IBM Plex Sans';color:#8a8474;"><b style="color:#caa23a;">11 min</b> · 3.8★ · 0.6 mi · Pizza</div></div><span style="font-size:13px;color:#d8cfb8;">♡</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid #f0ebdf;"><span style="width:10px;height:10px;border-radius:9px;background:#4f9d69;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font:700 12px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 10px 'IBM Plex Sans';color:#8a8474;"><b style="color:#4f9d69;">7 min</b> · 4.5★ · 0.3 mi · American</div></div><span style="font-size:13px;color:#c2502e;">♥</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid #f0ebdf;"><span style="width:10px;height:10px;border-radius:9px;background:#b8b2a4;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font:700 12px 'IBM Plex Sans';">Pine Street Diner</div><div style="font:500 10px 'IBM Plex Sans';color:#a39b88;">No speed yet · be the first</div></div><span style="font-size:13px;color:#d8cfb8;">♡</span></div>
+            </div>
+          </div>
+          <!-- map bigger -->
+          <div style="flex:1;background:#e9e4d6;position:relative;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 46px,#ded6c4 46px,#ded6c4 47px),repeating-linear-gradient(90deg,transparent,transparent 46px,#ded6c4 46px,#ded6c4 47px);"></div>
+            <span style="position:absolute;top:120px;left:110px;width:18px;height:18px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:210px;left:230px;width:18px;height:18px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:170px;left:170px;width:18px;height:18px;border-radius:9px;background:#d8a23a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <div style="position:absolute;top:12px;right:12px;background:#fff;border-radius:8px;padding:7px 11px;font:600 10px 'IBM Plex Sans';color:#2b2a27;box-shadow:0 2px 8px rgba(0,0,0,.14);">⌖ Search this area</div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.25;max-width:600px;">4 filter axes → 1 bar: a segmented quality toggle, a town dropdown, and a "Filters" popover for ZIP/type. Results become light dividers with speed inline. ♥ watch + a saved badge live right where parents browse.</div>
+      </sc-if>
+    </div>
+
+  </div>
+
+  <!-- ===================== DETAIL ===================== -->
+  <div style="max-width:1100px;margin:52px 0 18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#2b2a27;padding:5px 11px;border-radius:3px;">PAGE 2</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Restaurant detail</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:36px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- DETAIL BEFORE -->
+    <sc-if value="{{ showBefore }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;width:430px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;"><span style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;color:#fff;background:#b08a7a;padding:4px 9px;border-radius:3px;">BEFORE</span><span style="font-family:'Caveat',cursive;font-size:19px;color:#8a7a6a;">6 stacked cards</span></div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;font:500 9px 'IBM Plex Mono';color:#a39b88;">littlescout.app/restaurants/maria…</span></div>
+        <div style="height:560px;overflow:hidden;padding:16px;background:#fbfaf6;display:flex;flex-direction:column;gap:11px;">
+          <div style="font:500 9px 'IBM Plex Sans';color:#a39b88;">← Explore</div>
+          <div><div style="font:700 17px 'IBM Plex Sans';">Maria's Cantina</div><div style="font:500 10px 'IBM Plex Sans';color:#a39b88;">21 School St · Dedham</div></div>
+          <div style="display:flex;gap:5px;"><span style="font:600 9px 'IBM Plex Sans';background:#efeadd;color:#6f6a5d;padding:3px 8px;border-radius:10px;">Mexican</span><span style="font:600 9px 'IBM Plex Sans';background:#efeadd;color:#6f6a5d;padding:3px 8px;border-radius:10px;">Family</span></div>
+          <div style="border:1px solid #e0d9c8;border-radius:9px;padding:11px;background:#fff;"><div style="font:700 11px 'IBM Plex Sans';">Hours &amp; directions</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;margin-top:3px;">Live info from Google Maps</div><div style="height:22px;"></div></div>
+          <div style="border:1px solid #e7d8cf;border-radius:9px;padding:11px;background:#fdf6f1;"><div style="font:700 11px 'IBM Plex Sans';">Share your visit</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;margin-top:3px;">Describe your meal…</div><div style="margin-top:8px;background:#c2502e;color:#fff;border-radius:7px;padding:7px;text-align:center;font:600 10px 'IBM Plex Sans';">Chat through your review</div></div>
+          <div style="border:1px solid #e0d9c8;border-radius:9px;padding:11px;background:#fff;"><div style="font:700 11px 'IBM Plex Sans';">Community activity</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;margin-top:3px;">When parents last shared…</div><div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin-top:7px;"><span style="width:8px;height:40%;background:#e0d9c8;"></span><span style="width:8px;height:70%;background:#e0d9c8;"></span><span style="width:8px;height:55%;background:#e0d9c8;"></span><span style="width:8px;height:90%;background:#e0d9c8;"></span></div></div>
+          <div style="border:2px solid #c2502e;border-radius:9px;padding:11px;background:#fff;"><div style="font:700 11px 'IBM Plex Sans';">Kid food speed ⚡</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;margin-top:3px;">How fast did kid food arrive?</div><div style="display:flex;gap:14px;margin-top:8px;"><div><div style="font:700 18px 'IBM Plex Sans';">6m</div><div style="font:500 8px 'IBM Plex Sans';color:#a39b88;">Median</div></div><div><div style="font:700 18px 'IBM Plex Sans';">4.2</div><div style="font:500 8px 'IBM Plex Sans';color:#a39b88;">Quality</div></div><div><div style="font:700 18px 'IBM Plex Sans';">12</div><div style="font:500 8px 'IBM Plex Sans';color:#a39b88;">Visits</div></div></div></div>
+          <div style="border:1px solid #e0d9c8;border-radius:9px;padding:11px;background:#fff;"><div style="font:700 11px 'IBM Plex Sans';">Parent ratings</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;margin-top:3px;">Stroller access, noise…</div></div>
+          <div style="border:1px solid #e0d9c8;border-radius:9px;padding:11px;background:#fff;"><div style="font:700 11px 'IBM Plex Sans';">Parent notes</div></div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.25;max-width:410px;">The ⚡ headline metric is card #5 — you scroll past hours, a CTA, and a chart to reach the one number the app exists for.</div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- DETAIL AFTER -->
+    <div style="flex:none;width:560px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;"><span style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;color:#fff;background:#4f9d69;padding:4px 9px;border-radius:3px;">AFTER</span><span style="font-family:'Caveat',cursive;font-size:19px;color:#5a8a6a;">flagship up top, 3 calm zones</span></div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:7px;padding:9px 13px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="width:10px;height:10px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:8px;font:500 9px 'IBM Plex Mono';color:#a39b88;">littlescout.app/restaurants/maria…</span></div>
+        <div style="height:560px;overflow:hidden;background:#fff;display:flex;flex-direction:column;">
+          <!-- HERO -->
+          <div style="padding:16px 20px 16px;border-bottom:1px solid #ece6d8;">
+            <div style="font:500 9px 'IBM Plex Sans';color:#a39b88;margin-bottom:8px;">← Explore</div>
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div style="flex:1;">
+                <div style="font:700 21px 'IBM Plex Sans';line-height:1.1;">Maria's Cantina</div>
+                <div style="font:500 11px 'IBM Plex Sans';color:#8a8474;margin-top:3px;">Mexican · 21 School St, Dedham · 0.4 mi</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:38px;height:38px;border-radius:10px;border:1.5px solid #c2502e;color:#c2502e;display:flex;align-items:center;justify-content:center;font-size:16px;">♥</div><span style="font:600 8px 'IBM Plex Sans';color:#c2502e;">Watch</span></div>
+            </div>
+            <!-- hero stat strip -->
+            <div style="display:flex;align-items:stretch;gap:0;margin-top:14px;background:#f7faf8;border:1px solid #dcebe1;border-radius:11px;overflow:hidden;">
+              <div style="flex:1.3;padding:12px 14px;border-right:1px solid #dcebe1;"><div style="font:600 9px 'IBM Plex Mono';color:#4f9d69;letter-spacing:.04em;">KID FOOD SPEED</div><div style="display:flex;align-items:baseline;gap:7px;margin-top:3px;"><span style="width:11px;height:11px;border-radius:9px;background:#4f9d69;"></span><span style="font:700 24px 'IBM Plex Sans';">6 min</span><span style="font:600 11px 'IBM Plex Sans';color:#4f9d69;">Fast</span></div></div>
+              <div style="flex:1;padding:12px 14px;border-right:1px solid #dcebe1;"><div style="font:600 9px 'IBM Plex Mono';color:#a39b88;">QUALITY</div><div style="font:700 18px 'IBM Plex Sans';margin-top:5px;">4.2<span style="font-size:11px;color:#a39b88;font-weight:500;">/5</span></div></div>
+              <div style="flex:1;padding:12px 14px;"><div style="font:600 9px 'IBM Plex Mono';color:#a39b88;">VISITS</div><div style="font:700 18px 'IBM Plex Sans';margin-top:5px;">12</div></div>
+            </div>
+            <div style="display:flex;gap:9px;margin-top:12px;">
+              <div style="flex:1;background:#2b2a27;color:#fff;border-radius:9px;padding:11px;text-align:center;font:600 12px 'IBM Plex Sans';">＋ Log a visit</div>
+              <div style="border:1px solid #d8d0bf;border-radius:9px;padding:11px 14px;font:600 12px 'IBM Plex Sans';color:#6f6a5d;">Maps ↗</div>
+            </div>
+          </div>
+          <!-- PARENT SNAPSHOT -->
+          <div style="padding:14px 20px;border-bottom:1px solid #ece6d8;">
+            <div style="font:600 9px 'IBM Plex Mono';color:#a39b88;letter-spacing:.05em;margin-bottom:9px;">PARENT SNAPSHOT</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;">
+              <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f1f6f2;border:1px solid #d8e7dd;border-radius:18px;color:#3f7a55;">✓ High chairs</span>
+              <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f1f6f2;border:1px solid #d8e7dd;border-radius:18px;color:#3f7a55;">✓ Changing table</span>
+              <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f1f6f2;border:1px solid #d8e7dd;border-radius:18px;color:#3f7a55;">✓ Booster seats</span>
+              <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f3efe3;border:1px solid #e3ddcc;border-radius:18px;color:#6f6a5d;">Noise · Low</span>
+              <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#f3efe3;border:1px solid #e3ddcc;border-radius:18px;color:#6f6a5d;">Kids menu · Yes</span>
+              <span style="font:600 10px 'IBM Plex Sans';padding:6px 11px;background:#fff;border:1px dashed #d8cfb8;border-radius:18px;color:#a39b88;">+ Rate</span>
+            </div>
+          </div>
+          <!-- ZONES (tabs) -->
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="display:flex;gap:22px;padding:12px 20px 0;border-bottom:1px solid #ece6d8;">
+              <div style="font:700 11px 'IBM Plex Sans';color:#2b2a27;padding-bottom:9px;border-bottom:2px solid #c2502e;">Community</div>
+              <div style="font:600 11px 'IBM Plex Sans';color:#a39b88;padding-bottom:9px;">Details &amp; hours</div>
+            </div>
+            <div style="flex:1;padding:13px 20px;display:flex;flex-direction:column;gap:11px;overflow:hidden;">
+              <div style="display:flex;gap:10px;"><span style="width:8px;height:8px;border-radius:9px;background:#4f9d69;margin-top:4px;"></span><div style="flex:1;"><div style="font:600 11px 'IBM Plex Sans';">"Crayons + a small play corner by the window."</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;">Parent note · 1d ago</div></div></div>
+              <div style="display:flex;gap:10px;"><span style="width:8px;height:8px;border-radius:9px;background:#8a8474;margin-top:4px;"></span><div style="flex:1;"><div style="font:600 11px 'IBM Plex Sans';">"Kids eat free on Tuesdays. Booster seats by the door."</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;">Parent note · 4d ago</div></div></div>
+              <div style="margin-top:auto;background:#fbfaf6;border:1px solid #e6dfcd;border-radius:9px;padding:9px 11px;font:500 10px 'IBM Plex Sans';color:#a39b88;">Add a tip for other families…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+        <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.25;max-width:540px;">6 cards → a hero (metric + actions), a one-line parent snapshot, and 2 tabbed zones. Speed is the first thing you see; Watch &amp; Log sit with it; hours/Google demote to a link.</div>
+      </sc-if>
+    </div>
+
+  </div>
+
+
+  <div style="max-width:1100px;margin:70px 0 6px;border-top:2px solid #d8cfb8;padding-top:18px;font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#a39b88;">Part 5 · Explore filters — make geography dynamic</div>
+
+  <!-- HEADER -->
+  <div style="max-width:1100px;margin-bottom:28px;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#a39b88;margin-bottom:10px;">Little Scout · main branch · ExploreFilterBar · exploreFacets.ts</div>
+    <div style="font-family:'Caveat',cursive;font-size:46px;line-height:1.05;font-weight:700;margin-bottom:10px;">Let the map decide the area</div>
+    <div style="font-size:15px;line-height:1.5;color:#6f6a5d;max-width:780px;">First, a correction from reading <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;">main</span>: the Town / ZIP / cuisine lists <b>aren't hard-coded</b> — <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;">buildExploreFacets()</span> already generates them at runtime by counting addresses. The real problem is <b style="color:#c2502e;">which set it counts, and that the dropdown and the map don't talk to each other.</b> Below: what's actually happening, then three ways to make the area follow the map.</div>
+  </div>
+
+  <!-- EVAL PANEL -->
+  <div style="display:flex;gap:20px;flex-wrap:wrap;max-width:1100px;margin-bottom:44px;">
+    <div style="flex:1;min-width:340px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:22px 24px;">
+      <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#4f9d69;margin-bottom:14px;">What main actually does</div>
+      <div style="display:flex;flex-direction:column;gap:12px;font-size:13.5px;line-height:1.45;color:#54503f;">
+        <div><b>Facets are derived, not fixed.</b> <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;">buildExploreFacets()</span> runs <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;">countBy()</span> over the loaded list to build the town dropdown, ZIP chips, and cuisine chips with live counts.</div>
+        <div><b>Geography is parsed from a string.</b> City = the 3rd comma-segment of the address; ZIP = a regex. No place IDs, no coordinates feeding the filter.</div>
+        <div><b>The map already loads by viewport.</b> Panning fires a debounced bbox fetch — the data is location-aware; the <i>filter UI</i> just isn't.</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:340px;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:22px 24px;">
+      <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#c2502e;margin-bottom:14px;">Why it still feels static</div>
+      <div style="display:flex;flex-direction:column;gap:12px;font-size:13.5px;line-height:1.45;color:#54503f;">
+        <div><b>Chips count the whole cache, not the view.</b> Home preloads the full catalog into the same cache, so "Dedham (12)" lingers after you've panned to Needham. Chips show everywhere you've loaded, not here.</div>
+        <div><b>Address parsing is brittle.</b> Any non-standard address drops out of the town list silently.</div>
+        <div><b>Two disconnected controls.</b> Picking a town filters the list but never moves the map; panning the map never updates the active town. The control duplicates — and drifts from — what the map already shows.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALTERNATIVES ROW -->
+  <div style="max-width:1100px;margin-bottom:16px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#2b2a27;padding:5px 11px;border-radius:3px;">3 DIRECTIONS</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Area follows the map</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:32px;align-items:flex-start;padding-bottom:14px;">
+
+    <!-- ALT A — viewport is the filter -->
+    <div style="flex:none;width:400px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;"><span style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;color:#fff;background:#4f9d69;padding:4px 9px;border-radius:3px;">OPTION A</span><span style="font-family:'Caveat',cursive;font-size:19px;color:#5a8a6a;">the viewport is the filter</span></div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:6px;font:500 9px 'IBM Plex Mono';color:#a39b88;">littlescout.app/map</span></div>
+        <div style="height:430px;display:flex;">
+          <div style="width:168px;border-right:1px solid #e2dccb;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:10px 11px 8px;"><div style="background:#fff;border:1px solid #d8d0bf;border-radius:8px;padding:7px 9px;font:500 9.5px 'IBM Plex Sans';color:#8a8474;">⌕ Name or place</div></div>
+            <div style="padding:0 11px 9px;display:flex;flex-direction:column;gap:7px;">
+              <div style="display:flex;background:#ece8df;border-radius:8px;padding:3px;">
+                <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#2b2a27;background:#fff;border-radius:6px;padding:5px 0;box-shadow:0 1px 2px rgba(0,0,0,.1);">All</div>
+                <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#8a8474;padding:5px 0;">Quick</div>
+                <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#8a8474;padding:5px 0;">Rated</div>
+              </div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;"><span style="font:600 8.5px 'IBM Plex Sans';padding:4px 8px;border:1px solid #e0d9c8;border-radius:12px;color:#6f6a5d;">Mexican</span><span style="font:600 8.5px 'IBM Plex Sans';padding:4px 8px;border:1px solid #e0d9c8;border-radius:12px;color:#6f6a5d;">Pizza</span><span style="font:600 8.5px 'IBM Plex Sans';padding:4px 8px;border:1px solid #e0d9c8;border-radius:12px;color:#6f6a5d;">+</span></div>
+            </div>
+            <div style="height:1px;background:#ece6d8;margin:0 11px;"></div>
+            <div style="padding:9px 11px 5px;"><div style="font:700 10.5px 'IBM Plex Sans';">8 places</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;">in view · near Needham</div></div>
+            <div style="flex:1;overflow:hidden;padding:0 5px;">
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 7px;border-bottom:1px solid #f0ebdf;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;flex:none;"></span><div style="min-width:0;"><div style="font:700 10.5px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 8.5px 'IBM Plex Sans';color:#8a8474;"><b style="color:#4f9d69;">7 min</b> · 0.3 mi</div></div></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 7px;border-bottom:1px solid #f0ebdf;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;flex:none;"></span><div style="min-width:0;"><div style="font:700 10.5px 'IBM Plex Sans';">Stonefork</div><div style="font:500 8.5px 'IBM Plex Sans';color:#8a8474;"><b style="color:#caa23a;">12 min</b> · 0.5 mi</div></div></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 7px;border-bottom:1px solid #f0ebdf;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;flex:none;"></span><div style="min-width:0;"><div style="font:700 10.5px 'IBM Plex Sans';">Olive Tree</div><div style="font:500 8.5px 'IBM Plex Sans';color:#8a8474;"><b style="color:#4f9d69;">6 min</b> · 0.6 mi</div></div></div>
+            </div>
+          </div>
+          <div style="flex:1;background:#e9e4d6;position:relative;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px),repeating-linear-gradient(90deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px);"></div>
+            <span style="position:absolute;top:130px;left:60px;width:15px;height:15px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:200px;left:130px;width:15px;height:15px;border-radius:9px;background:#d8a23a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:250px;left:75px;width:15px;height:15px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#2b2a27;color:#fff;border-radius:18px;padding:7px 13px;font:600 9.5px 'IBM Plex Sans';box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;">⌖ Search this area</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.25;max-width:390px;">Drop the town dropdown and ZIP chips entirely. Results = the current map bounds, re-queried on pan with the bbox load that already exists. The sidebar reverse-geocodes the center for a human label ("near Needham"). Geography lives in exactly one place — the map.</div>
+    </div>
+
+    <!-- ALT B — live area chips -->
+    <div style="flex:none;width:400px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;"><span style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;color:#fff;background:#4f9d69;padding:4px 9px;border-radius:3px;">OPTION B</span><span style="font-family:'Caveat',cursive;font-size:19px;color:#5a8a6a;">chips scoped to what's on screen</span></div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:6px;font:500 9px 'IBM Plex Mono';color:#a39b88;">littlescout.app/map</span></div>
+        <div style="height:430px;display:flex;">
+          <div style="width:168px;border-right:1px solid #e2dccb;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:10px 11px 8px;"><div style="background:#fff;border:1px solid #d8d0bf;border-radius:8px;padding:7px 9px;font:500 9.5px 'IBM Plex Sans';color:#8a8474;">⌕ Name or place</div></div>
+            <div style="padding:0 11px 8px;display:flex;background:#ece8df;border-radius:8px;margin:0 11px 8px;padding:3px;">
+              <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#2b2a27;background:#fff;border-radius:6px;padding:5px 0;box-shadow:0 1px 2px rgba(0,0,0,.1);">All</div>
+              <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#8a8474;padding:5px 0;">Quick</div>
+              <div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#8a8474;padding:5px 0;">Rated</div>
+            </div>
+            <div style="padding:0 11px 8px;"><div style="font:600 7.5px 'IBM Plex Mono';color:#b8b0a0;letter-spacing:.06em;margin-bottom:5px;">TOWNS IN VIEW</div><div style="display:flex;gap:5px;flex-wrap:wrap;"><span style="font:600 8.5px 'IBM Plex Sans';padding:4px 8px;border:1px solid #c2502e;background:#f7ebe5;border-radius:12px;color:#c2502e;">Needham (8)</span><span style="font:600 8.5px 'IBM Plex Sans';padding:4px 8px;border:1px solid #e0d9c8;border-radius:12px;color:#6f6a5d;">Dover (3)</span></div></div>
+            <div style="height:1px;background:#ece6d8;margin:0 11px;"></div>
+            <div style="padding:9px 11px 5px;"><div style="font:700 10.5px 'IBM Plex Sans';">Needham <span style="font-weight:500;color:#a39b88;">· 8 places</span></div></div>
+            <div style="flex:1;overflow:hidden;padding:0 5px;">
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 7px;border-bottom:1px solid #f0ebdf;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;flex:none;"></span><div style="min-width:0;"><div style="font:700 10.5px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 8.5px 'IBM Plex Sans';color:#8a8474;"><b style="color:#4f9d69;">7 min</b> · 0.3 mi</div></div></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 7px;border-bottom:1px solid #f0ebdf;"><span style="width:9px;height:9px;border-radius:9px;background:#d8a23a;flex:none;"></span><div style="min-width:0;"><div style="font:700 10.5px 'IBM Plex Sans';">Stonefork</div><div style="font:500 8.5px 'IBM Plex Sans';color:#8a8474;"><b style="color:#caa23a;">12 min</b> · 0.5 mi</div></div></div>
+            </div>
+          </div>
+          <div style="flex:1;background:#e9e4d6;position:relative;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px),repeating-linear-gradient(90deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px);"></div>
+            <span style="position:absolute;top:120px;left:55px;width:15px;height:15px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:165px;left:100px;width:15px;height:15px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:215px;left:70px;width:15px;height:15px;border-radius:9px;background:#d8a23a;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:280px;left:150px;width:15px;height:15px;border-radius:9px;background:#b8b2a4;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);opacity:.6;"></span>
+            <div style="position:absolute;bottom:12px;left:12px;right:12px;background:rgba(255,255,255,.92);border-radius:8px;padding:7px 10px;font:500 9px 'IBM Plex Sans';color:#6f6a5d;text-align:center;">Chips = pins on screen, re-counted as you pan</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.25;max-width:390px;">Keep the chip affordance, but feed buildExploreFacets() only the in-bounds subset instead of the whole cache — that kills the stale "Dedham (12)." Counts tick as you pan, and tapping a chip fits the map to that cluster. Smallest code change; chips ↔ map become two-way.</div>
+    </div>
+
+    <!-- ALT C — distance radius -->
+    <div style="flex:none;width:400px;display:flex;flex-direction:column;gap:11px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;"><span style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;color:#fff;background:#4f9d69;padding:4px 9px;border-radius:3px;">OPTION C</span><span style="font-family:'Caveat',cursive;font-size:19px;color:#5a8a6a;">distance from a point</span></div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.10);overflow:hidden;border:1px solid #ddd6c6;">
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:#f3efe3;border-bottom:1px solid #e2dccb;"><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="width:9px;height:9px;border-radius:9px;background:#d8cfb8;"></span><span style="margin-left:6px;font:500 9px 'IBM Plex Mono';color:#a39b88;">littlescout.app/map?radius</span></div>
+        <div style="height:430px;display:flex;">
+          <div style="width:168px;border-right:1px solid #e2dccb;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:10px 11px 8px;"><div style="background:#fff;border:1px solid #d8d0bf;border-radius:8px;padding:7px 9px;font:500 9.5px 'IBM Plex Sans';color:#8a8474;">⌕ Name or place</div></div>
+            <div style="padding:0 11px 8px;"><div style="font:600 7.5px 'IBM Plex Mono';color:#b8b0a0;letter-spacing:.06em;margin-bottom:5px;">FROM</div><div style="background:#fff;border:1px solid #d8d0bf;border-radius:8px;padding:6px 9px;font:600 9.5px 'IBM Plex Sans';color:#2b2a27;display:flex;align-items:center;justify-content:space-between;">⌖ My location <span style="color:#b0a894;">▾</span></div></div>
+            <div style="padding:0 11px 9px;"><div style="font:600 7.5px 'IBM Plex Mono';color:#b8b0a0;letter-spacing:.06em;margin-bottom:5px;">WITHIN</div><div style="display:flex;background:#ece8df;border-radius:8px;padding:3px;"><div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#8a8474;padding:5px 0;">½ mi</div><div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#2b2a27;background:#fff;border-radius:6px;padding:5px 0;box-shadow:0 1px 2px rgba(0,0,0,.1);">1 mi</div><div style="flex:1;text-align:center;font:600 9px 'IBM Plex Sans';color:#8a8474;padding:5px 0;">3 mi</div></div></div>
+            <div style="height:1px;background:#ece6d8;margin:0 11px;"></div>
+            <div style="padding:9px 11px 5px;"><div style="font:700 10.5px 'IBM Plex Sans';">5 places</div><div style="font:500 9px 'IBM Plex Sans';color:#a39b88;">within 1 mi · by distance</div></div>
+            <div style="flex:1;overflow:hidden;padding:0 5px;">
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 7px;border-bottom:1px solid #f0ebdf;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;flex:none;"></span><div style="min-width:0;"><div style="font:700 10.5px 'IBM Plex Sans';">Olive Tree</div><div style="font:500 8.5px 'IBM Plex Sans';color:#8a8474;"><b style="color:#4f9d69;">6 min</b> · 0.2 mi</div></div></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 7px;border-bottom:1px solid #f0ebdf;"><span style="width:9px;height:9px;border-radius:9px;background:#4f9d69;flex:none;"></span><div style="min-width:0;"><div style="font:700 10.5px 'IBM Plex Sans';">Birch &amp; Bell</div><div style="font:500 8.5px 'IBM Plex Sans';color:#8a8474;"><b style="color:#4f9d69;">7 min</b> · 0.5 mi</div></div></div>
+            </div>
+          </div>
+          <div style="flex:1;background:#e9e4d6;position:relative;overflow:hidden;">
+            <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px),repeating-linear-gradient(90deg,transparent,transparent 38px,#ded6c4 38px,#ded6c4 39px);"></div>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:170px;height:170px;border-radius:50%;border:2px dashed #c2502e;background:rgba(194,80,46,.08);"></div>
+            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:9px;background:#2b2a27;border:3px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>
+            <span style="position:absolute;top:42%;left:38%;width:14px;height:14px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:60%;left:60%;width:14px;height:14px;border-radius:9px;background:#4f9d69;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+            <span style="position:absolute;top:18%;left:70%;width:14px;height:14px;border-radius:9px;background:#b8b2a4;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);opacity:.5;"></span>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'Caveat',cursive;font-size:16px;color:#c2502e;line-height:1.25;max-width:390px;">Anchor on "my location" or a dropped pin and filter by radius — reusing the radius-search mode + coverage/ensure that already exist. The town name becomes display-only. Pure geometry never breaks on a weird address, and it's the right model for "near me right now."</div>
+    </div>
+
+  </div>
+
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 1400, &quot;height&quot;: 900 },
+  &quot;showAnnotations&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;platform&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;Both&quot;, &quot;options&quot;: [&quot;Both&quot;, &quot;iOS only&quot;], &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    const platform = this.props.platform ?? 'Both';
+    return {
+      showAnn: this.props.showAnnotations ?? true,
+      showWeb: platform !== 'iOS only',
+    };
+  }
+}
+</script>
+</body>
+</html>

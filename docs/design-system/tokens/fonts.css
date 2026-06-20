@@ -1,0 +1,3 @@
+/* Webfonts — Quicksand (display/numbers) + Nunito (UI/body).
+   Both Google Fonts; @import keeps it zero-config for consumers. */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');

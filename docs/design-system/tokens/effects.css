@@ -1,0 +1,25 @@
+/* Little Scout — radius, elevation, motion.
+   Whimsy = generous rounding + warm-tinted (brown/slate) soft shadows. */
+:root {
+  /* radius */
+  --ls-radius-sm: 8px;
+  --ls-radius-md: 12px;
+  --ls-radius-lg: 18px;     /* cards (bumped from 16 for friendliness) */
+  --ls-radius-xl: 24px;
+  --ls-radius-full: 9999px; /* pills, toggles, avatars */
+  --ls-radius-button: 14px;
+
+  /* elevation — warm-tinted, never harsh gray */
+  --ls-shadow-sm: 0 1px 2px rgba(60, 45, 25, 0.06);
+  --ls-shadow-md: 0 6px 18px rgba(60, 45, 25, 0.08);
+  --ls-shadow-lg: 0 16px 40px rgba(60, 45, 25, 0.12);
+  --ls-shadow-brand: 0 4px 12px rgba(63, 167, 214, 0.28); /* on sky-blue buttons */
+
+  /* motion */
+  --ls-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ls-dur-fast: 150ms;
+  --ls-dur-normal: 250ms;
+
+  /* paper texture (warm dot grid) */
+  --ls-paper-dot: #ECE2CE;
+}

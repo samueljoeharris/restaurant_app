@@ -1,0 +1,31 @@
+/* Little Scout — typography tokens.
+   Quicksand = display, headings, big TTF numbers (rounded, optimistic).
+   Nunito = UI + body (exceptionally legible one-handed). */
+:root {
+  --ls-font-display: 'Quicksand', system-ui, -apple-system, sans-serif;
+  --ls-font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+
+  /* semantic aliases */
+  --font-display: var(--ls-font-display);
+  --font-body: var(--ls-font-body);
+
+  /* weights */
+  --ls-w-body: 400;
+  --ls-w-medium: 600;
+  --ls-w-bold: 700;
+  --ls-w-heavy: 800;   /* labels / eyebrows */
+
+  /* type scale */
+  --ls-text-display: 34px;   /* page titles — Quicksand 700 */
+  --ls-text-h1: 26px;
+  --ls-text-h2: 21px;
+  --ls-text-h3: 18px;
+  --ls-text-number: 38px;    /* flagship TTF figure — Quicksand 700 */
+  --ls-text-body: 14.5px;
+  --ls-text-sm: 12.5px;
+  --ls-text-label: 10.5px;   /* eyebrow — Nunito 800, tracked .14em, uppercase */
+
+  --ls-tracking-label: 0.14em;
+  --ls-leading-body: 1.55;
+  --ls-leading-tight: 1.1;
+}

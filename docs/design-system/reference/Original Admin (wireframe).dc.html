@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+</style>
+</helmet>
+
+<div style="width:max-content;min-width:100%;min-height:100vh;padding:48px;background:#e4e7e2;font-family:'Outfit',system-ui,sans-serif;color:#1a231c;">
+
+  <!-- HEADER -->
+  <div style="max-width:1180px;margin-bottom:30px;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#8a9a8c;margin-bottom:10px;">Little Scout · Admin console · web-only operator intranet</div>
+    <div style="font-family:'Caveat',cursive;font-size:46px;line-height:1.05;font-weight:700;margin-bottom:10px;color:#1a231c;">From a reporting dashboard to an operator's cockpit</div>
+    <div style="font-size:15px;line-height:1.5;color:#5c6b5e;max-width:780px;">Built on your real admin theme — forest green <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;">#2d5a3d</span>, amber accent, Outfit. Today's console <b>reports</b> data well but lets an operator <b style="color:#b54708;">do</b> almost nothing. With seeding wound down, the daily job becomes moderation, data quality, and user trust — so the redesign leads with those.</div>
+  </div>
+
+  <!-- AUDIT PANEL -->
+  <div style="display:flex;gap:20px;flex-wrap:wrap;max-width:1180px;margin-bottom:46px;">
+    <div style="flex:1;min-width:340px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgb(28 25 23/6%);padding:22px 24px;border:1px solid #d8e0d4;">
+      <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#2d5a3d;margin-bottom:14px;">What the console does today</div>
+      <div style="display:flex;flex-direction:column;gap:11px;font-size:13.5px;line-height:1.45;color:#3d4a40;">
+        <div>✓ &nbsp;Solid <b>Overview</b> — 8 stats + a 14-day activity chart.</div>
+        <div>✓ &nbsp;Three clean read tables: <b>Restaurants</b>, <b>Contributors</b>, <b>Observation log</b>.</div>
+        <div>✓ &nbsp;Auth-gated (IAP), desktop-only, paginated, searchable restaurants.</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:340px;background:#fff;border-radius:12px;box-shadow:0 1px 2px rgb(28 25 23/6%);padding:22px 24px;border:1px solid #d8e0d4;">
+      <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#b54708;margin-bottom:14px;">What an operator still needs</div>
+      <div style="display:flex;flex-direction:column;gap:11px;font-size:13.5px;line-height:1.45;color:#3d4a40;">
+        <div>✗ &nbsp;<b>No moderation.</b> Parent notes &amp; reviews go live with no approve / reject / report queue.</div>
+        <div>✗ &nbsp;<b>No data-quality tools.</b> A bogus 90-min observation can't be flagged or excluded from a venue's median.</div>
+        <div>✗ &nbsp;<b>No actions on rows.</b> Can't edit a venue, merge duplicates, or disable a user from the table.</div>
+        <div>✗ &nbsp;<b>Flat dashboard.</b> Nothing tells the operator what needs attention <i>today</i>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IA STRIP -->
+  <div style="max-width:1180px;background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:20px 24px;margin-bottom:46px;box-shadow:0 1px 2px rgb(28 25 23/6%);">
+    <div style="font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#5c6b5e;margin-bottom:14px;">Proposed navigation — two items change</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:13px;">
+      <span style="padding:7px 13px;background:#eef2ec;border-radius:8px;font-weight:600;color:#3d4a40;">Overview</span>
+      <span style="padding:7px 13px;background:#e8f2ec;border:1px solid #2d5a3d;border-radius:8px;font-weight:700;color:#2d5a3d;">＋ Moderation <span style="background:#b42318;color:#fff;border-radius:9px;font-size:10px;padding:1px 6px;margin-left:3px;">new</span></span>
+      <span style="padding:7px 13px;background:#eef2ec;border-radius:8px;font-weight:600;color:#3d4a40;">Restaurants <span style="color:#8a9a8c;font-weight:500;">+ detail</span></span>
+      <span style="padding:7px 13px;background:#eef2ec;border-radius:8px;font-weight:600;color:#3d4a40;">Contributors <span style="color:#8a9a8c;font-weight:500;">+ detail</span></span>
+      <span style="padding:7px 13px;background:#e8f2ec;border:1px solid #b8c4b0;border-radius:8px;font-weight:600;color:#3d4a40;">Data &amp; observations <span style="color:#8a9a8c;font-weight:500;">← was "Observation log"</span></span>
+      <span style="padding:7px 13px;background:#eef2ec;border-radius:8px;font-weight:600;color:#3d4a40;">Location seeding</span>
+      <span style="padding:7px 13px;background:#eef2ec;border-radius:8px;font-weight:600;color:#3d4a40;">Security</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 1 · OVERVIEW -->
+  <!-- ============================================================ -->
+  <div style="max-width:1180px;margin-bottom:16px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#1a231c;padding:5px 11px;border-radius:6px;">SCREEN 1</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Overview — lead with what needs attention</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+    <div style="flex:none;width:1180px;border-radius:14px;overflow:hidden;box-shadow:0 12px 32px rgb(28 25 23/12%);border:1px solid #c4cfc0;">
+      <!-- browser chrome -->
+      <div style="display:flex;align-items:center;gap:7px;padding:10px 14px;background:#dfe5da;border-bottom:1px solid #c4cfc0;"><span style="width:11px;height:11px;border-radius:9px;background:#c2502e;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#d4a017;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#2d8f4e;opacity:.6;"></span><span style="margin-left:10px;font:500 11px 'IBM Plex Mono';color:#5c6b5e;">admin.littlescout.app/admin</span></div>
+      <div style="display:flex;background:#f4f7f2;min-height:620px;">
+
+        <!-- SIDEBAR (reused vocabulary from real AdminLayout) -->
+        <div style="width:224px;flex:none;background:#fff;border-right:1px solid #d8e0d4;padding:20px 16px;display:flex;flex-direction:column;gap:18px;">
+          <div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;letter-spacing:-.01em;"><span style="width:30px;height:30px;border-radius:8px;background:#e8f2ec;display:flex;align-items:center;justify-content:center;font-size:15px;">🔭</span>Little Scout</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="padding:9px 12px;border-radius:8px;background:#e8f2ec;color:#1a231c;font-weight:600;font-size:13.5px;">Overview</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Moderation <span style="background:#b42318;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 7px;">7</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Restaurants</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Contributors</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Data &amp; observations <span style="background:#fffaeb;color:#b54708;border:1px solid #f0d9a8;border-radius:9px;font-size:10px;font-weight:700;padding:1px 6px;">3</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Location seeding</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Security</div>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:7px;">
+            <div style="font-size:11px;color:#8a9a8c;word-break:break-all;">ops@littlescout.app</div>
+            <div style="font-size:13px;font-weight:600;color:#2d5a3d;">← Public app</div>
+            <div style="font-size:13px;font-weight:600;color:#2d5a3d;">Sign out</div>
+          </div>
+        </div>
+
+        <!-- MAIN -->
+        <div style="flex:1;padding:26px 30px;display:flex;flex-direction:column;gap:22px;min-width:0;">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+            <div><div style="font-size:24px;font-weight:700;letter-spacing:-.01em;">Overview</div><div style="font-size:14px;color:#5c6b5e;margin-top:2px;">Dedham pilot · updated 9:41 AM</div></div>
+            <div style="display:flex;gap:8px;"><div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Last 14 days ▾</div><div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Export</div></div>
+          </div>
+
+          <!-- NEEDS ATTENTION -->
+          <div>
+            <div style="font:600 11px 'IBM Plex Mono';letter-spacing:.06em;color:#8a9a8c;margin-bottom:10px;">NEEDS ATTENTION</div>
+            <div style="display:flex;gap:14px;">
+              <div style="flex:1;background:#fef3f2;border:1px solid #f3c9c4;border-radius:12px;padding:15px 16px;cursor:pointer;">
+                <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:13px;font-weight:600;color:#7a1d15;">Pending moderation</span><span style="color:#b42318;">→</span></div>
+                <div style="font-size:30px;font-weight:800;color:#b42318;margin-top:6px;line-height:1;">7</div>
+                <div style="font-size:12px;color:#a05248;margin-top:5px;">5 notes · 2 reported reviews</div>
+              </div>
+              <div style="flex:1;background:#fffaeb;border:1px solid #f0d9a8;border-radius:12px;padding:15px 16px;cursor:pointer;">
+                <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:13px;font-weight:600;color:#7a4d12;">Flagged data points</span><span style="color:#b54708;">→</span></div>
+                <div style="font-size:30px;font-weight:800;color:#b54708;margin-top:6px;line-height:1;">3</div>
+                <div style="font-size:12px;color:#9a6a2e;margin-top:5px;">Speed outliers to review</div>
+              </div>
+              <div style="flex:1;background:#e8f2ec;border:1px solid #c4ddcb;border-radius:12px;padding:15px 16px;cursor:pointer;">
+                <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:13px;font-weight:600;color:#1f4530;">New contributors</span><span style="color:#2d5a3d;">→</span></div>
+                <div style="font-size:30px;font-weight:800;color:#2d5a3d;margin-top:6px;line-height:1;">5</div>
+                <div style="font-size:12px;color:#3f7a55;margin-top:5px;">First submission this week</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPIs with trend -->
+          <div>
+            <div style="font:600 11px 'IBM Plex Mono';letter-spacing:.06em;color:#8a9a8c;margin-bottom:10px;">KEY METRICS</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+              <div style="background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:14px 16px;"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#5c6b5e;">Restaurants</div><div style="font-size:26px;font-weight:800;margin-top:4px;">128</div><div style="font-size:12px;color:#067647;font-weight:600;margin-top:2px;">↑ 4 this week</div></div>
+              <div style="background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:14px 16px;"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#5c6b5e;">Contributors</div><div style="font-size:26px;font-weight:800;margin-top:4px;">214</div><div style="font-size:12px;color:#067647;font-weight:600;margin-top:2px;">↑ 5 this week</div></div>
+              <div style="background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:14px 16px;"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#5c6b5e;">Speed observations</div><div style="font-size:26px;font-weight:800;margin-top:4px;">1,043</div><div style="font-size:12px;color:#067647;font-weight:600;margin-top:2px;">↑ 38 last 7d</div></div>
+              <div style="background:#e8f2ec;border:1px solid #c4ddcb;border-radius:12px;padding:14px 16px;"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#2d5a3d;">Coverage</div><div style="font-size:26px;font-weight:800;margin-top:4px;color:#2d5a3d;">71%</div><div style="font-size:12px;color:#3f7a55;font-weight:600;margin-top:2px;">91 of 128 venues</div></div>
+            </div>
+          </div>
+
+          <!-- activity + median -->
+          <div style="display:flex;gap:14px;">
+            <div style="flex:2;background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:16px 18px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><span style="font-size:14px;font-weight:700;">Activity · 14 days</span><span style="font-size:12px;color:#8a9a8c;">speed · attrs · notes</span></div>
+              <div style="display:flex;align-items:flex-end;gap:6px;height:96px;">
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:22px;border-radius:2px;"></span><span style="background:#c17f3a;height:10px;"></span><span style="background:#b8c4b0;height:6px;border-radius:0 0 2px 2px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:34px;border-radius:2px;"></span><span style="background:#c17f3a;height:14px;"></span><span style="background:#b8c4b0;height:8px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:18px;border-radius:2px;"></span><span style="background:#c17f3a;height:8px;"></span><span style="background:#b8c4b0;height:5px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:46px;border-radius:2px;"></span><span style="background:#c17f3a;height:18px;"></span><span style="background:#b8c4b0;height:10px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:30px;border-radius:2px;"></span><span style="background:#c17f3a;height:12px;"></span><span style="background:#b8c4b0;height:7px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:54px;border-radius:2px;"></span><span style="background:#c17f3a;height:20px;"></span><span style="background:#b8c4b0;height:12px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:40px;border-radius:2px;"></span><span style="background:#c17f3a;height:16px;"></span><span style="background:#b8c4b0;height:9px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:62px;border-radius:2px;"></span><span style="background:#c17f3a;height:24px;"></span><span style="background:#b8c4b0;height:14px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:36px;border-radius:2px;"></span><span style="background:#c17f3a;height:14px;"></span><span style="background:#b8c4b0;height:8px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:50px;border-radius:2px;"></span><span style="background:#c17f3a;height:20px;"></span><span style="background:#b8c4b0;height:11px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:44px;border-radius:2px;"></span><span style="background:#c17f3a;height:16px;"></span><span style="background:#b8c4b0;height:9px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:70px;border-radius:2px;"></span><span style="background:#c17f3a;height:26px;"></span><span style="background:#b8c4b0;height:15px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:52px;border-radius:2px;"></span><span style="background:#c17f3a;height:20px;"></span><span style="background:#b8c4b0;height:12px;"></span></div>
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><span style="background:#2d8f4e;height:66px;border-radius:2px;"></span><span style="background:#c17f3a;height:24px;"></span><span style="background:#b8c4b0;height:13px;"></span></div>
+              </div>
+            </div>
+            <div style="flex:1;background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;justify-content:center;gap:4px;">
+              <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#5c6b5e;">Median kid-food speed</span>
+              <span style="font-size:34px;font-weight:800;color:#2d8f4e;line-height:1.1;">8 min</span>
+              <span style="font-size:12px;color:#5c6b5e;">avg quality 4.1 / 5 · pilot-wide</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;width:230px;display:flex;flex-direction:column;gap:18px;padding-top:60px;">
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#b54708;line-height:1.25;">The "Needs attention" band turns the dashboard into a to-do list — moderation, bad data, and new users are one click from the front door.</div>
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#2d5a3d;line-height:1.25;">KPIs keep your 8 stats but add a trend delta so a number means something at a glance.</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 2 · MODERATION (NEW) -->
+  <!-- ============================================================ -->
+  <div style="max-width:1180px;margin:54px 0 16px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#b42318;padding:5px 11px;border-radius:6px;">SCREEN 2 · NEW</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Moderation — the missing daily job</div>
+    </div>
+    <div style="font-size:14px;color:#5c6b5e;margin-top:6px;max-width:780px;">Parent notes and reviews are user-generated. Today they publish with zero review. This queue gives an operator one place to approve, reject, or escalate — with the context to decide fast.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+    <div style="flex:none;width:1180px;border-radius:14px;overflow:hidden;box-shadow:0 12px 32px rgb(28 25 23/12%);border:1px solid #c4cfc0;">
+      <div style="display:flex;align-items:center;gap:7px;padding:10px 14px;background:#dfe5da;border-bottom:1px solid #c4cfc0;"><span style="width:11px;height:11px;border-radius:9px;background:#c2502e;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#d4a017;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#2d8f4e;opacity:.6;"></span><span style="margin-left:10px;font:500 11px 'IBM Plex Mono';color:#5c6b5e;">admin.littlescout.app/admin/moderation</span></div>
+      <div style="display:flex;background:#f4f7f2;min-height:640px;">
+
+        <!-- sidebar: Moderation active -->
+        <div style="width:224px;flex:none;background:#fff;border-right:1px solid #d8e0d4;padding:20px 16px;display:flex;flex-direction:column;gap:18px;">
+          <div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;letter-spacing:-.01em;"><span style="width:30px;height:30px;border-radius:8px;background:#e8f2ec;display:flex;align-items:center;justify-content:center;font-size:15px;">🔭</span>Little Scout</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Overview</div>
+            <div style="padding:9px 12px;border-radius:8px;background:#e8f2ec;color:#1a231c;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Moderation <span style="background:#b42318;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 7px;">7</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Restaurants</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Contributors</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Data &amp; observations <span style="background:#fffaeb;color:#b54708;border:1px solid #f0d9a8;border-radius:9px;font-size:10px;font-weight:700;padding:1px 6px;">3</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Location seeding</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Security</div>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:7px;">
+            <div style="font-size:11px;color:#8a9a8c;word-break:break-all;">ops@littlescout.app</div>
+            <div style="font-size:13px;font-weight:600;color:#2d5a3d;">← Public app</div>
+          </div>
+        </div>
+
+        <!-- main -->
+        <div style="flex:1;padding:26px 30px;display:flex;flex-direction:column;gap:18px;min-width:0;">
+          <div><div style="font-size:24px;font-weight:700;letter-spacing:-.01em;">Moderation</div><div style="font-size:14px;color:#5c6b5e;margin-top:2px;">Notes &amp; reviews awaiting review</div></div>
+
+          <!-- filter tabs -->
+          <div style="display:flex;gap:8px;border-bottom:1px solid #d8e0d4;padding-bottom:0;">
+            <div style="font-size:13px;font-weight:700;color:#1a231c;padding:6px 2px 11px;border-bottom:2px solid #2d5a3d;display:flex;align-items:center;gap:6px;">Pending <span style="background:#b42318;color:#fff;border-radius:9px;font-size:10px;padding:1px 6px;">7</span></div>
+            <div style="font-size:13px;font-weight:600;color:#5c6b5e;padding:6px 12px 11px;display:flex;align-items:center;gap:6px;">Reported <span style="background:#eef2ec;color:#5c6b5e;border-radius:9px;font-size:10px;padding:1px 6px;">2</span></div>
+            <div style="font-size:13px;font-weight:600;color:#5c6b5e;padding:6px 12px 11px;">Approved</div>
+            <div style="font-size:13px;font-weight:600;color:#5c6b5e;padding:6px 12px 11px;">All</div>
+          </div>
+
+          <div style="display:flex;gap:18px;">
+            <!-- queue list -->
+            <div style="flex:1.6;display:flex;flex-direction:column;gap:12px;min-width:0;">
+              <!-- selected item -->
+              <div style="background:#fff;border:2px solid #2d5a3d;border-radius:12px;padding:15px 16px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="background:#e8f2ec;color:#2d5a3d;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">PARENT NOTE</span><span style="font-size:12.5px;color:#5c6b5e;">on <b style="color:#1a231c;">Maria's Cantina</b></span><span style="margin-left:auto;font-size:12px;color:#8a9a8c;">2h ago</span></div>
+                <div style="font-size:14px;line-height:1.5;color:#1a231c;">"Crayons and a small play corner by the window — call ahead, they hold the booth with the high chair if you ask."</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:11px;"><span style="width:22px;height:22px;border-radius:12px;background:#eef2ec;"></span><span style="font-size:12.5px;color:#5c6b5e;">by <b style="color:#1a231c;">jenna_m</b> · 12 prior contributions · trusted</span></div>
+                <div style="display:flex;gap:9px;margin-top:14px;">
+                  <div style="background:#2d5a3d;color:#fff;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;">Approve</div>
+                  <div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;color:#3d4a40;">Reject</div>
+                  <div style="border:1px solid #f3c9c4;background:#fef3f2;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;color:#b42318;margin-left:auto;">Ban author</div>
+                </div>
+              </div>
+              <!-- reported review -->
+              <div style="background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:15px 16px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="background:#fef3f2;color:#b42318;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">⚑ REPORTED REVIEW</span><span style="font-size:12.5px;color:#5c6b5e;">on <b style="color:#1a231c;">Tello's Pizza</b></span><span style="margin-left:auto;font-size:12px;color:#8a9a8c;">5h ago</span></div>
+                <div style="font-size:14px;line-height:1.5;color:#1a231c;">"Worst service ever, the manager was…" <span style="color:#8a9a8c;">(truncated)</span></div>
+                <div style="font-size:12px;color:#b54708;background:#fffaeb;border:1px solid #f0d9a8;border-radius:7px;padding:6px 10px;margin-top:10px;display:inline-block;">Reported by 2 users · reason: harassment</div>
+              </div>
+              <!-- another note -->
+              <div style="background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:15px 16px;opacity:.92;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="background:#e8f2ec;color:#2d5a3d;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">PARENT NOTE</span><span style="font-size:12.5px;color:#5c6b5e;">on <b style="color:#1a231c;">Birch &amp; Bell</b></span><span style="margin-left:auto;font-size:12px;color:#8a9a8c;">1d ago</span></div>
+                <div style="font-size:14px;line-height:1.5;color:#1a231c;">"Kids eat free on Tuesdays. Changing table in the accessible restroom only."</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:11px;"><span style="width:22px;height:22px;border-radius:12px;background:#eef2ec;"></span><span style="font-size:12.5px;color:#5c6b5e;">by <b style="color:#1a231c;">marcus_t</b> · first contribution · <span style="color:#b54708;font-weight:600;">new</span></span></div>
+              </div>
+            </div>
+
+            <!-- context rail -->
+            <div style="flex:1;background:#fff;border:1px solid #d8e0d4;border-radius:12px;padding:16px 18px;align-self:flex-start;">
+              <div style="font:600 11px 'IBM Plex Mono';letter-spacing:.06em;color:#8a9a8c;margin-bottom:12px;">CONTEXT · MARIA'S CANTINA</div>
+              <div style="display:flex;flex-direction:column;gap:11px;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:#5c6b5e;">Kid food speed</span><b style="color:#2d8f4e;">6 min · Fast</b></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:#5c6b5e;">Observations</span><b>12</b></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:#5c6b5e;">Existing notes</span><b>4 live</b></div>
+                <div style="height:1px;background:#eef2ec;"></div>
+                <div style="font-size:12.5px;color:#5c6b5e;line-height:1.45;">Author <b style="color:#1a231c;">jenna_m</b> has 12 approved contributions and 0 rejections — a high-trust author whose items you can clear quickly.</div>
+                <div style="background:#eef2ec;border:1px dashed #b8c4b0;border-radius:8px;padding:9px 11px;font-size:12px;color:#5c6b5e;line-height:1.4;"><b style="color:#3d4a40;">Roadmap:</b> an AI agent will auto-moderate trusted authors' reviews. For now, <b style="color:#3d4a40;">everything is human-reviewed.</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;width:230px;display:flex;flex-direction:column;gap:18px;padding-top:120px;">
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#b42318;line-height:1.25;">One keyboard-fast queue: J/K to move, A to approve. Reported content rises to the top with its reason.</div>
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#2d5a3d;line-height:1.25;">The context rail shows the venue + author history so you decide without leaving the page.</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 3 · RESTAURANTS + DRAWER -->
+  <!-- ============================================================ -->
+  <div style="max-width:1180px;margin:54px 0 16px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#1a231c;padding:5px 11px;border-radius:6px;">SCREEN 3</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Restaurants — rows you can act on</div>
+    </div>
+    <div style="font-size:14px;color:#5c6b5e;margin-top:6px;max-width:780px;">Keep the table, add status + cuisine filters, and make a row open a detail drawer to edit a venue, fix its address, change status, or merge a duplicate — without leaving the list.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+    <div style="flex:none;width:1180px;border-radius:14px;overflow:hidden;box-shadow:0 12px 32px rgb(28 25 23/12%);border:1px solid #c4cfc0;position:relative;">
+      <div style="display:flex;align-items:center;gap:7px;padding:10px 14px;background:#dfe5da;border-bottom:1px solid #c4cfc0;"><span style="width:11px;height:11px;border-radius:9px;background:#c2502e;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#d4a017;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#2d8f4e;opacity:.6;"></span><span style="margin-left:10px;font:500 11px 'IBM Plex Mono';color:#5c6b5e;">admin.littlescout.app/admin/restaurants</span></div>
+      <div style="display:flex;background:#f4f7f2;min-height:600px;">
+
+        <!-- sidebar: Restaurants active -->
+        <div style="width:224px;flex:none;background:#fff;border-right:1px solid #d8e0d4;padding:20px 16px;display:flex;flex-direction:column;gap:18px;">
+          <div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;letter-spacing:-.01em;"><span style="width:30px;height:30px;border-radius:8px;background:#e8f2ec;display:flex;align-items:center;justify-content:center;font-size:15px;">🔭</span>Little Scout</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Overview</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Moderation <span style="background:#b42318;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 7px;">7</span></div>
+            <div style="padding:9px 12px;border-radius:8px;background:#e8f2ec;color:#1a231c;font-weight:600;font-size:13.5px;">Restaurants</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Contributors</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Data &amp; observations <span style="background:#fffaeb;color:#b54708;border:1px solid #f0d9a8;border-radius:9px;font-size:10px;font-weight:700;padding:1px 6px;">3</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Location seeding</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Security</div>
+          </div>
+        </div>
+
+        <!-- main -->
+        <div style="flex:1;padding:26px 30px;display:flex;flex-direction:column;gap:16px;min-width:0;">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-size:24px;font-weight:700;letter-spacing:-.01em;">Restaurants</div><div style="font-size:14px;color:#5c6b5e;margin-top:2px;">128 venues with contribution stats</div></div></div>
+          <!-- filter bar -->
+          <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 12px;font-size:13px;color:#8a9a8c;">⌕ Search name or address…</div>
+            <div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Status · All ▾</div>
+            <div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Cuisine ▾</div>
+            <div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Coverage ▾</div>
+          </div>
+          <!-- table -->
+          <div style="background:#fff;border:1px solid #d8e0d4;border-radius:12px;overflow:hidden;">
+            <div style="display:flex;padding:11px 16px;background:#f4f7f2;border-bottom:1px solid #d8e0d4;font:600 11px 'IBM Plex Mono';letter-spacing:.04em;color:#5c6b5e;text-transform:uppercase;">
+              <div style="flex:2.4;">Restaurant</div><div style="flex:1;">Status</div><div style="flex:.7;text-align:right;">Speed n</div><div style="flex:.7;text-align:right;">Median</div><div style="flex:.8;text-align:right;">Quality</div><div style="flex:.6;text-align:right;">Notes</div>
+            </div>
+            <div style="display:flex;padding:13px 16px;border-bottom:1px solid #eef2ec;align-items:center;background:#e8f2ec;"><div style="flex:2.4;"><div style="font-weight:600;color:#2d5a3d;">Maria's Cantina</div><div style="font-size:12px;color:#5c6b5e;">21 School St · Mexican</div></div><div style="flex:1;"><span style="font-size:12px;font-weight:600;color:#067647;background:#ecfdf3;padding:2px 9px;border-radius:12px;">active</span></div><div style="flex:.7;text-align:right;font-variant-numeric:tabular-nums;">12</div><div style="flex:.7;text-align:right;font-variant-numeric:tabular-nums;color:#2d8f4e;font-weight:600;">6m</div><div style="flex:.8;text-align:right;font-variant-numeric:tabular-nums;">4.2</div><div style="flex:.6;text-align:right;font-variant-numeric:tabular-nums;">4</div></div>
+            <div style="display:flex;padding:13px 16px;border-bottom:1px solid #eef2ec;align-items:center;"><div style="flex:2.4;"><div style="font-weight:600;color:#2d5a3d;">Tello's Pizza</div><div style="font-size:12px;color:#5c6b5e;">5 Bridge St · Pizza</div></div><div style="flex:1;"><span style="font-size:12px;font-weight:600;color:#067647;background:#ecfdf3;padding:2px 9px;border-radius:12px;">active</span></div><div style="flex:.7;text-align:right;font-variant-numeric:tabular-nums;">8</div><div style="flex:.7;text-align:right;font-variant-numeric:tabular-nums;color:#d4a017;font-weight:600;">11m</div><div style="flex:.8;text-align:right;font-variant-numeric:tabular-nums;">3.8</div><div style="flex:.6;text-align:right;font-variant-numeric:tabular-nums;">1</div></div>
+            <div style="display:flex;padding:13px 16px;border-bottom:1px solid #eef2ec;align-items:center;"><div style="flex:2.4;"><div style="font-weight:600;color:#2d5a3d;">Birch &amp; Bell</div><div style="font-size:12px;color:#5c6b5e;">88 High St · American</div></div><div style="flex:1;"><span style="font-size:12px;font-weight:600;color:#b54708;background:#fffaeb;padding:2px 9px;border-radius:12px;">duplicate?</span></div><div style="flex:.7;text-align:right;font-variant-numeric:tabular-nums;">7</div><div style="flex:.7;text-align:right;font-variant-numeric:tabular-nums;color:#2d8f4e;font-weight:600;">7m</div><div style="flex:.8;text-align:right;font-variant-numeric:tabular-nums;">4.5</div><div style="flex:.6;text-align:right;font-variant-numeric:tabular-nums;">2</div></div>
+            <div style="display:flex;padding:13px 16px;border-bottom:1px solid #eef2ec;align-items:center;opacity:.65;"><div style="flex:2.4;"><div style="font-weight:600;color:#2d5a3d;">Pine Street Diner</div><div style="font-size:12px;color:#5c6b5e;">2 Pine St · Diner</div></div><div style="flex:1;"><span style="font-size:12px;font-weight:600;color:#5c6b5e;background:#eef2ec;padding:2px 9px;border-radius:12px;">no data</span></div><div style="flex:.7;text-align:right;font-variant-numeric:tabular-nums;">0</div><div style="flex:.7;text-align:right;color:#9ca3af;">—</div><div style="flex:.8;text-align:right;color:#9ca3af;">—</div><div style="flex:.6;text-align:right;font-variant-numeric:tabular-nums;">0</div></div>
+          </div>
+        </div>
+
+        <!-- DRAWER -->
+        <div style="position:absolute;top:41px;right:0;bottom:0;width:380px;background:#fff;border-left:1px solid #d8e0d4;box-shadow:-12px 0 32px rgb(28 25 23/10%);padding:22px 24px;display:flex;flex-direction:column;gap:16px;overflow:hidden;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;"><div><div style="font-size:19px;font-weight:700;">Maria's Cantina</div><div style="font-size:13px;color:#5c6b5e;margin-top:2px;">21 School St, Dedham · Mexican</div></div><span style="font-size:18px;color:#8a9a8c;">×</span></div>
+          <div style="display:flex;gap:9px;"><div style="flex:1;background:#f4f7f2;border:1px solid #d8e0d4;border-radius:9px;padding:10px;text-align:center;"><div style="font-size:11px;color:#5c6b5e;">Speed</div><div style="font-size:18px;font-weight:800;color:#2d8f4e;">6m</div></div><div style="flex:1;background:#f4f7f2;border:1px solid #d8e0d4;border-radius:9px;padding:10px;text-align:center;"><div style="font-size:11px;color:#5c6b5e;">Quality</div><div style="font-size:18px;font-weight:800;">4.2</div></div><div style="flex:1;background:#f4f7f2;border:1px solid #d8e0d4;border-radius:9px;padding:10px;text-align:center;"><div style="font-size:11px;color:#5c6b5e;">Visits</div><div style="font-size:18px;font-weight:800;">12</div></div></div>
+          <div>
+            <div style="font:600 11px 'IBM Plex Mono';letter-spacing:.05em;color:#8a9a8c;margin-bottom:8px;">STATUS</div>
+            <div style="display:flex;gap:7px;"><span style="font-size:12px;font-weight:600;color:#fff;background:#2d5a3d;padding:6px 12px;border-radius:7px;">Active</span><span style="font-size:12px;font-weight:600;color:#3d4a40;border:1px solid #b8c4b0;padding:6px 12px;border-radius:7px;">Hide</span><span style="font-size:12px;font-weight:600;color:#b42318;border:1px solid #f3c9c4;background:#fef3f2;padding:6px 12px;border-radius:7px;">Tombstone</span></div>
+          </div>
+          <div>
+            <div style="font:600 11px 'IBM Plex Mono';letter-spacing:.05em;color:#8a9a8c;margin-bottom:8px;">EDIT DETAILS</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="border:1px solid #b8c4b0;border-radius:8px;padding:9px 11px;font-size:13px;color:#1a231c;">Maria's Cantina</div>
+              <div style="border:1px solid #b8c4b0;border-radius:8px;padding:9px 11px;font-size:13px;color:#1a231c;">21 School St, Dedham, MA</div>
+              <div style="display:flex;gap:7px;"><span style="font-size:12px;background:#eef2ec;border-radius:6px;padding:5px 10px;color:#3d4a40;">Mexican ×</span><span style="font-size:12px;background:#eef2ec;border-radius:6px;padding:5px 10px;color:#3d4a40;">Family ×</span><span style="font-size:12px;border:1px dashed #b8c4b0;border-radius:6px;padding:5px 10px;color:#8a9a8c;">+ tag</span></div>
+            </div>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:9px;">
+            <div style="background:#fffaeb;border:1px solid #f0d9a8;border-radius:8px;padding:9px 12px;font-size:12.5px;color:#7a4d12;display:flex;align-items:center;justify-content:space-between;">Possible duplicate: "Marias Cantina" <span style="font-weight:700;color:#b54708;">Merge →</span></div>
+            <div style="display:flex;gap:9px;"><div style="flex:1;background:#2d5a3d;color:#fff;border-radius:8px;padding:10px;text-align:center;font-size:13px;font-weight:600;">Save</div><div style="border:1px solid #b8c4b0;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;color:#3d4a40;">View data</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;width:230px;display:flex;flex-direction:column;gap:18px;padding-top:90px;">
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#2d5a3d;line-height:1.25;">Click a row → drawer slides in. Edit, re-tag, change status, or merge a duplicate in place.</div>
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#b54708;line-height:1.25;">A "duplicate?" status flags likely dupes right in the table so they don't skew coverage.</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 4 · CONTRIBUTORS + USER DETAIL -->
+  <!-- ============================================================ -->
+  <div style="max-width:1180px;margin:54px 0 16px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#1a231c;padding:5px 11px;border-radius:6px;">SCREEN 4</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Contributors — trust &amp; accountability</div>
+    </div>
+    <div style="font-size:14px;color:#5c6b5e;margin-top:6px;max-width:780px;">The table stays, but a row opens a profile: their submissions, a trust level, and the actions a community needs — disable, ban, or promote to auto-publish. This is how moderation scales.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+    <div style="flex:none;width:1180px;border-radius:14px;overflow:hidden;box-shadow:0 12px 32px rgb(28 25 23/12%);border:1px solid #c4cfc0;">
+      <div style="display:flex;align-items:center;gap:7px;padding:10px 14px;background:#dfe5da;border-bottom:1px solid #c4cfc0;"><span style="width:11px;height:11px;border-radius:9px;background:#c2502e;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#d4a017;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#2d8f4e;opacity:.6;"></span><span style="margin-left:10px;font:500 11px 'IBM Plex Mono';color:#5c6b5e;">admin.littlescout.app/admin/users</span></div>
+      <div style="display:flex;background:#f4f7f2;min-height:600px;">
+
+        <!-- sidebar: Contributors active -->
+        <div style="width:224px;flex:none;background:#fff;border-right:1px solid #d8e0d4;padding:20px 16px;display:flex;flex-direction:column;gap:18px;">
+          <div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;letter-spacing:-.01em;"><span style="width:30px;height:30px;border-radius:8px;background:#e8f2ec;display:flex;align-items:center;justify-content:center;font-size:15px;">🔭</span>Little Scout</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Overview</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Moderation <span style="background:#b42318;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 7px;">7</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Restaurants</div>
+            <div style="padding:9px 12px;border-radius:8px;background:#e8f2ec;color:#1a231c;font-weight:600;font-size:13.5px;">Contributors</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Data &amp; observations <span style="background:#fffaeb;color:#b54708;border:1px solid #f0d9a8;border-radius:9px;font-size:10px;font-weight:700;padding:1px 6px;">3</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Location seeding</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Security</div>
+          </div>
+        </div>
+
+        <!-- main: split table + detail -->
+        <div style="flex:1;display:flex;min-width:0;">
+          <!-- table -->
+          <div style="flex:1.5;padding:26px 24px;display:flex;flex-direction:column;gap:16px;min-width:0;border-right:1px solid #d8e0d4;">
+            <div><div style="font-size:24px;font-weight:700;letter-spacing:-.01em;">Contributors</div><div style="font-size:14px;color:#5c6b5e;margin-top:2px;">214 parents who submitted data</div></div>
+            <div style="display:flex;gap:9px;"><div style="flex:1;border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 12px;font-size:13px;color:#8a9a8c;">⌕ Search name or email…</div><div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Trust ▾</div></div>
+            <div style="background:#fff;border:1px solid #d8e0d4;border-radius:12px;overflow:hidden;">
+              <div style="display:flex;padding:11px 16px;background:#f4f7f2;border-bottom:1px solid #d8e0d4;font:600 11px 'IBM Plex Mono';letter-spacing:.04em;color:#5c6b5e;text-transform:uppercase;"><div style="flex:2;">User</div><div style="flex:1;">Trust</div><div style="flex:.7;text-align:right;">Total</div><div style="flex:1.1;text-align:right;">Last active</div></div>
+              <div style="display:flex;padding:13px 16px;border-bottom:1px solid #eef2ec;align-items:center;background:#e8f2ec;"><div style="flex:2;"><div style="font-weight:600;">jenna_m</div><div style="font-size:12px;color:#5c6b5e;">jenna@email.com</div></div><div style="flex:1;"><span style="font-size:11px;font-weight:700;color:#067647;background:#ecfdf3;padding:2px 8px;border-radius:10px;">Trusted</span></div><div style="flex:.7;text-align:right;font-weight:700;">12</div><div style="flex:1.1;text-align:right;font-size:12px;color:#5c6b5e;">Jun 19, 2:14 PM</div></div>
+              <div style="display:flex;padding:13px 16px;border-bottom:1px solid #eef2ec;align-items:center;"><div style="flex:2;"><div style="font-weight:600;">marcus_t <span style="font-size:11px;font-weight:700;color:#b54708;">new</span></div><div style="font-size:12px;color:#5c6b5e;">marcus@email.com</div></div><div style="flex:1;"><span style="font-size:11px;font-weight:700;color:#5c6b5e;background:#eef2ec;padding:2px 8px;border-radius:10px;">Standard</span></div><div style="flex:.7;text-align:right;font-weight:700;">1</div><div style="flex:1.1;text-align:right;font-size:12px;color:#5c6b5e;">Jun 19, 11:02 AM</div></div>
+              <div style="display:flex;padding:13px 16px;border-bottom:1px solid #eef2ec;align-items:center;"><div style="flex:2;"><div style="font-weight:600;">deals_4u <span style="font-size:11px;font-weight:700;color:#b42318;">flagged</span></div><div style="font-size:12px;color:#5c6b5e;">—</div></div><div style="flex:1;"><span style="font-size:11px;font-weight:700;color:#b42318;background:#fef3f2;padding:2px 8px;border-radius:10px;">Watch</span></div><div style="flex:.7;text-align:right;font-weight:700;">9</div><div style="flex:1.1;text-align:right;font-size:12px;color:#5c6b5e;">Jun 18, 9:40 PM</div></div>
+              <div style="display:flex;padding:13px 16px;align-items:center;opacity:.85;"><div style="flex:2;"><div style="font-weight:600;">sara_p</div><div style="font-size:12px;color:#5c6b5e;">sara@email.com</div></div><div style="flex:1;"><span style="font-size:11px;font-weight:700;color:#5c6b5e;background:#eef2ec;padding:2px 8px;border-radius:10px;">Standard</span></div><div style="flex:.7;text-align:right;font-weight:700;">6</div><div style="flex:1.1;text-align:right;font-size:12px;color:#5c6b5e;">Jun 17, 6:25 PM</div></div>
+            </div>
+          </div>
+          <!-- detail panel -->
+          <div style="flex:1;padding:26px 24px;display:flex;flex-direction:column;gap:16px;min-width:0;background:#fbfdfb;">
+            <div style="display:flex;align-items:center;gap:12px;"><span style="width:46px;height:46px;border-radius:24px;background:#e8f2ec;"></span><div><div style="font-size:18px;font-weight:700;">jenna_m</div><div style="font-size:12.5px;color:#5c6b5e;">jenna@email.com</div></div></div>
+            <div style="display:flex;gap:7px;align-items:center;"><span style="font-size:11px;font-weight:700;color:#067647;background:#ecfdf3;padding:3px 10px;border-radius:11px;">Trusted</span><span style="font-size:12px;color:#5c6b5e;">12 approved · 0 rejected</span></div>
+            <div style="display:flex;gap:9px;"><div style="flex:1;background:#fff;border:1px solid #d8e0d4;border-radius:9px;padding:9px;text-align:center;"><div style="font-size:11px;color:#5c6b5e;">Speed</div><div style="font-size:17px;font-weight:800;">7</div></div><div style="flex:1;background:#fff;border:1px solid #d8e0d4;border-radius:9px;padding:9px;text-align:center;"><div style="font-size:11px;color:#5c6b5e;">Attrs</div><div style="font-size:17px;font-weight:800;">3</div></div><div style="flex:1;background:#fff;border:1px solid #d8e0d4;border-radius:9px;padding:9px;text-align:center;"><div style="font-size:11px;color:#5c6b5e;">Notes</div><div style="font-size:17px;font-weight:800;">2</div></div></div>
+            <div>
+              <div style="font:600 11px 'IBM Plex Mono';letter-spacing:.05em;color:#8a9a8c;margin-bottom:8px;">RECENT SUBMISSIONS</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div style="background:#fff;border:1px solid #d8e0d4;border-radius:8px;padding:9px 11px;font-size:12.5px;"><b>Maria's Cantina</b> · 6 min speed <span style="color:#8a9a8c;">· 2h ago</span></div>
+                <div style="background:#fff;border:1px solid #d8e0d4;border-radius:8px;padding:9px 11px;font-size:12.5px;">Note · "crayons + play corner" <span style="color:#8a9a8c;">· 2h ago</span></div>
+                <div style="background:#fff;border:1px solid #d8e0d4;border-radius:8px;padding:9px 11px;font-size:12.5px;"><b>Birch &amp; Bell</b> · high chairs <span style="color:#8a9a8c;">· 3d ago</span></div>
+              </div>
+            </div>
+            <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px;">
+              <div style="font:600 11px 'IBM Plex Mono';letter-spacing:.05em;color:#8a9a8c;">ACTIONS</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;"><span style="font-size:12.5px;font-weight:600;color:#3d4a40;border:1px solid #b8c4b0;background:#fff;padding:8px 13px;border-radius:8px;">Trust: Trusted ▾</span><span style="font-size:12.5px;font-weight:600;color:#3d4a40;border:1px solid #b8c4b0;background:#fff;padding:8px 13px;border-radius:8px;">Disable</span><span style="font-size:12.5px;font-weight:600;color:#b42318;border:1px solid #f3c9c4;background:#fef3f2;padding:8px 13px;border-radius:8px;">Ban</span></div>
+              <div style="font-size:11.5px;color:#8a9a8c;line-height:1.4;">Trust prioritizes the review queue today — it'll gate AI auto-moderation later.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;width:230px;display:flex;flex-direction:column;gap:18px;padding-top:90px;">
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#2d5a3d;line-height:1.25;">Everything is human-reviewed for now. Trust level just prioritizes the queue — and will gate AI auto-moderation later.</div>
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#b42318;line-height:1.25;">"deals_4u" with no email + flagged content is exactly the account you want one click from a ban.</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SCREEN 5 · DATA & OBSERVATIONS -->
+  <!-- ============================================================ -->
+  <div style="max-width:1180px;margin:54px 0 16px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:#1a231c;padding:5px 11px;border-radius:6px;">SCREEN 5</div>
+      <div style="font-family:'Caveat',cursive;font-size:34px;font-weight:700;">Data &amp; observations — protect the median</div>
+    </div>
+    <div style="font-size:14px;color:#5c6b5e;margin-top:6px;max-width:780px;">Your flagship metric is only as good as its inputs. The log gains filters and, crucially, the ability to <b>flag an outlier and exclude it</b> from a venue's median — so one mistaken 90-minute entry can't poison a restaurant's speed.</div>
+  </div>
+
+  <div style="display:flex;gap:30px;align-items:flex-start;padding-bottom:14px;">
+    <div style="flex:none;width:1180px;border-radius:14px;overflow:hidden;box-shadow:0 12px 32px rgb(28 25 23/12%);border:1px solid #c4cfc0;">
+      <div style="display:flex;align-items:center;gap:7px;padding:10px 14px;background:#dfe5da;border-bottom:1px solid #c4cfc0;"><span style="width:11px;height:11px;border-radius:9px;background:#c2502e;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#d4a017;opacity:.6;"></span><span style="width:11px;height:11px;border-radius:9px;background:#2d8f4e;opacity:.6;"></span><span style="margin-left:10px;font:500 11px 'IBM Plex Mono';color:#5c6b5e;">admin.littlescout.app/admin/observations</span></div>
+      <div style="display:flex;background:#f4f7f2;min-height:600px;">
+
+        <!-- sidebar: Data active -->
+        <div style="width:224px;flex:none;background:#fff;border-right:1px solid #d8e0d4;padding:20px 16px;display:flex;flex-direction:column;gap:18px;">
+          <div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;letter-spacing:-.01em;"><span style="width:30px;height:30px;border-radius:8px;background:#e8f2ec;display:flex;align-items:center;justify-content:center;font-size:15px;">🔭</span>Little Scout</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Overview</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Moderation <span style="background:#b42318;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 7px;">7</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Restaurants</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Contributors</div>
+            <div style="padding:9px 12px;border-radius:8px;background:#e8f2ec;color:#1a231c;font-weight:600;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;">Data &amp; observations <span style="background:#fffaeb;color:#b54708;border:1px solid #f0d9a8;border-radius:9px;font-size:10px;font-weight:700;padding:1px 6px;">3</span></div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Location seeding</div>
+            <div style="padding:9px 12px;border-radius:8px;color:#5c6b5e;font-weight:600;font-size:13.5px;">Security</div>
+          </div>
+        </div>
+
+        <!-- main -->
+        <div style="flex:1;padding:26px 30px;display:flex;flex-direction:column;gap:16px;min-width:0;">
+          <div><div style="font-size:24px;font-weight:700;letter-spacing:-.01em;">Data &amp; observations</div><div style="font-size:14px;color:#5c6b5e;margin-top:2px;">Kid food speed submissions · 3 flagged outliers</div></div>
+          <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;">
+            <div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Daypart ▾</div>
+            <div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Restaurant ▾</div>
+            <div style="border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Speed range ▾</div>
+            <div style="border:1px solid #f0d9a8;background:#fffaeb;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:700;color:#b54708;">⚑ Outliers only</div>
+            <div style="margin-left:auto;border:1px solid #b8c4b0;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;color:#3d4a40;">Export CSV</div>
+          </div>
+          <div style="background:#fff;border:1px solid #d8e0d4;border-radius:12px;overflow:hidden;">
+            <div style="display:flex;padding:11px 16px;background:#f4f7f2;border-bottom:1px solid #d8e0d4;font:600 11px 'IBM Plex Mono';letter-spacing:.04em;color:#5c6b5e;text-transform:uppercase;"><div style="flex:1.1;">When</div><div style="flex:1.6;">Restaurant</div><div style="flex:.7;text-align:right;">Speed</div><div style="flex:1;">Item</div><div style="flex:.7;text-align:right;">Quality</div><div style="flex:.9;">User</div><div style="flex:1.1;text-align:right;">Action</div></div>
+            <div style="display:flex;padding:12px 16px;border-bottom:1px solid #eef2ec;align-items:center;font-size:13px;"><div style="flex:1.1;color:#5c6b5e;">Jun 19, 2:14 PM</div><div style="flex:1.6;font-weight:600;color:#2d5a3d;">Maria's Cantina</div><div style="flex:.7;text-align:right;font-weight:700;color:#2d8f4e;">6m</div><div style="flex:1;color:#5c6b5e;">kids pasta</div><div style="flex:.7;text-align:right;">5/5</div><div style="flex:.9;font-size:12px;color:#5c6b5e;">jenna_m</div><div style="flex:1.1;text-align:right;font-size:12px;color:#8a9a8c;">✓ counted</div></div>
+            <!-- OUTLIER row -->
+            <div style="display:flex;padding:12px 16px;border-bottom:1px solid #eef2ec;align-items:center;font-size:13px;background:#fffaeb;"><div style="flex:1.1;color:#5c6b5e;">Jun 19, 1:50 PM</div><div style="flex:1.6;font-weight:600;color:#2d5a3d;">Tello's Pizza</div><div style="flex:.7;text-align:right;font-weight:800;color:#c0392b;">92m ⚑</div><div style="flex:1;color:#5c6b5e;">kids pizza</div><div style="flex:.7;text-align:right;">2/5</div><div style="flex:.9;font-size:12px;color:#5c6b5e;">deals_4u</div><div style="flex:1.1;text-align:right;"><span style="font-size:11px;font-weight:700;color:#b42318;background:#fff;border:1px solid #f3c9c4;padding:4px 9px;border-radius:7px;">Exclude</span></div></div>
+            <div style="display:flex;padding:12px 16px;border-bottom:1px solid #eef2ec;align-items:center;font-size:13px;"><div style="flex:1.1;color:#5c6b5e;">Jun 19, 12:30 PM</div><div style="flex:1.6;font-weight:600;color:#2d5a3d;">Birch &amp; Bell</div><div style="flex:.7;text-align:right;font-weight:700;color:#2d8f4e;">7m</div><div style="flex:1;color:#5c6b5e;">grilled cheese</div><div style="flex:.7;text-align:right;">4/5</div><div style="flex:.9;font-size:12px;color:#5c6b5e;">sara_p</div><div style="flex:1.1;text-align:right;font-size:12px;color:#8a9a8c;">✓ counted</div></div>
+            <!-- excluded row -->
+            <div style="display:flex;padding:12px 16px;border-bottom:1px solid #eef2ec;align-items:center;font-size:13px;opacity:.55;"><div style="flex:1.1;color:#5c6b5e;">Jun 18, 7:05 PM</div><div style="flex:1.6;font-weight:600;color:#2d5a3d;text-decoration:line-through;">Tello's Pizza</div><div style="flex:.7;text-align:right;font-weight:700;text-decoration:line-through;">88m</div><div style="flex:1;color:#5c6b5e;">kids pizza</div><div style="flex:.7;text-align:right;">1/5</div><div style="flex:.9;font-size:12px;color:#5c6b5e;">deals_4u</div><div style="flex:1.1;text-align:right;font-size:11px;font-weight:600;color:#b54708;">excluded</div></div>
+            <div style="display:flex;padding:12px 16px;align-items:center;font-size:13px;"><div style="flex:1.1;color:#5c6b5e;">Jun 18, 6:25 PM</div><div style="flex:1.6;font-weight:600;color:#2d5a3d;">Maria's Cantina</div><div style="flex:.7;text-align:right;font-weight:700;color:#d4a017;">9m</div><div style="flex:1;color:#5c6b5e;">quesadilla</div><div style="flex:.7;text-align:right;">4/5</div><div style="flex:.9;font-size:12px;color:#5c6b5e;">sara_p</div><div style="flex:1.1;text-align:right;font-size:12px;color:#8a9a8c;">✓ counted</div></div>
+          </div>
+          <div style="background:#e8f2ec;border:1px solid #c4ddcb;border-radius:9px;padding:11px 14px;font-size:12.5px;color:#1f4530;line-height:1.45;">Excluding the two <b>deals_4u</b> entries on Tello's moves its median from <b>49m → 11m</b>. Excluded points stay in the log for audit but leave the public stat.</div>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ showAnn }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;width:230px;display:flex;flex-direction:column;gap:18px;padding-top:120px;">
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#b54708;line-height:1.25;">Outliers highlight amber and sort to the top. One "Exclude" pulls them from the median but keeps an audit trail.</div>
+        <div style="font-family:'Caveat',cursive;font-size:17px;color:#2d5a3d;line-height:1.25;">The footer shows the real-time impact of a cleanup — operators see why it matters.</div>
+      </div>
+    </sc-if>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 1480, &quot;height&quot;: 920 },
+  &quot;showAnnotations&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showAnn: this.props.showAnnotations ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>
