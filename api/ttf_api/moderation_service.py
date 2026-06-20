@@ -370,7 +370,10 @@ def set_user_trust(
     if trust_level is not None:
         updates.append("trust_level = %s")
         params.append(trust_level)
-    if auto_publish is not None:
+        auto_publish = trust_level == "trusted"
+        updates.append("auto_publish = %s")
+        params.append(auto_publish)
+    elif auto_publish is not None:
         updates.append("auto_publish = %s")
         params.append(auto_publish)
     if trust_notes is not None:
@@ -390,6 +393,12 @@ def set_user_trust(
         f"UPDATE user_profiles SET {', '.join(updates)} WHERE firebase_uid = %s",
         tuple(params),
     )
+    new_trust_level = trust_level or prev["trust_level"]
+    new_auto_publish = (
+        trust_level == "trusted"
+        if trust_level is not None
+        else auto_publish if auto_publish is not None else prev["auto_publish"]
+    )
     write_admin_audit(
         category="user_trust",
         action="set_trust_level",
@@ -398,8 +407,8 @@ def set_user_trust(
         changed_by_email=admin.email,
         previous_values=dict(prev),
         new_values={
-            "trust_level": trust_level or prev["trust_level"],
-            "auto_publish": auto_publish if auto_publish is not None else prev["auto_publish"],
+            "trust_level": new_trust_level,
+            "auto_publish": new_auto_publish,
         },
     )
     return conn.execute(

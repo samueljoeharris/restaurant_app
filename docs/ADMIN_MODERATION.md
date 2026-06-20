@@ -7,16 +7,16 @@ Operator console at `admin.dev.littlescout.app` (IAP + Firebase admin claim).
 1. **Overview** — check attention cards; pending moderation is the primary queue.
 2. **Moderation** — approve trusted-looking submissions; reject spam; escalate edge cases.
 3. **Data & observations** — exclude mistaken speed entries from venue medians.
-4. **Contributors** — promote repeat helpful parents to **Trusted + auto-publish**; disable abusive accounts.
+4. **Contributors** — set trust tier (Trusted publishes immediately; New/Standard go to moderation queue); disable abusive accounts.
 5. **Restaurants** — fix addresses, merge duplicate venues, adjust status.
 
 ## Trust tiers
 
 | Tier | Behavior |
 |------|----------|
-| New | Submissions queued until operator approve (default) |
-| Standard | Queued unless auto-publish enabled |
-| Trusted | Auto-publish; still reportable |
+| New | Submissions queued for operator review (first-time contributors) |
+| Standard | Submissions queued for operator review |
+| Trusted | Submissions publish immediately; still reportable |
 | Restricted | Firebase disabled; writes blocked |
 
 ## Location seeding

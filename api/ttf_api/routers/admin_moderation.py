@@ -371,7 +371,6 @@ def admin_update_trust(
             firebase_uid,
             admin,
             trust_level=body.trust_level,
-            auto_publish=body.auto_publish,
             trust_notes=body.trust_notes,
         )
         return _build_admin_contributor_detail(conn, firebase_uid)

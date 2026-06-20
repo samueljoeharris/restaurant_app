@@ -444,7 +444,7 @@ export const api = {
   adminUpdateUserTrust: (
     token: string,
     uid: string,
-    body: { trust_level?: string; auto_publish?: boolean; trust_notes?: string },
+    body: { trust_level?: string; trust_notes?: string },
   ) =>
     request<AdminContributorDetail>(`/v1/admin/users/${encodeURIComponent(uid)}/trust`, {
       method: "PATCH",

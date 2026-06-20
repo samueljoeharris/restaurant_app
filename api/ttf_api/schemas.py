@@ -750,7 +750,6 @@ class AdminContributorDetail(BaseModel):
 
 class AdminTrustUpdate(BaseModel):
     trust_level: Literal["new", "standard", "trusted", "restricted"] | None = None
-    auto_publish: bool | None = None
     trust_notes: str | None = None
 
 

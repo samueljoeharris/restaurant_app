@@ -10,6 +10,11 @@ import { StatusBadge } from "../../components/admin/StatusBadge";
 import { Button } from "../../components/ui/Button";
 import { useToast } from "../../components/ui/useToast";
 import { applyContributorMutation } from "../../lib/adminContributorSync";
+import {
+  CONTRIBUTOR_TRUST_TIERS,
+  contributorTrustDescription,
+  contributorTrustSuccessMessage,
+} from "../../lib/contributorTrust";
 import type { AdminContributorDetail, AdminContributorRow } from "../../types";
 
 const PAGE_SIZE = 25;
@@ -72,25 +77,12 @@ export function AdminUsersPage() {
     toast(successMessage, "success");
   }
 
-  async function updateTrust(
-    patch: { trust_level?: string; auto_publish?: boolean },
-    successMessage = "Contributor updated",
-  ) {
+  async function updateTrustLevel(trustLevel: string) {
     if (!idToken || !selectedUid) return;
     setBusy(true);
     try {
-      const refreshed = await api.adminUpdateUserTrust(idToken, selectedUid, patch);
-      const message =
-        patch.trust_level === "trusted" && patch.auto_publish
-          ? "Promoted to trusted"
-          : patch.trust_level
-            ? `Trust level set to ${patch.trust_level}`
-            : patch.auto_publish != null
-              ? patch.auto_publish
-                ? "Auto-publish enabled"
-                : "Auto-publish disabled"
-              : successMessage;
-      applyContributorUpdate(refreshed, message);
+      const refreshed = await api.adminUpdateUserTrust(idToken, selectedUid, { trust_level: trustLevel });
+      applyContributorUpdate(refreshed, contributorTrustSuccessMessage(trustLevel));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Update failed";
       setError(message);
@@ -121,17 +113,16 @@ export function AdminUsersPage() {
     <div className="grid gap-6">
       <header>
         <h1 className="text-2xl">Contributors</h1>
-        <p className="text-text-muted">Trust levels, auto-publish, and account actions</p>
+        <p className="text-text-muted">Trust tier controls moderation queue vs immediate publish</p>
       </header>
 
       <FilterBar>
-        <FilterField label="Trust level">
+        <FilterField label="Trust tier">
           <select value={trustFilter} onChange={(e) => { setOffset(0); setTrustFilter(e.target.value); }}>
             <option value="">All</option>
-            <option value="new">New</option>
-            <option value="standard">Standard</option>
-            <option value="trusted">Trusted</option>
-            <option value="restricted">Restricted</option>
+            {CONTRIBUTOR_TRUST_TIERS.map((tier) => (
+              <option key={tier.value} value={tier.value}>{tier.shortLabel}</option>
+            ))}
           </select>
         </FilterField>
       </FilterBar>
@@ -185,13 +176,6 @@ export function AdminUsersPage() {
         footer={
           detail ? (
             <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                disabled={busy}
-                onClick={() => void updateTrust({ trust_level: "trusted", auto_publish: true }, "Promoted to trusted")}
-              >
-                Promote to trusted
-              </Button>
               {detail.disabled ? (
                 <Button type="button" variant="secondary" disabled={busy} onClick={() => void toggleDisabled(false)}>
                   Enable account
@@ -210,30 +194,22 @@ export function AdminUsersPage() {
             <p className="m-0 text-text-muted">{detail.firebase_uid}</p>
             <div className="flex flex-wrap gap-2">
               <StatusBadge kind="trust" value={detail.trust_level} />
-              {detail.auto_publish ? <StatusBadge kind="moderation" value="approved" /> : null}
             </div>
             <label className="grid gap-1">
-              Trust level
+              Trust tier
               <select
                 value={detail.trust_level}
                 disabled={busy}
-                onChange={(e) => void updateTrust({ trust_level: e.target.value })}
+                onChange={(e) => void updateTrustLevel(e.target.value)}
               >
-                <option value="new">New</option>
-                <option value="standard">Standard</option>
-                <option value="trusted">Trusted</option>
-                <option value="restricted">Restricted</option>
+                {CONTRIBUTOR_TRUST_TIERS.map((tier) => (
+                  <option key={tier.value} value={tier.value}>{tier.label}</option>
+                ))}
               </select>
             </label>
-              <label className="field-row flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={detail.auto_publish}
-                disabled={busy}
-                onChange={(e) => void updateTrust({ auto_publish: e.target.checked })}
-              />
-              Auto-publish submissions
-            </label>
+            {contributorTrustDescription(detail.trust_level) ? (
+              <p className="m-0 text-text-muted">{contributorTrustDescription(detail.trust_level)}</p>
+            ) : null}
             <div className="rounded-md border border-border bg-bg p-3">
               <p className="m-0">{detail.ttf_count} speed · {detail.attribute_count} attrs · {detail.note_count} notes</p>
               <p className="m-0 mt-1 text-text-muted">{detail.watch_count} watched restaurants</p>
