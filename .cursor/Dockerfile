@@ -81,7 +81,7 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
 RUN update-alternatives --set iptables /usr/sbin/iptables-legacy && \
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy && \
     mkdir -p /etc/docker && \
-    printf '{\n  "storage-driver": "fuse-overlayfs"\n}\n' > /etc/docker/daemon.json
+    printf '{\n  "storage-driver": "fuse-overlayfs",\n  "features": {\n    "containerd-snapshotter": false\n  }\n}\n' > /etc/docker/daemon.json
 
 RUN if ! getent group ubuntu >/dev/null; then groupadd --gid 1000 ubuntu; fi && \
     if ! id -u ubuntu >/dev/null 2>&1; then useradd --uid 1000 --gid ubuntu --create-home --shell /bin/bash ubuntu; fi && \

@@ -171,6 +171,8 @@ Cloud agents install Docker through `.cursor/environment.json` + `.cursor/Docker
 
 If Docker is unavailable, run `bash .cursor/scripts/start-docker.sh` before `docker compose` or `./scripts/ci-check.sh`.
 
+Docker 29+ defaults to the containerd image store, which ignores the `fuse-overlayfs` graphdriver these Firecracker VMs need. `.cursor/Dockerfile` therefore writes `/etc/docker/daemon.json` with `"features": {"containerd-snapshotter": false}` alongside `"storage-driver": "fuse-overlayfs"`. If you install Docker by hand in a session, replicate that daemon.json or containers will fail to start.
+
 ### Cursor Cloud secrets (real Firebase)
 
 Full runbook: [docs/CLOUD_AGENT.md](docs/CLOUD_AGENT.md). Use **two** Cursor surfaces — do not paste secrets into visible env vars ([Cursor docs](https://cursor.com/docs/cloud-agent/security-network)):
@@ -226,7 +228,7 @@ API-only smoke test (no web): `./scripts/start-local.sh` then `curl http://local
 |-------|---------|
 | Web ESLint | `cd web && npm run lint` (may report pre-existing react-hooks warnings) |
 | CI parity | `./scripts/ci-check.sh --all` (requires Docker; builds web + API images, Terraform validate) |
-| API unit tests | None in repo yet |
+| API tests | `api/tests/` exists. unittest (no extra deps): `docker compose run --rm api python -m unittest discover -s tests -p 'test_*.py'` — but `test_map_query.py`/`test_http_cache.py` import `pytest`, absent from the prod image. Full run: `docker compose run --rm --no-deps api sh -c "pip install -q pytest && python -m pytest tests/"`. CI only runs `tests.test_security_config`. |
 
 ### Seed data
 
