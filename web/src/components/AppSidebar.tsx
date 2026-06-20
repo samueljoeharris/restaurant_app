@@ -33,7 +33,7 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        "sticky top-0 flex h-screen shrink-0 flex-col border-r border-border bg-surface transition-[width] duration-normal ease-out",
+        "sticky top-0 z-30 flex h-screen shrink-0 flex-col overflow-visible border-r border-border bg-surface transition-[width] duration-normal ease-out",
         collapsed
           ? "w-[var(--app-sidebar-width-collapsed)]"
           : "w-[var(--app-sidebar-width)]",
@@ -42,15 +42,15 @@ export function AppSidebar({
     >
       <div
         className={cn(
-          "flex items-start gap-2 border-b border-border px-3 pt-5",
+          "flex items-center gap-2 border-b border-border px-3 pt-5 pb-4",
           collapsed && "flex-col items-center px-2",
         )}
       >
         <Link
           to="/map"
           className={cn(
-            "flex min-w-0 flex-1 items-center gap-3 pb-5",
-            collapsed && "justify-center pb-4",
+            "flex min-w-0 flex-1 items-center gap-3",
+            collapsed && "justify-center",
           )}
         >
           <span
@@ -74,7 +74,7 @@ export function AppSidebar({
         {!collapsed && <ActivityInbox />}
         <button
           type="button"
-          className="mt-[0.15rem] h-8 w-8 shrink-0 cursor-pointer rounded-sm border border-border bg-bg p-0 text-[1.1rem] leading-none text-text-muted transition-[color,border-color] duration-fast ease-out hover:border-border-strong hover:text-text"
+          className="h-8 w-8 shrink-0 cursor-pointer rounded-sm border border-border bg-bg p-0 text-[1.1rem] leading-none text-text-muted transition-[color,border-color] duration-fast ease-out hover:border-border-strong hover:text-text"
           onClick={onToggleCollapsed}
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}

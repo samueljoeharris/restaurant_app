@@ -31,10 +31,15 @@
     @apply grid gap-2 text-sm font-semibold;
   }
 
-  input,
+  input:not([type="checkbox"]):not([type="radio"]),
   select,
   textarea {
     @apply w-full rounded-md border border-border-strong bg-surface px-3 py-2.5 text-text font-[inherit] transition-[border-color,box-shadow] duration-fast;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply h-4 w-4 shrink-0 cursor-pointer rounded border-border-strong accent-brand;
   }
 
   input:focus,

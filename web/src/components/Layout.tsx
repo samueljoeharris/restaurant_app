@@ -41,7 +41,7 @@ export function Layout({ children }: { children: ReactNode }) {
       className={cn(
         "flex min-h-screen min-w-[var(--desktop-min-width)] flex-row items-stretch",
         hideNav && "flex-col",
-        isMap && "h-screen overflow-hidden",
+        isMap && "h-screen",
       )}
     >
       {!hideNav && (

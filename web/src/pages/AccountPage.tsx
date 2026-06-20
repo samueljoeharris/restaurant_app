@@ -93,48 +93,29 @@ export function AccountPage() {
 
       <Card title="Updates & alerts" subtitle="Default is a gentle weekly digest">
         {prefs && (
-          <div className="grid gap-3 text-sm">
-            <label className="flex items-center justify-between gap-3">
-              <span>New speed visits</span>
-              <input
-                type="checkbox"
-                checked={prefs.alert_new_ttf}
-                onChange={(e) => void savePrefs({ alert_new_ttf: e.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span>New parent ratings</span>
-              <input
-                type="checkbox"
-                checked={prefs.alert_new_rating}
-                onChange={(e) => void savePrefs({ alert_new_rating: e.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span>New notes</span>
-              <input
-                type="checkbox"
-                checked={prefs.alert_new_note}
-                onChange={(e) => void savePrefs({ alert_new_note: e.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span>Every new review (noisy)</span>
-              <input
-                type="checkbox"
-                checked={prefs.alert_every_review}
-                onChange={(e) => void savePrefs({ alert_every_review: e.target.checked })}
-              />
-            </label>
-            <label className="flex items-center justify-between gap-3">
-              <span>Push notifications</span>
-              <input
-                type="checkbox"
-                checked={prefs.push_enabled}
-                onChange={(e) => void savePrefs({ push_enabled: e.target.checked })}
-              />
-            </label>
-            <label className="grid gap-1">
+          <div className="grid gap-3">
+            {(
+              [
+                ["alert_new_ttf", "New speed visits"],
+                ["alert_new_rating", "New parent ratings"],
+                ["alert_new_note", "New notes"],
+                ["alert_every_review", "Every new review (noisy)"],
+                ["push_enabled", "Push notifications"],
+              ] as const
+            ).map(([key, label]) => (
+              <label
+                key={key}
+                className="flex min-h-10 cursor-pointer items-center justify-between gap-4 text-sm font-normal"
+              >
+                <span className="min-w-0 flex-1 leading-snug">{label}</span>
+                <input
+                  type="checkbox"
+                  checked={prefs[key]}
+                  onChange={(e) => void savePrefs({ [key]: e.target.checked })}
+                />
+              </label>
+            ))}
+            <label className="grid gap-1 text-sm font-semibold">
               Cadence
               <select
                 value={prefs.cadence}
