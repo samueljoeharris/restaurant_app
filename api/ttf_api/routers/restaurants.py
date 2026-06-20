@@ -6,6 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, s
 from psycopg.types.json import Jsonb
 
 from ttf_api.aggregates import build_attribute_aggregates
+from ttf_api.activity_events import emit_activity_event
 from ttf_api.auth import AuthUser, get_optional_user, require_admin
 from ttf_api.security import require_write_access
 from ttf_api.config import settings
@@ -382,6 +383,13 @@ def submit_ttf(
                 body.photo_url,
             ),
         ).fetchone()
+        emit_activity_event(
+            conn,
+            restaurant_id=restaurant_id,
+            event_type="ttf",
+            source_id=row["id"],
+            actor_firebase_uid=user.firebase_uid,
+        )
     return TtfSubmissionResponse(**row)
 
 
@@ -426,6 +434,13 @@ def submit_attributes(
                 body.visit_context,
             ),
         ).fetchone()
+        emit_activity_event(
+            conn,
+            restaurant_id=restaurant_id,
+            event_type="attribute",
+            source_id=row["id"],
+            actor_firebase_uid=user.firebase_uid,
+        )
     return AttributeSubmissionResponse(**row)
 
 
@@ -456,6 +471,13 @@ def submit_note(
             """,
             (restaurant_id, user.firebase_uid, body.text, body.tags),
         ).fetchone()
+        emit_activity_event(
+            conn,
+            restaurant_id=restaurant_id,
+            event_type="note",
+            source_id=row["id"],
+            actor_firebase_uid=user.firebase_uid,
+        )
     return NoteSubmissionResponse(
         id=row["id"],
         text=row["text"],
