@@ -13,6 +13,7 @@ Web uses **Google Maps** with a Cloud Map Style and Map ID; iOS uses **MapKit** 
 | Tilt / rotation | **Off** (flat, north-up explore map) |
 | Map variant | **`roadmap`** |
 | Build env | `VITE_GOOGLE_MAPS_MAP_ID` |
+| Dev Map ID | `a0014d38b56dea36144d06af` |
 
 ---
 
@@ -62,6 +63,18 @@ Official references:
 Top-level optional keys: `variant` (`light`|`dark`), `backgroundColor`, `monochrome`, `metadata` (ignored by map clients).
 
 The Bluebird file styles land, water, parks, roads, buildings, political labels, hides POI/transit labels, and hides transit geometry.
+
+### Label styler limits (per feature)
+
+Not every map feature supports every label styler. The console may reject or strip unsupported properties on import.
+
+| Pattern | Works | Often rejected |
+|---------|-------|----------------|
+| Hide labels | `"label": { "visible": false }` on most ids | — |
+| Road / water / city text color | `infrastructure.roadNetwork`, `natural.water`, `political.city` | — |
+| Sub-political text color | — | `political.neighborhood`, `political.sublocality` (use `visible: false` only) |
+
+The committed [`design/google-map-style.json`](../design/google-map-style.json) matches the **console-exported** style (validated in Map Styles for `ttf-restaurant-dev`).
 
 ### **Not** in JSON — set in Map Settings (console UI)
 
