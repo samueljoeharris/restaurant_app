@@ -22,7 +22,8 @@ fi
 
 # --- API (FastAPI): resolve imports for edits and any future pytest ---
 if [ -f api/requirements.txt ]; then
-  python3 -m venv .venv
+  PY="$(bash scripts/find-python.sh 2>/dev/null || command -v python3.14 || command -v python3)"
+  "$PY" -m venv .venv
   ./.venv/bin/pip install --quiet --upgrade pip
   ./.venv/bin/pip install -r api/requirements.txt
   if [ -n "${CLAUDE_ENV_FILE:-}" ]; then

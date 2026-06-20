@@ -11,6 +11,8 @@ From repo root (Postgres must be healthy):
 # Legacy Docker API: ./scripts/start-local.sh --docker-api
 ```
 
+**Python 3.14** everywhere (`api/Dockerfile`, GHA, native `.venv`). Mac: `brew install python@3.14`. Cloud VM: `.cursor/Dockerfile` (deadsnakes).
+
 ## Endpoints
 
 | Method | Path | Status |

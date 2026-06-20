@@ -32,6 +32,14 @@ RUN apt-get update && \
       zip && \
     rm -rf /var/lib/apt/lists/*
 
+# Python 3.14 — matches api/Dockerfile and native run-api.sh (deadsnakes on Ubuntu 24.04).
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common && \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3.14 python3.14-venv python3.14-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN install -m 0755 -d /etc/apt/keyrings && \
     curl --retry 3 --retry-delay 5 -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | \
       gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
