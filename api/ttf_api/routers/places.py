@@ -27,7 +27,7 @@ from ttf_api.places_seed import (
     fetch_place_details,
     require_maps_api_key,
 )
-from ttf_api.routers.restaurants import build_restaurant_detail_response, _row_to_detail
+from ttf_api.routers.restaurants import build_restaurant_detail_response
 from ttf_api.schemas import (
     AutocompleteResponse,
     PlacePracticalResponse,
@@ -36,6 +36,7 @@ from ttf_api.schemas import (
     RestaurantDetailResponse,
     RestaurantMapEntry,
 )
+from ttf_api.security import require_write_access
 
 logger = logging.getLogger(__name__)
 
@@ -258,8 +259,10 @@ def get_place_entry(request: Request, place_id: str, user: Annotated[AuthUser, D
 
 
 @router.post("/{place_id}/materialize", response_model=RestaurantDetailResponse)
-def materialize_place(request: Request, place_id: str, user: Annotated[AuthUser, Depends(get_current_user)] = None) -> RestaurantDetailResponse:
-    verify_app_check(request)
+def materialize_place(
+    place_id: str,
+    _user: Annotated[AuthUser, Depends(require_write_access)],
+) -> RestaurantDetailResponse:
     try:
         api_key = require_maps_api_key()
     except PlacesSeedError as exc:
