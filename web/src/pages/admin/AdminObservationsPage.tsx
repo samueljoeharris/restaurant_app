@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import { FilterBar, FilterField } from "../../components/admin/FilterBar";
 import { Button } from "../../components/ui/Button";
+import { useToast } from "../../components/ui/useToast";
 import { cn } from "../../lib/cn";
 import type { AdminObservationRow } from "../../types";
 
@@ -14,6 +15,7 @@ const EXCLUDE_REASONS = ["mistaken_entry", "duplicate", "implausible", "other"];
 
 export function AdminObservationsPage() {
   const { idToken } = useAuth();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<AdminObservationRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -48,14 +50,41 @@ export function AdminObservationsPage() {
     reload();
   }, [idToken, offset, uid, daypart, excluded]);
 
+  function applyObservationUpdate(
+    id: string,
+    patch: Pick<AdminObservationRow, "excluded_from_aggregate" | "exclusion_reason">,
+    successMessage: string,
+  ) {
+    const updated = rows.find((r) => r.id === id);
+    if (!updated) return;
+
+    const nextRow = { ...updated, ...patch };
+    const excludedFilter = excluded === "true" || excluded === "false";
+    const matchesFilter =
+      !excludedFilter ||
+      (excluded === "true" && nextRow.excluded_from_aggregate) ||
+      (excluded === "false" && !nextRow.excluded_from_aggregate);
+
+    if (!matchesFilter) {
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      setTotal((t) => Math.max(0, t - 1));
+    } else {
+      setRows((prev) => prev.map((r) => (r.id === id ? nextRow : r)));
+    }
+    setError(null);
+    toast(successMessage, "success");
+  }
+
   async function exclude(id: string, reason: string) {
     if (!idToken) return;
     setBusyId(id);
     try {
       await api.adminExcludeObservation(idToken, id, reason);
-      reload();
+      applyObservationUpdate(id, { excluded_from_aggregate: true, exclusion_reason: reason }, "Observation excluded");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Exclude failed");
+      const message = err instanceof Error ? err.message : "Exclude failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setBusyId(null);
     }
@@ -66,9 +95,11 @@ export function AdminObservationsPage() {
     setBusyId(id);
     try {
       await api.adminRestoreObservation(idToken, id);
-      reload();
+      applyObservationUpdate(id, { excluded_from_aggregate: false, exclusion_reason: null }, "Observation restored");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Restore failed");
+      const message = err instanceof Error ? err.message : "Restore failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setBusyId(null);
     }

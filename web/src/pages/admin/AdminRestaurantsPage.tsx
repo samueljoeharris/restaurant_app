@@ -9,12 +9,14 @@ import { FilterBar, FilterField } from "../../components/admin/FilterBar";
 import { StatusBadge } from "../../components/admin/StatusBadge";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
+import { useToast } from "../../components/ui/useToast";
 import type { AdminRestaurantDetail, AdminRestaurantRow } from "../../types";
 
 const PAGE_SIZE = 25;
 
 export function AdminRestaurantsPage() {
   const { idToken } = useAuth();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<AdminRestaurantRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -71,8 +73,12 @@ export function AdminRestaurantsPage() {
       const updated = await api.adminUpdateRestaurant(idToken, selectedId, form);
       setDetail(updated);
       setRows((prev) => prev.map((r) => (r.id === selectedId ? { ...r, ...updated, ttf_sample_size: updated.ttf_sample_size } : r)));
+      setError(null);
+      toast("Restaurant updated", "success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Save failed");
+      const message = err instanceof Error ? err.message : "Save failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setSaving(false);
     }
@@ -87,10 +93,17 @@ export function AdminRestaurantsPage() {
         target_id: mergeTarget.trim(),
         reason: "Admin merge duplicate",
       });
+      setRows((prev) => prev.filter((r) => r.id !== selectedId));
+      setTotal((t) => Math.max(0, t - 1));
       setSelectedId(null);
+      setDetail(null);
       setMergeTarget("");
+      setError(null);
+      toast("Restaurants merged", "success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Merge failed");
+      const message = err instanceof Error ? err.message : "Merge failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setSaving(false);
     }

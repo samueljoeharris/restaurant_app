@@ -8,12 +8,15 @@ import { DetailDrawer } from "../../components/admin/DetailDrawer";
 import { FilterBar, FilterField } from "../../components/admin/FilterBar";
 import { StatusBadge } from "../../components/admin/StatusBadge";
 import { Button } from "../../components/ui/Button";
+import { useToast } from "../../components/ui/useToast";
+import { applyContributorMutation } from "../../lib/adminContributorSync";
 import type { AdminContributorDetail, AdminContributorRow } from "../../types";
 
 const PAGE_SIZE = 25;
 
 export function AdminUsersPage() {
   const { idToken } = useAuth();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<AdminContributorRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -60,15 +63,38 @@ export function AdminUsersPage() {
       .catch((err) => setError(err instanceof Error ? err.message : "Profile load failed"));
   }, [idToken, selectedUid]);
 
-  async function updateTrust(patch: { trust_level?: string; auto_publish?: boolean }) {
+  function applyContributorUpdate(refreshed: AdminContributorDetail, successMessage: string) {
+    setDetail(refreshed);
+    setError(null);
+    const synced = applyContributorMutation(rows, total, refreshed, trustFilter);
+    setRows(synced.rows);
+    setTotal(synced.total);
+    toast(successMessage, "success");
+  }
+
+  async function updateTrust(
+    patch: { trust_level?: string; auto_publish?: boolean },
+    successMessage = "Contributor updated",
+  ) {
     if (!idToken || !selectedUid) return;
     setBusy(true);
     try {
-      await api.adminUpdateUserTrust(idToken, selectedUid, patch);
-      const refreshed = await api.adminUserDetail(idToken, selectedUid);
-      setDetail(refreshed);
+      const refreshed = await api.adminUpdateUserTrust(idToken, selectedUid, patch);
+      const message =
+        patch.trust_level === "trusted" && patch.auto_publish
+          ? "Promoted to trusted"
+          : patch.trust_level
+            ? `Trust level set to ${patch.trust_level}`
+            : patch.auto_publish != null
+              ? patch.auto_publish
+                ? "Auto-publish enabled"
+                : "Auto-publish disabled"
+              : successMessage;
+      applyContributorUpdate(refreshed, message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
+      const message = err instanceof Error ? err.message : "Update failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setBusy(false);
     }
@@ -78,12 +104,14 @@ export function AdminUsersPage() {
     if (!idToken || !selectedUid) return;
     setBusy(true);
     try {
-      if (disable) await api.adminDisableUser(idToken, selectedUid);
-      else await api.adminEnableUser(idToken, selectedUid);
-      const refreshed = await api.adminUserDetail(idToken, selectedUid);
-      setDetail(refreshed);
+      const refreshed = disable
+        ? await api.adminDisableUser(idToken, selectedUid)
+        : await api.adminEnableUser(idToken, selectedUid);
+      applyContributorUpdate(refreshed, disable ? "Account disabled" : "Account enabled");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Action failed");
+      const message = err instanceof Error ? err.message : "Action failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setBusy(false);
     }
@@ -157,7 +185,11 @@ export function AdminUsersPage() {
         footer={
           detail ? (
             <div className="flex flex-wrap gap-2">
-              <Button type="button" disabled={busy} onClick={() => void updateTrust({ trust_level: "trusted", auto_publish: true })}>
+              <Button
+                type="button"
+                disabled={busy}
+                onClick={() => void updateTrust({ trust_level: "trusted", auto_publish: true }, "Promoted to trusted")}
+              >
                 Promote to trusted
               </Button>
               {detail.disabled ? (

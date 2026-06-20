@@ -8,6 +8,7 @@ import { FilterBar, FilterField } from "../../components/admin/FilterBar";
 import { ModerationActions } from "../../components/admin/ModerationActions";
 import { StatusBadge } from "../../components/admin/StatusBadge";
 import { Badge } from "../../components/ui/Badge";
+import { useToast } from "../../components/ui/useToast";
 import type { ModerationItemRow } from "../../types";
 
 const PAGE_SIZE = 25;
@@ -21,6 +22,7 @@ function fmtAge(iso: string) {
 
 export function AdminModerationPage() {
   const { idToken } = useAuth();
+  const { toast } = useToast();
   const [rows, setRows] = useState<ModerationItemRow[]>([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -59,9 +61,19 @@ export function AdminModerationPage() {
       if (action === "approve") await api.adminModerationApprove(idToken, id);
       if (action === "reject") await api.adminModerationReject(idToken, id);
       if (action === "escalate") await api.adminModerationEscalate(idToken, id);
-      reload();
+      if (status === "all") {
+        reload();
+      } else {
+        setRows((prev) => prev.filter((r) => r.id !== id));
+        setTotal((t) => Math.max(0, t - 1));
+      }
+      setError(null);
+      const labels = { approve: "Approved", reject: "Rejected", escalate: "Escalated" };
+      toast(labels[action], "success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Action failed");
+      const message = err instanceof Error ? err.message : "Action failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setBusyId(null);
     }

@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import { Button } from "../../components/ui/Button";
+import { useToast } from "../../components/ui/useToast";
 import type {
   AdminAuditLogRow,
   GcpConsoleLinks,
@@ -142,6 +143,7 @@ function auditSummary(row: AdminAuditLogRow) {
 
 export function AdminLocationSeedingPage() {
   const { idToken } = useAuth();
+  const { toast } = useToast();
   const [runs, setRuns] = useState<RestaurantSeedJob[]>([]);
   const [runsTotal, setRunsTotal] = useState(0);
   const [runsOffset, setRunsOffset] = useState(0);
@@ -326,8 +328,11 @@ export function AdminLocationSeedingPage() {
       setLocations((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
       setAuditOffset(0);
       await loadAuditLog(0);
+      toast(updated.enabled ? "Location enabled" : "Location disabled", "success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
+      const message = err instanceof Error ? err.message : "Update failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setBusy(false);
     }
@@ -341,8 +346,11 @@ export function AdminLocationSeedingPage() {
     try {
       await api.adminDeleteSeedLocation(idToken, loc.id);
       setLocations((prev) => prev.filter((l) => l.id !== loc.id));
+      toast("Location removed", "success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Delete failed");
+      const message = err instanceof Error ? err.message : "Delete failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setBusy(false);
     }
@@ -368,10 +376,13 @@ export function AdminLocationSeedingPage() {
             ? "Scheduler sync skipped (not configured in this environment)."
             : `Scheduler sync failed: ${res.scheduler_sync.detail ?? "unknown error"}`;
       setMessage(`Auto-refresh settings saved. ${syncNote}`);
+      toast("Auto-refresh settings saved", "success");
       setAuditOffset(0);
       await loadAuditLog(0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Save failed");
+      const message = err instanceof Error ? err.message : "Save failed";
+      setError(message);
+      toast(message, "error");
     } finally {
       setBusy(false);
     }

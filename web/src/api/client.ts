@@ -446,16 +446,16 @@ export const api = {
     uid: string,
     body: { trust_level?: string; auto_publish?: boolean; trust_notes?: string },
   ) =>
-    request<{ status: string }>(`/v1/admin/users/${encodeURIComponent(uid)}/trust`, {
+    request<AdminContributorDetail>(`/v1/admin/users/${encodeURIComponent(uid)}/trust`, {
       method: "PATCH",
       body: JSON.stringify(body),
     }, token),
 
   adminDisableUser: (token: string, uid: string) =>
-    request<{ status: string }>(`/v1/admin/users/${encodeURIComponent(uid)}/disable`, { method: "POST" }, token),
+    request<AdminContributorDetail>(`/v1/admin/users/${encodeURIComponent(uid)}/disable`, { method: "POST" }, token),
 
   adminEnableUser: (token: string, uid: string) =>
-    request<{ status: string }>(`/v1/admin/users/${encodeURIComponent(uid)}/enable`, { method: "POST" }, token),
+    request<AdminContributorDetail>(`/v1/admin/users/${encodeURIComponent(uid)}/enable`, { method: "POST" }, token),
 
   adminRestaurants: (
     token: string,

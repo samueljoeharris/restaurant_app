@@ -292,39 +292,34 @@ def admin_merge_restaurants(
     return {"status": "merged"}
 
 
-@router.get("/users/{firebase_uid}", response_model=AdminContributorDetail)
-def admin_user_detail(
-    firebase_uid: str,
-    _admin: Annotated[AuthUser, Depends(require_admin)],
-) -> AdminContributorDetail:
-    with get_conn() as conn:
-        ensure_user_profile(conn, firebase_uid)
-        profile = conn.execute(
-            "SELECT * FROM user_profiles WHERE firebase_uid = %s", (firebase_uid,)
-        ).fetchone()
-        stats = conn.execute(
-            """
-            WITH combined AS (
-                SELECT firebase_uid, 'ttf'::text AS kind, created_at AS active_at
-                FROM ttf_observations WHERE firebase_uid = %s
-                UNION ALL
-                SELECT firebase_uid, 'attr', observed_at FROM restaurant_attribute_ratings
-                WHERE firebase_uid = %s
-                UNION ALL
-                SELECT firebase_uid, 'note', created_at FROM restaurant_notes
-                WHERE firebase_uid = %s
-            )
-            SELECT
-                COUNT(*) FILTER (WHERE kind = 'ttf')::int AS ttf_count,
-                COUNT(*) FILTER (WHERE kind = 'attr')::int AS attribute_count,
-                COUNT(*) FILTER (WHERE kind = 'note')::int AS note_count,
-                COUNT(*)::int AS total_contributions,
-                MAX(active_at) AS last_active_at
-            FROM combined
-            """,
-            (firebase_uid, firebase_uid, firebase_uid),
-        ).fetchone()
-        watches = watch_count(conn, firebase_uid)
+def _build_admin_contributor_detail(conn, firebase_uid: str) -> AdminContributorDetail:
+    ensure_user_profile(conn, firebase_uid)
+    profile = conn.execute(
+        "SELECT * FROM user_profiles WHERE firebase_uid = %s", (firebase_uid,)
+    ).fetchone()
+    stats = conn.execute(
+        """
+        WITH combined AS (
+            SELECT firebase_uid, 'ttf'::text AS kind, created_at AS active_at
+            FROM ttf_observations WHERE firebase_uid = %s
+            UNION ALL
+            SELECT firebase_uid, 'attr', observed_at FROM restaurant_attribute_ratings
+            WHERE firebase_uid = %s
+            UNION ALL
+            SELECT firebase_uid, 'note', created_at FROM restaurant_notes
+            WHERE firebase_uid = %s
+        )
+        SELECT
+            COUNT(*) FILTER (WHERE kind = 'ttf')::int AS ttf_count,
+            COUNT(*) FILTER (WHERE kind = 'attr')::int AS attribute_count,
+            COUNT(*) FILTER (WHERE kind = 'note')::int AS note_count,
+            COUNT(*)::int AS total_contributions,
+            MAX(active_at) AS last_active_at
+        FROM combined
+        """,
+        (firebase_uid, firebase_uid, firebase_uid),
+    ).fetchone()
+    watches = watch_count(conn, firebase_uid)
 
     email = None
     display_name = None
@@ -355,12 +350,21 @@ def admin_user_detail(
     )
 
 
-@router.patch("/users/{firebase_uid}/trust")
+@router.get("/users/{firebase_uid}", response_model=AdminContributorDetail)
+def admin_user_detail(
+    firebase_uid: str,
+    _admin: Annotated[AuthUser, Depends(require_admin)],
+) -> AdminContributorDetail:
+    with get_conn() as conn:
+        return _build_admin_contributor_detail(conn, firebase_uid)
+
+
+@router.patch("/users/{firebase_uid}/trust", response_model=AdminContributorDetail)
 def admin_update_trust(
     firebase_uid: str,
     body: AdminTrustUpdate,
     admin: Annotated[AuthUser, Depends(require_admin)],
-) -> dict:
+) -> AdminContributorDetail:
     with get_conn() as conn:
         set_user_trust(
             conn,
@@ -370,27 +374,27 @@ def admin_update_trust(
             auto_publish=body.auto_publish,
             trust_notes=body.trust_notes,
         )
-    return {"status": "updated"}
+        return _build_admin_contributor_detail(conn, firebase_uid)
 
 
-@router.post("/users/{firebase_uid}/disable")
+@router.post("/users/{firebase_uid}/disable", response_model=AdminContributorDetail)
 def admin_disable_user(
     firebase_uid: str,
     admin: Annotated[AuthUser, Depends(require_admin)],
-) -> dict[str, str]:
+) -> AdminContributorDetail:
     with get_conn() as conn:
         disable_user(conn, firebase_uid, admin)
-    return {"status": "disabled"}
+        return _build_admin_contributor_detail(conn, firebase_uid)
 
 
-@router.post("/users/{firebase_uid}/enable")
+@router.post("/users/{firebase_uid}/enable", response_model=AdminContributorDetail)
 def admin_enable_user(
     firebase_uid: str,
     admin: Annotated[AuthUser, Depends(require_admin)],
-) -> dict[str, str]:
+) -> AdminContributorDetail:
     with get_conn() as conn:
         enable_user(conn, firebase_uid, admin)
-    return {"status": "enabled"}
+        return _build_admin_contributor_detail(conn, firebase_uid)
 
 
 @router.post("/observations/{observation_id}/exclude")
