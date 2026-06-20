@@ -101,6 +101,18 @@ struct RestaurantMapEntry: Codable, Identifiable, Hashable {
 struct RestaurantDetailResponse: Codable, Hashable {
     let restaurant: RestaurantDetail
     let ttf: TtfAggregate
+    let watched: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case restaurant, ttf, watched
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        restaurant = try container.decode(RestaurantDetail.self, forKey: .restaurant)
+        ttf = try container.decode(TtfAggregate.self, forKey: .ttf)
+        watched = try container.decodeIfPresent(Bool.self, forKey: .watched) ?? false
+    }
 }
 
 struct PlacePracticalResponse: Codable, Hashable {

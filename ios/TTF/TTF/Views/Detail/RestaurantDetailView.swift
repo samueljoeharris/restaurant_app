@@ -9,6 +9,8 @@ struct RestaurantDetailView: View {
 
     @State private var viewModel: RestaurantDetailViewModel
     @State private var showSignIn = false
+    @State private var watched = false
+    @State private var watchBusy = false
 
     init(restaurantID: UUID) {
         self.restaurantID = restaurantID
@@ -42,6 +44,12 @@ struct RestaurantDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.load(api: api, fetchPractical: auth.isSignedIn)
+            if let detail = viewModel.detail {
+                watched = detail.watched
+            }
+        }
+        .onChange(of: viewModel.detail?.watched) { _, value in
+            if let value { watched = value }
         }
         .onChange(of: auth.isSignedIn) { _, signedIn in
             Task { await viewModel.load(api: api, fetchPractical: signedIn) }
@@ -167,6 +175,15 @@ struct RestaurantDetailView: View {
     private var actionLinks: some View {
         VStack(spacing: 12) {
             if auth.isSignedIn {
+                Button {
+                    Task { await toggleWatch() }
+                } label: {
+                    Label(watched ? "Saved" : "Watch", systemImage: watched ? "heart.fill" : "heart")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(watchBusy)
+
                 NavigationLink {
                     TtfSubmitView(restaurantID: restaurantID)
                 } label: {
@@ -257,5 +274,25 @@ struct RestaurantDetailView: View {
                 }
             }
         }
+    }
+
+    private func toggleWatch() async {
+        guard auth.isSignedIn else {
+            showSignIn = true
+            return
+        }
+        watchBusy = true
+        let next = !watched
+        watched = next
+        do {
+            if next {
+                try await api.watchRestaurant(id: restaurantID)
+            } else {
+                try await api.unwatchRestaurant(id: restaurantID)
+            }
+        } catch {
+            watched = !next
+        }
+        watchBusy = false
     }
 }
