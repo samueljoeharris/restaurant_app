@@ -71,11 +71,11 @@ Public read endpoints do not require auth. All **writes** require a valid Fireba
 Same auth as `app.dev` and Cursor Cloud agents. Use when testing Google sign-in, MFA, or production-like JWT verification.
 
 1. Copy Firebase Web SDK config into `web/.env.local` (`VITE_FIREBASE_*`). Do **not** set `VITE_USE_AUTH_EMULATOR`.
-2. Download `firebase-sa.json` (Firebase Console → Service accounts).
-3. In `.env`: leave `FIREBASE_AUTH_EMULATOR_HOST` unset; set `FIREBASE_SERVICE_ACCOUNT_PATH=firebase-sa.json` (and `AUTH_DEV_MODE=false` if you want only real tokens).
-4. Run `docker compose up -d postgres api` and `cd web && npm run dev`.
+2. Run `./scripts/sync-secrets.sh` (writes `.secrets/firebase-sa.json` and `web/.env.local` from Secret Manager).
+3. In `.env`: leave `FIREBASE_AUTH_EMULATOR_HOST` unset. `.env.defaults` sets `FIREBASE_SERVICE_ACCOUNT_PATH=.secrets/firebase-sa.json` (set `AUTH_DEV_MODE=false` if you want only real tokens).
+4. Run `./scripts/start-local.sh` and `cd web && npm run dev`.
 
-For Cursor Cloud, see [CLOUD_AGENT.md](CLOUD_AGENT.md) — paste `FIREBASE_SERVICE_ACCOUNT_JSON` as a Runtime Secret.
+For Cursor Cloud, see [CLOUD_AGENT.md](CLOUD_AGENT.md) — one Runtime Secret `GCP_DEV_SYNC_SA_JSON`; sync pulls everything else.
 
 ### Option B — Firebase Auth emulator (optional, no secrets)
 
@@ -104,8 +104,9 @@ VITE_FIREBASE_PROJECT_ID=ttf-restaurant-dev
 ```
 
 ```bash
-echo '{}' > firebase-sa.json   # compose bind-mount; unused with emulator
-docker compose --profile emulator up --build -d postgres api firebase-emulator
+mkdir -p .secrets && echo '{}' > .secrets/firebase-sa.json
+docker compose --profile emulator up --build -d postgres firebase-emulator
+./scripts/run-api.sh --reload &
 cd web && npm install && npm run dev   # http://localhost:5173
 ```
 
@@ -114,7 +115,7 @@ Test user (emulator): **`pilot@ttf.test`** / **`pilotpass123`**. Emulator UI: ht
 ### Option C — API-only smoke test (no web)
 
 ```bash
-docker compose up -d postgres api
+./scripts/start-local.sh
 curl -H "Authorization: Bearer dev:pilot-tester-1" http://localhost:8080/v1/me
 ```
 

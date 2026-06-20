@@ -183,21 +183,20 @@ Full runbook: [docs/CLOUD_AGENT.md](docs/CLOUD_AGENT.md). Use **two** Cursor sur
 Mac: `./scripts/sync-secrets.sh` after `gcloud auth application-default login` (replaces `merge-env-for-cursor.sh`).
 
 ```bash
-bash .cursor/scripts/cloud-eval-up.sh   # postgres + API (real Firebase JWT verify)
+bash .cursor/scripts/cloud-eval-up.sh   # postgres + native API (real Firebase JWT verify)
 cd web && npm run dev
 ```
 
 ### Local full-stack — real Firebase (default)
 
-Same auth as `app.dev` — use your real `web/.env.local` Firebase config and `firebase-sa.json`. Full steps: [docs/WEB_AUTH.md](docs/WEB_AUTH.md#option-a--real-firebase-locally-recommended).
+Same auth as `app.dev` — use your real `web/.env.local` Firebase config and `.secrets/firebase-sa.json` (via `./scripts/sync-secrets.sh`). Full steps: [docs/WEB_AUTH.md](docs/WEB_AUTH.md#option-a--real-firebase-locally-recommended).
 
 ```bash
-# .env — no FIREBASE_AUTH_EMULATOR_HOST; real SA path
-# web/.env.local — real VITE_FIREBASE_* (no VITE_USE_AUTH_EMULATOR)
-
-docker compose up --build -d postgres api
-cd web && npm run dev   # http://localhost:5173
+./scripts/start-local.sh   # postgres (Docker) + native uvicorn on :8080
+cd web && npm run dev      # http://localhost:5173
 ```
+
+Legacy Docker API path: `./scripts/start-local.sh --docker-api`
 
 Sign in with a real Firebase user on `ttf-restaurant-dev` (Google or email/password).
 
@@ -207,17 +206,19 @@ Sign in with a real Firebase user on `ttf-restaurant-dev` (Google or email/passw
 cp .env.example .env
 cp web/.env.example web/.env.local
 # In .env: FIREBASE_AUTH_EMULATOR_HOST=firebase-emulator:9099
+#   (load-dev-env.sh rewrites to localhost:9099 for native API)
 # In web/.env.local: VITE_API_URL=http://localhost:8080, VITE_USE_AUTH_EMULATOR=true,
 #   VITE_FIREBASE_API_KEY=fake-api-key-for-emulator (any value)
-echo '{}' > firebase-sa.json   # compose bind-mount; not used when emulator is enabled
+mkdir -p .secrets && echo '{}' > .secrets/firebase-sa.json
 
-docker compose --profile emulator up --build -d postgres api firebase-emulator
+docker compose --profile emulator up --build -d postgres firebase-emulator
+./scripts/run-api.sh --reload &
 cd web && npm run dev   # http://localhost:5173
 ```
 
 Test user (emulator): `pilot@ttf.test` / `pilotpass123`. Emulator UI: http://localhost:4000.
 
-API-only smoke test (no web): `docker compose up -d postgres api` then `curl http://localhost:8080/health`. Dev tokens (`AUTH_DEV_MODE=true`): `Authorization: Bearer dev:<uid>`.
+API-only smoke test (no web): `./scripts/start-local.sh` then `curl http://localhost:8080/health`. Dev tokens (`AUTH_DEV_MODE=true`): `Authorization: Bearer dev:<uid>`.
 
 ### Lint, test, CI
 
@@ -229,4 +230,4 @@ API-only smoke test (no web): `docker compose up -d postgres api` then `curl htt
 
 ### Seed data
 
-`docker compose run --rm api python scripts/seed_restaurants.py` needs `MAPS_API_KEY` in `.env`. Without it, create a test restaurant via `POST /v1/restaurants` with a dev token.
+`./scripts/run-api-script.sh seed_restaurants.py` needs `MAPS_API_KEY` in `.secrets/api.env` (via sync). Without it, create a test restaurant via `POST /v1/restaurants` with a dev token.

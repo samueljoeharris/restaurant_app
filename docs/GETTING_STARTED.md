@@ -94,8 +94,8 @@ Full guide: [`infra/terraform/README.md`](../infra/terraform/README.md)
 - [x] **Deploy dev** Phase A (Artifact Registry, GCS, secrets, IAM, WIF)
 - [x] Firebase + Maps key — see infra README
 - [x] Scaffold `api/` (FastAPI + migrations + OpenAPI)
-- [x] `docker compose up api` — verify `/health` and `/v1/metrics`
-- [x] Seed restaurants: `docker compose run --rm api python scripts/seed_restaurants.py`
+- [x] `./scripts/start-local.sh` — native API on :8080; verify `/health` and `/v1/metrics`
+- [x] Seed restaurants: `./scripts/run-api-script.sh seed_restaurants.py`
 - [x] Phase B enabled in `ci.tfvars` — Terraform CI provisions Cloud SQL + Cloud Run
 - [x] GitHub variable `GCP_DEPLOY_SERVICE_ACCOUNT` = `ttf-github-deploy@ttf-restaurant-dev.iam.gserviceaccount.com`
 - [x] API CI (`reusable-api.yml` via `deploy.yml`) — build, push, deploy when `api/**` changes on `main`
@@ -125,14 +125,15 @@ Phase B (`enable_cloud_sql`, `enable_cloud_run`) adds `ttf-db`, `ttf-api` — se
 After enabling in Console (or via API), create a test user and get an ID token:
 
 1. [Firebase Console](https://console.firebase.google.com/project/ttf-restaurant-dev/authentication/users) → **Add user** (email + password)
-2. Download `firebase-sa.json` (Project settings → Service accounts) for real JWT verify locally
+2. Run `./scripts/sync-secrets.sh` for `.secrets/firebase-sa.json` (real JWT verify locally)
 3. Or use Firebase JS SDK / REST to sign in and call `GET /v1/me` with the token
 
 Local emulator flow (no Console user needed):
 
 ```bash
-docker compose up firebase-emulator api postgres
-docker compose run --rm api python scripts/get_emulator_token.py --email pilot@ttf.test --password pilotpass123
+docker compose --profile emulator up -d postgres firebase-emulator
+./scripts/run-api-script.sh get_emulator_token.py --email pilot@ttf.test --password pilotpass123
+```
 ```
 
 ---

@@ -238,7 +238,7 @@ and the `RestaurantStore` decoder already handle the `RestaurantMapEntry` JSON.
 
 ## 7. Verification
 
-- **API:** `docker compose up -d postgres api`; with a dev token
+- **API:** `./scripts/start-local.sh`; with a dev token
   (`Authorization: Bearer dev:<uid>`, `AUTH_DEV_MODE=true`):
   - `GET /v1/restaurants/search?lat=42.24&lng=-71.17&radius_m=8000` → distance-sorted list (works without `MAPS_API_KEY`).
   - `GET /v1/places/autocomplete?q=dedh&session_token=<uuid>` → restaurant hits even when `MAPS_API_KEY` unset; place hits when set.

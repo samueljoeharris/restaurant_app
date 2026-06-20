@@ -44,7 +44,7 @@ use_emulator=false
 if $use_emulator; then
   mkdir -p .secrets
   echo '{}' > .secrets/firebase-sa.json
-  cp .secrets/firebase-sa.json firebase-sa.json 2>/dev/null || true
+  chmod 600 .secrets/firebase-sa.json
   WEB="$ROOT/.secrets/web.env.local"
   {
     echo "VITE_API_URL=http://localhost:8080"
@@ -67,7 +67,8 @@ else
     echo "WARN: No GCP credentials — set GCP_DEV_SYNC_SA_JSON in Cursor Runtime Secrets" >&2
     echo "      See docs/CLOUD_AGENT.md" >&2
     mkdir -p .secrets
-    [[ -f firebase-sa.json ]] && cp firebase-sa.json .secrets/firebase-sa.json 2>/dev/null || echo '{}' > .secrets/firebase-sa.json
+    [[ -f .secrets/firebase-sa.json ]] || echo '{}' > .secrets/firebase-sa.json
+    chmod 600 .secrets/firebase-sa.json
   fi
 fi
 
@@ -89,6 +90,6 @@ echo "  auth mode:         $($use_emulator && echo emulator || echo secret-manag
 echo "  .secrets/api.env:  $([[ -f .secrets/api.env ]] && echo yes || echo missing)"
 echo "  MAPS_API_KEY:      $([[ -n "$maps_api" ]] && echo set || echo MISSING)"
 echo "  VITE_GOOGLE_MAPS:  $([[ -n "$maps_web" ]] && echo set || echo MISSING)"
-echo "  firebase-sa.json:  $([[ "$sa_size" -gt 10 ]] && echo set || echo MISSING)"
+echo "  .secrets/firebase-sa.json: $([[ "$sa_size" -gt 10 ]] && echo set || echo MISSING)"
 echo "  GitHub PAT (MCP):  $([[ -n "$github_pat" ]] && echo set || echo missing)"
 echo "  web/.env.local:    synced from .secrets/"

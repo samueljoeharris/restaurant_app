@@ -4,7 +4,7 @@ set -euo pipefail
 
 PROJECT="${GCP_PROJECT:-ttf-restaurant-dev}"
 SECRET="ttf-firebase-admin-sa"
-KEY_FILE="${1:-firebase-sa.json}"
+KEY_FILE="${1:-.secrets/firebase-sa.json}"
 
 if [[ ! -f "$KEY_FILE" ]]; then
   echo "Usage: $0 [path-to-firebase-sa.json]" >&2

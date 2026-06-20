@@ -76,10 +76,10 @@ require_key "$ROOT/.secrets/web.env.local" VITE_GOOGLE_MAPS_API_KEY
 sa_size=0
 [[ -f "$ROOT/.secrets/firebase-sa.json" ]] && sa_size=$(wc -c <"$ROOT/.secrets/firebase-sa.json" | tr -d ' ')
 if [[ "$sa_size" -le 10 ]]; then
-  echo "  firebase-sa.json: MISSING or minimal ($sa_size bytes)"
+  echo "  .secrets/firebase-sa.json: MISSING or minimal ($sa_size bytes)"
   fail=1
 else
-  echo "  firebase-sa.json: set ($sa_size bytes)"
+  echo "  .secrets/firebase-sa.json: set ($sa_size bytes)"
 fi
 
 github_pat="$(read_kv "$ROOT/.secrets/mcp.env" GITHUB_PERSONAL_ACCESS_TOKEN)"

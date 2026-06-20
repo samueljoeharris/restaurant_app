@@ -35,8 +35,9 @@ if [ -f api/requirements.txt ]; then
 fi
 
 # --- No-secret local env scaffolding (Firebase Auth emulator flow, AGENTS.md) ---
+mkdir -p .secrets
 [ -f .env ]            || cp .env.example .env
 [ -f web/.env.local ]  || cp web/.env.example web/.env.local
-[ -f firebase-sa.json ] || echo '{}' > firebase-sa.json
+[ -f .secrets/firebase-sa.json ] || echo '{}' > .secrets/firebase-sa.json
 
 echo "session-start: web + API dependencies installed, local env scaffolded"

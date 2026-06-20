@@ -7,8 +7,9 @@ locals {
       title              = "Google Maps server API key"
       env_alias          = "MAPS_API_KEY"
       purpose            = "Server-side Places, Geocoding, and map seeding on the API"
-      consumers          = "Cloud Run API, local Docker API, seed_restaurants.py, dev-sync"
+      consumers          = "Cloud Run API, local native API, optional Docker API, seed_restaurants.py, dev-sync"
       category           = "api"
+      confidentiality    = "secret"
       sync_dev           = true
       version_managed_by = null
       placeholder_data   = null
@@ -20,6 +21,7 @@ locals {
       purpose            = "Maps JavaScript API for web pilot map UI"
       consumers          = "Cloud Run web build (GitHub Actions), local Vite, dev-sync"
       category           = "web"
+      confidentiality    = "public-build"
       sync_dev           = true
       version_managed_by = "maps-web.tf"
       placeholder_data   = null
@@ -31,6 +33,7 @@ locals {
       purpose            = "Public Firebase web app config for sign-in and App Check"
       consumers          = "Cloud Run web/admin builds, local Vite, dev-sync"
       category           = "web"
+      confidentiality    = "public-build"
       sync_dev           = true
       version_managed_by = "firebase.tf"
       placeholder_data   = null
@@ -38,10 +41,11 @@ locals {
     }
     ttf-firebase-admin-sa = {
       title              = "Firebase Admin service account JSON"
-      env_alias          = "firebase-sa.json"
+      env_alias          = ".secrets/firebase-sa.json"
       purpose            = "Verify Firebase ID tokens on the API (JWT)"
-      consumers          = "Cloud Run API file mount, local Docker API, dev-sync"
+      consumers          = "Cloud Run API file mount, local native API, optional Docker API, dev-sync"
       category           = "api"
+      confidentiality    = "secret"
       sync_dev           = true
       version_managed_by = null
       placeholder_data   = null
@@ -51,8 +55,9 @@ locals {
       title              = "Google Gemini API key"
       env_alias          = "GEMINI_API_KEY"
       purpose            = "Review chat and structured extraction on the API"
-      consumers          = "Cloud Run API, local Docker API, dev-sync"
+      consumers          = "Cloud Run API, local native API, optional Docker API, dev-sync"
       category           = "api"
+      confidentiality    = "secret"
       sync_dev           = true
       version_managed_by = null
       placeholder_data   = null
@@ -64,6 +69,7 @@ locals {
       purpose            = "GitHub MCP server in Cursor (issues, PRs) — dev only"
       consumers          = "dev-sync → .secrets/mcp.env, Cursor MCP"
       category           = "dev-tool"
+      confidentiality    = "secret"
       sync_dev           = true
       version_managed_by = null
       placeholder_data   = null
@@ -75,6 +81,7 @@ locals {
       purpose            = "Automated sign-in for cloud-agent or local browser smoke tests"
       consumers          = "dev-sync → .secrets/dev-test.env (optional)"
       category           = "dev-tool"
+      confidentiality    = "secret"
       sync_dev           = true
       version_managed_by = null
       placeholder_data   = "{\"email\":\"\",\"password\":\"\",\"note\":\"Replace via gcloud secrets versions add\"}"
@@ -86,6 +93,7 @@ locals {
       purpose            = "Revoke Apple refresh tokens when users delete accounts (App Store 5.1.1v)"
       consumers          = "Cloud Run API when apple_sign_in_key_configured=true, dev-sync"
       category           = "api"
+      confidentiality    = "secret"
       sync_dev           = true
       version_managed_by = null
       placeholder_data   = "{\"team_id\":\"\",\"key_id\":\"\",\"private_key\":\"\",\"client_id\":\"com.samueljoeharris.ttf\",\"note\":\"Replace via gcloud secrets versions add\"}"
@@ -97,6 +105,7 @@ locals {
       purpose            = "Firebase App Check on web (optional locally)"
       consumers          = "Cloud Run web build, local Vite, dev-sync"
       category           = "web"
+      confidentiality    = "public-build"
       sync_dev           = true
       version_managed_by = "app-check.tf"
       placeholder_data   = null
@@ -108,6 +117,7 @@ locals {
       purpose            = "Google OAuth wall on admin.dev / admin prod load balancer"
       consumers          = "Terraform CI (IAP), not dev-sync"
       category           = "terraform"
+      confidentiality    = "secret"
       sync_dev           = false
       version_managed_by = "iap.tf"
       placeholder_data   = null
@@ -119,6 +129,7 @@ locals {
       purpose            = "Postgres DSN for Cloud Run API (Unix socket)"
       consumers          = "Cloud Run API runtime only"
       category           = "infra"
+      confidentiality    = "secret"
       sync_dev           = false
       version_managed_by = "phase-b.tf"
       placeholder_data   = null
@@ -130,6 +141,7 @@ locals {
       purpose            = "Auth for Cloud Scheduler → weekly restaurant refresh endpoint"
       consumers          = "Cloud Run API, Cloud Scheduler"
       category           = "infra"
+      confidentiality    = "secret"
       sync_dev           = false
       version_managed_by = "phase-b.tf"
       placeholder_data   = null
@@ -141,6 +153,7 @@ locals {
       purpose            = "Canonical HTTPS URL written after custom domain LB is live"
       consumers          = "GitHub Actions deploy workflows, networking"
       category           = "infra"
+      confidentiality    = "deploy-config"
       sync_dev           = false
       version_managed_by = "networking.tf"
       placeholder_data   = null
@@ -152,6 +165,7 @@ locals {
       purpose            = "Canonical HTTPS URL for pilot web Cloud Run + LB"
       consumers          = "GitHub Actions web deploy, CORS config"
       category           = "infra"
+      confidentiality    = "deploy-config"
       sync_dev           = false
       version_managed_by = "networking.tf"
       placeholder_data   = null
@@ -163,6 +177,7 @@ locals {
       purpose            = "Canonical HTTPS URL for operator admin web + IAP"
       consumers          = "GitHub Actions admin deploy, IAP config"
       category           = "infra"
+      confidentiality    = "deploy-config"
       sync_dev           = false
       version_managed_by = "networking.tf"
       placeholder_data   = null

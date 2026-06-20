@@ -27,7 +27,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--service-account",
-        default=os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH", "firebase-sa.json"),
+        default=os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH", ".secrets/firebase-sa.json"),
     )
     args = parser.parse_args()
 

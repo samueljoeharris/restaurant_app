@@ -21,6 +21,7 @@ gcloud secrets list \
   --format='table(
     name.basename():label=SECRET_ID,
     labels.category:label=CATEGORY,
+    labels.confidentiality:label=TYPE,
     labels.environment:label=ENV,
     labels.sync_dev:label=SYNC_DEV,
     annotations.title:label=TITLE,
