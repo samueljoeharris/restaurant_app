@@ -254,7 +254,14 @@ class LocationRefreshConfigSaveResponse(BaseModel):
 
 class AdminAuditLogRow(BaseModel):
     id: UUID
-    category: Literal["refresh_config", "seed_location"]
+    category: Literal[
+        "refresh_config",
+        "seed_location",
+        "moderation",
+        "observation",
+        "user_trust",
+        "restaurant",
+    ]
     action: str
     entity_id: str | None = None
     changed_by_uid: str | None = None
@@ -507,6 +514,7 @@ class TtfSubmissionResponse(BaseModel):
     elapsed_minutes: int
     item_type: str
     item_quality: int
+    pending_review: bool = False
 
 
 class AttributeSubmissionRequest(BaseModel):
@@ -518,6 +526,7 @@ class AttributeSubmissionRequest(BaseModel):
 class AttributeSubmissionResponse(BaseModel):
     id: UUID
     metric_key: str
+    pending_review: bool = False
 
 
 class NoteSubmissionRequest(BaseModel):
@@ -536,6 +545,7 @@ class NoteSubmissionResponse(BaseModel):
     text: str
     tags: list[str]
     created_at: datetime
+    pending_review: bool = False
 
 
 # --- Admin ---
@@ -567,6 +577,8 @@ class AdminContributorRow(BaseModel):
     email: str | None = None
     display_name: str | None = None
     disabled: bool | None = None
+    trust_level: str | None = None
+    auto_publish: bool | None = None
     ttf_count: int
     attribute_count: int
     note_count: int
@@ -593,6 +605,7 @@ class AdminRestaurantRow(BaseModel):
     ttf_avg_quality: float | None = None
     attribute_rating_count: int
     note_count: int
+    pending_moderation_count: int = 0
     updated_at: datetime
 
 
@@ -613,6 +626,10 @@ class AdminObservationRow(BaseModel):
     item_quality: int
     daypart: str
     created_at: datetime
+    excluded_from_aggregate: bool = False
+    exclusion_reason: str | None = None
+    moderation_status: str = "approved"
+    restaurant_median_minutes: float | None = None
 
 
 class AdminObservationsResponse(BaseModel):
@@ -631,6 +648,122 @@ class AdminActivityDay(BaseModel):
 
 class AdminActivityResponse(BaseModel):
     days: list[AdminActivityDay]
+
+
+class AdminAttentionStats(BaseModel):
+    pending_moderation: int
+    escalated: int
+    flagged_observations: int
+    restricted_users: int
+    new_contributors_active: int
+    stale_review_count: int
+
+
+class ModerationSettingsResponse(BaseModel):
+    moderation_enabled: bool
+    moderation_auto_flag_urls_in_notes: bool
+    moderation_auto_flag_ttf_outlier_z: float
+    moderation_new_user_hold: bool
+
+
+class ModerationReviewRequest(BaseModel):
+    review_notes: str | None = None
+
+
+class ModerationItemRow(BaseModel):
+    id: UUID
+    content_type: Literal["note", "ttf_observation", "attribute_rating", "ai_draft"]
+    content_id: UUID
+    restaurant_id: UUID
+    restaurant_name: str | None = None
+    firebase_uid: str
+    author_email: str | None = None
+    author_trust_level: str | None = None
+    status: Literal["pending", "approved", "rejected", "escalated", "removed"]
+    visibility: Literal["hidden", "public", "removed"]
+    source: Literal["user_submit", "auto_flag", "user_report", "admin_escalation"]
+    flag_reasons: list[str]
+    report_count: int
+    preview_text: str | None = None
+    created_at: datetime
+    reviewed_at: datetime | None = None
+
+
+class ModerationListResponse(BaseModel):
+    items: list[ModerationItemRow]
+    total: int
+    limit: int
+    offset: int
+
+
+class ObservationExcludeRequest(BaseModel):
+    reason: str = Field(min_length=1, max_length=500)
+
+
+class AdminRestaurantDetail(BaseModel):
+    id: UUID
+    name: str
+    address: str
+    lat: float
+    lng: float
+    cuisine_tags: list[str]
+    status: Literal["active", "closed", "outside_area", "tombstoned"]
+    tombstone_reason: str | None = None
+    google_place_id: str | None = None
+    ttf_sample_size: int
+    ttf_median_minutes: float | None = None
+    note_count: int
+    pending_moderation_count: int
+    updated_at: datetime
+
+
+class AdminRestaurantUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    address: str | None = Field(default=None, min_length=1, max_length=500)
+    lat: float | None = None
+    lng: float | None = None
+    cuisine_tags: list[str] | None = None
+    status: Literal["active", "closed", "outside_area", "tombstoned"] | None = None
+
+
+class AdminRestaurantMergeRequest(BaseModel):
+    source_id: UUID
+    target_id: UUID
+    reason: str = Field(min_length=1, max_length=500)
+
+
+class AdminContributorDetail(BaseModel):
+    firebase_uid: str
+    email: str | None = None
+    display_name: str | None = None
+    disabled: bool | None = None
+    trust_level: str
+    auto_publish: bool
+    trust_notes: str | None = None
+    watch_count: int
+    ttf_count: int
+    attribute_count: int
+    note_count: int
+    total_contributions: int
+    last_active_at: datetime | None = None
+
+
+class AdminTrustUpdate(BaseModel):
+    trust_level: Literal["new", "standard", "trusted", "restricted"] | None = None
+    auto_publish: bool | None = None
+    trust_notes: str | None = None
+
+
+class ContentReportRequest(BaseModel):
+    content_type: Literal["note", "ttf_observation", "attribute_rating"]
+    content_id: UUID
+    reason: str = Field(min_length=1, max_length=200)
+    details: str | None = Field(default=None, max_length=2000)
+
+
+class ContentReportResponse(BaseModel):
+    id: UUID
+    queued: bool = True
 
 
 # --- Places autocomplete & resolve ---

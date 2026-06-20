@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { api } from "../../api/client";
@@ -6,13 +6,15 @@ import { useAuth } from "../../auth/useAuth";
 import { publicAppHandoffUrl } from "../../auth/handoff";
 import { PUBLIC_APP_URL } from "../../buildTarget";
 import { cn } from "../../lib/cn";
+import { Badge } from "../ui/Badge";
 
 const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin", label: "Overview", end: true },
+  { to: "/admin/moderation", label: "Moderation" },
   { to: "/admin/restaurants", label: "Restaurants" },
-  { to: "/admin/locations", label: "Location seeding" },
   { to: "/admin/users", label: "Contributors" },
-  { to: "/admin/observations", label: "Observation log" },
+  { to: "/admin/data", label: "Data & observations" },
+  { to: "/admin/tools/locations", label: "Location seeding" },
   { to: "/admin/account", label: "Security" },
 ];
 
@@ -23,6 +25,15 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { user, idToken, logout } = useAuth();
   const [publicNavBusy, setPublicNavBusy] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (!idToken) return;
+    api
+      .adminAttention(idToken)
+      .then((a) => setPendingCount(a.pending_moderation))
+      .catch(() => setPendingCount(0));
+  }, [idToken, location.pathname]);
 
   async function openPublicApp() {
     if (publicNavBusy) return;
@@ -64,13 +75,16 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "rounded-sm px-3 py-2 text-sm font-semibold text-text-muted transition-[color,background] duration-fast",
+                  "flex items-center justify-between rounded-sm px-3 py-2 text-sm font-semibold text-text-muted transition-[color,background] duration-fast",
                   active
                     ? "bg-brand-soft text-text"
                     : "hover:bg-brand-soft hover:text-text",
                 )}
               >
-                {item.label}
+                <span>{item.label}</span>
+                {item.to === "/admin/moderation" && pendingCount > 0 ? (
+                  <Badge variant="warning">{pendingCount}</Badge>
+                ) : null}
               </Link>
             );
           })}

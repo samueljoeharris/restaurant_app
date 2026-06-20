@@ -105,10 +105,15 @@ Deployed service: **`ttf-admin-web`** at `https://admin.dev.littlescout.app`.
 
 | Route | Purpose |
 |-------|---------|
-| `/admin` | Overview |
-| `/admin/restaurants` | Restaurant management |
-| `/admin/contributors` | Contributor list |
-| `/admin/observations` | Observation log |
+| `/admin` | Overview (attention-first dashboard) |
+| `/admin/moderation` | Moderation queue |
+| `/admin/restaurants` | Restaurant management (edit, merge) |
+| `/admin/users` | Contributors (trust, disable) |
+| `/admin/data` | Data & observations (outlier exclude) |
+| `/admin/tools/locations` | Location seeding |
+| `/admin/account` | Security (MFA) |
+
+Operator runbook: [ADMIN_MODERATION.md](ADMIN_MODERATION.md).
 | `/access-denied` | IAP passed but no admin claim |
 
 API enforcement: `role: admin` custom claim on all `/v1/admin/*` endpoints.

@@ -9,6 +9,7 @@ from ttf_api.security_config import assert_safe_auth_config
 from ttf_api.http_cache import ETagMiddleware
 from ttf_api.routers import (
     admin,
+    admin_moderation,
     auth_info,
     contributions,
     coverage,
@@ -17,6 +18,7 @@ from ttf_api.routers import (
     me,
     metrics,
     places,
+    reports,
     restaurants,
     review_chat,
     users,
@@ -58,11 +60,13 @@ app.include_router(auth_info.router)
 app.include_router(users.router)
 app.include_router(me.router)
 app.include_router(admin.router)
+app.include_router(admin_moderation.router)
 app.include_router(restaurants.router)
 app.include_router(places.router)
 app.include_router(coverage.router)
 app.include_router(metrics.router)
 app.include_router(contributions.router)
+app.include_router(reports.router)
 app.include_router(review_chat.router)
 
 # Security headers (CSP/X-Content-Type-Options/etc) on every response. Added

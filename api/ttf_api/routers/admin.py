@@ -61,6 +61,7 @@ from ttf_api.seed_jobs import (
     update_refresh_config,
     update_seed_location,
 )
+from ttf_api.ugc_sql import TTF_AGGREGATE_FILTER
 
 router = APIRouter(prefix="/v1/admin", tags=["admin"])
 
@@ -370,6 +371,8 @@ def admin_users(
     _admin: Annotated[AuthUser, Depends(require_admin)],
     limit: int = Query(50, ge=1, le=_MAX_LIMIT),
     offset: int = Query(0, ge=0),
+    trust_level: str | None = Query(None),
+    disabled: bool | None = Query(None),
 ) -> AdminContributorsResponse:
     limit = _clamp_limit(limit)
     with get_conn() as conn:
@@ -395,14 +398,17 @@ def admin_users(
                 SELECT firebase_uid, 'note', created_at FROM restaurant_notes
             )
             SELECT
-                firebase_uid,
+                c.firebase_uid,
                 COUNT(*) FILTER (WHERE kind = 'ttf')::int AS ttf_count,
                 COUNT(*) FILTER (WHERE kind = 'attr')::int AS attribute_count,
                 COUNT(*) FILTER (WHERE kind = 'note')::int AS note_count,
                 COUNT(*)::int AS total_contributions,
-                MAX(active_at) AS last_active_at
-            FROM combined
-            GROUP BY firebase_uid
+                MAX(c.active_at) AS last_active_at,
+                p.trust_level,
+                p.auto_publish
+            FROM combined c
+            LEFT JOIN user_profiles p ON p.firebase_uid = c.firebase_uid
+            GROUP BY c.firebase_uid, p.trust_level, p.auto_publish
             ORDER BY last_active_at DESC NULLS LAST
             LIMIT %s OFFSET %s
             """,
@@ -412,6 +418,8 @@ def admin_users(
     items = [
         AdminContributorRow(
             firebase_uid=r["firebase_uid"],
+            trust_level=r.get("trust_level"),
+            auto_publish=r.get("auto_publish"),
             ttf_count=int(r["ttf_count"]),
             attribute_count=int(r["attribute_count"]),
             note_count=int(r["note_count"]),
@@ -421,6 +429,10 @@ def admin_users(
         for r in rows
     ]
     items = _enrich_firebase_users(items)
+    if trust_level:
+        items = [i for i in items if i.trust_level == trust_level]
+    if disabled is not None:
+        items = [i for i in items if i.disabled == disabled]
 
     return AdminContributorsResponse(
         items=items,
@@ -434,6 +446,9 @@ def admin_users(
 def admin_restaurants(
     _admin: Annotated[AuthUser, Depends(require_admin)],
     q: str | None = Query(None, max_length=100),
+    status: str | None = Query(None),
+    cuisine_tag: str | None = Query(None),
+    has_pending_moderation: bool | None = Query(None),
     limit: int = Query(50, ge=1, le=_MAX_LIMIT),
     offset: int = Query(0, ge=0),
 ) -> AdminRestaurantsResponse:
@@ -443,6 +458,16 @@ def admin_restaurants(
     if q and q.strip():
         where += " AND r.name ILIKE %s"
         params.append(f"%{q.strip()}%")
+    if status:
+        where += " AND r.status = %s"
+        params.append(status)
+    if cuisine_tag:
+        where += " AND %s = ANY(r.cuisine_tags)"
+        params.append(cuisine_tag)
+    if has_pending_moderation is True:
+        where += " AND EXISTS (SELECT 1 FROM moderation_items m WHERE m.restaurant_id = r.id AND m.status = 'pending')"
+    elif has_pending_moderation is False:
+        where += " AND NOT EXISTS (SELECT 1 FROM moderation_items m WHERE m.restaurant_id = r.id AND m.status = 'pending')"
 
     with get_conn() as conn:
         total = conn.execute(
@@ -463,7 +488,8 @@ def admin_restaurants(
                 t.median_minutes AS ttf_median_minutes,
                 t.avg_quality AS ttf_avg_quality,
                 COALESCE(a.cnt, 0)::int AS attribute_rating_count,
-                COALESCE(n.cnt, 0)::int AS note_count
+                COALESCE(n.cnt, 0)::int AS note_count,
+                COALESCE(pending.cnt, 0)::int AS pending_moderation_count
             FROM restaurants r
             LEFT JOIN LATERAL (
                 SELECT
@@ -472,19 +498,23 @@ def admin_restaurants(
                         AS median_minutes,
                     AVG(item_quality)::float AS avg_quality
                 FROM ttf_observations o
-                WHERE o.restaurant_id = r.id
+                WHERE o.restaurant_id = r.id AND {TTF_AGGREGATE_FILTER}
             ) t ON true
             LEFT JOIN LATERAL (
                 SELECT COUNT(*)::int AS cnt
                 FROM restaurant_attribute_ratings ar
-                WHERE ar.restaurant_id = r.id
+                WHERE ar.restaurant_id = r.id AND ar.moderation_status = 'approved'
             ) a ON true
             LEFT JOIN LATERAL (
                 SELECT COUNT(*)::int AS cnt FROM restaurant_notes rn
-                WHERE rn.restaurant_id = r.id
+                WHERE rn.restaurant_id = r.id AND rn.moderation_status = 'approved'
             ) n ON true
+            LEFT JOIN LATERAL (
+                SELECT COUNT(*)::int AS cnt FROM moderation_items m
+                WHERE m.restaurant_id = r.id AND m.status = 'pending'
+            ) pending ON true
             {where}
-            ORDER BY ttf_sample_size DESC, r.name
+            ORDER BY pending_moderation_count DESC, ttf_sample_size DESC, r.name
             LIMIT %s OFFSET %s
             """,
             tuple([*params, limit, offset]),
@@ -504,6 +534,7 @@ def admin_restaurants(
                 ttf_avg_quality=r["ttf_avg_quality"],
                 attribute_rating_count=int(r["attribute_rating_count"]),
                 note_count=int(r["note_count"]),
+                pending_moderation_count=int(r["pending_moderation_count"]),
                 updated_at=r["updated_at"],
             )
             for r in rows
@@ -786,32 +817,63 @@ def admin_restaurant_changelog(
 @router.get("/observations", response_model=AdminObservationsResponse)
 def admin_observations(
     _admin: Annotated[AuthUser, Depends(require_admin)],
+    restaurant_id: UUID | None = Query(None),
+    firebase_uid: str | None = Query(None),
+    daypart: str | None = Query(None),
+    excluded: bool | None = Query(None),
+    min_minutes: int | None = Query(None, ge=1),
+    max_minutes: int | None = Query(None, le=180),
     limit: int = Query(50, ge=1, le=_MAX_LIMIT),
     offset: int = Query(0, ge=0),
 ) -> AdminObservationsResponse:
     limit = _clamp_limit(limit)
+    clauses = ["1=1"]
+    params: list[object] = []
+    if restaurant_id:
+        clauses.append("o.restaurant_id = %s")
+        params.append(restaurant_id)
+    if firebase_uid:
+        clauses.append("o.firebase_uid = %s")
+        params.append(firebase_uid)
+    if daypart:
+        clauses.append("o.daypart = %s")
+        params.append(daypart)
+    if excluded is not None:
+        clauses.append("o.excluded_from_aggregate = %s")
+        params.append(excluded)
+    if min_minutes is not None:
+        clauses.append("o.elapsed_minutes >= %s")
+        params.append(min_minutes)
+    if max_minutes is not None:
+        clauses.append("o.elapsed_minutes <= %s")
+        params.append(max_minutes)
+    where = " AND ".join(clauses)
+
     with get_conn() as conn:
         total = conn.execute(
-            "SELECT COUNT(*)::int AS total FROM ttf_observations"
+            f"SELECT COUNT(*)::int AS total FROM ttf_observations o WHERE {where}",
+            tuple(params),
         ).fetchone()
         rows = conn.execute(
-            """
+            f"""
             SELECT
-                o.id,
-                o.restaurant_id,
-                r.name AS restaurant_name,
-                o.firebase_uid,
-                o.elapsed_minutes,
-                o.item_type,
-                o.item_quality,
-                o.daypart,
-                o.created_at
+                o.id, o.restaurant_id, r.name AS restaurant_name, o.firebase_uid,
+                o.elapsed_minutes, o.item_type, o.item_quality, o.daypart, o.created_at,
+                o.excluded_from_aggregate, o.exclusion_reason, o.moderation_status,
+                med.median_minutes AS restaurant_median_minutes
             FROM ttf_observations o
             JOIN restaurants r ON r.id = o.restaurant_id
+            LEFT JOIN LATERAL (
+                SELECT PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY elapsed_minutes)::float
+                    AS median_minutes
+                FROM ttf_observations t
+                WHERE t.restaurant_id = o.restaurant_id AND {TTF_AGGREGATE_FILTER}
+            ) med ON true
+            WHERE {where}
             ORDER BY o.created_at DESC
             LIMIT %s OFFSET %s
             """,
-            (limit, offset),
+            tuple([*params, limit, offset]),
         ).fetchall()
 
     return AdminObservationsResponse(
@@ -826,6 +888,10 @@ def admin_observations(
                 item_quality=int(r["item_quality"]),
                 daypart=r["daypart"],
                 created_at=r["created_at"],
+                excluded_from_aggregate=bool(r["excluded_from_aggregate"]),
+                exclusion_reason=r.get("exclusion_reason"),
+                moderation_status=r["moderation_status"],
+                restaurant_median_minutes=r.get("restaurant_median_minutes"),
             )
             for r in rows
         ],

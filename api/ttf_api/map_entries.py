@@ -5,16 +5,16 @@ from __future__ import annotations
 from uuid import UUID
 
 from ttf_api.schemas import RestaurantMapEntry, TtfAggregate
+from ttf_api.ugc_sql import (
+    PUBLIC_ATTRIBUTE_COUNT_SUBQUERY,
+    PUBLIC_NOTE_COUNT_SUBQUERY,
+    TTF_AGGREGATE_SUBQUERY,
+)
 
-_MAP_JOINS = """
-    LEFT JOIN (
-        SELECT restaurant_id, COUNT(*)::int AS sample_size,
-            PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY elapsed_minutes) AS median_minutes,
-            AVG(item_quality)::float AS avg_quality, MAX(created_at) AS last_updated
-        FROM ttf_observations GROUP BY restaurant_id
-    ) t ON r.id = t.restaurant_id
-    LEFT JOIN (SELECT restaurant_id, COUNT(*)::int AS note_count FROM restaurant_notes GROUP BY restaurant_id) n ON n.restaurant_id = r.id
-    LEFT JOIN (SELECT restaurant_id, COUNT(*)::int AS attribute_rating_count FROM restaurant_attribute_ratings GROUP BY restaurant_id) a ON a.restaurant_id = r.id
+_MAP_JOINS = f"""
+    LEFT JOIN ({TTF_AGGREGATE_SUBQUERY}) t ON r.id = t.restaurant_id
+    LEFT JOIN ({PUBLIC_NOTE_COUNT_SUBQUERY}) n ON n.restaurant_id = r.id
+    LEFT JOIN ({PUBLIC_ATTRIBUTE_COUNT_SUBQUERY}) a ON a.restaurant_id = r.id
 """
 
 MAP_SELECT = f"""

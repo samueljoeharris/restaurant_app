@@ -1,15 +1,20 @@
 import { getAppCheckToken } from "../appCheck";
 import type {
   AdminActivityDay,
+  AdminAttentionStats,
   AdminAuditLogRow,
+  AdminContributorDetail,
   AdminContributorRow,
   AdminObservationRow,
   AdminOverviewStats,
   AdminRefreshRunResponse,
+  AdminRestaurantDetail,
   AdminRestaurantRow,
+  ModerationItemRow,
   AttributeEntry,
   ContributionDraft,
   ContributionPreviewResponse,
+  ContributionSubmitResponse,
   ContributionSchema,
   CoverageEnsureResponse,
   CoverageJobStatus,
@@ -365,7 +370,7 @@ export const api = {
     ),
 
   submitContributions: (id: string, body: ContributionDraft, token: string) =>
-    request(`/v1/restaurants/${id}/contributions`, {
+    request<ContributionSubmitResponse>(`/v1/restaurants/${id}/contributions`, {
       method: "POST",
       body: JSON.stringify(body),
     }, token),
@@ -378,7 +383,7 @@ export const api = {
     ),
 
   submitPlaceContributions: (placeId: string, body: ContributionDraft, token: string) =>
-    request(`/v1/places/${encodeURIComponent(placeId)}/contributions`, {
+    request<ContributionSubmitResponse>(`/v1/places/${encodeURIComponent(placeId)}/contributions`, {
       method: "POST",
       body: JSON.stringify(body),
     }, token),
@@ -411,6 +416,9 @@ export const api = {
   adminStats: (token: string) =>
     request<AdminOverviewStats>("/v1/admin/stats", {}, token),
 
+  adminAttention: (token: string) =>
+    request<AdminAttentionStats>("/v1/admin/attention", {}, token),
+
   adminActivity: (token: string, days = 14) =>
     request<{ days: AdminActivityDay[] }>(
       `/v1/admin/activity?days=${days}`,
@@ -418,16 +426,55 @@ export const api = {
       token,
     ),
 
-  adminUsers: (token: string, limit = 50, offset = 0) =>
-    request<Paginated<AdminContributorRow>>(
-      `/v1/admin/users?limit=${limit}&offset=${offset}`,
-      {},
-      token,
-    ),
+  adminUsers: (
+    token: string,
+    opts: { limit?: number; offset?: number; trust_level?: string; disabled?: boolean } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    if (opts.trust_level) params.set("trust_level", opts.trust_level);
+    if (opts.disabled != null) params.set("disabled", String(opts.disabled));
+    return request<Paginated<AdminContributorRow>>(`/v1/admin/users?${params}`, {}, token);
+  },
 
-  adminRestaurants: (token: string, opts: { q?: string; limit?: number; offset?: number } = {}) => {
+  adminUserDetail: (token: string, uid: string) =>
+    request<AdminContributorDetail>(`/v1/admin/users/${encodeURIComponent(uid)}`, {}, token),
+
+  adminUpdateUserTrust: (
+    token: string,
+    uid: string,
+    body: { trust_level?: string; auto_publish?: boolean; trust_notes?: string },
+  ) =>
+    request<{ status: string }>(`/v1/admin/users/${encodeURIComponent(uid)}/trust`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }, token),
+
+  adminDisableUser: (token: string, uid: string) =>
+    request<{ status: string }>(`/v1/admin/users/${encodeURIComponent(uid)}/disable`, { method: "POST" }, token),
+
+  adminEnableUser: (token: string, uid: string) =>
+    request<{ status: string }>(`/v1/admin/users/${encodeURIComponent(uid)}/enable`, { method: "POST" }, token),
+
+  adminRestaurants: (
+    token: string,
+    opts: {
+      q?: string;
+      status?: string;
+      cuisine_tag?: string;
+      has_pending_moderation?: boolean;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ) => {
     const params = new URLSearchParams();
     if (opts.q) params.set("q", opts.q);
+    if (opts.status) params.set("status", opts.status);
+    if (opts.cuisine_tag) params.set("cuisine_tag", opts.cuisine_tag);
+    if (opts.has_pending_moderation != null) {
+      params.set("has_pending_moderation", String(opts.has_pending_moderation));
+    }
     params.set("limit", String(opts.limit ?? 50));
     params.set("offset", String(opts.offset ?? 0));
     return request<Paginated<AdminRestaurantRow>>(
@@ -437,12 +484,125 @@ export const api = {
     );
   },
 
-  adminObservations: (token: string, limit = 50, offset = 0) =>
-    request<Paginated<AdminObservationRow>>(
-      `/v1/admin/observations?limit=${limit}&offset=${offset}`,
+  adminRestaurantDetail: (token: string, id: string) =>
+    request<AdminRestaurantDetail>(`/v1/admin/restaurants/${id}`, {}, token),
+
+  adminUpdateRestaurant: (
+    token: string,
+    id: string,
+    body: Partial<{
+      name: string;
+      address: string;
+      lat: number;
+      lng: number;
+      cuisine_tags: string[];
+      status: AdminRestaurantRow["status"];
+    }>,
+  ) =>
+    request<AdminRestaurantDetail>(`/v1/admin/restaurants/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }, token),
+
+  adminMergeRestaurants: (
+    token: string,
+    body: { source_id: string; target_id: string; reason: string },
+  ) =>
+    request<{ status: string }>("/v1/admin/restaurants/merge", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
+
+  adminModeration: (
+    token: string,
+    opts: {
+      status?: string;
+      content_type?: string;
+      source?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("status", opts.status ?? "pending");
+    if (opts.content_type) params.set("content_type", opts.content_type);
+    if (opts.source) params.set("source", opts.source);
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    return request<Paginated<ModerationItemRow>>(`/v1/admin/moderation?${params}`, {}, token);
+  },
+
+  adminModerationApprove: (token: string, id: string, review_notes?: string) =>
+    request<{ status: string }>(`/v1/admin/moderation/${id}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ review_notes: review_notes ?? null }),
+    }, token),
+
+  adminModerationReject: (token: string, id: string, review_notes?: string) =>
+    request<{ status: string }>(`/v1/admin/moderation/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ review_notes: review_notes ?? null }),
+    }, token),
+
+  adminModerationEscalate: (token: string, id: string, review_notes?: string) =>
+    request<{ status: string }>(`/v1/admin/moderation/${id}/escalate`, {
+      method: "POST",
+      body: JSON.stringify({ review_notes: review_notes ?? null }),
+    }, token),
+
+  adminObservations: (
+    token: string,
+    opts: {
+      limit?: number;
+      offset?: number;
+      restaurant_id?: string;
+      firebase_uid?: string;
+      daypart?: string;
+      excluded?: boolean;
+      min_minutes?: number;
+      max_minutes?: number;
+    } = {},
+  ) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts.limit ?? 50));
+    params.set("offset", String(opts.offset ?? 0));
+    if (opts.restaurant_id) params.set("restaurant_id", opts.restaurant_id);
+    if (opts.firebase_uid) params.set("firebase_uid", opts.firebase_uid);
+    if (opts.daypart) params.set("daypart", opts.daypart);
+    if (opts.excluded != null) params.set("excluded", String(opts.excluded));
+    if (opts.min_minutes != null) params.set("min_minutes", String(opts.min_minutes));
+    if (opts.max_minutes != null) params.set("max_minutes", String(opts.max_minutes));
+    return request<Paginated<AdminObservationRow>>(
+      `/v1/admin/observations?${params}`,
       {},
       token,
-    ),
+    );
+  },
+
+  adminExcludeObservation: (token: string, id: string, reason: string) =>
+    request<{ status: string }>(`/v1/admin/observations/${id}/exclude`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }, token),
+
+  adminRestoreObservation: (token: string, id: string) =>
+    request<{ status: string }>(`/v1/admin/observations/${id}/restore`, {
+      method: "POST",
+    }, token),
+
+  submitContentReport: (
+    token: string,
+    body: {
+      content_type: "note" | "ttf_observation" | "attribute_rating";
+      content_id: string;
+      reason: string;
+      details?: string;
+    },
+  ) =>
+    request<{ id: string; queued: boolean }>("/v1/reports", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
 
   adminSeedJobs: (token: string, limit = 50, offset = 0) =>
     request<Paginated<RestaurantSeedJob>>(

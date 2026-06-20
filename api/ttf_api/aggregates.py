@@ -9,6 +9,8 @@ from uuid import UUID
 
 from psycopg import Connection
 
+from ttf_api.ugc_sql import PUBLIC_ATTRIBUTE_FILTER
+
 
 def _rating_weight(observed_at: datetime) -> float:
     """Favor recent visits; full weight at 0 days, floor 0.25 after ~1 year."""
@@ -76,10 +78,10 @@ def build_attribute_aggregates(conn: Connection, restaurant_id: UUID) -> dict:
     ).fetchall()
 
     rows = conn.execute(
-        """
+        f"""
         SELECT metric_key, value, observed_at
         FROM restaurant_attribute_ratings
-        WHERE restaurant_id = %s
+        WHERE restaurant_id = %s AND {PUBLIC_ATTRIBUTE_FILTER}
         """,
         (restaurant_id,),
     ).fetchall()

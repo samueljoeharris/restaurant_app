@@ -99,6 +99,22 @@ def _delete_postgres_data(conn, firebase_uid: str) -> dict[str, int]:
         "DELETE FROM restaurant_notes WHERE firebase_uid = %s",
         (firebase_uid,),
     ).rowcount
+    moderation = conn.execute(
+        "DELETE FROM moderation_items WHERE firebase_uid = %s",
+        (firebase_uid,),
+    ).rowcount
+    reports = conn.execute(
+        "DELETE FROM content_reports WHERE reporter_uid = %s",
+        (firebase_uid,),
+    ).rowcount
+    conn.execute(
+        "UPDATE moderation_items SET reviewer_uid = NULL WHERE reviewer_uid = %s",
+        (firebase_uid,),
+    )
+    conn.execute(
+        "UPDATE moderation_items SET assigned_to_uid = NULL WHERE assigned_to_uid = %s",
+        (firebase_uid,),
+    )
     return {
         "watches": watches,
         "push_tokens": push_tokens,
@@ -107,6 +123,8 @@ def _delete_postgres_data(conn, firebase_uid: str) -> dict[str, int]:
         "ttf": ttf,
         "attributes": attrs,
         "notes": notes,
+        "moderation_items": moderation,
+        "content_reports": reports,
     }
 
 
