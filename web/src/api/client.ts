@@ -298,6 +298,19 @@ export const api = {
       body: JSON.stringify(body),
     }, token),
 
+  previewPlaceContributions: (placeId: string, body: ContributionDraft, token: string) =>
+    request<ContributionPreviewResponse>(
+      `/v1/places/${encodeURIComponent(placeId)}/contributions/preview`,
+      { method: "POST", body: JSON.stringify(body) },
+      token,
+    ),
+
+  submitPlaceContributions: (placeId: string, body: ContributionDraft, token: string) =>
+    request(`/v1/places/${encodeURIComponent(placeId)}/contributions`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }, token),
+
   getAttributes: (id: string) =>
     request<{ attributes: Record<string, AttributeEntry> }>(
       `/v1/restaurants/${id}/attributes`,

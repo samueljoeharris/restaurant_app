@@ -42,6 +42,22 @@ export default function App() {
             }
           />
           <Route
+            path="/restaurants/place/:placeId/review"
+            element={
+              <Layout>
+                <ReviewChatPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/restaurants/place/:placeId/rate"
+            element={
+              <Layout>
+                <RateAttributesPage />
+              </Layout>
+            }
+          />
+          <Route
             path="/restaurants/place/:placeId/submit"
             element={
               <Layout>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, startTransition } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
@@ -17,8 +17,9 @@ import {
 import type { ContributionDraft, ContributionPreviewResponse, ContributionSchema } from "../types";
 
 type ReviewChatProps = {
-  restaurantId: string;
   restaurantName: string;
+  restaurantId?: string;
+  placeId?: string;
 };
 
 function formatReviewField(field: unknown): string {
@@ -33,7 +34,8 @@ function formatReviewField(field: unknown): string {
   return String(field);
 }
 
-export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
+export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChatProps) {
+  const navigate = useNavigate();
   const { idToken } = useAuth();
   const { toast } = useToast();
   const [schema, setSchema] = useState<ContributionSchema | null>(null);
@@ -95,13 +97,15 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
   }, [input, busy, idToken, schema, messages, restaurantName]);
 
   async function handlePreview() {
-    if (!schema || !idToken || messages.length < 2) return;
+    if (!schema || !idToken || messages.length < 2 || (!restaurantId && !placeId)) return;
     setBusy(true);
     setError(null);
     try {
       const extracted = await extractContributionDraft(messages, idToken);
       setExtractSummary(extracted.summary);
-      const result = await api.previewContributions(restaurantId, extracted.draft, idToken);
+      const result = placeId
+        ? await api.previewPlaceContributions(placeId, extracted.draft, idToken)
+        : await api.previewContributions(restaurantId!, extracted.draft, idToken);
       setPreview(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Preview failed.");
@@ -111,11 +115,20 @@ export function ReviewChat({ restaurantId, restaurantName }: ReviewChatProps) {
   }
 
   async function handleSubmit() {
-    if (!preview?.ready_to_submit || !idToken) return;
+    if (!preview?.ready_to_submit || !idToken || (!restaurantId && !placeId)) return;
     setBusy(true);
     setError(null);
     try {
-      await api.submitContributions(restaurantId, preview.draft, idToken);
+      if (placeId) {
+        await api.submitPlaceContributions(placeId, preview.draft, idToken);
+        const entry = await api.getPlaceEntry(placeId, idToken);
+        toast("Review saved — thanks for helping other families!", "success");
+        if (entry.id) {
+          navigate(`/restaurants/${entry.id}`);
+        }
+        return;
+      }
+      await api.submitContributions(restaurantId!, preview.draft, idToken);
       toast("Review saved — thanks for helping other families!", "success");
       setPreview(null);
       setExtractSummary(null);
