@@ -1,0 +1,17 @@
+{
+  "variant": "light",
+  "description": "Little Scout Bluebird — warm ivory land, sky water, sage parks, minimal POI. Import in Google Cloud Console → Map Styles, attach to a Map ID, set VITE_GOOGLE_MAPS_MAP_ID.",
+  "colors": {
+    "land": "#FBF6EC",
+    "water": "#D6EDF7",
+    "park": "#A8C9A0",
+    "road": "#F5EFE3",
+    "roadOutline": "#E8DFD0",
+    "label": "#6B7A85"
+  },
+  "settings": {
+    "hidePoiBusiness": true,
+    "hideTransit": true,
+    "reduceLabelDensity": true
+  }
+}

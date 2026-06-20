@@ -10,7 +10,7 @@ export function DesktopOnlyGate({ children }: { children: ReactNode }) {
         className={cn(
           "hidden",
           "max-[1023px]:fixed max-[1023px]:inset-0 max-[1023px]:z-[10000] max-[1023px]:grid max-[1023px]:place-items-center max-[1023px]:p-6",
-          "max-[1023px]:bg-[radial-gradient(circle_at_20%_0%,rgb(232_93_36/14%),transparent_40%),var(--color-bg)]",
+          "max-[1023px]:bg-[radial-gradient(circle_at_20%_0%,color-mix(in_srgb,var(--color-brand)_14%,transparent),transparent_40%),var(--color-bg)]",
         )}
         role="status"
       >

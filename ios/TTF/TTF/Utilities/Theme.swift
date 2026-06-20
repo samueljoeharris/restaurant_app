@@ -27,4 +27,10 @@ extension Color {
     static let ttfOk = Color("TtfOk")
     static let ttfSlow = Color("TtfSlow")
     static let ttfUnknown = Color("TtfUnknown")
+    static let pinRatings = Color("PinRatings")
+    static let pinNotes = Color("PinNotes")
+    static let pinSearchFocus = Color("PinSearchFocus")
+    static let mapLand = Color("MapLand")
+    static let mapWater = Color("MapWater")
+    static let mapPark = Color("MapPark")
 }

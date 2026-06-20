@@ -7,6 +7,7 @@ import {
   mapPinKind,
   mapPinLabel,
   mapPinTooltip,
+  SEARCH_FOCUS_PIN_COLOR,
 } from "../lib/mapPin";
 import { isGoogleOnlyEntry } from "../lib/googleMapsUrl";
 import type { RestaurantMapEntry } from "../types";
@@ -68,17 +69,19 @@ export function MapPin({
               ★
             </span>
           )}
-          <div
-            className="map-pin"
-            style={{
-              background: fill,
-              boxShadow: searchFocus
-                ? "0 0 0 4px rgb(232 93 36 / 40%), 0 2px 10px rgb(0 0 0 / 30%)"
-                : selected
-                  ? `0 0 0 3px ${fill}66`
-                  : undefined,
-            }}
-          />
+          <div className="map-pin">
+            <span
+              className="map-pin__drop"
+              style={{
+                background: fill,
+                boxShadow: searchFocus
+                  ? `0 0 0 4px color-mix(in srgb, ${SEARCH_FOCUS_PIN_COLOR} 40%, transparent), 0 2px 10px rgb(0 0 0 / 30%)`
+                  : selected
+                    ? `0 0 0 3px color-mix(in srgb, ${fill} 40%, transparent)`
+                    : undefined,
+              }}
+            />
+          </div>
           {showBadges && (
             <div className="map-pin-badges">
               {restaurant.attribute_rating_count > 0 && kind !== "ratings" && (

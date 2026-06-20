@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/useAuth";
 import { publicAppHandoffUrl } from "../../auth/handoff";
 import { PUBLIC_APP_URL } from "../../buildTarget";
 import { cn } from "../../lib/cn";
+import { ScoutLogo } from "../ScoutLogo";
 import { Badge } from "../ui/Badge";
 
 const NAV: { to: string; label: string; end?: boolean }[] = [
@@ -58,10 +59,10 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           className="flex items-center gap-2 text-lg font-extrabold tracking-tight"
         >
           <span
-            className="grid h-8 w-8 place-items-center rounded-sm bg-brand-soft text-[1.1rem]"
+            className="grid h-8 w-8 place-items-center rounded-sm bg-brand-soft"
             aria-hidden
           >
-            🔭
+            <ScoutLogo size={28} />
           </span>
           Little Scout Admin
         </Link>

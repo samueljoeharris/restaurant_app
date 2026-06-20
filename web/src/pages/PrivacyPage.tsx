@@ -1,3 +1,4 @@
+import { ScoutLogo } from "../components/ScoutLogo";
 import { Card } from "../components/ui/Card";
 import { Page } from "../components/ui/Page";
 
@@ -6,7 +7,9 @@ export function PrivacyPage() {
     <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col justify-center p-8">
       <Page narrow className="py-0">
         <div className="mb-6 text-center">
-          <div className="mb-3 text-5xl">🔭</div>
+          <div className="mb-3 flex justify-center">
+            <ScoutLogo size={48} />
+          </div>
           <h1 className="text-3xl tracking-tight">Privacy Policy</h1>
           <p className="text-text-muted">Last updated: 18 June 2026</p>
         </div>

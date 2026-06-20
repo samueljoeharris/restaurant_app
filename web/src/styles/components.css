@@ -97,6 +97,10 @@
 }
 
 .map-pin-wrap--search-focus .map-pin {
+  @apply h-[21px] w-[18px];
+}
+
+.map-pin-wrap--search-focus .map-pin__drop {
   @apply h-[18px] w-[18px] border-[3px];
 }
 
@@ -104,11 +108,11 @@
   animation-name: map-pin-pop-in-search;
 }
 
-.map-pin-wrap--discover .map-pin {
+.map-pin-wrap--discover .map-pin__drop {
   @apply border-brand bg-surface outline-2 outline-dashed outline-offset-2 outline-brand;
 }
 
-.map-pin-wrap--early_ttf .map-pin {
+.map-pin-wrap--early_ttf .map-pin__drop {
   @apply opacity-85 outline-2 outline-dashed outline-offset-1 outline-white;
 }
 
@@ -117,11 +121,19 @@
 }
 
 .map-pin {
-  @apply h-3.5 w-3.5 rounded-full border-2 border-white shadow-[0_1px_4px_rgba(0,0,0,0.25)];
+  @apply relative h-[17px] w-3.5;
+}
+
+.map-pin__drop {
+  @apply absolute left-1/2 top-0 h-3.5 w-3.5 border-2 border-white shadow-[0_1px_4px_rgba(0,0,0,0.25)];
+  border-radius: 50% 50% 50% 0;
+  transform: translateX(-50%) rotate(-45deg);
 }
 
 .map-pin-cluster-dot {
-  @apply h-3 w-3 rounded-full border-2 border-white shadow-[0_1px_4px_rgba(0,0,0,0.25)];
+  @apply h-3 w-3 border-2 border-white shadow-[0_1px_4px_rgba(0,0,0,0.25)];
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
 }
 
 .map-pin-cluster-dot--pop-in {
@@ -135,7 +147,7 @@
 .map-pin-cluster-dot--search-focus {
   @apply h-4 w-4 border-[3px];
   box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--color-brand) 40%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--color-pin-search-focus) 40%, transparent),
     0 2px 8px rgb(0 0 0 / 25%);
 }
 
@@ -143,8 +155,22 @@
   @apply border-brand bg-surface outline-2 outline-dashed outline-offset-1 outline-brand;
 }
 
+.map-cluster-bubble {
+  @apply flex h-9 min-w-9 items-center justify-center rounded-full border-2 border-white px-2 text-sm font-bold text-text-inverse shadow-md;
+}
+
 .map-pin-label {
   @apply rounded-full border-[1.5px] bg-surface px-1.5 py-px text-[10px] font-bold leading-tight text-text shadow-[0_1px_3px_rgba(0,0,0,0.15)] whitespace-nowrap;
+}
+
+.map-legend-swatch {
+  @apply inline-block h-2.5 w-2 shrink-0 border border-white;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+}
+
+.map-legend-swatch--dashed {
+  @apply border-2 border-dashed border-text-muted bg-transparent;
 }
 
 .map-pin-label--search {

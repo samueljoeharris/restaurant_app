@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 import { useAuth } from "../../auth/useAuth";
 import { PUBLIC_APP_URL } from "../../buildTarget";
+import { ScoutLogo } from "../../components/ScoutLogo";
 import { Button, ButtonAnchor } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 
@@ -21,7 +22,9 @@ export function AdminAccessDeniedPage({
     <div className="flex min-h-screen min-w-[var(--desktop-min-width)] flex-col justify-center px-8 py-8">
       <main className="mx-auto w-full max-w-[var(--page-narrow)] animate-page-enter">
         <div className="mb-6 text-center">
-          <div className="mb-3 text-5xl">🔭</div>
+          <div className="mb-3 flex justify-center">
+            <ScoutLogo size={48} />
+          </div>
           <p className="mb-2 inline-block rounded-full bg-accent-soft px-2 py-1 text-xs font-semibold uppercase tracking-widest text-accent">
             Operator console
           </p>

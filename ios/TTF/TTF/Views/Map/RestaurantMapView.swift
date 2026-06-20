@@ -103,18 +103,22 @@ struct RestaurantMapView: View {
     private var mapContent: some View {
         Map(position: $cameraPosition, selection: $selectedRestaurantID) {
             ForEach(visibleEntries) { entry in
-                Marker(entry.name, coordinate: entry.coordinate)
-                    .tint(TtfTierLogic.tier(for: entry.ttf).color)
-                    .tag(entry.id)
+                Annotation(entry.name, coordinate: entry.coordinate, anchor: .bottom) {
+                    TierPinView(
+                        entry: entry,
+                        selected: selectedRestaurantID == entry.id
+                    )
+                }
+                .tag(entry.id)
             }
             if let userLocation {
                 Annotation("You", coordinate: userLocation) {
                     ZStack {
                         Circle()
-                            .fill(Color.accentColor.opacity(0.2))
+                            .fill(Color.brand.opacity(0.2))
                             .frame(width: 28, height: 28)
                         Circle()
-                            .fill(Color.accentColor)
+                            .fill(Color.brand)
                             .frame(width: 12, height: 12)
                             .overlay {
                                 Circle().strokeBorder(.white, lineWidth: 2)
@@ -124,6 +128,7 @@ struct RestaurantMapView: View {
                 }
             }
         }
+        .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
         .onMapCameraChange(frequency: .onEnd) { context in
             visibleRegion = context.region
         }

@@ -21,24 +21,24 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 ## Now
 
-Phase 4 gate — TestFlight pilot. **Max 3 items.**
-
 | Issue | Summary |
 |-------|---------|
+| **Theme epic** | **Whimsical Bluebird rebrand** — tokens, teardrop pins, Google Map Style, iOS parity, [TEST_FLOWS.md](TEST_FLOWS.md) |
 | [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline (blocked on [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) secrets) |
-| [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | **Pre-launch hardening** — App Check prod, CSP, prod `AUTH_DEV_MODE=false` (#33 deletion ✅) |
 
 ---
 
 ## Next
 
-Queued after Now — pilot launch and hardening.
-
 | Issue | Summary |
 |-------|---------|
+| [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | Pre-launch hardening — write guards merged; prod smoke + App Check key deferred |
 | [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | App Store Connect secrets and iOS CI signing (prerequisite for #36) |
+| [#59](https://github.com/samueljoeharris/restaurant_app/issues/59) | Push delivery — web FCM, real send, scheduler |
+| [#60](https://github.com/samueljoeharris/restaurant_app/issues/60) | Web layout a11y remainder (focus trap, FormField) — z-index in tokens ✅ |
+| [#61](https://github.com/samueljoeharris/restaurant_app/issues/61) | Watchlist v1 remaining (push, iOS parity) |
+| [#62](https://github.com/samueljoeharris/restaurant_app/issues/62) | Admin moderation QA — see [TEST_FLOWS.md](TEST_FLOWS.md) ADM-* |
 | [#40](https://github.com/samueljoeharris/restaurant_app/issues/40) | Phase 4 pilot: invite testers and gather feedback (after TestFlight) |
-| [#50](https://github.com/samueljoeharris/restaurant_app/issues/50) | Recency histogram on restaurant detail — trust UX, web+API |
 | [#39](https://github.com/samueljoeharris/restaurant_app/issues/39) | Prod GCP cutover — scaffold merged; apply pending billing/credentials |
 
 ---
@@ -54,10 +54,8 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 | [#43](https://github.com/samueljoeharris/restaurant_app/issues/43) | Caching — ETag + client cache ✅; invalidation + geohash keys remain |
 | [#44](https://github.com/samueljoeharris/restaurant_app/issues/44) | Ratings trust and moderation |
 | [#45](https://github.com/samueljoeharris/restaurant_app/issues/45) | TTF submit timer UX ideas |
-| [TTF_SUBMIT_TIMER_IDEAS.md](TTF_SUBMIT_TIMER_IDEAS.md) | Timer UX research (→ [#45](https://github.com/samueljoeharris/restaurant_app/issues/45)) |
-| [AI_CONTRIBUTION_RESEARCH.md](AI_CONTRIBUTION_RESEARCH.md) | AI contribution research (→ [#41](https://github.com/samueljoeharris/restaurant_app/issues/41)) |
-| [MAP_SEARCH_AND_SEEDING.md](MAP_SEARCH_AND_SEEDING.md) | Map load, seeding (→ [#42](https://github.com/samueljoeharris/restaurant_app/issues/42)) |
-| [DESIGN.md § Roadmap](DESIGN.md#15-open-questions--roadmap) | Long-term product open questions |
+| [MAP_STYLE.md](MAP_STYLE.md) | Bluebird Google Map Style + MapKit POI-off |
+| [DESIGN_TOKENS.md](DESIGN_TOKENS.md) | Bluebird token reference |
 
 ---
 
@@ -65,6 +63,7 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 | Issue | Summary |
 |-------|---------|
+| [#50](https://github.com/samueljoeharris/restaurant_app/issues/50) | Recency histogram on restaurant detail ✅ |
 | [#37](https://github.com/samueljoeharris/restaurant_app/issues/37) | Public web auth — Google sign-in on `app.dev` ✅ |
 | [#33](https://github.com/samueljoeharris/restaurant_app/issues/33) | Account deletion |
 | [#34](https://github.com/samueljoeharris/restaurant_app/issues/34) | Map-search sidebar branch merged |
@@ -72,4 +71,4 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 ---
 
-*Last updated: 2026-06-18. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
+*Last updated: 2026-06-20. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*

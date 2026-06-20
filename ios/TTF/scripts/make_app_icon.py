@@ -43,11 +43,11 @@ def main():
     script_dir = Path(__file__).resolve().parent
     output_path = script_dir.parent / "TTF" / "Resources" / "Assets.xcassets" / "AppIcon.appiconset" / "AppIcon-1024.png"
 
-    # Brand accent green (RGB)
-    brand_green = (45, 143, 78)
+    # Whimsical Bluebird brand (RGB) — #3FA7D6
+    brand_blue = (63, 167, 214)
 
     # Create 1024x1024 RGB image (no alpha channel)
-    img = Image.new("RGB", (1024, 1024), color=brand_green)
+    img = Image.new("RGB", (1024, 1024), color=brand_blue)
 
     # Load font and draw text
     draw = ImageDraw.Draw(img)

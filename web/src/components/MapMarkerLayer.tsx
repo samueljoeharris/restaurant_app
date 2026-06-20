@@ -84,10 +84,30 @@ function ClusteredMarkerLayer({
     });
 
     markersRef.current = markers;
+
+    const brandSky = getComputedStyle(document.documentElement)
+      .getPropertyValue("--color-brand")
+      .trim() || "#3FA7D6";
+
+    const clusterRenderer = {
+      render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
+        const bubble = document.createElement("div");
+        bubble.className = "map-cluster-bubble";
+        bubble.textContent = String(count);
+        bubble.style.background = brandSky;
+        return new markerLib.AdvancedMarkerElement({
+          position,
+          content: bubble,
+          zIndex: Number(count) + 1000,
+        });
+      },
+    };
+
     if (!clustererRef.current) {
       clustererRef.current = new MarkerClusterer({
         map,
         markers,
+        renderer: clusterRenderer,
         onClusterClick: (_event, cluster, mapInstance) => {
           const targetZoom = Math.min((mapInstance.getZoom() ?? CLUSTER_MAX_ZOOM) + 2, 16);
           mapInstance.panTo(cluster.position);

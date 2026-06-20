@@ -4,6 +4,7 @@ import { useActivityBadge } from "../hooks/useActivityBadge";
 import { cn } from "../lib/cn";
 import { Z } from "../lib/overlayStack";
 import { ActivityInbox } from "./ActivityInbox";
+import { ScoutLogo } from "./ScoutLogo";
 import { Button } from "./ui/Button";
 
 const tabs = [
@@ -55,12 +56,7 @@ export function AppSidebar({
             collapsed && "justify-center",
           )}
         >
-          <span
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-brand-soft text-xl"
-            aria-hidden
-          >
-            🔭
-          </span>
+          <ScoutLogo className="h-10 w-10 shrink-0 rounded-md" />
           <span
             className={cn(
               "grid min-w-0 gap-0.5 overflow-hidden transition-opacity duration-fast ease-out",

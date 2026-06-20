@@ -19,7 +19,7 @@ import {
   type TtfTier,
 } from "../lib/ttfTier";
 import { mapEntryKey, restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
-import { mapPinFill } from "../lib/mapPin";
+import { mapPinFill, PIN_NOTES_COLOR, PIN_RATINGS_COLOR } from "../lib/mapPin";
 import { googleMapsUrlForEntry, isGoogleOnlyEntry } from "../lib/googleMapsUrl";
 import { useWatch } from "../hooks/useWatch";
 import {
@@ -34,6 +34,8 @@ import { Stat, StatGrid } from "./ui/Stat";
 
 const DEFAULT_MAP_CENTER = { lat: 42.2418, lng: -71.1662 };
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() ?? "";
+const MAPS_MAP_ID =
+  import.meta.env.VITE_GOOGLE_MAPS_MAP_ID?.trim() || "DEMO_MAP_ID";
 
 function FitBounds({
   restaurants,
@@ -285,26 +287,29 @@ function MapLegend({ withSidebar }: { withSidebar: boolean }) {
       {tiers.map((tier) => (
         <span key={tier} className="inline-flex items-center gap-[0.35rem]">
           <span
-            className="h-2.5 w-2.5 rounded-full"
+            className="map-legend-swatch"
             style={{ background: TTF_TIER_COLORS[tier] }}
           />
           {TTF_TIER_LABELS[tier]}
         </span>
       ))}
       <span className="inline-flex items-center gap-[0.35rem]">
-        <span className="h-2.5 w-2.5 rounded-full border-2 border-dashed border-text-muted bg-transparent" />
+        <span className="map-legend-swatch map-legend-swatch--dashed" />
         1–2 visits
       </span>
       <span className="inline-flex items-center gap-[0.35rem]">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#7c6fe0" }} />
+        <span className="map-legend-swatch" style={{ background: PIN_RATINGS_COLOR }} />
         Ratings
       </span>
       <span className="inline-flex items-center gap-[0.35rem]">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#4a90d9" }} />
+        <span className="map-legend-swatch" style={{ background: PIN_NOTES_COLOR }} />
         Notes
       </span>
       <span className="inline-flex items-center gap-[0.35rem]">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ background: TTF_TIER_COLORS.unknown }} />
+        <span
+          className="map-legend-swatch"
+          style={{ background: TTF_TIER_COLORS.unknown }}
+        />
         No data
       </span>
     </div>
@@ -536,7 +541,7 @@ export function RestaurantMap({
           gestureHandling="greedy"
           disableDefaultUI
           clickableIcons={false}
-          mapId="DEMO_MAP_ID"
+          mapId={MAPS_MAP_ID}
           className="h-full w-full"
         >
           <FitBounds

@@ -94,6 +94,12 @@ function generateWebCss(tokens) {
     lines.push(`  --${camelToKebab(key)}: ${value};`);
   }
 
+  if (tokens.zIndex) {
+    for (const [key, value] of Object.entries(tokens.zIndex)) {
+      lines.push(`  --z-${camelToKebab(key)}: ${value};`);
+    }
+  }
+
   lines.push("}", "", ".dark {");
 
   for (const [key, value] of Object.entries(tokens.color)) {
@@ -261,14 +267,19 @@ async function main() {
   await writeFile(IOS_TTF_TIER_PATH, generateTtfTierSwift());
   await writeFile(WEB_TTF_TIER_PATH, generateWebTtfTier(tokens));
 
-  const brandLight = tokens.color.brand.light;
+  const c = tokens.color;
   const mapPin = await readFile(WEB_MAP_PIN_PATH, "utf8");
+  const pinColorsBlock = `/** Map pin colors — generated from design tokens (light values). */
+export const PIN_RATINGS_COLOR = "${c.pinRatings.light}";
+export const PIN_NOTES_COLOR = "${c.pinNotes.light}";
+export const SEARCH_FOCUS_PIN_COLOR = "${c.pinSearchFocus.light}";
+`;
   if (!mapPin.includes("SEARCH_FOCUS_PIN_COLOR")) {
-    console.warn("mapPin.ts: SEARCH_FOCUS_PIN_COLOR not found — skip patch");
+    console.warn("mapPin.ts: pin color exports not found — skip patch");
   } else {
     const updated = mapPin.replace(
-      /export const SEARCH_FOCUS_PIN_COLOR = "[^"]*";/,
-      `export const SEARCH_FOCUS_PIN_COLOR = "${brandLight}";`,
+      /\/\*\* Map pin colors[\s\S]*?export const SEARCH_FOCUS_PIN_COLOR = "[^"]*";/,
+      pinColorsBlock.trimEnd(),
     );
     await writeFile(WEB_MAP_PIN_PATH, updated);
   }

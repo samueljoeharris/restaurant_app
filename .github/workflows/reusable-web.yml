@@ -145,6 +145,7 @@ jobs:
             --build-arg VITE_FIREBASE_APP_ID="${{ steps.env.outputs.firebase_app_id }}" \
             --build-arg VITE_APP_CHECK_RECAPTCHA_SITE_KEY="${{ steps.env.outputs.recaptcha_site_key }}" \
             --build-arg VITE_GOOGLE_MAPS_API_KEY="${{ steps.env.outputs.maps_api_key }}" \
+            --build-arg VITE_GOOGLE_MAPS_MAP_ID="${{ vars.VITE_GOOGLE_MAPS_MAP_ID || '' }}" \
             --build-arg VITE_ENABLE_REVIEW_CHAT=true \
             -t "${IMAGE_BASE}:${{ github.sha }}" \
             -t "${IMAGE_BASE}:latest" \
