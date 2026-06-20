@@ -469,22 +469,31 @@ export function ExploreMapPage() {
     [idToken, isRadiusMode],
   );
 
+  const clearSearchFocusFromUrl = useCallback(() => {
+    if (!focusParam) return;
+    const params = new URLSearchParams(searchParams);
+    params.delete("focus");
+    params.delete("flat");
+    params.delete("flng");
+    setSearchParams(params, { replace: true });
+  }, [focusParam, searchParams, setSearchParams]);
+
   const handleMapSelectChange = useCallback(
     (id: string | null) => {
       setLocalSelectedId(id);
       if (id) {
         void ensureMapEntryLoaded(id);
+        if (id !== focusParam) {
+          clearSearchFocusFromUrl();
+          setLocalFocusId(id);
+          setFocusPulse((p) => p + 1);
+        }
+        return;
       }
-      if (!id && focusParam) {
-        const params = new URLSearchParams(searchParams);
-        params.delete("focus");
-        params.delete("flat");
-        params.delete("flng");
-        setSearchParams(params, { replace: true });
-        setLocalFocusId(null);
-      }
+      clearSearchFocusFromUrl();
+      setLocalFocusId(null);
     },
-    [focusParam, searchParams, setSearchParams, ensureMapEntryLoaded],
+    [focusParam, clearSearchFocusFromUrl, ensureMapEntryLoaded],
   );
 
   const handleListSelect = useCallback(
@@ -493,8 +502,11 @@ export function ExploreMapPage() {
       setLocalFocusId(id);
       setFocusPulse((p) => p + 1);
       void ensureMapEntryLoaded(id);
+      if (id !== focusParam) {
+        clearSearchFocusFromUrl();
+      }
     },
-    [ensureMapEntryLoaded],
+    [ensureMapEntryLoaded, focusParam, clearSearchFocusFromUrl],
   );
 
   const fetchNearbyArea = useCallback(
