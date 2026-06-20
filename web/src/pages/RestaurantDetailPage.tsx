@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { authErrorMessage } from "../auth/errors";
 import { AttributeSummary } from "../components/AttributeSummary";
+import { ReportContentButton } from "../components/ReportContentButton";
 import { ContributionRecencyChart } from "../components/ContributionRecencyChart";
 import { RestaurantDetailTabs } from "../components/RestaurantDetailTabs";
 import { RestaurantHero } from "../components/RestaurantHero";
@@ -72,9 +73,16 @@ export function RestaurantDetailPage() {
     setNoteError(null);
     try {
       const created = await api.submitNote(id, noteText.trim(), idToken);
-      setNotes((prev) => [created, ...prev]);
+      if (!created.pending_review) {
+        setNotes((prev) => [created, ...prev]);
+      }
       setNoteText("");
-      toast("Note posted — thanks!", "success");
+      toast(
+        created.pending_review
+          ? "Note submitted for review — we'll publish it after a quick check."
+          : "Note posted — thanks!",
+        created.pending_review ? "default" : "success",
+      );
     } catch (err) {
       setNoteError(authErrorMessage(err));
     } finally {
@@ -171,6 +179,9 @@ export function RestaurantDetailPage() {
                       <time className="text-sm text-text-muted">
                         {new Date(note.created_at).toLocaleDateString()}
                       </time>
+                      <div className="mt-1">
+                        <ReportContentButton contentType="note" contentId={note.id} />
+                      </div>
                     </li>
                   ))}
                 </ul>

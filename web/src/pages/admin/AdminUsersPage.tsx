@@ -1,36 +1,40 @@
 import { useEffect, useState, startTransition } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { api } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
-import type { AdminContributorRow } from "../../types";
+import { DetailDrawer } from "../../components/admin/DetailDrawer";
+import { FilterBar, FilterField } from "../../components/admin/FilterBar";
+import { StatusBadge } from "../../components/admin/StatusBadge";
+import { Button } from "../../components/ui/Button";
+import type { AdminContributorDetail, AdminContributorRow } from "../../types";
 
 const PAGE_SIZE = 25;
 
-function fmtDate(iso: string | null) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 export function AdminUsersPage() {
   const { idToken } = useAuth();
+  const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<AdminContributorRow[]>([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
+  const [trustFilter, setTrustFilter] = useState(searchParams.get("trust") ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedUid, setSelectedUid] = useState<string | null>(searchParams.get("uid"));
+  const [detail, setDetail] = useState<AdminContributorDetail | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!idToken) return;
     let cancelled = false;
     startTransition(() => setLoading(true));
     api
-      .adminUsers(idToken, PAGE_SIZE, offset)
+      .adminUsers(idToken, {
+        limit: PAGE_SIZE,
+        offset,
+        trust_level: trustFilter || undefined,
+      })
       .then((data) => {
         if (!cancelled) {
           setRows(data.items);
@@ -46,16 +50,63 @@ export function AdminUsersPage() {
     return () => {
       cancelled = true;
     };
-  }, [idToken, offset]);
+  }, [idToken, offset, trustFilter]);
+
+  useEffect(() => {
+    if (!idToken || !selectedUid) return;
+    api
+      .adminUserDetail(idToken, selectedUid)
+      .then(setDetail)
+      .catch((err) => setError(err instanceof Error ? err.message : "Profile load failed"));
+  }, [idToken, selectedUid]);
+
+  async function updateTrust(patch: { trust_level?: string; auto_publish?: boolean }) {
+    if (!idToken || !selectedUid) return;
+    setBusy(true);
+    try {
+      await api.adminUpdateUserTrust(idToken, selectedUid, patch);
+      const refreshed = await api.adminUserDetail(idToken, selectedUid);
+      setDetail(refreshed);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Update failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleDisabled(disable: boolean) {
+    if (!idToken || !selectedUid) return;
+    setBusy(true);
+    try {
+      if (disable) await api.adminDisableUser(idToken, selectedUid);
+      else await api.adminEnableUser(idToken, selectedUid);
+      const refreshed = await api.adminUserDetail(idToken, selectedUid);
+      setDetail(refreshed);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Action failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div className="grid gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl">Contributors</h1>
-          <p className="text-text-muted">Firebase users who submitted data</p>
-        </div>
+      <header>
+        <h1 className="text-2xl">Contributors</h1>
+        <p className="text-text-muted">Trust levels, auto-publish, and account actions</p>
       </header>
+
+      <FilterBar>
+        <FilterField label="Trust level">
+          <select value={trustFilter} onChange={(e) => { setOffset(0); setTrustFilter(e.target.value); }}>
+            <option value="">All</option>
+            <option value="new">New</option>
+            <option value="standard">Standard</option>
+            <option value="trusted">Trusted</option>
+            <option value="restricted">Restricted</option>
+          </select>
+        </FilterField>
+      </FilterBar>
 
       {loading && <p className="text-text-muted">Loading…</p>}
       {error && <p className="text-sm font-semibold text-error">{error}</p>}
@@ -65,9 +116,8 @@ export function AdminUsersPage() {
           <DataTable
             columns={[
               { key: "user", label: "User" },
-              { key: "uid", label: "Firebase UID" },
+              { key: "trust", label: "Trust" },
               { key: "ttf", label: "Speed", align: "right" },
-              { key: "attr", label: "Attrs", align: "right" },
               { key: "notes", label: "Notes", align: "right" },
               { key: "total", label: "Total", align: "right" },
               { key: "last", label: "Last active" },
@@ -76,38 +126,89 @@ export function AdminUsersPage() {
               key: r.firebase_uid,
               cells: {
                 user: (
-                  <div>
+                  <button
+                    type="button"
+                    className="cursor-pointer border-0 bg-transparent p-0 text-left"
+                    onClick={() => setSelectedUid(r.firebase_uid)}
+                  >
                     <strong>{r.display_name ?? r.email ?? "Unknown"}</strong>
-                    {r.disabled && (
-                      <span className="font-bold text-warning"> disabled</span>
-                    )}
-                    {r.email && r.display_name && (
-                      <div className="text-sm text-text-muted">{r.email}</div>
-                    )}
-                  </div>
+                    {r.disabled ? <span className="ml-2 text-xs text-error">disabled</span> : null}
+                  </button>
                 ),
-                uid: (
-                  <code className="rounded bg-bg px-1.5 py-0.5 text-xs">
-                    {r.firebase_uid.slice(0, 12)}…
-                  </code>
-                ),
+                trust: r.trust_level ? <StatusBadge kind="trust" value={r.trust_level} /> : "—",
                 ttf: r.ttf_count,
-                attr: r.attribute_count,
                 notes: r.note_count,
                 total: r.total_contributions,
-                last: fmtDate(r.last_active_at),
+                last: r.last_active_at ? new Date(r.last_active_at).toLocaleString() : "—",
               },
             }))}
-            emptyMessage="No contributors yet — submissions will appear here."
           />
-          <Pagination
-            total={total}
-            limit={PAGE_SIZE}
-            offset={offset}
-            onChange={setOffset}
-          />
+          <Pagination total={total} limit={PAGE_SIZE} offset={offset} onChange={setOffset} />
         </>
       )}
+
+      <DetailDrawer
+        open={Boolean(selectedUid && detail)}
+        title={detail?.display_name ?? detail?.email ?? "Contributor"}
+        onClose={() => {
+          setSelectedUid(null);
+          setDetail(null);
+        }}
+        footer={
+          detail ? (
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" disabled={busy} onClick={() => void updateTrust({ trust_level: "trusted", auto_publish: true })}>
+                Promote to trusted
+              </Button>
+              {detail.disabled ? (
+                <Button type="button" variant="secondary" disabled={busy} onClick={() => void toggleDisabled(false)}>
+                  Enable account
+                </Button>
+              ) : (
+                <Button type="button" variant="danger" disabled={busy} onClick={() => void toggleDisabled(true)}>
+                  Disable account
+                </Button>
+              )}
+            </div>
+          ) : null
+        }
+      >
+        {detail ? (
+          <div className="grid gap-4 text-sm">
+            <p className="m-0 text-text-muted">{detail.firebase_uid}</p>
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge kind="trust" value={detail.trust_level} />
+              {detail.auto_publish ? <StatusBadge kind="moderation" value="approved" /> : null}
+            </div>
+            <label className="grid gap-1">
+              Trust level
+              <select
+                value={detail.trust_level}
+                disabled={busy}
+                onChange={(e) => void updateTrust({ trust_level: e.target.value })}
+              >
+                <option value="new">New</option>
+                <option value="standard">Standard</option>
+                <option value="trusted">Trusted</option>
+                <option value="restricted">Restricted</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={detail.auto_publish}
+                disabled={busy}
+                onChange={(e) => void updateTrust({ auto_publish: e.target.checked })}
+              />
+              Auto-publish submissions
+            </label>
+            <div className="rounded-md border border-border bg-bg p-3">
+              <p className="m-0">{detail.ttf_count} speed · {detail.attribute_count} attrs · {detail.note_count} notes</p>
+              <p className="m-0 mt-1 text-text-muted">{detail.watch_count} watched restaurants</p>
+            </div>
+          </div>
+        ) : null}
+      </DetailDrawer>
     </div>
   );
 }

@@ -120,16 +120,26 @@ export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChat
     setError(null);
     try {
       if (placeId) {
-        await api.submitPlaceContributions(placeId, preview.draft, idToken);
+        const result = await api.submitPlaceContributions(placeId, preview.draft, idToken);
         const entry = await api.getPlaceEntry(placeId, idToken);
-        toast("Review saved — thanks for helping other families!", "success");
+        toast(
+          result.pending_review
+            ? "Review submitted for moderation — thanks for helping other families!"
+            : "Review saved — thanks for helping other families!",
+          "success",
+        );
         if (entry.id) {
           navigate(`/restaurants/${entry.id}`);
         }
         return;
       }
-      await api.submitContributions(restaurantId!, preview.draft, idToken);
-      toast("Review saved — thanks for helping other families!", "success");
+      const result = await api.submitContributions(restaurantId!, preview.draft, idToken);
+      toast(
+        result.pending_review
+          ? "Review submitted for moderation — thanks for helping other families!"
+          : "Review saved — thanks for helping other families!",
+        "success",
+      );
       setPreview(null);
       setExtractSummary(null);
       setMessages((prev) => [

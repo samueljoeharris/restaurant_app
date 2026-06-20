@@ -3,7 +3,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
-from psycopg.types.json import Jsonb
+from ttf_api.ugc_write import insert_attribute_rating, insert_note, insert_ttf_observation
 
 from ttf_api.aggregates import build_attribute_aggregates
 from ttf_api.auth import AuthUser, get_optional_user, require_admin
@@ -16,6 +16,7 @@ from ttf_api.user_profiles import fetch_watched_ids
 from ttf_api.places_seed import PlacesSeedError
 from ttf_api.pubsub_seed import enqueue_seed_job
 from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area
+from ttf_api.ugc_sql import PUBLIC_NOTE_FILTER, TTF_AGGREGATE_FILTER
 from ttf_api.schemas import (
     AttributeSubmissionRequest,
     AttributeSubmissionResponse,
@@ -123,14 +124,14 @@ def build_restaurant_detail_response(
 
 def _fetch_ttf_aggregate(conn, restaurant_id: UUID) -> TtfAggregate:
     row = conn.execute(
-        """
+        f"""
         SELECT
             COUNT(*)::int AS sample_size,
             PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY elapsed_minutes) AS median_minutes,
             AVG(item_quality)::float AS avg_quality,
             MAX(created_at) AS last_updated
         FROM ttf_observations
-        WHERE restaurant_id = %s
+        WHERE restaurant_id = %s AND {TTF_AGGREGATE_FILTER}
         """,
         (restaurant_id,),
     ).fetchone()
@@ -351,38 +352,15 @@ def submit_ttf(
     body: TtfSubmissionRequest,
     user: Annotated[AuthUser, Depends(require_write_access)],
 ) -> TtfSubmissionResponse:
-    served_at = body.served_at or datetime.now(timezone.utc)
-    ordered_at = body.ordered_at or (
-        served_at - timedelta(minutes=body.elapsed_minutes or 0)
-    )
-
     with get_conn() as conn:
         _ensure_restaurant(conn, restaurant_id)
-        row = conn.execute(
-            """
-            INSERT INTO ttf_observations (
-                restaurant_id, firebase_uid, ordered_at, served_at, elapsed_minutes,
-                item_type, item_quality, portion_size, daypart, party_size_kids,
-                wait_context, photo_url
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id, elapsed_minutes, item_type, item_quality
-            """,
-            (
-                restaurant_id,
-                user.firebase_uid,
-                ordered_at,
-                served_at,
-                body.elapsed_minutes,
-                body.item_type,
-                body.item_quality,
-                body.portion_size,
-                body.daypart,
-                body.party_size_kids,
-                body.wait_context,
-                body.photo_url,
-            ),
-        ).fetchone()
-    return TtfSubmissionResponse(**row)
+        response, _result = insert_ttf_observation(
+            conn,
+            restaurant_id=restaurant_id,
+            firebase_uid=user.firebase_uid,
+            body=body,
+        )
+    return response
 
 
 @router.get("/{restaurant_id}/ttf", response_model=TtfAggregate)
@@ -411,22 +389,13 @@ def submit_attributes(
         if not metric:
             raise HTTPException(status_code=400, detail=f"Unknown metric_key: {body.metric_key}")
 
-        row = conn.execute(
-            """
-            INSERT INTO restaurant_attribute_ratings (
-                restaurant_id, metric_key, firebase_uid, value, visit_context
-            ) VALUES (%s, %s, %s, %s, %s)
-            RETURNING id, metric_key
-            """,
-            (
-                restaurant_id,
-                body.metric_key,
-                user.firebase_uid,
-                Jsonb(body.value),
-                body.visit_context,
-            ),
-        ).fetchone()
-    return AttributeSubmissionResponse(**row)
+        response, _result = insert_attribute_rating(
+            conn,
+            restaurant_id=restaurant_id,
+            firebase_uid=user.firebase_uid,
+            body=body,
+        )
+    return response
 
 
 @router.get("/{restaurant_id}/attributes")
@@ -448,20 +417,13 @@ def submit_note(
 ) -> NoteSubmissionResponse:
     with get_conn() as conn:
         _ensure_restaurant(conn, restaurant_id)
-        row = conn.execute(
-            """
-            INSERT INTO restaurant_notes (restaurant_id, firebase_uid, text, tags)
-            VALUES (%s, %s, %s, %s)
-            RETURNING id, text, tags, created_at
-            """,
-            (restaurant_id, user.firebase_uid, body.text, body.tags),
-        ).fetchone()
-    return NoteSubmissionResponse(
-        id=row["id"],
-        text=row["text"],
-        tags=row["tags"] or [],
-        created_at=row["created_at"],
-    )
+        response, _result = insert_note(
+            conn,
+            restaurant_id=restaurant_id,
+            firebase_uid=user.firebase_uid,
+            body=body,
+        )
+    return response
 
 
 @router.get("/{restaurant_id}/notes")
@@ -469,10 +431,10 @@ def list_notes(restaurant_id: UUID) -> dict:
     with get_conn() as conn:
         _ensure_restaurant(conn, restaurant_id)
         rows = conn.execute(
-            """
+            f"""
             SELECT id, text, tags, created_at
             FROM restaurant_notes
-            WHERE restaurant_id = %s
+            WHERE restaurant_id = %s AND {PUBLIC_NOTE_FILTER}
             ORDER BY created_at DESC
             """,
             (restaurant_id,),

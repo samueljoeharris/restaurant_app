@@ -3,10 +3,8 @@ from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field, ValidationError
 
-from ttf_api.activity_events import emit_activity_event
 from ttf_api.contribution_schema import build_contribution_schema
 from ttf_api.auth import AuthUser
 from ttf_api.db import get_conn
@@ -21,6 +19,7 @@ from ttf_api.schemas import (
     TtfSubmissionResponse,
 )
 from ttf_api.security import require_write_access
+from ttf_api.ugc_write import insert_attribute_rating, insert_note, insert_ttf_observation
 
 router = APIRouter(prefix="/v1", tags=["contributions"])
 
@@ -43,6 +42,7 @@ class ContributionSubmitResponse(BaseModel):
     ttf: TtfSubmissionResponse | None = None
     attributes: list[AttributeSubmissionResponse] = Field(default_factory=list)
     note: NoteSubmissionResponse | None = None
+    pending_review: bool = False
 
 
 def _ttf_missing_fields(ttf: dict[str, Any]) -> list[str]:
@@ -135,33 +135,51 @@ def _validate_attribute_value(
             )
 
 
-
 def _raise_place_error(exc: PlacesSeedError) -> None:
     code = status.HTTP_503_SERVICE_UNAVAILABLE if "MAPS_API_KEY" in str(exc) else status.HTTP_400_BAD_REQUEST
     if "not found" in str(exc).lower():
         code = status.HTTP_404_NOT_FOUND
     raise HTTPException(status_code=code, detail=str(exc)) from exc
 
+
 def _persist_contributions(conn, restaurant_id, body, user):
     preview = _validate_draft(conn, body)
     if not preview.ready_to_submit:
         raise HTTPException(status_code=400, detail={"message": "Contribution draft is incomplete or invalid.", "errors": preview.errors, "missing_required": preview.missing_required})
     response = ContributionSubmitResponse()
+    any_queued = False
     if body.ttf is not None:
-        served_at = body.ttf.served_at or datetime.now(timezone.utc)
-        ordered_at = body.ttf.ordered_at or (served_at - timedelta(minutes=body.ttf.elapsed_minutes or 0))
-        row = conn.execute("""INSERT INTO ttf_observations (restaurant_id, firebase_uid, ordered_at, served_at, elapsed_minutes, item_type, item_quality, portion_size, daypart, party_size_kids, wait_context, photo_url) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id, elapsed_minutes, item_type, item_quality""", (restaurant_id, user.firebase_uid, ordered_at, served_at, body.ttf.elapsed_minutes, body.ttf.item_type, body.ttf.item_quality, body.ttf.portion_size, body.ttf.daypart, body.ttf.party_size_kids, body.ttf.wait_context, body.ttf.photo_url)).fetchone()
-        response.ttf = TtfSubmissionResponse(**row)
-        emit_activity_event(conn, restaurant_id=restaurant_id, event_type="ttf", source_id=row["id"], actor_firebase_uid=user.firebase_uid)
+        ttf_response, result = insert_ttf_observation(
+            conn,
+            restaurant_id=restaurant_id,
+            firebase_uid=user.firebase_uid,
+            body=body.ttf,
+        )
+        response.ttf = ttf_response.model_copy(update={"pending_review": result.queued})
+        any_queued = any_queued or result.queued
     for attr in body.attributes:
-        row = conn.execute("INSERT INTO restaurant_attribute_ratings (restaurant_id, metric_key, firebase_uid, value, visit_context) VALUES (%s,%s,%s,%s,%s) RETURNING id, metric_key", (restaurant_id, attr.metric_key, user.firebase_uid, Jsonb(attr.value), attr.visit_context)).fetchone()
-        response.attributes.append(AttributeSubmissionResponse(**row))
-        emit_activity_event(conn, restaurant_id=restaurant_id, event_type="attribute", source_id=row["id"], actor_firebase_uid=user.firebase_uid)
+        attr_response, result = insert_attribute_rating(
+            conn,
+            restaurant_id=restaurant_id,
+            firebase_uid=user.firebase_uid,
+            body=attr,
+        )
+        response.attributes.append(
+            attr_response.model_copy(update={"pending_review": result.queued})
+        )
+        any_queued = any_queued or result.queued
     if body.note is not None:
-        row = conn.execute("INSERT INTO restaurant_notes (restaurant_id, firebase_uid, text, tags) VALUES (%s,%s,%s,%s) RETURNING id, text, tags, created_at", (restaurant_id, user.firebase_uid, body.note.text, body.note.tags)).fetchone()
-        response.note = NoteSubmissionResponse(id=row["id"], text=row["text"], tags=row["tags"] or [], created_at=row["created_at"])
-        emit_activity_event(conn, restaurant_id=restaurant_id, event_type="note", source_id=row["id"], actor_firebase_uid=user.firebase_uid)
+        note_response, result = insert_note(
+            conn,
+            restaurant_id=restaurant_id,
+            firebase_uid=user.firebase_uid,
+            body=body.note,
+        )
+        response.note = note_response
+        any_queued = any_queued or result.queued
+    response.pending_review = any_queued
     return response
+
 
 @router.get("/contribution-schema")
 def get_contribution_schema() -> dict[str, Any]:
@@ -198,11 +216,11 @@ def submit_contributions(
         return _persist_contributions(conn, restaurant_id, body, user)
 
 
-
 @router.post("/places/{place_id}/contributions/preview", response_model=ContributionPreviewResponse)
 def preview_place_contributions(place_id: str, body: ContributionDraft, _user: Annotated[AuthUser, Depends(require_write_access)]) -> ContributionPreviewResponse:
     with get_conn() as conn:
         return _validate_draft(conn, body)
+
 
 @router.post("/places/{place_id}/contributions", response_model=ContributionSubmitResponse, status_code=status.HTTP_201_CREATED)
 def submit_place_contributions(place_id: str, body: ContributionDraft, user: Annotated[AuthUser, Depends(require_write_access)]) -> ContributionSubmitResponse:

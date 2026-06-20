@@ -316,6 +316,8 @@ export interface AdminContributorRow {
   email: string | null;
   display_name: string | null;
   disabled: boolean | null;
+  trust_level?: string | null;
+  auto_publish?: boolean | null;
   ttf_count: number;
   attribute_count: number;
   note_count: number;
@@ -342,6 +344,7 @@ export interface AdminRestaurantRow {
   ttf_avg_quality: number | null;
   attribute_rating_count: number;
   note_count: number;
+  pending_moderation_count?: number;
   updated_at: string;
 }
 
@@ -355,6 +358,69 @@ export interface AdminObservationRow {
   item_quality: number;
   daypart: string;
   created_at: string;
+  excluded_from_aggregate?: boolean;
+  exclusion_reason?: string | null;
+  moderation_status?: string;
+  restaurant_median_minutes?: number | null;
+}
+
+export interface AdminAttentionStats {
+  pending_moderation: number;
+  escalated: number;
+  flagged_observations: number;
+  restricted_users: number;
+  new_contributors_active: number;
+  stale_review_count: number;
+}
+
+export interface ModerationItemRow {
+  id: string;
+  content_type: "note" | "ttf_observation" | "attribute_rating" | "ai_draft";
+  content_id: string;
+  restaurant_id: string;
+  restaurant_name: string | null;
+  firebase_uid: string;
+  author_trust_level: string | null;
+  status: "pending" | "approved" | "rejected" | "escalated" | "removed";
+  source: "user_submit" | "auto_flag" | "user_report" | "admin_escalation";
+  flag_reasons: string[];
+  report_count: number;
+  preview_text: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export interface AdminRestaurantDetail {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  cuisine_tags: string[];
+  status: AdminRestaurantRow["status"];
+  tombstone_reason: string | null;
+  google_place_id: string | null;
+  ttf_sample_size: number;
+  ttf_median_minutes: number | null;
+  note_count: number;
+  pending_moderation_count: number;
+  updated_at: string;
+}
+
+export interface AdminContributorDetail {
+  firebase_uid: string;
+  email: string | null;
+  display_name: string | null;
+  disabled: boolean | null;
+  trust_level: string;
+  auto_publish: boolean;
+  trust_notes: string | null;
+  watch_count: number;
+  ttf_count: number;
+  attribute_count: number;
+  note_count: number;
+  total_contributions: number;
+  last_active_at: string | null;
 }
 
 export interface TtfSubmission {
@@ -401,6 +467,14 @@ export interface RestaurantNote {
   text: string;
   tags: string[];
   created_at: string;
+  pending_review?: boolean;
+}
+
+export interface ContributionSubmitResponse {
+  ttf?: TtfSubmission & { pending_review?: boolean };
+  attributes?: Array<{ id: string; metric_key: string; pending_review?: boolean }>;
+  note?: RestaurantNote;
+  pending_review?: boolean;
 }
 
 export interface PlaceSuggestion {

@@ -63,6 +63,11 @@ class Settings(BaseSettings):
     restaurant_refresh_scheduler_job: str = ""
     cloud_run_api_service: str = "ttf-api"
     restaurant_seed_pubsub_subscription: str = "ttf-restaurant-seed-worker"
+    moderation_enabled: bool = True
+    moderation_auto_flag_urls_in_notes: bool = True
+    moderation_auto_flag_ttf_outlier_z: float = 2.5
+    moderation_new_user_hold: bool = True
+    moderation_escalation_notify_email: str = ""
 
     @field_validator("cors_origins", mode="before")
     @classmethod
