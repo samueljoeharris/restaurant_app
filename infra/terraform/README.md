@@ -218,6 +218,7 @@ Two keys — do not reuse the server key in the browser.
 |-----|-----------|--------|------|-----|
 | **Server** (`ttf-maps-dev`) | Secret container only | `ttf-maps-api-key` | Geocoding + Places | `seed_restaurants.py`, API server |
 | **Web** (`ttf-maps-web-dev`) | `google_apikeys_key` in `maps-web.tf` | `ttf-maps-web-api-key` | Maps JavaScript API | `VITE_GOOGLE_MAPS_API_KEY` in web build |
+| **Web Map ID** | `maps_web_map_id` in `maps-web.tf` | `ttf-maps-web-map-id` | Cloud Map Style | `VITE_GOOGLE_MAPS_MAP_ID` in web build |
 
 Terraform enables **Geocoding**, **Places**, **Maps JavaScript** (`maps-backend.googleapis.com`), and **API Keys** (`apikeys.googleapis.com`).
 

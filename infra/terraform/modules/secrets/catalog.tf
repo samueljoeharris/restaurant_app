@@ -27,6 +27,18 @@ locals {
       placeholder_data   = null
       seed_hint          = "Auto-populated by Terraform from API Keys when maps-web.tf applies"
     }
+    ttf-maps-web-map-id = {
+      title              = "Google Maps Map ID (browser cloud styling)"
+      env_alias          = "VITE_GOOGLE_MAPS_MAP_ID"
+      purpose            = "Cloud Map Style Map ID for web explore basemap (Bluebird)"
+      consumers          = "Cloud Run web build (GitHub Actions), local Vite, dev-sync"
+      category           = "web"
+      confidentiality    = "public-build"
+      sync_dev           = true
+      version_managed_by = "maps-web.tf"
+      placeholder_data   = null
+      seed_hint          = "Set maps_web_map_id in terraform.tfvars or maps-web.tf applies dev default"
+    }
     ttf-firebase-web-env = {
       title              = "Firebase web SDK config (JSON)"
       env_alias          = "web/.env.local VITE_FIREBASE_*"

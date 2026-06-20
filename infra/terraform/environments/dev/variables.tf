@@ -153,6 +153,12 @@ variable "app_check_recaptcha_site_key" {
   default     = ""
 }
 
+variable "maps_web_map_id" {
+  type        = string
+  description = "Google Cloud Map ID for web explore basemap (VITE_GOOGLE_MAPS_MAP_ID). Public build config — not a secret."
+  default     = "a0014d38b56dea36144d06af"
+}
+
 variable "firebase_admin_sa_configured" {
   type        = bool
   description = "Set true after api/scripts/upload_firebase_admin_sa.sh uploads ttf-firebase-admin-sa"
