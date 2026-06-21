@@ -9,7 +9,7 @@ import { SkeletonList } from "./ui/Skeleton";
 
 type PlacePracticalTarget = Pick<
   RestaurantMapEntry,
-  "google_place_id" | "google_maps_url" | "lat" | "lng" | "name"
+  "google_place_id" | "google_maps_url" | "lat" | "lng" | "name" | "address"
 >;
 
 type PlacePracticalInfoProps = {
