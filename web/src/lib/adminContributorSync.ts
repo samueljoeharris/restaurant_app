@@ -40,3 +40,16 @@ export function applyContributorMutation(
     total,
   };
 }
+
+export function removeContributorFromList(
+  rows: AdminContributorRow[],
+  total: number,
+  firebaseUid: string,
+): { rows: AdminContributorRow[]; total: number } {
+  const idx = rows.findIndex((r) => r.firebase_uid === firebaseUid);
+  if (idx === -1) return { rows, total };
+  return {
+    rows: rows.filter((r) => r.firebase_uid !== firebaseUid),
+    total: Math.max(0, total - 1),
+  };
+}

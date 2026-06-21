@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from firebase_admin import auth as firebase_auth
 
 from ttf_api.admin_audit import write_admin_audit
@@ -14,6 +14,7 @@ from ttf_api.auth import AuthUser, _init_firebase, require_admin
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.moderation_service import (
+    admin_delete_contributor_account,
     approve_moderation_item,
     disable_user,
     enable_user,
@@ -324,12 +325,16 @@ def _build_admin_contributor_detail(conn, firebase_uid: str) -> AdminContributor
     email = None
     display_name = None
     disabled = None
+    auth_account_exists = False
     try:
         _init_firebase()
         fb = firebase_auth.get_user(firebase_uid)
+        auth_account_exists = True
         email = fb.email
         display_name = fb.display_name
         disabled = fb.disabled
+    except firebase_auth.UserNotFoundError:
+        pass
     except Exception:
         pass
 
@@ -338,6 +343,7 @@ def _build_admin_contributor_detail(conn, firebase_uid: str) -> AdminContributor
         email=email,
         display_name=display_name,
         disabled=disabled,
+        auth_account_exists=auth_account_exists,
         trust_level=profile["trust_level"],
         auto_publish=bool(profile["auto_publish"]),
         trust_notes=profile.get("trust_notes"),
@@ -394,6 +400,19 @@ def admin_enable_user(
     with get_conn() as conn:
         enable_user(conn, firebase_uid, admin)
         return _build_admin_contributor_detail(conn, firebase_uid)
+
+
+@router.post(
+    "/users/{firebase_uid}/delete-account",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+)
+def admin_delete_user_account(
+    firebase_uid: str,
+    admin: Annotated[AuthUser, Depends(require_admin)],
+) -> Response:
+    admin_delete_contributor_account(firebase_uid, admin)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/observations/{observation_id}/exclude")

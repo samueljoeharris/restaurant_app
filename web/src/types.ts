@@ -412,6 +412,7 @@ export interface AdminContributorDetail {
   email: string | null;
   display_name: string | null;
   disabled: boolean | null;
+  auth_account_exists: boolean;
   trust_level: string;
   auto_publish: boolean;
   trust_notes: string | null;

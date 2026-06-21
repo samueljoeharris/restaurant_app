@@ -737,6 +737,7 @@ class AdminContributorDetail(BaseModel):
     email: str | None = None
     display_name: str | None = None
     disabled: bool | None = None
+    auth_account_exists: bool = False
     trust_level: str
     auto_publish: bool
     trust_notes: str | None = None

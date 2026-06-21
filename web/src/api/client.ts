@@ -457,6 +457,13 @@ export const api = {
   adminEnableUser: (token: string, uid: string) =>
     request<AdminContributorDetail>(`/v1/admin/users/${encodeURIComponent(uid)}/enable`, { method: "POST" }, token),
 
+  adminDeleteUserAccount: (token: string, uid: string) =>
+    request<void>(
+      `/v1/admin/users/${encodeURIComponent(uid)}/delete-account`,
+      { method: "POST" },
+      token,
+    ),
+
   adminRestaurants: (
     token: string,
     opts: {

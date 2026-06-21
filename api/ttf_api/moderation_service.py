@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
@@ -9,11 +10,14 @@ from uuid import UUID
 from fastapi import HTTPException
 from firebase_admin import auth as firebase_auth
 
+from ttf_api.account_deletion import delete_user_account
 from ttf_api.activity_events import emit_activity_event
 from ttf_api.admin_audit import write_admin_audit
 from ttf_api.auth import AuthUser, _init_firebase
 from ttf_api.config import settings
 from ttf_api.user_profiles import ensure_user_profile
+
+logger = logging.getLogger(__name__)
 
 CONTENT_TABLE = {
     "note": ("restaurant_notes", "note"),
@@ -416,13 +420,22 @@ def set_user_trust(
     ).fetchone()
 
 
+def guard_admin_not_target_self(admin: AuthUser, firebase_uid: str) -> None:
+    if admin.firebase_uid == firebase_uid:
+        raise HTTPException(
+            status_code=403,
+            detail="You cannot disable, enable, or delete your own account from the admin console.",
+        )
+
+
 def disable_user(conn, firebase_uid: str, admin: AuthUser, reason: str | None = None) -> None:
+    guard_admin_not_target_self(admin, firebase_uid)
     set_user_trust(conn, firebase_uid, admin, trust_level="restricted", auto_publish=False)
     _init_firebase()
     try:
         firebase_auth.update_user(firebase_uid, disabled=True)
-    except firebase_auth.UserNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Firebase user not found") from exc
+    except firebase_auth.UserNotFoundError:
+        logger.warning("disable_user firebase_user_not_found uid=%s", firebase_uid)
     write_admin_audit(
         category="user_trust",
         action="disable",
@@ -434,15 +447,28 @@ def disable_user(conn, firebase_uid: str, admin: AuthUser, reason: str | None = 
 
 
 def enable_user(conn, firebase_uid: str, admin: AuthUser) -> None:
+    guard_admin_not_target_self(admin, firebase_uid)
     set_user_trust(conn, firebase_uid, admin, trust_level="standard")
     _init_firebase()
     try:
         firebase_auth.update_user(firebase_uid, disabled=False)
-    except firebase_auth.UserNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Firebase user not found") from exc
+    except firebase_auth.UserNotFoundError:
+        logger.warning("enable_user firebase_user_not_found uid=%s", firebase_uid)
     write_admin_audit(
         category="user_trust",
         action="enable",
+        entity_id=firebase_uid,
+        changed_by_uid=admin.firebase_uid,
+        changed_by_email=admin.email,
+    )
+
+
+def admin_delete_contributor_account(firebase_uid: str, admin: AuthUser) -> None:
+    guard_admin_not_target_self(admin, firebase_uid)
+    delete_user_account(firebase_uid)
+    write_admin_audit(
+        category="user_trust",
+        action="delete_account",
         entity_id=firebase_uid,
         changed_by_uid=admin.firebase_uid,
         changed_by_email=admin.email,

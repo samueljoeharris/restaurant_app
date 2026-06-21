@@ -9,7 +9,7 @@ import { FilterBar, FilterField } from "../../components/admin/FilterBar";
 import { StatusBadge } from "../../components/admin/StatusBadge";
 import { Button } from "../../components/ui/Button";
 import { useToast } from "../../components/ui/useToast";
-import { applyContributorMutation } from "../../lib/adminContributorSync";
+import { applyContributorMutation, removeContributorFromList } from "../../lib/adminContributorSync";
 import {
   CONTRIBUTOR_TRUST_TIERS,
   contributorTrustDescription,
@@ -20,7 +20,7 @@ import type { AdminContributorDetail, AdminContributorRow } from "../../types";
 const PAGE_SIZE = 25;
 
 export function AdminUsersPage() {
-  const { idToken } = useAuth();
+  const { idToken, user } = useAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState<AdminContributorRow[]>([]);
@@ -68,6 +68,8 @@ export function AdminUsersPage() {
       .catch((err) => setError(err instanceof Error ? err.message : "Profile load failed"));
   }, [idToken, selectedUid]);
 
+  const isSelf = Boolean(user?.uid && selectedUid && user.uid === selectedUid);
+
   function applyContributorUpdate(refreshed: AdminContributorDetail, successMessage: string) {
     setDetail(refreshed);
     setError(null);
@@ -102,6 +104,32 @@ export function AdminUsersPage() {
       applyContributorUpdate(refreshed, disable ? "Account disabled" : "Account enabled");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Action failed";
+      setError(message);
+      toast(message, "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteAccount() {
+    if (!idToken || !selectedUid || isSelf) return;
+    const label = detail?.display_name ?? detail?.email ?? selectedUid;
+    const confirmed = window.confirm(
+      `Permanently delete "${label}"?\n\nThis removes their Firebase account (if present), all contributions, photos, watches, and profile data. This cannot be undone.`,
+    );
+    if (!confirmed) return;
+    setBusy(true);
+    try {
+      await api.adminDeleteUserAccount(idToken, selectedUid);
+      const synced = removeContributorFromList(rows, total, selectedUid);
+      setRows(synced.rows);
+      setTotal(synced.total);
+      setSelectedUid(null);
+      setDetail(null);
+      setError(null);
+      toast("Account and contributions deleted", "success");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Delete failed";
       setError(message);
       toast(message, "error");
     } finally {
@@ -176,14 +204,25 @@ export function AdminUsersPage() {
         footer={
           detail ? (
             <div className="flex flex-wrap gap-2">
-              {detail.disabled ? (
-                <Button type="button" variant="secondary" disabled={busy} onClick={() => void toggleDisabled(false)}>
-                  Enable account
-                </Button>
+              {isSelf ? (
+                <p className="m-0 text-sm text-text-muted">
+                  You cannot disable or delete your own account from this screen.
+                </p>
               ) : (
-                <Button type="button" variant="danger" disabled={busy} onClick={() => void toggleDisabled(true)}>
-                  Disable account
-                </Button>
+                <>
+                  {detail.disabled ? (
+                    <Button type="button" variant="secondary" disabled={busy} onClick={() => void toggleDisabled(false)}>
+                      Enable account
+                    </Button>
+                  ) : (
+                    <Button type="button" variant="danger" disabled={busy} onClick={() => void toggleDisabled(true)}>
+                      Disable account
+                    </Button>
+                  )}
+                  <Button type="button" variant="danger" disabled={busy} onClick={() => void deleteAccount()}>
+                    Delete account
+                  </Button>
+                </>
               )}
             </div>
           ) : null
@@ -192,6 +231,11 @@ export function AdminUsersPage() {
         {detail ? (
           <div className="grid gap-4 text-sm">
             <p className="m-0 text-text-muted">{detail.firebase_uid}</p>
+            {!detail.auth_account_exists ? (
+              <p className="m-0 text-sm font-semibold text-warning">
+                No Firebase Auth account — contributions remain in Postgres. Use Delete account to remove data.
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <StatusBadge kind="trust" value={detail.trust_level} />
             </div>
