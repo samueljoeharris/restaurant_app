@@ -9,8 +9,9 @@ from uuid import UUID
 
 from fastapi import HTTPException
 from firebase_admin import auth as firebase_auth
+from firebase_admin import exceptions as firebase_exceptions
 
-from ttf_api.account_deletion import delete_user_account
+from ttf_api.account_deletion import _uid_hash, delete_user_account
 from ttf_api.activity_events import emit_activity_event
 from ttf_api.admin_audit import write_admin_audit
 from ttf_api.auth import AuthUser, _init_firebase
@@ -422,56 +423,153 @@ def set_user_trust(
 
 def guard_admin_not_target_self(admin: AuthUser, firebase_uid: str) -> None:
     if admin.firebase_uid == firebase_uid:
+        logger.warning(
+            "admin_user_self_action_blocked action=guard target_uid_hash=%s admin_uid_hash=%s",
+            _uid_hash(firebase_uid),
+            _uid_hash(admin.firebase_uid),
+        )
         raise HTTPException(
             status_code=403,
             detail="You cannot disable, enable, or delete your own account from the admin console.",
         )
 
 
+def _update_firebase_disabled(firebase_uid: str, disabled: bool, action: str) -> bool:
+    """Update Firebase Auth disabled flag. Returns True when the Auth user existed."""
+    _init_firebase()
+    uid_hash = _uid_hash(firebase_uid)
+    try:
+        firebase_auth.update_user(firebase_uid, disabled=disabled)
+        logger.info(
+            "admin_user_%s firebase_auth_updated uid_hash=%s disabled=%s",
+            action,
+            uid_hash,
+            disabled,
+        )
+        return True
+    except firebase_auth.UserNotFoundError:
+        logger.warning(
+            "admin_user_%s firebase_user_not_found uid_hash=%s disabled=%s",
+            action,
+            uid_hash,
+            disabled,
+        )
+        return False
+    except firebase_exceptions.FirebaseError as exc:
+        logger.error(
+            "admin_user_%s firebase_update_failed uid_hash=%s disabled=%s err=%s",
+            action,
+            uid_hash,
+            disabled,
+            exc,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Firebase Auth update failed. Postgres trust was updated; check Cloud Run logs.",
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "admin_user_%s firebase_update_unexpected uid_hash=%s disabled=%s err=%s",
+            action,
+            uid_hash,
+            disabled,
+            exc,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Firebase Auth update failed. Postgres trust was updated; check Cloud Run logs.",
+        ) from exc
+
+
 def disable_user(conn, firebase_uid: str, admin: AuthUser, reason: str | None = None) -> None:
     guard_admin_not_target_self(admin, firebase_uid)
+    target_hash = _uid_hash(firebase_uid)
+    admin_hash = _uid_hash(admin.firebase_uid)
     set_user_trust(conn, firebase_uid, admin, trust_level="restricted", auto_publish=False)
-    _init_firebase()
-    try:
-        firebase_auth.update_user(firebase_uid, disabled=True)
-    except firebase_auth.UserNotFoundError:
-        logger.warning("disable_user firebase_user_not_found uid=%s", firebase_uid)
+    firebase_updated = _update_firebase_disabled(firebase_uid, True, "disable")
     write_admin_audit(
         category="user_trust",
         action="disable",
         entity_id=firebase_uid,
         changed_by_uid=admin.firebase_uid,
         changed_by_email=admin.email,
-        metadata={"reason": reason},
+        metadata={
+            "reason": reason,
+            "firebase_auth_updated": firebase_updated,
+        },
+    )
+    logger.info(
+        "admin_user_disabled target_uid_hash=%s admin_uid_hash=%s firebase_auth_updated=%s",
+        target_hash,
+        admin_hash,
+        firebase_updated,
     )
 
 
 def enable_user(conn, firebase_uid: str, admin: AuthUser) -> None:
     guard_admin_not_target_self(admin, firebase_uid)
+    target_hash = _uid_hash(firebase_uid)
+    admin_hash = _uid_hash(admin.firebase_uid)
     set_user_trust(conn, firebase_uid, admin, trust_level="standard")
-    _init_firebase()
-    try:
-        firebase_auth.update_user(firebase_uid, disabled=False)
-    except firebase_auth.UserNotFoundError:
-        logger.warning("enable_user firebase_user_not_found uid=%s", firebase_uid)
+    firebase_updated = _update_firebase_disabled(firebase_uid, False, "enable")
     write_admin_audit(
         category="user_trust",
         action="enable",
         entity_id=firebase_uid,
         changed_by_uid=admin.firebase_uid,
         changed_by_email=admin.email,
+        metadata={"firebase_auth_updated": firebase_updated},
+    )
+    logger.info(
+        "admin_user_enabled target_uid_hash=%s admin_uid_hash=%s firebase_auth_updated=%s",
+        target_hash,
+        admin_hash,
+        firebase_updated,
     )
 
 
 def admin_delete_contributor_account(firebase_uid: str, admin: AuthUser) -> None:
     guard_admin_not_target_self(admin, firebase_uid)
-    delete_user_account(firebase_uid)
+    target_hash = _uid_hash(firebase_uid)
+    admin_hash = _uid_hash(admin.firebase_uid)
+    logger.info(
+        "admin_user_delete_started target_uid_hash=%s admin_uid_hash=%s",
+        target_hash,
+        admin_hash,
+    )
+    try:
+        delete_user_account(
+            firebase_uid,
+            initiator="admin",
+            initiator_uid_hash=admin_hash,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error(
+            "admin_user_delete_failed target_uid_hash=%s admin_uid_hash=%s err=%s",
+            target_hash,
+            admin_hash,
+            exc,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Account deletion failed. Check Cloud Run logs for admin_user_delete_failed.",
+        ) from exc
     write_admin_audit(
         category="user_trust",
         action="delete_account",
         entity_id=firebase_uid,
         changed_by_uid=admin.firebase_uid,
         changed_by_email=admin.email,
+    )
+    logger.info(
+        "admin_user_delete_completed target_uid_hash=%s admin_uid_hash=%s",
+        target_hash,
+        admin_hash,
     )
 
 

@@ -128,16 +128,39 @@ def _delete_postgres_data(conn, firebase_uid: str) -> dict[str, int]:
     }
 
 
-def _revoke_and_delete_firebase_user(firebase_uid: str) -> None:
+def _uid_hash(firebase_uid: str) -> str:
+    return hashlib.sha256(firebase_uid.encode()).hexdigest()[:16]
+
+
+def _revoke_and_delete_firebase_user(firebase_uid: str, uid_hash: str) -> bool:
+    """Revoke tokens and delete Firebase Auth user. Returns True if user existed."""
     init_firebase()
     try:
         firebase_auth.revoke_refresh_tokens(firebase_uid)
     except firebase_exceptions.NotFoundError:
-        pass
+        logger.warning("firebase_revoke_tokens_not_found uid_hash=%s", uid_hash)
+    except Exception as exc:
+        logger.warning(
+            "firebase_revoke_tokens_failed uid_hash=%s err=%s",
+            uid_hash,
+            exc,
+        )
+
     try:
         firebase_auth.delete_user(firebase_uid)
+        logger.info("firebase_auth_deleted uid_hash=%s", uid_hash)
+        return True
     except firebase_exceptions.NotFoundError:
-        pass
+        logger.warning("firebase_delete_user_not_found uid_hash=%s", uid_hash)
+        return False
+    except Exception as exc:
+        logger.error(
+            "firebase_delete_user_failed uid_hash=%s err=%s",
+            uid_hash,
+            exc,
+            exc_info=True,
+        )
+        raise
 
 
 def delete_user_account(
@@ -145,10 +168,13 @@ def delete_user_account(
     *,
     skip_firebase: bool = False,
     apple_authorization_code: str | None = None,
+    initiator: str = "self",
+    initiator_uid_hash: str | None = None,
 ) -> None:
     """Delete all user-authored data and the Firebase Auth record."""
     started = time.monotonic()
     uid_hash = _uid_hash(firebase_uid)
+    actor_hash = initiator_uid_hash or uid_hash
 
     with get_conn() as conn:
         photo_urls = _collect_photo_urls(conn, firebase_uid)
@@ -159,17 +185,22 @@ def delete_user_account(
     if apple_authorization_code:
         revoke_apple_tokens(apple_authorization_code)
 
+    firebase_deleted = False
     if not skip_firebase:
-        _revoke_and_delete_firebase_user(firebase_uid)
+        firebase_deleted = _revoke_and_delete_firebase_user(firebase_uid, uid_hash)
 
     elapsed_ms = int((time.monotonic() - started) * 1000)
     logger.info(
-        "account_deleted uid_hash=%s ttf=%s attributes=%s notes=%s photos=%s skip_firebase=%s elapsed_ms=%s",
+        "account_deleted uid_hash=%s initiator=%s actor_uid_hash=%s ttf=%s attributes=%s "
+        "notes=%s photos=%s skip_firebase=%s firebase_deleted=%s elapsed_ms=%s",
         uid_hash,
+        initiator,
+        actor_hash,
         counts["ttf"],
         counts["attributes"],
         counts["notes"],
         photos_deleted,
         skip_firebase,
+        firebase_deleted,
         elapsed_ms,
     )

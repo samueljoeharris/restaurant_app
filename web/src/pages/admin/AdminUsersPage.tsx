@@ -1,7 +1,7 @@
 import { useEffect, useState, startTransition } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { api } from "../../api/client";
+import { api, ApiError } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import { DetailDrawer } from "../../components/admin/DetailDrawer";
@@ -18,6 +18,32 @@ import {
 import type { AdminContributorDetail, AdminContributorRow } from "../../types";
 
 const PAGE_SIZE = 25;
+
+function actionErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    if (err.status === 403) return err.message;
+    if (err.status === 502) {
+      return `${err.message} Postgres may already be updated — refresh and check logs.`;
+    }
+    if (err.status >= 500) return `${err.message} If this persists, check Cloud Run logs.`;
+    return err.message;
+  }
+  return err instanceof Error ? err.message : fallback;
+}
+
+function disableSuccessMessage(detail: AdminContributorDetail): string {
+  if (!detail.auth_account_exists) {
+    return "Contributor restricted in Postgres (no Firebase Auth account)";
+  }
+  return "Account disabled";
+}
+
+function enableSuccessMessage(detail: AdminContributorDetail): string {
+  if (!detail.auth_account_exists) {
+    return "Contributor trust restored in Postgres (no Firebase Auth account)";
+  }
+  return "Account enabled";
+}
 
 export function AdminUsersPage() {
   const { idToken, user } = useAuth();
@@ -86,7 +112,7 @@ export function AdminUsersPage() {
       const refreshed = await api.adminUpdateUserTrust(idToken, selectedUid, { trust_level: trustLevel });
       applyContributorUpdate(refreshed, contributorTrustSuccessMessage(trustLevel));
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Update failed";
+      const message = actionErrorMessage(err, "Update failed");
       setError(message);
       toast(message, "error");
     } finally {
@@ -101,9 +127,12 @@ export function AdminUsersPage() {
       const refreshed = disable
         ? await api.adminDisableUser(idToken, selectedUid)
         : await api.adminEnableUser(idToken, selectedUid);
-      applyContributorUpdate(refreshed, disable ? "Account disabled" : "Account enabled");
+      applyContributorUpdate(
+        refreshed,
+        disable ? disableSuccessMessage(refreshed) : enableSuccessMessage(refreshed),
+      );
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Action failed";
+      const message = actionErrorMessage(err, "Action failed");
       setError(message);
       toast(message, "error");
     } finally {
@@ -129,7 +158,7 @@ export function AdminUsersPage() {
       setError(null);
       toast("Account and contributions deleted", "success");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Delete failed";
+      const message = actionErrorMessage(err, "Delete failed");
       setError(message);
       toast(message, "error");
     } finally {

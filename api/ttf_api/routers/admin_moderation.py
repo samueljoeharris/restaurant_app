@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
@@ -10,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from firebase_admin import auth as firebase_auth
 
 from ttf_api.admin_audit import write_admin_audit
+from ttf_api.account_deletion import _uid_hash
 from ttf_api.auth import AuthUser, _init_firebase, require_admin
 from ttf_api.config import settings
 from ttf_api.db import get_conn
@@ -45,6 +47,8 @@ from ttf_api.ugc_sql import TTF_AGGREGATE_FILTER
 from ttf_api.user_profiles import ensure_user_profile, watch_count
 
 router = APIRouter(prefix="/v1/admin", tags=["admin-moderation"])
+
+logger = logging.getLogger(__name__)
 
 _MAX_LIMIT = 200
 
@@ -334,9 +338,17 @@ def _build_admin_contributor_detail(conn, firebase_uid: str) -> AdminContributor
         display_name = fb.display_name
         disabled = fb.disabled
     except firebase_auth.UserNotFoundError:
-        pass
-    except Exception:
-        pass
+        logger.warning(
+            "admin_contributor_detail firebase_user_not_found uid_hash=%s",
+            _uid_hash(firebase_uid),
+        )
+    except Exception as exc:
+        logger.error(
+            "admin_contributor_detail firebase_lookup_failed uid_hash=%s err=%s",
+            _uid_hash(firebase_uid),
+            exc,
+            exc_info=True,
+        )
 
     return AdminContributorDetail(
         firebase_uid=firebase_uid,

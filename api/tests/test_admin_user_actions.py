@@ -7,7 +7,9 @@ from unittest.mock import MagicMock, patch
 
 from fastapi import HTTPException
 from firebase_admin import auth as firebase_auth
+from firebase_admin import exceptions as firebase_exceptions
 
+from ttf_api.account_deletion import _uid_hash
 from ttf_api.auth import AuthUser
 from ttf_api.moderation_service import (
     admin_delete_contributor_account,
@@ -90,8 +92,31 @@ class AdminUserActionTests(unittest.TestCase):
     ) -> None:
         admin = _admin()
         admin_delete_contributor_account("target-uid", admin)
-        mock_delete.assert_called_once_with("target-uid")
+        mock_delete.assert_called_once_with(
+            "target-uid",
+            initiator="admin",
+            initiator_uid_hash=_uid_hash("admin-uid"),
+        )
         mock_audit.assert_called_once()
+
+    @patch("ttf_api.moderation_service.write_admin_audit")
+    @patch("ttf_api.moderation_service.set_user_trust")
+    @patch("ttf_api.moderation_service._init_firebase")
+    @patch("firebase_admin.auth.update_user")
+    def test_disable_user_raises_on_firebase_error(
+        self,
+        mock_update: MagicMock,
+        mock_init: MagicMock,
+        mock_trust: MagicMock,
+        mock_audit: MagicMock,
+    ) -> None:
+        mock_update.side_effect = firebase_exceptions.UnavailableError("quota")
+        conn = MagicMock()
+        with self.assertRaises(HTTPException) as ctx:
+            disable_user(conn, "target-uid", _admin())
+        self.assertEqual(ctx.exception.status_code, 502)
+        mock_trust.assert_called_once()
+        mock_audit.assert_not_called()
 
 
 if __name__ == "__main__":
