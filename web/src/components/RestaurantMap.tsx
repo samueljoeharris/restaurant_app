@@ -363,16 +363,12 @@ function MapRestaurantSheet({
       className={cn(
         "flex flex-col overflow-hidden bg-surface shadow-md",
         mobileLayout
-          ? "absolute inset-x-0 max-h-[min(58dvh,calc(100dvh-var(--bottom-nav-height)-var(--map-sheet-peek-height)-env(safe-area-inset-bottom,0px)-1rem))] rounded-t-xl border border-b-0 border-border"
+          ? "absolute inset-x-0 bottom-0 max-h-[min(58dvh,28rem)] rounded-t-xl border border-b-0 border-border"
           : "absolute top-4 right-4 bottom-4 z-[3] min-h-72 w-[var(--map-panel-width)] rounded-lg",
       )}
       style={
         mobileLayout
-          ? {
-              zIndex: Z.mapSheet + 1,
-              bottom:
-                "calc(var(--bottom-nav-height) + var(--map-sheet-peek-height) + env(safe-area-inset-bottom, 0px))",
-            }
+          ? { zIndex: Z.mapSheet + 1 }
           : undefined
       }
       aria-label={`${entry.name} map details`}
@@ -657,10 +653,7 @@ export function RestaurantMap({
             )}
             style={
               mobileLayout
-                ? {
-                    bottom:
-                      "calc(var(--bottom-nav-height) + var(--map-sheet-peek-height) + env(safe-area-inset-bottom, 0px))",
-                  }
+                ? { zIndex: Z.mapSheet + 1 }
                 : undefined
             }
             aria-busy="true"

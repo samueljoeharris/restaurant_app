@@ -29,7 +29,7 @@ export function Layout({ children }: { children: ReactNode }) {
   );
   const hideNav = isContributionRoute(location.pathname);
   const isMap = location.pathname === "/map" || location.pathname === "/restaurants";
-  const showBottomNav = isMobile && !hideNav;
+  const showBottomNav = isMobile && !hideNav && !isMap;
 
   if (loading) {
     return (

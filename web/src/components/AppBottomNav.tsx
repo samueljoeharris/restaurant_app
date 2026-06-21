@@ -5,15 +5,25 @@ import { APP_NAV_TABS, isNavActive } from "../lib/appNav";
 import { cn } from "../lib/cn";
 import { Z } from "../lib/overlayStack";
 
+interface AppBottomNavProps {
+  /** In document flow below map chrome (map page). Default: fixed to viewport. */
+  embedded?: boolean;
+}
+
 /** Mobile bottom tab bar — design kit BottomNav pattern (Explore / Saved / You). */
-export function AppBottomNav() {
+export function AppBottomNav({ embedded = false }: AppBottomNavProps) {
   const { pathname } = useLocation();
   const { unreadCount } = useActivityBadge();
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 flex border-t border-border bg-surface px-1.5 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
-      style={{ zIndex: Z.bottomNav }}
+      className={cn(
+        "flex border-t border-border bg-surface px-1.5 pt-2",
+        embedded
+          ? "relative pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]"
+          : "fixed inset-x-0 bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]",
+      )}
+      style={embedded ? undefined : { zIndex: Z.bottomNav }}
       aria-label="App navigation"
     >
       {APP_NAV_TABS.map((tab) => {

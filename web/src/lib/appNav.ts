@@ -6,11 +6,7 @@ export const APP_NAV_TABS = [
 
 export function isNavActive(pathname: string, path: string) {
   if (path === "/map") {
-    return (
-      pathname === "/map" ||
-      pathname === "/restaurants" ||
-      pathname.startsWith("/restaurants/")
-    );
+    return pathname === "/map" || pathname === "/restaurants";
   }
   return pathname === path || pathname.startsWith(`${path}/`);
 }

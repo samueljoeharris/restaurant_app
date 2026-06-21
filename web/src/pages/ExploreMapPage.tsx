@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { ExploreFilterBar } from "../components/ExploreFilterBar";
+import { AppBottomNav } from "../components/AppBottomNav";
 import { MapLocateFab } from "../components/MapLocateFab";
 import { MapSearchSidebar } from "../components/MapSearchSidebar";
 import { PlaceSearchBox } from "../components/PlaceSearchBox";
@@ -676,7 +677,7 @@ export function ExploreMapPage() {
   }
 
   return (
-    <div className="relative h-full min-h-0">
+    <div className={cn("relative h-full min-h-0", isMobile && "flex flex-col")}>
       {statusMessage && (
         <p
           className={cn(
@@ -695,7 +696,7 @@ export function ExploreMapPage() {
         </p>
       )}
 
-      <div className="relative h-full min-h-0">
+      <div className={cn("relative min-h-0", isMobile ? "flex-1" : "h-full")}>
         <RestaurantMap
           restaurants={mapRestaurants}
           focusId={focusId}
@@ -722,13 +723,13 @@ export function ExploreMapPage() {
           busy={locating}
           active={userLocation !== null}
           onClick={() => void handleLocateMe()}
-          mobile={isMobile}
         />
       </div>
 
       <MapSearchSidebar
         resultCount={filtered.length}
         pinSheetOpen={!!selectedId}
+        embedded={isMobile}
         search={
           <PlaceSearchBox
             onSelectPlace={handleSelectPlace}
@@ -867,6 +868,7 @@ export function ExploreMapPage() {
           />
         )}
       </MapSearchSidebar>
+      {isMobile && <AppBottomNav embedded />}
     </div>
   );
 }
