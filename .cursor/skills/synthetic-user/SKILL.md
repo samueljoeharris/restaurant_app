@@ -25,7 +25,7 @@ Simulate realistic parent activity on **https://app.dev.littlescout.app** using 
 
 1. Confirm Cloud Agent env **Little Scout Cloud Agent V1** is active (bootstrap via `.cursor/scripts/bootstrap-cloud-env.sh` if needed).
 2. Registry path: `.secrets/agent-users-registry.json` (from `ttf-agent-users-registry` via sync).
-3. Open desktop browser at **1280×900** or larger (app expects desktop width).
+3. Browser viewport: **390×844** (mobile) or **1280×900** (desktop) — login and map work on both after the mobile pilot.
 
 ## Scenario rotation (daily automation)
 

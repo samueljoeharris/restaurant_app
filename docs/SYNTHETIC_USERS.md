@@ -64,9 +64,11 @@ Tag user after signup:
 
 ## Cursor Automations setup
 
-Create two automations at [cursor.com/automations/new](https://cursor.com/automations/new).
+Create automations at [cursor.com/automations/new](https://cursor.com/automations/new).
 
-**Shared settings (both automations):**
+**Scheduled signup (start here):** full spec in [SYNTHETIC_USERS_SIGNUP_AUTOMATION.md](SYNTHETIC_USERS_SIGNUP_AUTOMATION.md) — automation name `scout-synthetic-signup-daily`, prompt in [`.cursor/automations/scout-synthetic-signup-daily.md`](../.cursor/automations/scout-synthetic-signup-daily.md).
+
+**Shared settings (all automations):**
 
 | Setting | Value |
 |---------|-------|
