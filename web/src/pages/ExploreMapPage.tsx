@@ -18,6 +18,7 @@ import {
   useRestaurantMapEntries,
 } from "../hooks/useRestaurantMapCatalog";
 import { useMapViewportRestaurants } from "../hooks/useMapViewportRestaurants";
+import { useIsMobile } from "../hooks/useBreakpoint";
 import { geolocationErrorMessage, getCurrentPosition } from "../lib/geolocation";
 import { findMapEntry, mapEntryKey } from "../lib/mapEntryKey";
 import { runBackgroundCoverage } from "../lib/backgroundCoverage";
@@ -85,6 +86,7 @@ export function ExploreMapPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { idToken } = useAuth();
+  const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Keep filter links on whichever route mounted this page (/map or /restaurants).
@@ -678,7 +680,10 @@ export function ExploreMapPage() {
       {statusMessage && (
         <p
           className={cn(
-            "pointer-events-none absolute bottom-5 left-1/2 z-[6] m-0 max-w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 rounded-full border border-border bg-surface/95 px-3 py-2 text-center text-xs leading-snug text-text shadow-md",
+            "pointer-events-none absolute left-1/2 z-[6] m-0 max-w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 rounded-full border border-border bg-surface/95 px-3 py-2 text-center text-xs leading-snug text-text shadow-md",
+            isMobile
+              ? "top-4"
+              : "bottom-5",
             (statusMessage.includes("Sign in") ||
               statusMessage.includes("denied") ||
               statusMessage.includes("unavailable")) &&
@@ -717,11 +722,13 @@ export function ExploreMapPage() {
           busy={locating}
           active={userLocation !== null}
           onClick={() => void handleLocateMe()}
+          mobile={isMobile}
         />
       </div>
 
       <MapSearchSidebar
         resultCount={filtered.length}
+        pinSheetOpen={!!selectedId}
         search={
           <PlaceSearchBox
             onSelectPlace={handleSelectPlace}

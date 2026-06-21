@@ -17,7 +17,7 @@ export function ChoiceChip({
     <button
       type="button"
       className={cn(
-        "cursor-pointer rounded-md border-2 border-border bg-surface px-3 py-3 text-center text-sm font-semibold text-text transition-[border-color,background,box-shadow,transform] duration-fast hover:border-brand/45 active:scale-[0.98]",
+        "cursor-pointer rounded-md border-2 border-border bg-surface px-3 py-3 text-center text-sm font-semibold text-text transition-[border-color,background,box-shadow,transform] duration-fast hover:border-brand/45 active:scale-[0.98] min-h-11",
         selected && "border-brand bg-brand-soft shadow-[0_0_0_1px_var(--color-brand)]",
         className,
       )}

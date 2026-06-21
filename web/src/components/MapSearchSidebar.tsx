@@ -1,28 +1,127 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { useCollapsiblePanel } from "../hooks/useCollapsiblePanel";
+import { useIsMobile } from "../hooks/useBreakpoint";
 import { cn } from "../lib/cn";
+import { Z } from "../lib/overlayStack";
 
 interface MapSearchSidebarProps {
   resultCount: number;
   search: ReactNode;
   children: ReactNode;
   onCollapsedChange?: (collapsed: boolean) => void;
+  /** When a map pin detail sheet is open, collapse the search sheet on mobile. */
+  pinSheetOpen?: boolean;
 }
 
-/** Fixed left panel for search, filters, and results (desktop pilot). */
+function SheetHandle({
+  onClick,
+  label,
+  expanded,
+}: {
+  onClick: () => void;
+  label: string;
+  expanded: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className="flex w-full min-h-11 cursor-pointer flex-col items-center gap-1 border-0 bg-transparent px-4 pt-2 pb-1 font-[inherit]"
+      onClick={onClick}
+      aria-expanded={expanded}
+      aria-label={label}
+    >
+      <span
+        className="h-1 w-10 shrink-0 rounded-full bg-border-strong"
+        aria-hidden
+      />
+    </button>
+  );
+}
+
+/** Desktop left panel or mobile bottom sheet for search, filters, and results. */
 export function MapSearchSidebar({
   resultCount,
   search,
   children,
   onCollapsedChange,
+  pinSheetOpen = false,
 }: MapSearchSidebarProps) {
+  const isMobile = useIsMobile();
   const { collapsed, toggle } = useCollapsiblePanel("(max-width: 80rem)");
+  const [expanded, setExpanded] = useState(false);
   const countLabel = `${resultCount} ${resultCount === 1 ? "place" : "places"}`;
+  const sheetExpanded = expanded && !pinSheetOpen;
+
+  useBodyScrollLock(isMobile && sheetExpanded);
 
   useEffect(() => {
+    if (isMobile) {
+      onCollapsedChange?.(!sheetExpanded);
+      return;
+    }
     onCollapsedChange?.(collapsed);
-  }, [collapsed, onCollapsedChange]);
+  }, [isMobile, sheetExpanded, collapsed, onCollapsedChange]);
+
+  if (isMobile) {
+    const showPeekOnly = !sheetExpanded;
+
+    return (
+      <aside
+        id="map-search-sidebar"
+        className={cn(
+          "absolute inset-x-0 z-[var(--z-map-sheet)] flex flex-col overflow-hidden rounded-t-xl border border-b-0 border-border bg-surface shadow-lg transition-[max-height] duration-normal ease-out",
+          showPeekOnly
+            ? "max-h-[var(--map-sheet-peek-height)]"
+            : "max-h-[min(62dvh,calc(100dvh-var(--bottom-nav-height)-env(safe-area-inset-bottom,0px)-4rem))]",
+        )}
+        style={{
+          zIndex: Z.mapSheet,
+          bottom: "calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px))",
+        }}
+        aria-label="Search restaurants"
+      >
+        <SheetHandle
+          onClick={() => setExpanded((v) => !v)}
+          label={sheetExpanded ? "Collapse explore results" : "Expand explore results"}
+          expanded={sheetExpanded}
+        />
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 pb-2">
+          <div className="min-w-0">
+            <h2 className="m-0 text-base tracking-tight">Explore</h2>
+            <p className="mt-0.5 text-sm text-text-muted">{countLabel}</p>
+          </div>
+          <button
+            type="button"
+            className="min-h-11 min-w-11 shrink-0 cursor-pointer rounded-md border border-border bg-bg px-3 text-sm font-semibold text-brand"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={sheetExpanded}
+            aria-controls="map-search-sidebar-results"
+          >
+            {sheetExpanded ? "Map" : "List"}
+          </button>
+        </div>
+
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col overflow-hidden",
+            showPeekOnly && "pointer-events-none invisible h-0 opacity-0",
+          )}
+        >
+          <div className="shrink-0 border-b border-border px-4 py-3">
+            <div className="[&_.place-search]:mb-0">{search}</div>
+          </div>
+          <div
+            id="map-search-sidebar-results"
+            className="min-h-0 flex-1 overflow-y-auto p-4 [&_.place-search]:mb-3"
+          >
+            {children}
+          </div>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside

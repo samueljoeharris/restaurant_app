@@ -1,17 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 
 import { useActivityBadge } from "../hooks/useActivityBadge";
+import { APP_NAV_TABS, isNavActive } from "../lib/appNav";
 import { cn } from "../lib/cn";
 import { Z } from "../lib/overlayStack";
 import { ActivityInbox } from "./ActivityInbox";
 import { ScoutLogo } from "./ScoutLogo";
 import { Button } from "./ui/Button";
-
-const tabs = [
-  { to: "/map", label: "Explore", icon: "🗺️" },
-  { to: "/saved", label: "Saved", icon: "💛" },
-  { to: "/account", label: "You", icon: "🙂" },
-] as const;
 
 export function AppSidebar({
   collapsed,
@@ -24,13 +19,6 @@ export function AppSidebar({
 }) {
   const { pathname } = useLocation();
   const { unreadCount } = useActivityBadge();
-
-  function isActive(path: string) {
-    if (path === "/map") {
-      return pathname === "/map" || pathname === "/restaurants";
-    }
-    return pathname === path || pathname.startsWith(`${path}/`);
-  }
 
   return (
     <aside
@@ -89,13 +77,13 @@ export function AppSidebar({
         )}
         aria-label="Main"
       >
-        {tabs.map((tab) => (
+        {APP_NAV_TABS.map((tab) => (
           <Link
             key={tab.to}
             to={tab.to}
             className={cn(
               "flex items-center gap-3 rounded-md p-3 text-sm font-semibold text-text-muted transition-[color,background] duration-fast ease-out hover:bg-bg hover:text-text",
-              isActive(tab.to) && "bg-brand-soft text-brand",
+              isNavActive(pathname, tab.to) && "bg-brand-soft text-brand",
               collapsed && "justify-center px-2",
             )}
             title={collapsed ? tab.label : undefined}

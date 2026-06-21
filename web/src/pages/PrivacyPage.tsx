@@ -4,7 +4,7 @@ import { Page } from "../components/ui/Page";
 
 export function PrivacyPage() {
   return (
-    <div className="flex min-h-screen flex-col justify-center p-4 sm:p-8 lg:min-w-[var(--desktop-min-width)]">
+    <div className="flex min-h-screen min-w-0 flex-col justify-center p-4 md:min-w-[var(--desktop-min-width)] md:p-8">
       <Page narrow className="py-0">
         <div className="mb-6 text-center">
           <div className="mb-3 flex justify-center">

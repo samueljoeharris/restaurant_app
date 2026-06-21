@@ -4,15 +4,20 @@ interface MapLocateFabProps {
   busy?: boolean;
   active?: boolean;
   onClick: () => void;
+  /** Offset above mobile bottom nav + search sheet peek. */
+  mobile?: boolean;
 }
 
 /** Standard map “my location” control — bottom-right floating action button. */
-export function MapLocateFab({ busy, active, onClick }: MapLocateFabProps) {
+export function MapLocateFab({ busy, active, onClick, mobile = false }: MapLocateFabProps) {
   return (
     <button
       type="button"
       className={cn(
-        "absolute right-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-[9] grid h-12 w-12 place-items-center rounded-full border border-border bg-surface p-0 text-text shadow-md transition-[background,color,box-shadow] duration-fast ease-out hover:enabled:shadow-lg disabled:cursor-wait disabled:opacity-70",
+        "absolute right-4 z-[9] grid h-12 w-12 place-items-center rounded-full border border-border bg-surface p-0 text-text shadow-md transition-[background,color,box-shadow] duration-fast ease-out hover:enabled:shadow-lg disabled:cursor-wait disabled:opacity-70",
+        mobile
+          ? "bottom-[calc(var(--bottom-nav-height)+var(--map-sheet-peek-height)+1rem+env(safe-area-inset-bottom,0px))]"
+          : "bottom-[calc(1rem+env(safe-area-inset-bottom,0px))]",
         active && "border-2 border-brand text-brand",
       )}
       onClick={onClick}
@@ -21,7 +26,7 @@ export function MapLocateFab({ busy, active, onClick }: MapLocateFabProps) {
       title="Use my location"
     >
       {busy ? (
-        <span className="map-locate-fab__spinner" aria-hidden="true" />
+        <span className="map-locate-fab__spinner h-5 w-5" aria-hidden="true" />
       ) : (
         <svg
           className="h-[1.35rem] w-[1.35rem]"

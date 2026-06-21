@@ -123,6 +123,77 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 
 ---
 
+### WEB-SHELL-M01 — Mobile bottom navigation
+
+| Field | Value |
+|-------|-------|
+| **ID** | WEB-SHELL-M01 |
+| **Surface** | web-pilot |
+| **Route(s)** | `/map`, `/saved`, `/account` |
+| **Preconditions** | Signed in; viewport ≤767px (iPhone 14 Pro or DevTools) |
+| **Priority** | P0 |
+
+**Steps**
+1. Open `/map` at mobile width.
+2. Tap Saved and You in the bottom tab bar; confirm routes change.
+3. Confirm active tab uses sky brand color; inactive tabs muted.
+4. Open a restaurant detail page — bottom nav remains visible.
+5. Open `/restaurants/:id/submit` — bottom nav hidden (full-screen flow).
+
+**Expected (functional)** — Bottom nav replaces desktop sidebar on mobile; safe-area padding on notched devices.
+
+**Expected (theme)** — Emoji wayfinding (Explore / Saved / You); warm surface tab bar.
+
+**Audit** | app.dev | ☐ | ☐ | | | |
+
+---
+
+### WEB-MAP-M01 — Mobile map bottom sheets
+
+| Field | Value |
+|-------|-------|
+| **ID** | WEB-MAP-M01 |
+| **Surface** | web-pilot |
+| **Route(s)** | `/map` |
+| **Preconditions** | Signed in; viewport ≤767px |
+| **Priority** | P0 |
+
+**Steps**
+1. Map loads full-bleed with collapsed explore peek at bottom (handle + count).
+2. Tap List — sheet expands with search, filters, and results.
+3. Tap a list card — pin sheet opens above peek; explore sheet collapses.
+4. Close pin sheet (×) — map usable again.
+5. Tap locate FAB — positions above bottom nav + peek; geolocation prompt on first use.
+
+**Expected (functional)** — Pin ↔ list sync; map pan/zoom with one finger; no horizontal page scroll.
+
+**Audit** | app.dev | ☐ | ☐ | | | |
+
+---
+
+### WEB-TTF-M01 — Mobile TTF submit timer
+
+| Field | Value |
+|-------|-------|
+| **ID** | WEB-TTF-M01 |
+| **Surface** | web-pilot |
+| **Route(s)** | `/restaurants/:id/submit` |
+| **Preconditions** | Signed in; viewport 390×844 |
+| **Priority** | P0 |
+
+**Steps**
+1. Open submit page from restaurant detail.
+2. Start timer — large MM:SS display; tier color shifts at 8 / 15 min thresholds.
+3. Fill item type, quality, portion without zoom on inputs (16px fields).
+4. Stop timer; sticky Submit button visible without scrolling past keyboard.
+5. Submit successfully.
+
+**Expected (functional)** — Completable at the table in under 60 seconds; nav hidden on submit route.
+
+**Audit** | app.dev | ☐ | ☐ | | | |
+
+---
+
 ## Explore & map
 
 ### WEB-MAP-01 — Map load + basemap
@@ -406,7 +477,9 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 | WEB-AUTH-03 | Session persist redirect | P0 |
 | WEB-SHELL-02 | Sidebar collapse | P1 |
 | WEB-SHELL-04 | ActivityInbox portal | P1 |
-| WEB-SHELL-05 | Desktop-only gate | P2 |
+| WEB-SHELL-M01 | Mobile bottom nav | P0 |
+| WEB-MAP-M01 | Mobile map bottom sheets | P0 |
+| WEB-TTF-M01 | Mobile TTF submit timer | P0 |
 | WEB-MAP-06 | List rail tier swatches | P1 |
 | WEB-MAP-07 | Explore filter bar | P1 |
 | WEB-MAP-09 | Map sheet accent | P1 |

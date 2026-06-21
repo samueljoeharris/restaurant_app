@@ -15,10 +15,10 @@ import { cn } from "../lib/cn";
 
 function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-bg p-4 sm:p-8 lg:min-w-[var(--desktop-min-width)]">
+    <div className="flex min-h-screen min-w-0 flex-col justify-center bg-bg p-4 md:min-w-[var(--desktop-min-width)] md:p-8">
       <main
         className={cn(
-          "mx-auto max-w-[var(--page-narrow)] px-8 py-6 animate-page-enter",
+          "mx-auto w-full max-w-[var(--page-narrow)] px-4 py-6 animate-page-enter md:px-8",
         )}
       >
         {children}

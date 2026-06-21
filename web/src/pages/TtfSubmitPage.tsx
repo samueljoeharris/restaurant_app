@@ -12,6 +12,7 @@ import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
 import { EMPTY_CONTRIBUTION_RECENCY } from "../lib/contributionRecency";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
+import { TTF_TIER_COLORS, type TtfTier } from "../lib/ttfTier";
 import type { RestaurantDetailResponse, TtfSubmission } from "../types";
 
 const ITEM_TYPES: { value: TtfSubmission["item_type"]; label: string; emoji: string }[] = [
@@ -51,6 +52,12 @@ function formatTimer(ms: number): string {
   const min = Math.floor(totalSec / 60);
   const sec = totalSec % 60;
   return `${min}:${sec.toString().padStart(2, "0")}`;
+}
+
+function elapsedTier(minutes: number): TtfTier {
+  if (minutes <= 8) return "fast";
+  if (minutes <= 15) return "ok";
+  return "slow";
 }
 
 export function TtfSubmitPage() {
@@ -101,6 +108,9 @@ export function TtfSubmitPage() {
       ? 0
       : Math.max(0, (timerStopped ?? timerNow) - timerStart);
   const timerMinutes = Math.max(1, Math.ceil(timerMs / 60000));
+  const displayMinutes = timerStart !== null ? timerMinutes : elapsed;
+  const timerTier = elapsedTier(displayMinutes);
+  const timerColor = TTF_TIER_COLORS[timerTier];
 
   function startTimer() {
     const now = Date.now();
@@ -191,16 +201,34 @@ export function TtfSubmitPage() {
         </Link>
       }
     >
-      <Card>
+      <Card className="pb-0 md:pb-[var(--spacing-6)]">
         <form className="grid gap-3" onSubmit={handleSubmit}>
-          <div className="grid gap-3 rounded-md bg-brand-soft p-4 text-center">
+          <div
+            className="grid gap-3 rounded-md bg-brand-soft p-4 text-center motion-reduce:transition-none"
+            style={{
+              boxShadow: timerStart !== null
+                ? `inset 0 0 0 2px color-mix(in srgb, ${timerColor} 35%, transparent)`
+                : undefined,
+            }}
+          >
             <p className="text-sm text-text-muted">Time from order to kid food on the table</p>
-            <div className="font-display text-4xl font-bold leading-none text-brand">
+            <div
+              className="font-display text-5xl font-bold leading-none md:text-4xl"
+              style={{ color: timerStart !== null ? timerColor : undefined }}
+              aria-live="polite"
+            >
               {timerStart === null ? "0:00" : formatTimer(timerMs)}
             </div>
+            {timerStart !== null && (
+              <p className="m-0 text-xs font-semibold" style={{ color: timerColor }}>
+                {timerTier === "fast" && "Still in the fast zone"}
+                {timerTier === "ok" && "OK territory"}
+                {timerTier === "slow" && "Hang in there — you're earning this data point"}
+              </p>
+            )}
             <div className="flex flex-wrap justify-center gap-2">
               {timerStart === null && (
-                <Button type="button" onClick={startTimer}>
+                <Button type="button" className="min-h-11" onClick={startTimer}>
                   Start timer
                 </Button>
               )}
@@ -208,13 +236,14 @@ export function TtfSubmitPage() {
                 <Button
                   type="button"
                   variant="secondary"
+                  className="min-h-11"
                   onClick={stopTimer}
                 >
                   Stop ({timerMinutes} min)
                 </Button>
               )}
               {timerStart !== null && (
-                <Button type="button" variant="ghost" onClick={resetTimer}>
+                <Button type="button" variant="ghost" className="min-h-11" onClick={resetTimer}>
                   Reset
                 </Button>
               )}
@@ -307,9 +336,11 @@ export function TtfSubmitPage() {
 
           {error && <p className="text-sm font-semibold text-error">{error}</p>}
           {submitHint && <p className="m-0 text-xs text-warning">{submitHint}</p>}
-          <Button type="submit" fullWidth disabled={!canSubmit}>
-            {busy ? "Submitting…" : "Submit observation"}
-          </Button>
+          <div className="sticky bottom-0 -mx-5 border-t border-border bg-surface px-5 py-3 md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
+            <Button type="submit" fullWidth className="min-h-11" disabled={!canSubmit}>
+              {busy ? "Submitting…" : "Submit observation"}
+            </Button>
+          </div>
         </form>
       </Card>
     </Page>

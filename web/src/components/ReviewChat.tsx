@@ -181,7 +181,7 @@ export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChat
     <Card title="Review assistant" subtitle="Describe your visit — we'll fill in the right fields">
       <div className="flex flex-col gap-3">
         <div
-          className="flex max-h-80 flex-col gap-2 overflow-y-auto rounded-md bg-surface-muted p-2"
+          className="flex max-h-80 min-h-[min(50dvh,20rem)] flex-col gap-2 overflow-y-auto rounded-md bg-surface-muted p-2 md:min-h-0"
           ref={scrollRef}
         >
           {messages.map((message, index) => (

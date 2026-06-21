@@ -68,6 +68,9 @@
   --shadow-brand: 0 4px 14px rgb(63 167 214 / 35%);
   --app-sidebar-width: 14rem;
   --app-sidebar-width-collapsed: 4.25rem;
+  --breakpoint-mobile: 48rem;
+  --bottom-nav-height: 3.5rem;
+  --map-sheet-peek-height: 3.75rem;
   --desktop-min-width: 64rem;
   --page-max-width: 72rem;
   --page-narrow: 40rem;
@@ -78,6 +81,8 @@
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --z-sidebar: 30;
+  --z-bottom-nav: 40;
+  --z-map-sheet: 50;
   --z-dropdown: 100;
   --z-toast: 150;
   --z-modal: 200;

@@ -28,7 +28,7 @@ export function RestaurantDetailTabs({
 
   return (
     <div>
-      <div role="tablist" aria-label="Restaurant sections" className="mb-4 flex gap-4 border-b border-border">
+      <div role="tablist" aria-label="Restaurant sections" className="mb-4 flex gap-2 overflow-x-auto border-b border-border pb-px [-webkit-overflow-scrolling:touch]">
         {(["community", "contribute"] as const).map((tab) => (
           <button
             key={tab}
@@ -36,7 +36,7 @@ export function RestaurantDetailTabs({
             role="tab"
             aria-selected={active === tab}
             className={cn(
-              "-mb-px border-b-2 px-1 pb-2 text-sm font-bold capitalize transition-colors",
+              "-mb-px min-h-11 shrink-0 border-b-2 px-3 pb-2 text-sm font-bold capitalize transition-colors",
               active === tab
                 ? "border-brand text-brand"
                 : "border-transparent text-text-muted hover:text-text",

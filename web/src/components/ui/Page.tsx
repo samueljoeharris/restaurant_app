@@ -21,7 +21,7 @@ export function Page({
   return (
     <div
       className={cn(
-        "mx-auto px-4 py-5 animate-page-enter sm:px-8 sm:py-6",
+        "mx-auto px-4 py-4 animate-page-enter md:px-8 md:py-6",
         narrow ? "max-w-[var(--page-narrow)]" : "max-w-[var(--page-max-width)]",
         className,
       )}

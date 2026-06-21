@@ -13,9 +13,9 @@ export const buttonVariants = cva(
         danger: "border-0 bg-error-soft text-error",
       },
       size: {
-        sm: "px-3 py-1.5 text-sm",
-        md: "px-[1.1rem] py-2.5 text-base",
-        lg: "px-[1.35rem] py-3 text-lg",
+        sm: "min-h-9 px-3 py-1.5 text-sm",
+        md: "min-h-11 px-[1.1rem] py-2.5 text-base",
+        lg: "min-h-12 px-[1.35rem] py-3 text-lg",
       },
       fullWidth: {
         true: "w-full",

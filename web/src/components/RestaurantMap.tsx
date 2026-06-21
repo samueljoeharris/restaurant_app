@@ -7,10 +7,12 @@ import {
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 
+import { useIsMobile } from "../hooks/useBreakpoint";
 import { MapMarkerLayer } from "./MapMarkerLayer";
 import { PlacePracticalInfo } from "./PlacePracticalInfo";
 import { WatchButton } from "./WatchButton";
 import { cn } from "../lib/cn";
+import { Z } from "../lib/overlayStack";
 import {
   formatTtfMedian,
   ttfTier,
@@ -229,11 +231,13 @@ function SearchArea({
   busy,
   onSearchArea,
   withSidebar,
+  mobileLayout,
 }: {
   restaurants: RestaurantMapEntry[];
   busy: boolean;
   onSearchArea: (lat: number, lng: number, radiusM: number) => void;
   withSidebar: boolean;
+  mobileLayout?: boolean;
 }) {
   const map = useMap();
   const [sparse, setSparse] = useState(false);
@@ -252,8 +256,10 @@ function SearchArea({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute top-4 z-[5]",
-        withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4",
+        "pointer-events-none absolute z-[5]",
+        mobileLayout
+          ? "top-4 right-4 left-4 flex justify-center"
+          : cn("top-4", withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4"),
       )}
     >
       <Button
@@ -281,13 +287,24 @@ function SearchArea({
   );
 }
 
-function MapLegend({ withSidebar }: { withSidebar: boolean }) {
+function MapLegend({
+  withSidebar,
+  mobileLayout,
+}: {
+  withSidebar: boolean;
+  mobileLayout?: boolean;
+}) {
   const tiers: TtfTier[] = ["fast", "ok", "slow"];
   return (
     <div
       className={cn(
-        "absolute bottom-4 flex max-w-[min(36rem,calc(100%-var(--map-panel-width)-2rem))] flex-wrap items-center gap-2 rounded-md bg-surface/92 px-3 py-2 text-xs shadow-sm",
-        withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4",
+        "absolute flex flex-wrap items-center gap-2 rounded-md bg-surface/92 px-3 py-2 text-xs shadow-sm",
+        mobileLayout
+          ? "top-4 right-4 max-w-[calc(100%-2rem)] justify-end"
+          : cn(
+              "bottom-4 max-w-[min(36rem,calc(100%-var(--map-panel-width)-2rem))]",
+              withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4",
+            ),
       )}
       aria-label="Map pin legend"
     >
@@ -327,9 +344,11 @@ function MapLegend({ withSidebar }: { withSidebar: boolean }) {
 function MapRestaurantSheet({
   entry,
   onClose,
+  mobileLayout,
 }: {
   entry: RestaurantMapEntry;
   onClose: () => void;
+  mobileLayout?: boolean;
 }) {
   const tier = ttfTier(entry.ttf);
   const hasTtf = entry.ttf.sample_size > 0;
@@ -341,18 +360,37 @@ function MapRestaurantSheet({
 
   return (
     <aside
-      className="absolute top-4 right-4 bottom-4 z-[3] flex min-h-72 w-[var(--map-panel-width)] flex-col overflow-hidden rounded-lg bg-surface shadow-md"
+      className={cn(
+        "flex flex-col overflow-hidden bg-surface shadow-md",
+        mobileLayout
+          ? "absolute inset-x-0 max-h-[min(58dvh,calc(100dvh-var(--bottom-nav-height)-var(--map-sheet-peek-height)-env(safe-area-inset-bottom,0px)-1rem))] rounded-t-xl border border-b-0 border-border"
+          : "absolute top-4 right-4 bottom-4 z-[3] min-h-72 w-[var(--map-panel-width)] rounded-lg",
+      )}
+      style={
+        mobileLayout
+          ? {
+              zIndex: Z.mapSheet + 1,
+              bottom:
+                "calc(var(--bottom-nav-height) + var(--map-sheet-peek-height) + env(safe-area-inset-bottom, 0px))",
+            }
+          : undefined
+      }
       aria-label={`${entry.name} map details`}
     >
       <div
-        className="absolute top-0 bottom-0 left-0 w-1 rounded-l-lg"
+        className={cn(
+          "absolute top-0 bottom-0 left-0 w-1",
+          mobileLayout ? "rounded-tl-xl" : "rounded-l-lg",
+        )}
         style={{ background: mapPinFill(entry) }}
         aria-hidden
       />
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3 pl-[calc(1rem+4px)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="m-0 text-2xl leading-tight">{entry.name}</h2>
+            <h2 className={cn("m-0 leading-tight", mobileLayout ? "text-xl" : "text-2xl")}>
+              {entry.name}
+            </h2>
             <p className="mt-2 text-sm leading-normal text-text-muted">{entry.address}</p>
             {googleOnly && (
               <Badge variant="brand">Found on Google Maps · scout it in Little Scout</Badge>
@@ -369,7 +407,7 @@ function MapRestaurantSheet({
           </div>
           <button
             type="button"
-            className="h-8 w-8 shrink-0 cursor-pointer rounded-md border-0 bg-bg text-xl leading-none text-text-muted hover:text-text"
+            className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-md border-0 bg-bg text-xl leading-none text-text-muted hover:text-text"
             onClick={onClose}
             aria-label="Close"
           >
@@ -510,6 +548,8 @@ export function RestaurantMap({
   areaRadiusM?: number;
 }) {
   useMapsLibrary("marker");
+  const isMobile = useIsMobile();
+  const mobileLayout = isMobile;
   const sheetEntry = selectedId ? restaurants.find((r) => mapEntryKey(r) === selectedId) : null;
 
   if (!MAPS_KEY) {
@@ -587,7 +627,7 @@ export function RestaurantMap({
           />
         </Map>
 
-        <MapLegend withSidebar={withSidebar} />
+        <MapLegend withSidebar={withSidebar} mobileLayout={mobileLayout} />
 
         {onSearchArea && (
           <SearchArea
@@ -595,16 +635,34 @@ export function RestaurantMap({
             busy={searchBusy}
             onSearchArea={onSearchArea}
             withSidebar={withSidebar}
+            mobileLayout={mobileLayout}
           />
         )}
 
         {selectedId && sheetEntry && (
-          <MapRestaurantSheet entry={sheetEntry} onClose={() => onSelectChange(null)} />
+          <MapRestaurantSheet
+            entry={sheetEntry}
+            onClose={() => onSelectChange(null)}
+            mobileLayout={mobileLayout}
+          />
         )}
 
         {selectedId && !sheetEntry && (
           <aside
-            className="absolute top-4 right-4 bottom-4 z-[3] flex min-h-72 w-[var(--map-panel-width)] flex-col overflow-hidden rounded-lg bg-surface shadow-md"
+            className={cn(
+              "absolute z-[3] flex flex-col overflow-hidden bg-surface shadow-md",
+              mobileLayout
+                ? "inset-x-0 max-h-48 rounded-t-xl border border-b-0 border-border"
+                : "top-4 right-4 bottom-4 min-h-72 w-[var(--map-panel-width)] rounded-lg",
+            )}
+            style={
+              mobileLayout
+                ? {
+                    bottom:
+                      "calc(var(--bottom-nav-height) + var(--map-sheet-peek-height) + env(safe-area-inset-bottom, 0px))",
+                  }
+                : undefined
+            }
             aria-busy="true"
             aria-label="Loading restaurant"
           >
