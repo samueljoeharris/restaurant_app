@@ -57,6 +57,7 @@ This is the **"Bluebird" whimsical theme**: subtle whimsy on a clean, trustworth
 - **`components/core/`** — reusable React primitives (`.jsx` + `.d.ts` + `.prompt.md`):
   `Button`, `AttributeChip`, `SpeedBadge` (flagship kid-food-speed), `UpdateCard`, `Toggle`, `BottomNav`. Showcase: `components/core/components.card.html`.
 - **`ui_kits/app/`** — interactive re-themed consumer app: onboarding → feed → explore (themed map) → restaurant detail → kid-food-speed timer → you. (`index.html`)
+- **`screens/account.md`** — canonical **Account / You** page spec (`AccountPage`, `/account`).
 - **`ui_kits/admin/`** — re-themed operator console (Overview / moderation / data quality). (`index.html`)
 - **`guidelines/`** — foundation specimen cards (colors, type, shape, spacing, brand, map palette) shown in the Design System tab.
 - **`reference/`** — the original low-fi wireframe flows + admin console (`.dc.html`) that this system grew out of. Provenance only.

@@ -25,6 +25,7 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [SECRETS_AUDIT.md](SECRETS_AUDIT.md) | Audit of the secrets design + Docker/runtime consistency (2026-06-20) |
 | [DESIGN.md](DESIGN.md) | Product design, data model, architecture, and roadmap |
 | [design-system/readme.md](design-system/readme.md) | **Bluebird visual design kit** — voice, guidelines, UI kits, reference components |
+| [design-system/screens/account.md](design-system/screens/account.md) | **Account / You page** — Bluebird layout spec for `/account` |
 | [DESIGN_TOKENS.md](DESIGN_TOKENS.md) | Bluebird theme tokens — `design/tokens.json` workflow |
 | [MAP_STYLE.md](MAP_STYLE.md) | Google Map Style + MapKit POI-off |
 | [TEST_FLOWS.md](TEST_FLOWS.md) | Live UI audit catalog (manual QA) |
