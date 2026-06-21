@@ -373,7 +373,7 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 
 **Steps** — Family profile, notification prefs, theme toggle, sign out.
 
-**Expected (theme)** — Checkbox rows use `field-row`; brand focus rings.
+**Expected (theme)** — Avatar hero + three stat pills; SETTINGS eyebrow; toggle/link rows (`rounded-[14px]`, pill switches); panels for family, appearance, security, delete. See [design-system/screens/account.md](design-system/screens/account.md).
 
 **Audit** | app.dev | ☐ | ☐ | | | |
 
