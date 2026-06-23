@@ -21,6 +21,8 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [../infra/terraform/README.md](../infra/terraform/README.md) | Terraform bootstrap, dev stack, and WIF setup |
 | [MCP_SETUP.md](MCP_SETUP.md) | Cursor MCP setup for GitHub, GCP, Postgres, and Firebase |
 | [CLOUD_AGENT.md](CLOUD_AGENT.md) | **Cloud Agents** — paste `.env`, local stack, `/map` debugging |
+| [SYNTHETIC_USERS.md](SYNTHETIC_USERS.md) | **Synthetic agent users** — Cursor Automations on app.dev |
+| [SYNTHETIC_USERS_SIGNUP_AUTOMATION.md](SYNTHETIC_USERS_SIGNUP_AUTOMATION.md) | **Scheduled signup automation** — daily account creation spec |
 | [SECRETS_MATRIX.md](SECRETS_MATRIX.md) | **Where secrets live** — local vs GCP vs deploy; rotation |
 | [SECRETS_AUDIT.md](SECRETS_AUDIT.md) | Audit of the secrets design + Docker/runtime consistency (2026-06-20) |
 | [DESIGN.md](DESIGN.md) | Product design, data model, architecture, and roadmap |
