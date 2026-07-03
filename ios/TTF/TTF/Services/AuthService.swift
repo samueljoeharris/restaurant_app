@@ -20,6 +20,10 @@ final class AuthService {
         Auth.auth().currentUser?.providerData.contains { $0.providerID == "password" } ?? false
     }
 
+    func clearError() {
+        errorMessage = nil
+    }
+
     private var devTokenActive = false
     private var tokenListener: AuthStateDidChangeListenerHandle?
 
