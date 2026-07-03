@@ -34,16 +34,14 @@ struct SavedView: View {
                     }
                     Section("Saved") {
                         ForEach(items) { entry in
-                            if let id = entry.restaurant.id {
-                                NavigationLink {
-                                    RestaurantDetailView(restaurantID: id)
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(entry.restaurant.name).font(.headline)
-                                        Text(entry.restaurant.address)
-                                            .font(.caption)
-                                            .foregroundStyle(Color.textMuted)
-                                    }
+                            NavigationLink {
+                                RestaurantDetailView(restaurantID: entry.restaurant.id)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(entry.restaurant.name).font(.headline)
+                                    Text(entry.restaurant.address)
+                                        .font(.caption)
+                                        .foregroundStyle(Color.textMuted)
                                 }
                             }
                         }
