@@ -4,6 +4,8 @@ One-screen north star for what we're building next. **GitHub Issues are the queu
 
 **Phase 4 gate:** TestFlight pilot — iOS auth + writes, account deletion ✅, web map UX largely landed.
 
+**Execution view:** [TESTFLIGHT_EXECUTION_PLAN.md](TESTFLIGHT_EXECUTION_PLAN.md) — critical path, signing/pipeline runbook, and the parent-on-the-go UX bar for the beta.
+
 ---
 
 ## How we use this
@@ -25,6 +27,7 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 |-------|---------|
 | [#64](https://github.com/samueljoeharris/restaurant_app/issues/64) | **Whimsical Bluebird rebrand** — design kit integration audit + build ([TEST_FLOWS.md](TEST_FLOWS.md)) |
 | [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline (blocked on [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) secrets) |
+| [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | **App Store Connect secrets + iOS CI signing** — the one human-only blocker; see [TESTFLIGHT_EXECUTION_PLAN.md](TESTFLIGHT_EXECUTION_PLAN.md) §2 |
 
 ---
 
