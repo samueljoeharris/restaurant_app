@@ -84,7 +84,7 @@ struct DeleteAccountSettingsView: View {
                 .font(.footnote)
                 .foregroundStyle(Color.textMuted)
 
-            if auth.hasPassword {
+            if auth.hasPasswordProvider {
                 SecureField("Current password", text: $password)
                     .textContentType(.password)
                     .textFieldStyle(.roundedBorder)

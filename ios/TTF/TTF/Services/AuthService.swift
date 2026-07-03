@@ -140,6 +140,10 @@ final class AuthService {
         errorMessage = nil
     }
 
+    func clearError() {
+        errorMessage = nil
+    }
+
     func updateProfile(_ profile: UserProfile) {
         self.profile = profile
     }

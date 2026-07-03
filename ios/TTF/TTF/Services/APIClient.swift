@@ -192,7 +192,7 @@ final class APIClient {
     }
 
     func unwatchRestaurant(id: UUID) async throws {
-        try await request(
+        let _: EmptyResponse = try await request(
             path: "/v1/me/watches/\(id.uuidString.lowercased())",
             method: "DELETE",
             authenticated: true

@@ -103,7 +103,7 @@ struct SignInView: View {
 
                 Button {
                     isCreatingAccount.toggle()
-                    auth.errorMessage = nil
+                    auth.clearError()
                 } label: {
                     Text(isCreatingAccount ? "Already have an account? Sign in" : "No account? Create one")
                         .font(.footnote)
