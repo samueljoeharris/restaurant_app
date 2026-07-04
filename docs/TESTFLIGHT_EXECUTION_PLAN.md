@@ -68,6 +68,8 @@ All portal steps; agents cannot do these. Budget one sitting (~2 hours).
 
 ## 3. Workstream B — TestFlight pipeline (#36) · agent-able once A lands
 
+> **Status 2026-07-04: shipped.** `tool-ios.yml` now has the archive → `.ipa` export → TestFlight upload job behind a `testflight` dispatch input, with `ExportOptions.plist`, run-number build numbers, the encryption-compliance key, and `macos-15` runners. Untested until the #46 secrets exist; the provisioning-profile name in `ExportOptions.plist` may need a one-time edit. Items below kept for reference.
+
 Extend [`tool-ios.yml`](../.github/workflows/tool-ios.yml). The commented-out skeleton is ~80% right; known corrections needed when uncommenting:
 
 1. **Export an `.ipa`, not the `.xcarchive`.** `apple-actions/upload-testflight-build` expects an `.ipa`; the commented step passes `build/TTF.xcarchive`. Add after archive:
@@ -96,6 +98,8 @@ Extend [`tool-ios.yml`](../.github/workflows/tool-ios.yml). The commented-out sk
 The web pilot went through the Bluebird pass; iOS still reads as a functional scaffold. These are the gaps found reviewing `ios/TTF/TTF/Views/` against the design kit and the 60-second-loop spec ([IOS_DESIGN.md §6](IOS_DESIGN.md#6-screens--navigation)). Ship the **Pre-beta** set before inviting testers beyond yourself — first impressions with pilot parents are one-shot.
 
 ### Pre-beta (the flagship loop must feel great)
+
+> **Status 2026-07-04: C1–C5 all shipped.** Two-moment TTF timer flow with haptics; tap-to-draft attribute chips with single Save (~4 taps); floating search + suggestions on the Explore map; Quicksand/Nunito bundled with `Font.ls*` theme helpers (applied sparingly — broad application is follow-up). Bonus fixes: the checked-in Xcode project was missing 6 Swift files plus 4 latent compile errors (main had never compiled on a Mac since cloud agents wrote it), and `regenerate-ios-xcodeproj.py` now correctly emits Firebase SPM package refs, `Colors.xcassets`, and bundled fonts. Table kept for reference.
 
 | # | Gap (file) | Fix |
 |---|-----------|-----|
