@@ -39,6 +39,21 @@ def resolve_seed_area(
     raise PlacesSeedError("Provide location or both lat and lng")
 
 
+SYSTEM_REQUESTERS = {"scheduled-refresh"}
+
+
+def is_scout_request(requested_by: str | None, *, refresh: bool) -> bool:
+    """Whether venues added by this job count as scout-requested (#63).
+
+    Only jobs a person explicitly asked for qualify — a user coverage request
+    or an admin seed run. Scheduled refresh and other system-initiated runs
+    grow the catalog without putting venues in the scouting queue.
+    """
+    if refresh:
+        return False
+    return bool(requested_by) and requested_by not in SYSTEM_REQUESTERS
+
+
 def create_seed_job(
     area: SeedArea,
     *,
@@ -296,6 +311,9 @@ def run_seed_job(job_id: UUID) -> None:
                     queries=search_queries_for_area(area, refresh=refresh),
                     tombstone_not_seen=refresh,
                     seed_job_id=job_id,
+                    scout_requested=is_scout_request(
+                        job["requested_by"], refresh=refresh
+                    ),
                 )
                 if refresh:
                     conn.execute(

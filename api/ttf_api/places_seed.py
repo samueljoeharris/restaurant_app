@@ -259,6 +259,7 @@ def upsert_restaurant(
     row: dict,
     *,
     seed_job_id: UUID | None = None,
+    scout_requested: bool = False,
 ) -> str:
     existing = conn.execute(
         """
@@ -346,8 +347,9 @@ def upsert_restaurant(
         INSERT INTO restaurants (
             name, address, lat, lng, google_place_id, google_maps_url,
             cuisine_tags, pilot_city, status, last_places_sync_at,
-            last_seen_in_places_at
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now())
+            last_seen_in_places_at, scout_requested_at
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now(),
+                  CASE WHEN %s THEN now() END)
         RETURNING id
         """,
         (
@@ -360,6 +362,7 @@ def upsert_restaurant(
             row["cuisine_tags"],
             row["pilot_city"],
             row["status"],
+            scout_requested,
         ),
     ).fetchone()
 
@@ -464,6 +467,7 @@ def seed_restaurants_for_area(
     queries: list[str] | None = None,
     tombstone_not_seen: bool = False,
     seed_job_id: UUID | None = None,
+    scout_requested: bool = False,
 ) -> SeedResult:
     seen: set[str] = set()
     inserted = updated = closed = reactivated = skipped = out_of_area = 0
@@ -487,7 +491,9 @@ def seed_restaurants_for_area(
                 continue
             seen.add(place_id)
 
-            action = upsert_restaurant(conn, row, seed_job_id=seed_job_id)
+            action = upsert_restaurant(
+                conn, row, seed_job_id=seed_job_id, scout_requested=scout_requested
+            )
             if action == "inserted":
                 inserted += 1
             elif action == "closed":
@@ -550,10 +556,13 @@ def fetch_place_details(
 
 
 def ensure_restaurant_for_place(conn: Connection, place_id: str, api_key: str) -> UUID:
+    # Materializing is explicit user intent (TTF submit or place search), so the
+    # venue counts as scout-requested even if it was originally bulk-seeded.
     existing = conn.execute("SELECT id, status FROM restaurants WHERE google_place_id = %s AND pilot_city = %s", (place_id, settings.pilot_city)).fetchone()
     if existing:
         if existing["status"] != "active":
             raise PlacesSeedError(f"Restaurant for place {place_id} is not active")
+        _mark_scout_requested(conn, existing["id"])
         return existing["id"]
     with httpx.Client() as client:
         place = fetch_place_details(client, api_key, place_id)
@@ -562,11 +571,22 @@ def ensure_restaurant_for_place(conn: Connection, place_id: str, api_key: str) -
     row = normalize_nearby_place(place, settings.pilot_city)
     if not row or row["status"] != "active":
         raise PlacesSeedError(f"Place unavailable: {place_id}")
-    upsert_restaurant(conn, row)
+    upsert_restaurant(conn, row, scout_requested=True)
     created = conn.execute("SELECT id FROM restaurants WHERE google_place_id = %s AND pilot_city = %s", (place_id, settings.pilot_city)).fetchone()
     if not created:
         raise PlacesSeedError(f"Failed to materialize place: {place_id}")
     return created["id"]
+
+
+def _mark_scout_requested(conn: Connection, restaurant_id: UUID) -> None:
+    conn.execute(
+        """
+        UPDATE restaurants
+        SET scout_requested_at = COALESCE(scout_requested_at, now())
+        WHERE id = %s
+        """,
+        (restaurant_id,),
+    )
 
 def _normalize_place_details(place: dict, pilot_city: str) -> dict | None:
     return normalize_nearby_place(place, pilot_city)

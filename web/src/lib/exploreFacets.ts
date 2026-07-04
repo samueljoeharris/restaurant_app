@@ -47,7 +47,11 @@ export function hasFastStarterData(restaurant: RestaurantMapEntry) {
 export function matchesScoutFilter(restaurant: RestaurantMapEntry, filter: ScoutFilter) {
   if (filter === "fast-starters") return hasFastStarterData(restaurant);
   if (filter === "parent-data") return hasParentData(restaurant);
-  if (filter === "needs-data") return !hasParentData(restaurant);
+  // Only venues someone asked us to scout count — bulk pre-seeded catalog
+  // entries without a request stay out of the queue (#63).
+  if (filter === "needs-data") {
+    return Boolean(restaurant.scouting_requested) && !hasParentData(restaurant);
+  }
   return true;
 }
 
@@ -132,7 +136,7 @@ export const SCOUT_FILTER_LABELS: Record<ScoutFilter, string> = {
   all: "All",
   "fast-starters": "Quick starters",
   "parent-data": "Parent-rated",
-  "needs-data": "Needs scouting",
+  "needs-data": "Requested — needs scouting",
 };
 
 export function parseScoutFilter(value: string | null): ScoutFilter {

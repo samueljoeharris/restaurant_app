@@ -21,6 +21,7 @@ MAP_SELECT = f"""
     SELECT
         r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
         r.google_place_id, r.google_maps_url,
+        (r.scout_requested_at IS NOT NULL) AS scouting_requested,
         COALESCE(t.sample_size, 0)::int AS sample_size,
         t.median_minutes, t.avg_quality, t.last_updated,
         COALESCE(n.note_count, 0)::int AS note_count,
@@ -33,6 +34,7 @@ WATCH_MAP_SELECT = f"""
     SELECT
         r.id, r.name, r.address, r.lat, r.lng, r.cuisine_tags, r.pilot_city,
         r.google_place_id, r.google_maps_url,
+        (r.scout_requested_at IS NOT NULL) AS scouting_requested,
         COALESCE(t.sample_size, 0)::int AS sample_size,
         t.median_minutes, t.avg_quality, t.last_updated,
         COALESCE(n.note_count, 0)::int AS note_count,
@@ -65,6 +67,7 @@ def row_to_map_entry(row: dict, *, watched: bool = False) -> RestaurantMapEntry:
         note_count=row["note_count"],
         attribute_rating_count=row["attribute_rating_count"],
         watched=watched,
+        scouting_requested=bool(row.get("scouting_requested")),
     )
 
 

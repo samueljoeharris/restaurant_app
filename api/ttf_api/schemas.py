@@ -70,6 +70,7 @@ class RestaurantMapEntry(RestaurantSummary):
     note_count: int = 0
     attribute_rating_count: int = 0
     watched: bool = False
+    scouting_requested: bool = False
 
 
 class RestaurantDetailResponse(BaseModel):
