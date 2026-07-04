@@ -1,23 +1,33 @@
+import { lazy, Suspense, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
 import { Layout } from "./components/Layout";
+import { RouteFallback } from "./components/RouteFallback";
 import { ScrollToTop } from "./components/ScrollToTop";
-import { AccountPage } from "./pages/AccountPage";
 import { ActivityToast } from "./components/ActivityToast";
 import { ExploreMapPage } from "./pages/ExploreMapPage";
 import { LoginPage } from "./pages/LoginPage";
-import { MyContributionsPage } from "./pages/MyContributionsPage";
-import { ModerationPolicyPage } from "./pages/ModerationPolicyPage";
-import { PrivacyPage } from "./pages/PrivacyPage";
-import { SavedPage } from "./pages/SavedPage";
-import { PlaceRestaurantDetailPage } from "./pages/PlaceRestaurantDetailPage";
-import { RestaurantDetailPage } from "./pages/RestaurantDetailPage";
-import { RateAttributesPage } from "./pages/RateAttributesPage";
-import { ReviewChatPage } from "./pages/ReviewChatPage";
-import { TtfContributionEditPage } from "./pages/TtfContributionEditPage";
-import { TtfSubmitPage } from "./pages/TtfSubmitPage";
+
+// Explore and Login stay eager (landing + auth redirect target); everything
+// else loads on demand so /map doesn't pay for the whole app.
+const AccountPage = lazy(() => import("./pages/AccountPage").then((m) => ({ default: m.AccountPage })));
+const MyContributionsPage = lazy(() => import("./pages/MyContributionsPage").then((m) => ({ default: m.MyContributionsPage })));
+const ModerationPolicyPage = lazy(() => import("./pages/ModerationPolicyPage").then((m) => ({ default: m.ModerationPolicyPage })));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage").then((m) => ({ default: m.PrivacyPage })));
+const SavedPage = lazy(() => import("./pages/SavedPage").then((m) => ({ default: m.SavedPage })));
+const PlaceRestaurantDetailPage = lazy(() => import("./pages/PlaceRestaurantDetailPage").then((m) => ({ default: m.PlaceRestaurantDetailPage })));
+const RestaurantDetailPage = lazy(() => import("./pages/RestaurantDetailPage").then((m) => ({ default: m.RestaurantDetailPage })));
+const RateAttributesPage = lazy(() => import("./pages/RateAttributesPage").then((m) => ({ default: m.RateAttributesPage })));
+const ReviewChatPage = lazy(() => import("./pages/ReviewChatPage").then((m) => ({ default: m.ReviewChatPage })));
+const TtfContributionEditPage = lazy(() => import("./pages/TtfContributionEditPage").then((m) => ({ default: m.TtfContributionEditPage })));
+const TtfSubmitPage = lazy(() => import("./pages/TtfSubmitPage").then((m) => ({ default: m.TtfSubmitPage })));
+
+// Per-page boundary so Layout (sidebar/nav) stays mounted while a chunk loads.
+function suspend(node: ReactNode) {
+  return <Suspense fallback={<RouteFallback />}>{node}</Suspense>;
+}
 
 export default function App() {
   return (
@@ -26,15 +36,13 @@ export default function App() {
         <ScrollToTop />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/moderation-policy" element={<ModerationPolicyPage />} />
+          <Route path="/privacy" element={suspend(<PrivacyPage />)} />
+          <Route path="/moderation-policy" element={suspend(<ModerationPolicyPage />)} />
           <Route path="/" element={<Navigate to="/map" replace />} />
           <Route
             path="/saved"
             element={
-              <Layout>
-                <SavedPage />
-              </Layout>
+              <Layout>{suspend(<SavedPage />)}</Layout>
             }
           />
           <Route
@@ -48,41 +56,31 @@ export default function App() {
           <Route
             path="/restaurants/place/:placeId/review"
             element={
-              <Layout>
-                <ReviewChatPage />
-              </Layout>
+              <Layout>{suspend(<ReviewChatPage />)}</Layout>
             }
           />
           <Route
             path="/restaurants/place/:placeId/rate"
             element={
-              <Layout>
-                <RateAttributesPage />
-              </Layout>
+              <Layout>{suspend(<RateAttributesPage />)}</Layout>
             }
           />
           <Route
             path="/restaurants/place/:placeId/submit"
             element={
-              <Layout>
-                <TtfSubmitPage />
-              </Layout>
+              <Layout>{suspend(<TtfSubmitPage />)}</Layout>
             }
           />
           <Route
             path="/restaurants/place/:placeId"
             element={
-              <Layout>
-                <PlaceRestaurantDetailPage />
-              </Layout>
+              <Layout>{suspend(<PlaceRestaurantDetailPage />)}</Layout>
             }
           />
           <Route
             path="/restaurants/:id"
             element={
-              <Layout>
-                <RestaurantDetailPage />
-              </Layout>
+              <Layout>{suspend(<RestaurantDetailPage />)}</Layout>
             }
           />
           <Route
@@ -96,49 +94,37 @@ export default function App() {
           <Route
             path="/account"
             element={
-              <Layout>
-                <AccountPage />
-              </Layout>
+              <Layout>{suspend(<AccountPage />)}</Layout>
             }
           />
           <Route
             path="/account/contributions"
             element={
-              <Layout>
-                <MyContributionsPage />
-              </Layout>
+              <Layout>{suspend(<MyContributionsPage />)}</Layout>
             }
           />
           <Route
             path="/account/contributions/ttf/:observationId/edit"
             element={
-              <Layout>
-                <TtfContributionEditPage />
-              </Layout>
+              <Layout>{suspend(<TtfContributionEditPage />)}</Layout>
             }
           />
           <Route
             path="/restaurants/:id/rate"
             element={
-              <Layout>
-                <RateAttributesPage />
-              </Layout>
+              <Layout>{suspend(<RateAttributesPage />)}</Layout>
             }
           />
           <Route
             path="/restaurants/:id/review"
             element={
-              <Layout>
-                <ReviewChatPage />
-              </Layout>
+              <Layout>{suspend(<ReviewChatPage />)}</Layout>
             }
           />
           <Route
             path="/restaurants/:id/submit"
             element={
-              <Layout>
-                <TtfSubmitPage />
-              </Layout>
+              <Layout>{suspend(<TtfSubmitPage />)}</Layout>
             }
           />
           <Route path="/admin/*" element={<AdminSiteRedirect />} />
