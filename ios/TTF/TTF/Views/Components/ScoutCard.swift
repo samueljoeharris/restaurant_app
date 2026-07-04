@@ -13,12 +13,12 @@ struct ScoutCard<Content: View>: View {
                 VStack(alignment: .leading, spacing: 4) {
                     if let title {
                         Text(title)
-                            .font(.headline)
+                            .font(.lsHeadline)
                             .foregroundStyle(Color.text)
                     }
                     if let subtitle {
                         Text(subtitle)
-                            .font(.subheadline)
+                            .font(.lsBody(14))
                             .foregroundStyle(Color.textMuted)
                     }
                 }

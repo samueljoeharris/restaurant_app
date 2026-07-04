@@ -12,20 +12,21 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Little Scout")
-                        .font(.caption.weight(.semibold))
+                        .font(.lsLabel)
+                        .kerning(1.4)
                         .foregroundStyle(Color.accent)
                         .textCase(.uppercase)
                     Text("What are you looking for?")
-                        .font(.largeTitle.bold())
+                        .font(.lsLargeTitle)
                         .foregroundStyle(Color.text)
                     Text("Pick restaurants by starter speed, kid-friendly details, and notes from other caregivers.")
-                        .font(.body)
+                        .font(.lsBodyText)
                         .foregroundStyle(Color.textMuted)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Search by restaurant name or place")
-                        .font(.subheadline.weight(.medium))
+                        .font(.lsBody(15, weight: .semibold))
                     PlaceSearchField(viewModel: placeSearchVM, searchText: $searchText)
                 }
 
@@ -91,10 +92,10 @@ struct HomeView: View {
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.headline)
+                        .font(.lsHeadline)
                         .foregroundStyle(Color.text)
                     Text(subtitle)
-                        .font(.caption)
+                        .font(.lsCaption)
                         .foregroundStyle(Color.textMuted)
                 }
                 Spacer()

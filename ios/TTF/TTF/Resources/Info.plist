@@ -35,6 +35,17 @@
 	<string>$(TTF_USE_AUTH_EMULATOR)</string>
 	<key>TTFAppCheckEnabled</key>
 	<string>$(TTF_APP_CHECK_ENABLED)</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Quicksand-Medium.ttf</string>
+		<string>Quicksand-SemiBold.ttf</string>
+		<string>Quicksand-Bold.ttf</string>
+		<string>Nunito-Regular.ttf</string>
+		<string>Nunito-Medium.ttf</string>
+		<string>Nunito-SemiBold.ttf</string>
+		<string>Nunito-Bold.ttf</string>
+		<string>Nunito-ExtraBold.ttf</string>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

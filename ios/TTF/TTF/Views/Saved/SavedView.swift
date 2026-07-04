@@ -29,7 +29,7 @@ struct SavedView: View {
                     if unreadCount > 0 {
                         Section {
                             Text("\(unreadCount) update\(unreadCount == 1 ? "" : "s") since you last checked")
-                                .font(.subheadline.bold())
+                                .font(.lsBody(15, weight: .bold))
                         }
                     }
                     Section("Saved") {
@@ -38,7 +38,7 @@ struct SavedView: View {
                                 RestaurantDetailView(restaurantID: entry.restaurant.id)
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(entry.restaurant.name).font(.headline)
+                                    Text(entry.restaurant.name).font(.lsHeadline)
                                     Text(entry.restaurant.address)
                                         .font(.caption)
                                         .foregroundStyle(Color.textMuted)

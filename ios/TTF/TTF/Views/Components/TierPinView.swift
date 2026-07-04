@@ -63,7 +63,7 @@ struct TierPinView: View {
 
     private func pinLabel(_ text: String, search: Bool) -> some View {
         Text(text)
-            .font(search ? .caption2.weight(.bold) : .system(size: 10, weight: .bold))
+            .font(search ? .lsBody(11, weight: .bold) : .lsBody(10, weight: .bold))
             .foregroundStyle(search ? Color.brand : Color.text)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)

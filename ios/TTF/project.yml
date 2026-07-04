@@ -40,9 +40,13 @@ targets:
       - path: TTF
         excludes:
           - Resources/Info.plist
+          # Fonts are declared as an explicit resources entry below; exclude them
+          # here so XcodeGen doesn't double-reference them via the sources glob.
+          - Resources/Fonts
     resources:
       - path: TTF/Resources/Assets.xcassets
       - path: TTF/Resources/Colors.xcassets
+      - path: TTF/Resources/Fonts
     entitlements:
       path: TTF/TTF.entitlements
       properties:
@@ -64,6 +68,15 @@ targets:
         UILaunchScreen: {}
         NSLocationWhenInUseUsageDescription: "Little Scout uses your location to show nearby restaurants in the pilot area."
         ITSAppUsesNonExemptEncryption: false
+        UIAppFonts:
+          - Quicksand-Medium.ttf
+          - Quicksand-SemiBold.ttf
+          - Quicksand-Bold.ttf
+          - Nunito-Regular.ttf
+          - Nunito-Medium.ttf
+          - Nunito-SemiBold.ttf
+          - Nunito-Bold.ttf
+          - Nunito-ExtraBold.ttf
 
 schemes:
   TTF:
