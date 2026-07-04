@@ -15,6 +15,9 @@ struct RestaurantMapView: View {
     @State private var statusMessage: String?
     @State private var visibleRegion: MKCoordinateRegion? = RestaurantMapView.initialRegion
     @State private var cameraPosition = MapCameraPosition.region(RestaurantMapView.initialRegion)
+    @State private var searchVM: PlaceSearchViewModel?
+    @State private var searchText = ""
+    @FocusState private var searchFieldFocused: Bool
 
     private static let initialRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
@@ -35,6 +38,13 @@ struct RestaurantMapView: View {
             if region.contains(entry.coordinate) { total += 1 }
         }
         return count <= CoverageGeo.sparseViewportMax
+    }
+
+    /// Suggestions drop down only while the field is focused with a non-empty query.
+    private var suggestionsVisible: Bool {
+        searchFieldFocused
+            && !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !(searchVM?.suggestions.isEmpty ?? true)
     }
 
     var body: some View {
@@ -73,11 +83,25 @@ struct RestaurantMapView: View {
         }
         .overlay(alignment: .top) {
             VStack(spacing: 8) {
-                countChip
-                searchAreaBanner
+                if let searchVM {
+                    MapSearchOverlay(
+                        viewModel: searchVM,
+                        searchText: $searchText,
+                        isFocused: $searchFieldFocused,
+                        onSelect: { selectSuggestion($0) },
+                        onClear: { clearSearch() }
+                    )
+                }
+                if !suggestionsVisible {
+                    areaChip
+                    countChip
+                    searchAreaBanner
+                }
             }
+            .padding(.horizontal, 16)
             .padding(.top, 4)
             .animation(.default, value: coverage.phase)
+            .animation(.easeOut(duration: 0.2), value: suggestionsVisible)
         }
         .overlay(alignment: .bottomTrailing) {
             MapLocateFab(busy: locating, active: userLocation != nil) {
@@ -96,6 +120,29 @@ struct RestaurantMapView: View {
                     .background(.ultraThinMaterial, in: Capsule())
                     .padding(.bottom, 72)
                     .transition(.opacity)
+            }
+        }
+        .onAppear {
+            if searchVM == nil {
+                searchVM = PlaceSearchViewModel(api: api)
+            }
+        }
+        .onChange(of: searchVM?.resolvedLat) { _, newLat in
+            // Area search resolved — recenter the camera on the searched place.
+            guard let newLat, let lng = searchVM?.resolvedLng else { return }
+            let region = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: newLat, longitude: lng),
+                span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+            )
+            withAnimation(.easeOut(duration: 0.25)) {
+                cameraPosition = .region(region)
+            }
+            visibleRegion = region
+        }
+        .onChange(of: searchVM?.seedState) { _, newState in
+            // Coverage seeding for the searched area finished — pull the new pins in.
+            if newState == .done {
+                Task { await store.refresh(api: api) }
             }
         }
     }
@@ -156,6 +203,72 @@ struct RestaurantMapView: View {
                 .background(.ultraThinMaterial, in: Capsule())
                 .accessibilityLabel("\(store.mapEntries.count) places, updated \(loaded.formatted(date: .omitted, time: .shortened))")
         }
+    }
+
+    /// Small dismissable pill shown while an area search is active ("Near Ballard").
+    @ViewBuilder
+    private var areaChip: some View {
+        if let searchVM, let label = searchVM.areaLabel {
+            HStack(spacing: 8) {
+                if searchVM.isPendingPlaceMode || searchVM.seedState == .seeding {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Image(systemName: "mappin.circle.fill")
+                        .foregroundStyle(Color.brand)
+                }
+                Text(searchVM.isPendingPlaceMode ? "Locating \(label)…" : "Near \(label)")
+                    .font(.caption.bold())
+                    .lineLimit(1)
+                Button {
+                    clearSearch()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.textMuted)
+                .accessibilityLabel("Clear area search")
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial, in: Capsule())
+        }
+    }
+
+    /// Handle a tapped autocomplete suggestion: restaurants push detail (a parent
+    /// wants to rate it), places recenter the map and kick off coverage.
+    private func selectSuggestion(_ suggestion: PlaceSuggestion) {
+        searchFieldFocused = false
+        guard let searchVM else { return }
+        searchVM.select(suggestion)
+
+        if suggestion.type == "restaurant",
+           let rid = suggestion.restaurantId,
+           let uuid = UUID(uuidString: rid) {
+            // The map drives navigation itself — keep the VM's selection clear.
+            searchVM.clearSelectedRestaurant()
+            searchText = ""
+            if let lat = suggestion.lat, let lng = suggestion.lng {
+                let region = MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: lat, longitude: lng),
+                    span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+                )
+                cameraPosition = .region(region)
+                visibleRegion = region
+            }
+            selectedRestaurantID = uuid
+        } else {
+            // Area/place: keep the label in the field; camera recenters once the
+            // place resolves (see onChange of resolvedLat).
+            searchText = suggestion.primaryText
+        }
+    }
+
+    /// Reset the whole search state: text, suggestions, and any active area mode.
+    private func clearSearch() {
+        searchText = ""
+        searchVM?.queryChanged("")
+        searchVM?.clearAreaSearch()
     }
 
     @ViewBuilder
@@ -236,6 +349,77 @@ struct RestaurantMapView: View {
             await store.refresh(api: api)
             statusMessage = nil
         }
+    }
+}
+
+/// Floating rounded search field over the map, with the shared autocomplete
+/// dropdown beneath it. Mirrors the web explore page's search-over-map.
+private struct MapSearchOverlay: View {
+    @Bindable var viewModel: PlaceSearchViewModel
+    @Binding var searchText: String
+    var isFocused: FocusState<Bool>.Binding
+    let onSelect: (PlaceSuggestion) -> Void
+    let onClear: () -> Void
+
+    private var showsSuggestions: Bool {
+        isFocused.wrappedValue
+            && !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !viewModel.suggestions.isEmpty
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            searchField
+            if showsSuggestions {
+                PlaceSearchSuggestionsView(suggestions: viewModel.suggestions) { suggestion in
+                    onSelect(suggestion)
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .animation(.easeOut(duration: 0.2), value: showsSuggestions)
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(Color.textMuted)
+            TextField("Search restaurants or places", text: $searchText)
+                .focused(isFocused)
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
+                .onSubmit { isFocused.wrappedValue = false }
+                .onChange(of: searchText) { _, newValue in
+                    // Only user edits (field focused) should refetch — programmatic
+                    // resets after a selection shouldn't resurface suggestions.
+                    if isFocused.wrappedValue {
+                        viewModel.queryChanged(newValue)
+                    }
+                }
+            if viewModel.isSearching {
+                ProgressView()
+                    .controlSize(.small)
+            }
+            if !searchText.isEmpty {
+                Button {
+                    onClear()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color.textMuted)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Clear search")
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: 14))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(Color.border)
+        }
+        .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
     }
 }
 

@@ -27,8 +27,11 @@ final class PlaceSearchViewModel {
 
     private var pendingPlaceId: String?
     private var pendingSessionToken: String?
-    private var resolvedLat: Double?
-    private var resolvedLng: Double?
+    /// Coordinates of the active area search once resolved (nil until then and
+    /// after `clearAreaSearch`). Read-only outside — the map uses these to
+    /// recenter its camera on the searched area.
+    private(set) var resolvedLat: Double?
+    private(set) var resolvedLng: Double?
 
     private var debounceTask: Task<Void, Never>?
     private var resolveTask: Task<Void, Never>?
