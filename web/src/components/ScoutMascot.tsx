@@ -4,6 +4,10 @@
  * commissioned (see docs/design-system/readme.md § Mascot caveat). Swap the SVG below for an <img>
  * pointing at supplied art when it's ready; keep the ScoutMascot name/props so call sites don't change.
  */
+const FOX_FUR = "#FBA63C";
+const FOX_CREAM = "#FBF6EC";
+const FOX_INK = "#2C2722";
+
 export function ScoutMascot({
   className,
   size = 160,
@@ -25,32 +29,30 @@ export function ScoutMascot({
       aria-label={alt}
     >
       {/* shoulders */}
-      <path d="M42 160 Q42 122 80 122 Q118 122 118 160 Z" fill="#FBA63C" />
-      {/* backpack strap */}
-      <path d="M55 128 L70 160 M105 128 L90 160" stroke="#2C2722" strokeWidth="3" strokeLinecap="round" opacity="0.25" />
-      {/* neckerchief */}
-      <path d="M60 118 L100 118 L80 142 Z" fill="#F08A2E" />
-      <circle cx="80" cy="120" r="4" fill="#F08A2E" />
+      <path d="M44 160 Q44 118 80 116 Q116 118 116 160 Z" fill={FOX_FUR} />
       {/* ears */}
-      <path d="M38 46 L28 8 L58 38 Z" fill="#FBA63C" />
-      <path d="M122 46 L132 8 L102 38 Z" fill="#FBA63C" />
-      <path d="M40 38 L34 16 L52 34 Z" fill="#2C2722" opacity="0.85" />
-      <path d="M120 38 L126 16 L108 34 Z" fill="#2C2722" opacity="0.85" />
+      <path d="M48 42 Q34 16 32 8 Q46 12 66 30 Z" fill={FOX_FUR} />
+      <path d="M112 42 Q126 16 128 8 Q114 12 94 30 Z" fill={FOX_FUR} />
+      <path d="M50 36 Q41 20 38 14 Q49 18 60 28 Z" fill={FOX_INK} opacity="0.8" />
+      <path d="M110 36 Q119 20 122 14 Q111 18 100 28 Z" fill={FOX_INK} opacity="0.8" />
+      {/* cheek tufts */}
+      <path d="M44 78 L28 88 L46 94 Z" fill={FOX_FUR} />
+      <path d="M116 78 L132 88 L114 94 Z" fill={FOX_FUR} />
       {/* head */}
-      <path d="M80 34 Q116 34 116 76 Q116 108 80 112 Q44 108 44 76 Q44 34 80 34 Z" fill="#FBA63C" />
-      {/* cap */}
-      <path d="M43 58 Q80 30 117 58 L117 62 Q80 48 43 62 Z" fill="var(--color-brand)" />
-      <path d="M43 62 Q80 46 117 62 Q117 50 80 42 Q43 50 43 62 Z" fill="var(--color-brand)" />
-      <circle cx="80" cy="50" r="4.5" fill="var(--color-accent)" />
+      <path d="M80 26 Q120 26 122 70 Q123 102 80 110 Q37 102 38 70 Q40 26 80 26 Z" fill={FOX_FUR} />
       {/* muzzle */}
-      <path d="M80 78 Q104 80 100 100 Q92 112 80 112 Q68 112 60 100 Q56 80 80 78 Z" fill="#FBF6EC" />
+      <path d="M80 72 Q106 74 103 96 Q96 110 80 110 Q64 110 57 96 Q54 74 80 72 Z" fill={FOX_CREAM} />
       {/* eyes */}
-      <circle cx="66" cy="76" r="4.5" fill="#2C2722" />
-      <circle cx="94" cy="76" r="4.5" fill="#2C2722" />
-      <circle cx="64.5" cy="74.5" r="1.3" fill="#FBF6EC" />
-      <circle cx="92.5" cy="74.5" r="1.3" fill="#FBF6EC" />
+      <circle cx="64" cy="66" r="5" fill={FOX_INK} />
+      <circle cx="96" cy="66" r="5" fill={FOX_INK} />
+      <circle cx="62.4" cy="64.2" r="1.5" fill={FOX_CREAM} />
+      <circle cx="94.4" cy="64.2" r="1.5" fill={FOX_CREAM} />
       {/* nose */}
-      <path d="M77 96 L83 96 L80 100.5 Z" fill="#2C2722" />
+      <path d="M75.5 90 L84.5 90 L80 96.5 Z" fill={FOX_INK} />
+      {/* scout neckerchief */}
+      <path d="M54 118 Q80 132 106 118 L80 150 Z" fill="var(--color-brand)" />
+      <path d="M54 118 Q80 132 106 118 Q80 124 54 118 Z" fill={FOX_INK} opacity="0.12" />
+      <circle cx="80" cy="128" r="5.5" fill="var(--color-accent)" />
     </svg>
   );
 }

@@ -168,7 +168,7 @@ export function PlaceSearchBox({
           aria-controls={isOpen ? menuId : undefined}
           aria-activedescendant={activeOptionId}
           aria-label={placeholder}
-          className="pr-10"
+          className="pr-11"
           type="text"
           value={inputValue}
           onChange={handleInputChange}
@@ -181,12 +181,14 @@ export function PlaceSearchBox({
         )}
         {inputValue && !loading && (
           <button
-            className="absolute right-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-0 bg-bg p-0 text-xs leading-none text-text-muted hover:bg-border hover:text-text"
+            className="group absolute right-0 flex h-11 w-11 cursor-pointer items-center justify-center border-0 bg-transparent p-0"
             type="button"
             aria-label="Clear search"
             onClick={clearInput}
           >
-            ✕
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-bg text-xs leading-none text-text-muted group-hover:bg-border group-hover:text-text">
+              ✕
+            </span>
           </button>
         )}
       </div>

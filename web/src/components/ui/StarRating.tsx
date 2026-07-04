@@ -13,13 +13,13 @@ export function StarRating({
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="flex gap-1" role="group" aria-label={label}>
+      <div className="flex" role="group" aria-label={label}>
         {Array.from({ length: max }, (_, i) => i + 1).map((star) => (
           <button
             key={star}
             type="button"
             className={cn(
-              "cursor-pointer border-0 bg-transparent p-1 text-3xl leading-none transition-[color,transform] duration-fast hover:scale-110 hover:text-brand",
+              "flex min-h-11 min-w-11 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-3xl leading-none transition-[color,transform] duration-fast hover:scale-110 hover:text-brand",
               value >= star ? "text-brand" : "text-border-strong",
             )}
             onClick={() => onChange(star)}

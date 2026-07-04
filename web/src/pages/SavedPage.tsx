@@ -147,7 +147,10 @@ export function SavedPage() {
       {!loading && items.length === 0 && (
         <Card title="No saved spots yet">
           <div className="flex flex-col items-center py-4 text-center">
-            <ScoutMascot className="mb-4 h-28 w-28 object-contain" size={112} />
+            {/* Skip the page mascot while onboarding shows its own, so the fox doesn't double up. */}
+            {!showOnboarding && (
+              <ScoutMascot className="mb-4 h-28 w-28 object-contain" size={112} />
+            )}
             <p className="text-sm text-text-muted">
               Tap 💛 Watch on a restaurant to follow updates here.
             </p>

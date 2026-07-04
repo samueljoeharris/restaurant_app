@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { api } from "../api/client";
@@ -22,8 +22,32 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useBodyScrollLock(open);
+
+  useEffect(() => {
+    if (!open) return;
+    dialogRef.current?.querySelector<HTMLElement>("input, button")?.focus();
+  }, [open]);
+
+  // Onboarding is a required step (no dismiss path), so keep Tab focus inside the dialog.
+  function handleTrapKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key !== "Tab" || !dialogRef.current) return;
+    const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+      'input, button, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 
   if (!open) return null;
 
@@ -57,10 +81,13 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
 
   return createPortal(
     <div
-      className="fixed inset-0 grid place-items-center bg-black/40 p-4"
+      ref={dialogRef}
+      className="fixed inset-0 grid place-items-center overflow-y-auto bg-black/40 p-4"
       style={{ zIndex: Z.modal }}
       role="dialog"
       aria-modal="true"
+      aria-label="Tell us about your kids"
+      onKeyDown={handleTrapKeyDown}
     >
       <Card title="Tell us about your kids" subtitle="We'll personalize speed tips for your family">
         <div className="mb-4 flex justify-center">

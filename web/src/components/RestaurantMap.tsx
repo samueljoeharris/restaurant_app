@@ -258,7 +258,7 @@ function SearchArea({
       className={cn(
         "pointer-events-none absolute z-[5]",
         mobileLayout
-          ? "top-4 right-4 left-4 flex justify-center"
+          ? "top-[calc(1rem+env(safe-area-inset-top,0px))] right-4 left-4 flex justify-center"
           : cn("top-4", withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4"),
       )}
     >
@@ -300,7 +300,7 @@ function MapLegend({
       className={cn(
         "absolute flex flex-wrap items-center gap-2 rounded-md bg-surface/92 px-3 py-2 text-xs shadow-sm",
         mobileLayout
-          ? "top-4 right-4 max-w-[calc(100%-2rem)] justify-end"
+          ? "top-[calc(1rem+env(safe-area-inset-top,0px))] right-4 max-w-[calc(100%-2rem)] justify-end"
           : cn(
               "bottom-4 max-w-[min(36rem,calc(100%-var(--map-panel-width)-2rem))]",
               withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4",

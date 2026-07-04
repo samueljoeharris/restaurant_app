@@ -87,6 +87,7 @@ export function AppSidebar({
               collapsed && "justify-center px-2",
             )}
             title={collapsed ? tab.label : undefined}
+            aria-label={collapsed ? tab.label : undefined}
           >
             <span className="relative w-6 shrink-0 text-center text-[1.1rem] leading-none" aria-hidden>
               {tab.icon}
@@ -112,8 +113,9 @@ export function AppSidebar({
           className={cn(collapsed && "justify-center px-2")}
           onClick={onLogout}
           title={collapsed ? "Sign out" : undefined}
+          aria-label="Sign out"
         >
-          {collapsed ? "Out" : "Sign out"}
+          {collapsed ? <span aria-hidden>🚪</span> : "Sign out"}
         </Button>
       </div>
     </aside>

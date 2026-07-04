@@ -52,8 +52,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="grid min-h-screen min-w-[var(--desktop-min-width)] grid-cols-[15rem_1fr] bg-bg">
-      <aside className="sticky top-0 flex h-screen flex-col gap-4 border-r border-border bg-surface p-5">
+    <div className="grid min-h-screen bg-bg md:min-w-[var(--desktop-min-width)] md:grid-cols-[15rem_1fr]">
+      <aside className="flex flex-col gap-3 border-b border-border bg-surface p-4 md:sticky md:top-0 md:h-screen md:gap-4 md:border-r md:border-b-0 md:p-5">
         <Link
           to="/admin"
           className="flex items-center gap-2 text-lg font-extrabold tracking-tight"
@@ -66,7 +66,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </span>
           Little Scout Admin
         </Link>
-        <nav className="grid gap-1">
+        <nav className="flex gap-1 overflow-x-auto md:grid md:overflow-visible">
           {NAV.map((item) => {
             const active = item.end
               ? location.pathname === item.to
@@ -76,7 +76,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex items-center justify-between rounded-sm px-3 py-2 text-sm font-semibold text-text-muted transition-[color,background] duration-fast",
+                  "flex shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-sm font-semibold text-text-muted transition-[color,background] duration-fast",
                   active
                     ? "bg-brand-soft text-text"
                     : "hover:bg-brand-soft hover:text-text",
@@ -90,7 +90,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-auto grid gap-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 md:mt-auto md:grid md:gap-2">
           <p className="m-0 break-all text-xs text-text-muted">{user?.email ?? "Admin"}</p>
           <button
             type="button"
@@ -105,7 +105,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </button>
         </div>
       </aside>
-      <main className="max-w-[var(--page-max-width)] px-8 py-6">{children}</main>
+      <main className="max-w-[var(--page-max-width)] min-w-0 px-4 py-4 md:px-8 md:py-6">{children}</main>
     </div>
   );
 }

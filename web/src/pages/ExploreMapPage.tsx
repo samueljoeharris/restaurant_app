@@ -26,7 +26,12 @@ import { runBackgroundCoverage } from "../lib/backgroundCoverage";
 import { bboxAround } from "../lib/mapViewport";
 import { schedulePopInClear } from "../lib/mapSearchPopIn";
 import { searchZoomModeForEntry } from "../lib/mapSearchView";
-import { ensureNearbyAt, ensureViewportRestaurants, getRestaurantMapEntries } from "../lib/restaurantMapCache";
+import {
+  ensureFullRestaurantCatalog,
+  ensureNearbyAt,
+  ensureViewportRestaurants,
+  getRestaurantMapEntries,
+} from "../lib/restaurantMapCache";
 import {
   appendRestaurantFocusToParams,
   buildResolvedPlaceParams,
@@ -307,6 +312,23 @@ export function ExploreMapPage() {
   useEffect(() => {
     if (focusParam) resetViewportGate();
   }, [focusParam, focusPulse, resetViewportGate]);
+
+  // Map-failure fallback: if the map never delivers a viewport (missing key, blocked
+  // script, flaky network), load the full catalog so the List sheet still works as a
+  // non-map browse path instead of showing "0 places".
+  useEffect(() => {
+    if (!viewportEnabled || viewportFetched) return;
+    const mapsKeyMissing = !import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim();
+    const timer = window.setTimeout(
+      () => {
+        if (getRestaurantMapEntries().length === 0) {
+          void ensureFullRestaurantCatalog().catch(() => {});
+        }
+      },
+      mapsKeyMissing ? 0 : 4000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [viewportEnabled, viewportFetched]);
 
   // Pending place (from Home or in-page search): resolve, show pin + sheet, then load nearby async.
   useEffect(() => {
@@ -683,7 +705,7 @@ export function ExploreMapPage() {
           className={cn(
             "pointer-events-none absolute left-1/2 z-[6] m-0 max-w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 rounded-full border border-border bg-surface/95 px-3 py-2 text-center text-xs leading-snug text-text shadow-md",
             isMobile
-              ? "top-4"
+              ? "top-[calc(1rem+env(safe-area-inset-top,0px))]"
               : "bottom-5",
             (statusMessage.includes("Sign in") ||
               statusMessage.includes("denied") ||

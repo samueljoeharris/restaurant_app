@@ -336,7 +336,7 @@ export function TtfSubmitPage() {
 
           {error && <p className="text-sm font-semibold text-error">{error}</p>}
           {submitHint && <p className="m-0 text-xs text-warning">{submitHint}</p>}
-          <div className="sticky bottom-0 -mx-5 border-t border-border bg-surface px-5 py-3 md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
+          <div className="sticky bottom-0 -mx-5 border-t border-border bg-surface px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
             <Button type="submit" fullWidth className="min-h-11" disabled={!canSubmit}>
               {busy ? "Submitting…" : "Submit observation"}
             </Button>

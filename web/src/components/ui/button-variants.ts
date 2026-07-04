@@ -13,7 +13,7 @@ export const buttonVariants = cva(
         danger: "border-0 bg-error-soft text-error",
       },
       size: {
-        sm: "min-h-9 px-3 py-1.5 text-sm",
+        sm: "min-h-9 px-3 py-1.5 text-sm pointer-coarse:min-h-11",
         md: "min-h-11 px-[1.1rem] py-2.5 text-base",
         lg: "min-h-12 px-[1.35rem] py-3 text-lg",
       },
