@@ -1,4 +1,4 @@
-import { useEffect, useState, startTransition } from "react";
+import { useCallback, useEffect, useState, startTransition } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../../api/client";
@@ -32,7 +32,7 @@ export function AdminModerationPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  function reload() {
+  const reload = useCallback(() => {
     if (!idToken) return;
     startTransition(() => setLoading(true));
     api
@@ -48,11 +48,11 @@ export function AdminModerationPage() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Load failed"))
       .finally(() => setLoading(false));
-  }
+  }, [idToken, offset, status, contentType]);
 
   useEffect(() => {
     reload();
-  }, [idToken, offset, status, contentType]);
+  }, [reload]);
 
   async function act(id: string, action: "approve" | "reject" | "escalate") {
     if (!idToken || busyId) return;
