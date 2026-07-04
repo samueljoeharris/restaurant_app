@@ -381,7 +381,7 @@ function MapRestaurantSheet({
         style={{ background: mapPinFill(entry) }}
         aria-hidden
       />
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3 pl-[calc(1rem+4px)]">
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pt-4 pb-3 pl-[calc(1rem+4px)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className={cn("m-0 leading-tight", mobileLayout ? "text-xl" : "text-2xl")}>

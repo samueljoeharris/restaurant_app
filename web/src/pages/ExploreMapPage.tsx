@@ -408,7 +408,11 @@ export function ExploreMapPage() {
   // Scroll the matching card into view when the map selection changes.
   useEffect(() => {
     if (selectedId && activeCardRef.current) {
-      activeCardRef.current.scrollIntoView({ block: "nearest" });
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      activeCardRef.current.scrollIntoView({
+        block: "nearest",
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
     }
   }, [selectedId]);
 

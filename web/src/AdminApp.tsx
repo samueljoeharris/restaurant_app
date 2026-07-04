@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { AdminLandingRedirect } from "./components/admin/AdminLandingRedirect";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminRoute } from "./components/admin/AdminRoute";
@@ -27,6 +28,7 @@ export default function AdminApp() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<AdminLandingRedirect />} />
           <Route path="/login" element={<LoginPage />} />

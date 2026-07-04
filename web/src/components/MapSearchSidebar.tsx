@@ -109,7 +109,7 @@ export function MapSearchSidebar({
             </div>
             <div
               id="map-search-sidebar-results"
-              className="min-h-0 flex-1 overflow-y-auto p-4 [&_.place-search]:mb-3"
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 [&_.place-search]:mb-3"
             >
               {children}
             </div>
@@ -166,7 +166,7 @@ export function MapSearchSidebar({
       <div
         id="map-search-sidebar-results"
         className={cn(
-          "min-h-0 flex-1 overflow-y-auto p-4 [&_.place-search]:mb-3",
+          "min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 [&_.place-search]:mb-3",
           collapsed && "hidden",
         )}
         aria-hidden={collapsed}
