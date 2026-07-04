@@ -111,9 +111,14 @@ brew install xcodegen
 ./ios/TTF/generate-xcodeproj.sh
 ```
 
-## TestFlight CI (skeleton)
+## TestFlight CI
 
-`.github/workflows/tool-ios.yml` is a manual `workflow_dispatch` job for macOS builds. Before enabling the (currently commented-out) signing + TestFlight steps, add these GitHub secrets:
+`.github/workflows/tool-ios.yml` is a manual `workflow_dispatch` workflow (macos-15) with two jobs:
+
+- **build** — simulator build (`configuration` input: Debug/Release), no signing.
+- **testflight** — runs only when the `testflight` input is checked: imports signing material, `xcodebuild archive` (Release, build number = `github.run_number`), exports an `.ipa` via `ios/TTF/ExportOptions.plist`, and uploads it to TestFlight with `apple-actions/upload-testflight-build`. The provisioning profile name in `ExportOptions.plist` ("Little Scout App Store") may need a one-time edit to match the portal profile.
+
+Required GitHub secrets (issue #46):
 
 | Secret | Purpose |
 |--------|---------|
@@ -124,6 +129,7 @@ brew install xcodegen
 | `IOS_BUILD_CERTIFICATE_BASE64` | base64 of the distribution cert `.p12` |
 | `IOS_P12_PASSWORD` | Password for the `.p12` |
 | `IOS_PROVISION_PROFILE_BASE64` | base64 of the `.mobileprovision` profile |
+| `IOS_GOOGLE_SERVICE_INFO_PLIST` | base64 of `GoogleService-Info.plist` (required — the testflight job fails without it) |
 
 The cert/profile secrets are consumed by [`scripts/import-signing-material.sh`](../../scripts/import-signing-material.sh), which the workflow runs on the macOS runner before `xcodebuild archive`. Test it locally with:
 
