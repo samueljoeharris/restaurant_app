@@ -1,8 +1,18 @@
 import Foundation
 import Observation
 
+/// The three moments of the TTF flow: waiting to order, timing, and quick capture.
+enum TtfSubmitPhase {
+    case idle
+    case running
+    case capture
+}
+
 @Observable
 final class TtfSubmitViewModel {
+    private static let timerStartKey = "ttfTimer.startedAt"
+    private static let timerRestaurantKey = "ttfTimer.restaurantID"
+
     let restaurantID: UUID
 
     private(set) var restaurantName = ""
@@ -10,6 +20,15 @@ final class TtfSubmitViewModel {
     private(set) var isSubmitting = false
     private(set) var errorMessage: String?
     private(set) var didSubmit = false
+
+    private(set) var phase: TtfSubmitPhase = .idle
+    /// True when the user skipped the timer and is entering minutes by hand.
+    private(set) var isManualEntry = false
+
+    /// Bumped to fire `.sensoryFeedback(.success, ...)` in the view.
+    private(set) var successHapticTick = 0
+    /// Bumped to fire `.sensoryFeedback(.error, ...)` in the view.
+    private(set) var errorHapticTick = 0
 
     var elapsedMinutes = 12
     var itemType: TtfItemType = .fries
@@ -69,29 +88,81 @@ final class TtfSubmitViewModel {
         }
     }
 
+    // MARK: - Timer lifecycle
+
     func startTimer() {
         timerStart = Date()
         timerStoppedAt = nil
         timerTick = Date()
+        isManualEntry = false
+        phase = .running
+        persistTimerStart()
+        successHapticTick += 1
     }
 
-    func stopTimer() {
+    /// "Food's here!" — stop the clock and move to quick capture.
+    func foodArrived() {
         guard isTimerRunning else { return }
         timerStoppedAt = Date()
         timerTick = timerStoppedAt ?? Date()
         elapsedMinutes = displayedElapsedMinutes
+        phase = .capture
+        successHapticTick += 1
     }
 
-    func resetTimer() {
+    /// Quiet escape hatch from the running timer back to the start.
+    func cancelTimer() {
         timerStart = nil
         timerStoppedAt = nil
         timerTick = Date()
+        phase = .idle
+        clearPersistedTimer()
+    }
+
+    /// Manual fallback: skip the timer and enter minutes by hand.
+    func skipTimer() {
+        timerStart = nil
+        timerStoppedAt = nil
+        isManualEntry = true
+        phase = .capture
     }
 
     func tickTimer() {
         guard isTimerRunning else { return }
         timerTick = Date()
     }
+
+    // MARK: - Persistence (survive backgrounding / relaunch)
+
+    /// Restore a running timer for this restaurant if one was persisted.
+    func restoreTimerIfNeeded() {
+        guard phase == .idle, timerStart == nil else { return }
+        let defaults = UserDefaults.standard
+        guard let savedID = defaults.string(forKey: Self.timerRestaurantKey),
+              savedID == restaurantID.uuidString,
+              let savedStart = defaults.object(forKey: Self.timerStartKey) as? Date
+        else { return }
+        timerStart = savedStart
+        timerStoppedAt = nil
+        timerTick = Date()
+        isManualEntry = false
+        phase = .running
+    }
+
+    private func persistTimerStart() {
+        guard let timerStart else { return }
+        let defaults = UserDefaults.standard
+        defaults.set(timerStart, forKey: Self.timerStartKey)
+        defaults.set(restaurantID.uuidString, forKey: Self.timerRestaurantKey)
+    }
+
+    private func clearPersistedTimer() {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: Self.timerStartKey)
+        defaults.removeObject(forKey: Self.timerRestaurantKey)
+    }
+
+    // MARK: - Submit
 
     @MainActor
     func submit(api: APIClient) async {
@@ -111,9 +182,12 @@ final class TtfSubmitViewModel {
 
         do {
             _ = try await api.submitTTF(restaurantID: restaurantID, submission: submission)
+            clearPersistedTimer()
+            successHapticTick += 1
             didSubmit = true
         } catch {
             errorMessage = (error as? APIError)?.userFacingMessage ?? error.localizedDescription
+            errorHapticTick += 1
         }
     }
 }

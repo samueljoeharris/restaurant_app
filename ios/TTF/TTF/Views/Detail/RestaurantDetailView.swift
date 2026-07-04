@@ -187,7 +187,7 @@ struct RestaurantDetailView: View {
                 NavigationLink {
                     TtfSubmitView(restaurantID: restaurantID)
                 } label: {
-                    Label("Submit TTF", systemImage: "plus.circle.fill")
+                    Label("Log kid food speed", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
