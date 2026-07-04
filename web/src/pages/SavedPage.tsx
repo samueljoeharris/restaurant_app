@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -12,9 +12,10 @@ import { Page } from "../components/ui/Page";
 import { ScoutMascot } from "../components/ScoutMascot";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { useActivityBadge } from "../hooks/useActivityBadge";
+import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import { formatTtfMedian } from "../lib/ttfTier";
-import type { WatchedRestaurantEntry } from "../types";
+import type { ExtendedUserProfile, WatchedRestaurantEntry } from "../types";
 import { userStorage } from "../lib/userStorage";
 import { WATCHLIST_CHANGED_EVENT } from "../lib/watchlist";
 import { useWatch } from "../hooks/useWatch";
@@ -43,56 +44,54 @@ function SavedRow({ entry }: { entry: WatchedRestaurantEntry }) {
   );
 }
 
+interface SavedPageData {
+  items: WatchedRestaurantEntry[];
+  profile: ExtendedUserProfile;
+}
+
 export function SavedPage() {
   const { idToken } = useAuth();
   const { unreadCount } = useActivityBadge();
-  const [items, setItems] = useState<WatchedRestaurantEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showPushPrime, setShowPushPrime] = useState(false);
   const [stripDismissed, setStripDismissed] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!idToken) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
+  const { data, loading, error, refresh } = useCachedResource<SavedPageData>(
+    idToken ? "saved:watches-profile" : null,
+    async () => {
       const [watches, profile] = await Promise.all([
-        api.listWatches(idToken),
-        api.getProfile(idToken),
+        api.listWatches(idToken!),
+        api.getProfile(idToken!),
       ]);
-      setItems(watches.items);
-      if (!profile.onboarding_completed) setShowOnboarding(true);
-      const prime = userStorage.getPushPrimeState();
-      setShowPushPrime(watches.items.length > 0 && !prime.firstSavePromptShown);
-      userStorage.setProfileCache({
-        kidsAges: profile.kids_ages,
-        homeLabel: profile.home_label,
-        onboardingCompleted: profile.onboarding_completed,
-        inboxReadThrough: profile.inbox_read_through,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load saved spots");
-    } finally {
-      setLoading(false);
-    }
-  }, [idToken]);
+      return { items: watches.items, profile };
+    },
+    {
+      onData: ({ items, profile }) => {
+        if (!profile.onboarding_completed) setShowOnboarding(true);
+        const prime = userStorage.getPushPrimeState();
+        setShowPushPrime(items.length > 0 && !prime.firstSavePromptShown);
+        userStorage.setProfileCache({
+          kidsAges: profile.kids_ages,
+          homeLabel: profile.home_label,
+          onboardingCompleted: profile.onboarding_completed,
+          inboxReadThrough: profile.inbox_read_through,
+        });
+      },
+    },
+  );
+  const items = data?.items ?? [];
 
   useRefreshOnNavigate(() => {
-    void load();
-  }, [load]);
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     const onWatchlistChanged = () => {
-      void load();
+      void refresh();
     };
     window.addEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
     return () => window.removeEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
-  }, [load]);
+  }, [refresh]);
 
   const stripVisible =
     unreadCount > 0 &&
@@ -107,7 +106,7 @@ export function SavedPage() {
           idToken={idToken}
           onComplete={() => {
             setShowOnboarding(false);
-            void load();
+            void refresh();
           }}
         />
       )}

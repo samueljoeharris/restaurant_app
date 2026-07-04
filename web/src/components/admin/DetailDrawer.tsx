@@ -47,7 +47,7 @@ export function DetailDrawer({
             Close
           </Button>
         </header>
-        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
         {footer ? (
           <footer className="border-t border-border px-5 py-4">{footer}</footer>
         ) : null}

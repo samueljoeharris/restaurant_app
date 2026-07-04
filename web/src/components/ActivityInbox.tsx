@@ -61,7 +61,7 @@ export function ActivityInbox() {
               </Button>
             )}
           </header>
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto overscroll-contain">
             {loading && <p className="p-4 text-sm text-text-muted">Loading…</p>}
             {!loading && items.length === 0 && (
               <p className="p-4 text-sm text-text-muted">No updates yet on saved spots.</p>

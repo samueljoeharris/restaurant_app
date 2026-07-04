@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import type { ExploreFacet, ScoutFilter } from "../lib/exploreFacets";
 import { SCOUT_FILTER_LABELS } from "../lib/exploreFacets";
@@ -40,6 +40,7 @@ export function ExploreFilterBar({
   filtersOpen,
   onToggleFilters,
 }: ExploreFilterBarProps) {
+  const navigate = useNavigate();
   const activeExtraCount = [browseZip, browseTag].filter(Boolean).length;
 
   return (
@@ -78,13 +79,15 @@ export function ExploreFilterBar({
           value={browseCity ?? ""}
           onChange={(e) => {
             const city = e.target.value || null;
-            window.location.href = exploreUrl({
-              filter: activeFilter,
-              q: query,
-              city,
-              zip: city ? null : browseZip,
-              tag: browseTag,
-            });
+            navigate(
+              exploreUrl({
+                filter: activeFilter,
+                q: query,
+                city,
+                zip: city ? null : browseZip,
+                tag: browseTag,
+              }),
+            );
           }}
         >
           <option value="">All towns</option>
