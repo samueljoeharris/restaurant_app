@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, startTransition } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { api } from "../../api/client";
@@ -109,26 +109,23 @@ export function AdminRestaurantsPage() {
     }
   }
 
-  const drawerFooter = useMemo(
-    () => (
-      <div className="grid gap-2">
-        <Button type="button" disabled={saving} onClick={() => void saveDetail()}>
-          {saving ? "Saving…" : "Save changes"}
+  const drawerFooter = (
+    <div className="grid gap-2">
+      <Button type="button" disabled={saving} onClick={() => void saveDetail()}>
+        {saving ? "Saving…" : "Save changes"}
+      </Button>
+      <div className="grid gap-2 rounded-md border border-border p-3">
+        <p className="m-0 text-sm font-semibold">Merge duplicate into</p>
+        <input
+          placeholder="Target restaurant UUID"
+          value={mergeTarget}
+          onChange={(e) => setMergeTarget(e.target.value)}
+        />
+        <Button type="button" variant="danger" disabled={saving} onClick={() => void mergeIntoTarget()}>
+          Merge & tombstone source
         </Button>
-        <div className="grid gap-2 rounded-md border border-border p-3">
-          <p className="m-0 text-sm font-semibold">Merge duplicate into</p>
-          <input
-            placeholder="Target restaurant UUID"
-            value={mergeTarget}
-            onChange={(e) => setMergeTarget(e.target.value)}
-          />
-          <Button type="button" variant="danger" disabled={saving} onClick={() => void mergeIntoTarget()}>
-            Merge & tombstone source
-          </Button>
-        </div>
       </div>
-    ),
-    [mergeTarget, saving, selectedId, form],
+    </div>
   );
 
   return (

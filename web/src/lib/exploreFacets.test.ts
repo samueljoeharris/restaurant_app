@@ -56,6 +56,22 @@ describe("exploreFacets", () => {
     expect(parseZipFromAddress(restaurants[0].address)).toBe("02026");
   });
 
+  it("needs-data only matches scout-requested venues without parent data", () => {
+    const bulkSeeded = stubRestaurant();
+    const requested = stubRestaurant({
+      id: "00000000-0000-4000-8000-000000000002",
+      scouting_requested: true,
+    });
+    const requestedAndScouted = stubRestaurant({
+      id: "00000000-0000-4000-8000-000000000003",
+      scouting_requested: true,
+      note_count: 1,
+    });
+    expect(matchesScoutFilter(bulkSeeded, "needs-data")).toBe(false);
+    expect(matchesScoutFilter(requested, "needs-data")).toBe(true);
+    expect(matchesScoutFilter(requestedAndScouted, "needs-data")).toBe(false);
+  });
+
   it("filterExploreRestaurants applies scout and browse params", () => {
     const restaurants = [
       stubRestaurant({

@@ -1,4 +1,4 @@
-import { useEffect, useState, startTransition } from "react";
+import { useCallback, useEffect, useState, startTransition } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { api } from "../../api/client";
@@ -27,7 +27,7 @@ export function AdminObservationsPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  function reload() {
+  const reload = useCallback(() => {
     if (!idToken) return;
     startTransition(() => setLoading(true));
     api
@@ -44,11 +44,11 @@ export function AdminObservationsPage() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Load failed"))
       .finally(() => setLoading(false));
-  }
+  }, [idToken, offset, uid, daypart, excluded]);
 
   useEffect(() => {
     reload();
-  }, [idToken, offset, uid, daypart, excluded]);
+  }, [reload]);
 
   function applyObservationUpdate(
     id: string,

@@ -15,6 +15,7 @@ export interface RestaurantMapEntry extends RestaurantSummary {
   note_count: number;
   attribute_rating_count: number;
   watched?: boolean;
+  scouting_requested?: boolean;
 }
 
 export interface RestaurantSeedJob {

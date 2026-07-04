@@ -74,7 +74,7 @@ function detailToMapEntry(detail: RestaurantDetailResponse): RestaurantMapEntry 
 const scoutFilterSummaries: Record<Exclude<ScoutFilter, "all">, string> = {
   "fast-starters": "Places with starter-speed observations of 10 minutes or less.",
   "parent-data": "Restaurants with at least one parent observation, rating, or note.",
-  "needs-data": "Restaurants still waiting for a first parent contribution.",
+  "needs-data": "Places someone asked us to scout, still waiting for a first parent contribution.",
 };
 
 function getScoutFilter(value: string | null): ScoutFilter {

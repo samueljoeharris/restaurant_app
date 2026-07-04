@@ -110,7 +110,7 @@ Deployed service: **`ttf-admin-web`** at `https://admin.dev.littlescout.app`.
 | `/admin/restaurants` | Restaurant management (edit, merge) |
 | `/admin/users` | Contributors (trust, disable) |
 | `/admin/data` | Data & observations (outlier exclude) |
-| `/admin/tools/locations` | Location seeding |
+| `/admin/tools/locations` | Catalog & refresh |
 | `/admin/account` | Security (MFA) |
 
 Operator runbook: [ADMIN_MODERATION.md](ADMIN_MODERATION.md).
