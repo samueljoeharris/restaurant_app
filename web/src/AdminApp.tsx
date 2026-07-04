@@ -10,7 +10,7 @@ import { AdminDashboardPage } from "./pages/admin/AdminDashboardPage";
 import { AdminModerationPage } from "./pages/admin/AdminModerationPage";
 import { AdminObservationsPage } from "./pages/admin/AdminObservationsPage";
 import { AdminAccountPage } from "./pages/admin/AdminAccountPage";
-import { AdminLocationSeedingPage } from "./pages/admin/AdminLocationSeedingPage";
+import { AdminCatalogRefreshPage } from "./pages/admin/AdminCatalogRefreshPage";
 import { AdminRestaurantsPage } from "./pages/admin/AdminRestaurantsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 
@@ -37,7 +37,7 @@ export default function AdminApp() {
           <Route path="/admin/users" element={<AdminShell><AdminUsersPage /></AdminShell>} />
           <Route path="/admin/data" element={<AdminShell><AdminObservationsPage /></AdminShell>} />
           <Route path="/admin/observations" element={<Navigate to="/admin/data" replace />} />
-          <Route path="/admin/tools/locations" element={<AdminShell><AdminLocationSeedingPage /></AdminShell>} />
+          <Route path="/admin/tools/locations" element={<AdminShell><AdminCatalogRefreshPage /></AdminShell>} />
           <Route path="/admin/locations" element={<Navigate to="/admin/tools/locations" replace />} />
           <Route path="/admin/account" element={<AdminShell><AdminAccountPage /></AdminShell>} />
           <Route path="*" element={<Navigate to="/" replace />} />

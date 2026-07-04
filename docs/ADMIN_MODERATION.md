@@ -19,9 +19,9 @@ Operator console at `admin.dev.littlescout.app` (IAP + Firebase admin claim).
 | Trusted | Submissions publish immediately; still reportable |
 | Restricted | Firebase disabled; writes blocked |
 
-## Location seeding
+## Catalog & refresh
 
-Under **Tools → Location seeding** (`/admin/tools/locations`). Unchanged from prior admin — catalog refresh only.
+Under **Catalog & refresh** (`/admin/tools/locations`; formerly "Location seeding"). Leads with the refresh-locations registry (user coverage requests register here automatically); manual pre-seeding is a collapsed cold-start tool.
 
 ## API
 

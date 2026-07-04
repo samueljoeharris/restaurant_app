@@ -141,7 +141,13 @@ function auditSummary(row: AdminAuditLogRow) {
   return "Refresh settings saved";
 }
 
-export function AdminLocationSeedingPage() {
+const SOURCE_LABELS: Record<SeedLocation["source"], string> = {
+  seed: "Coverage request",
+  admin: "Admin seed",
+  migration: "Migration",
+};
+
+export function AdminCatalogRefreshPage() {
   const { idToken } = useAuth();
   const { toast } = useToast();
   const [runs, setRuns] = useState<RestaurantSeedJob[]>([]);
@@ -392,9 +398,10 @@ export function AdminLocationSeedingPage() {
     <div className="grid gap-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl">Location seeding</h1>
+          <h1 className="text-2xl">Catalog &amp; refresh</h1>
           <p className="text-text-muted">
-            Seed new areas from Google Places, manage auto-refresh, and review catalog changes
+            Curate refresh locations, manage the scheduled catalog refresh, and review changes.
+            Coverage normally grows from user activity — pre-seeding is only for cold starts.
           </p>
         </div>
       </header>
@@ -406,9 +413,82 @@ export function AdminLocationSeedingPage() {
       {!bootLoading && config && (
         <>
           <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
-            <h2 className="mb-3 text-lg">Seed a new area</h2>
+            <h2 className="mb-3 text-lg">Refresh locations</h2>
             <p className="text-sm text-text-muted">
-              Enter a ZIP code, city, or address — we geocode it and search Google Places nearby.
+              Entries register automatically whenever a seed succeeds — including user coverage
+              requests — and every enabled location is re-searched by the scheduled refresh,
+              driving recurring Google Places spend. Disable or remove anything that should not
+              keep refreshing.
+            </p>
+            <DataTable
+              columns={[
+                { key: "label", label: "Location" },
+                { key: "radius", label: "Radius", align: "right" },
+                { key: "source", label: "Source" },
+                { key: "refreshed", label: "Last refreshed" },
+                { key: "enabled", label: "Enabled" },
+                { key: "actions", label: "" },
+              ]}
+              rows={locations.map((loc) => ({
+                key: loc.id,
+                cells: {
+                  label: (
+                    <div>
+                      <div>{loc.label}</div>
+                      {loc.query && loc.query !== loc.label && (
+                        <div className="text-sm text-text-muted">{loc.query}</div>
+                      )}
+                    </div>
+                  ),
+                  radius: fmtRadiusMi(loc.radius_m),
+                  source: (
+                    <div>
+                      <div>{SOURCE_LABELS[loc.source] ?? loc.source}</div>
+                      {loc.created_by && (
+                        <div className="text-sm text-text-muted">{loc.created_by}</div>
+                      )}
+                    </div>
+                  ),
+                  refreshed: fmtTime(loc.last_refreshed_at),
+                  enabled: (
+                    <input
+                      type="checkbox"
+                      checked={loc.enabled}
+                      disabled={busy}
+                      onChange={() => toggleLocation(loc)}
+                    />
+                  ),
+                  actions: (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => removeLocation(loc)}
+                    >
+                      Remove
+                    </Button>
+                  ),
+                },
+              }))}
+            />
+            {locations.length === 0 && (
+              <p className="text-sm text-text-muted">
+                No locations yet — they appear when a user coverage request or a pre-seed run
+                succeeds.
+              </p>
+            )}
+          </section>
+
+          <details className="rounded-lg border border-border bg-surface p-5 shadow-sm">
+            <summary className="cursor-pointer text-lg font-semibold">
+              Pre-seed an area (cold start)
+            </summary>
+            <p className="mt-3 text-sm text-text-muted">
+              Coverage normally grows on its own: signed-in users trigger background seeding of
+              their area, and searches materialize venues on demand. Pre-seed only when launching
+              a new area, so the first user does not see an empty map. Enter a ZIP code, city, or
+              address — we geocode it and search Google Places nearby.
             </p>
             <form
               className="mt-4 flex flex-wrap items-end gap-3"
@@ -446,66 +526,7 @@ export function AdminLocationSeedingPage() {
                 {busy ? "Starting…" : "Start seed run"}
               </Button>
             </form>
-          </section>
-
-          <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
-            <h2 className="mb-3 text-lg">Refresh locations</h2>
-            <p className="text-sm text-text-muted">
-              Every successfully seeded area is registered here. The scheduled refresh
-              re-runs all enabled locations, then refreshes every known restaurant
-              regardless of zone via Place Details.
-            </p>
-            <DataTable
-              columns={[
-                { key: "label", label: "Location" },
-                { key: "radius", label: "Radius", align: "right" },
-                { key: "source", label: "Source" },
-                { key: "refreshed", label: "Last refreshed" },
-                { key: "enabled", label: "Enabled" },
-                { key: "actions", label: "" },
-              ]}
-              rows={locations.map((loc) => ({
-                key: loc.id,
-                cells: {
-                  label: (
-                    <div>
-                      <div>{loc.label}</div>
-                      {loc.query && loc.query !== loc.label && (
-                        <div className="text-sm text-text-muted">{loc.query}</div>
-                      )}
-                    </div>
-                  ),
-                  radius: fmtRadiusMi(loc.radius_m),
-                  source: loc.source,
-                  refreshed: fmtTime(loc.last_refreshed_at),
-                  enabled: (
-                    <input
-                      type="checkbox"
-                      checked={loc.enabled}
-                      disabled={busy}
-                      onChange={() => toggleLocation(loc)}
-                    />
-                  ),
-                  actions: (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => removeLocation(loc)}
-                    >
-                      Remove
-                    </Button>
-                  ),
-                },
-              }))}
-            />
-            {locations.length === 0 && (
-              <p className="text-sm text-text-muted">
-                No locations yet — seed an area above and it will appear here.
-              </p>
-            )}
-          </section>
+          </details>
 
           <section className="grid gap-6 rounded-lg border border-border bg-surface p-5 shadow-sm [grid-template-columns:repeat(auto-fit,minmax(10rem,1fr))]">
             <div>

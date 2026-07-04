@@ -15,7 +15,7 @@ const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/admin/restaurants", label: "Restaurants" },
   { to: "/admin/users", label: "Contributors" },
   { to: "/admin/data", label: "Data & observations" },
-  { to: "/admin/tools/locations", label: "Location seeding" },
+  { to: "/admin/tools/locations", label: "Catalog & refresh" },
   { to: "/admin/account", label: "Security" },
 ];
 

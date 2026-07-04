@@ -499,7 +499,7 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 | ADM-USR-01 | Contributor trust | P1 |
 | ADM-DATA-01 | Observations | P1 |
 | ADM-REST-01 | Restaurant merge | P1 |
-| ADM-SEED-01 | Location seeding | P2 |
+| ADM-SEED-01 | Catalog & refresh (pre-seed) | P2 |
 | IOS-MAP-02 | Legend + locate | P1 |
 | IOS-DET-01 | Detail + practical | P1 |
 | IOS-TTF-01 | TTF submit | P1 |
