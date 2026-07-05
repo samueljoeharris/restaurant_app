@@ -256,12 +256,18 @@ export const api = {
 
   listMyContributions: (
     token: string,
-    opts: { limit?: number; offset?: number; kind?: "ttf" | "attribute" | "note" } = {},
+    opts: {
+      limit?: number;
+      offset?: number;
+      kind?: "ttf" | "attribute" | "note";
+      restaurant_id?: string;
+    } = {},
   ) => {
     const params = new URLSearchParams();
     params.set("limit", String(opts.limit ?? 50));
     params.set("offset", String(opts.offset ?? 0));
     if (opts.kind) params.set("kind", opts.kind);
+    if (opts.restaurant_id) params.set("restaurant_id", opts.restaurant_id);
     return request<Paginated<UserContribution>>(`/v1/me/contributions?${params}`, {}, token);
   },
 

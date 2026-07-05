@@ -18,6 +18,7 @@ import { SkeletonList } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/useToast";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import { fetchLogAgainPrefill, type TtfLogAgainPrefill } from "../lib/logItAgain";
 import {
   invalidateContributionData,
   restaurantDetailCacheKey,
@@ -43,6 +44,13 @@ export function RestaurantDetailPage() {
   const [noteText, setNoteText] = useState("");
   const [noteError, setNoteError] = useState<string | null>(null);
   const [noteBusy, setNoteBusy] = useState(false);
+  // "Log it again" (#87): only offered once we know there's a prior TTF visit
+  // here. Keyed by restaurant id so a stale fetch from the previous
+  // restaurant can never leak into the button (derived below, not reset).
+  const [logAgainState, setLogAgainState] = useState<{
+    id: string;
+    prefill: TtfLogAgainPrefill;
+  } | null>(null);
 
   const { loading, error, refresh } = useCachedResource<RestaurantDetailBundle>(
     id ? restaurantDetailCacheKey(id, Boolean(idToken)) : null,
@@ -70,6 +78,22 @@ export function RestaurantDetailPage() {
     window.addEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
     return () => window.removeEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
   }, [id]);
+
+  useEffect(() => {
+    if (!idToken || !id) return;
+    let cancelled = false;
+    fetchLogAgainPrefill(idToken, id)
+      .then((prefill) => {
+        if (!cancelled && prefill.itemType) setLogAgainState({ id, prefill });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [idToken, id]);
+
+  const logAgainPrefill =
+    logAgainState !== null && logAgainState.id === id ? logAgainState.prefill : null;
 
   async function handleNoteSubmit(e: FormEvent) {
     e.preventDefault();
@@ -226,7 +250,21 @@ export function RestaurantDetailPage() {
           >
             {idToken ? (
               <>
-                <ButtonLink to={restaurantReviewPath(r)} fullWidth>
+                {logAgainPrefill && (
+                  <ButtonLink
+                    to={restaurantSubmitPath(r)}
+                    state={{ prefill: logAgainPrefill }}
+                    fullWidth
+                  >
+                    Log it again
+                  </ButtonLink>
+                )}
+                <ButtonLink
+                  to={restaurantReviewPath(r)}
+                  variant={logAgainPrefill ? "secondary" : "primary"}
+                  fullWidth
+                  className={logAgainPrefill ? "mt-2" : undefined}
+                >
                   Chat through your review
                 </ButtonLink>
                 <ButtonLink to={restaurantSubmitPath(r)} variant="secondary" fullWidth className="mt-2">

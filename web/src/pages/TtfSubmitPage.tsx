@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
@@ -14,6 +14,7 @@ import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
 import { cn } from "../lib/cn";
 import { EMPTY_CONTRIBUTION_RECENCY } from "../lib/contributionRecency";
+import type { TtfLogAgainPrefill } from "../lib/logItAgain";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { METRIC_CATEGORY_LABELS } from "../lib/metricCategories";
 import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
@@ -98,16 +99,20 @@ function CollapsibleSection({
 export function TtfSubmitPage() {
   const { id, placeId } = useParams<{ id?: string; placeId?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { idToken } = useAuth();
   const { toast } = useToast();
+  // "Log it again" (#87): everything but the timer and note carries over
+  // from a prior visit at this restaurant.
+  const prefill = (location.state as { prefill?: TtfLogAgainPrefill } | null)?.prefill;
   const [restaurant, setRestaurant] = useState<RestaurantDetailResponse | null>(null);
   const [elapsed, setElapsed] = useState(12);
-  const [itemType, setItemType] = useState<TtfSubmission["item_type"]>("fries");
+  const [itemType, setItemType] = useState<TtfSubmission["item_type"]>(prefill?.itemType ?? "fries");
   const [quality, setQuality] = useState(4);
-  const [portion, setPortion] = useState<TtfSubmission["portion_size"]>("kid");
+  const [portion, setPortion] = useState<TtfSubmission["portion_size"]>(prefill?.portionSize ?? "kid");
   const [daypart, setDaypart] = useState<TtfSubmission["daypart"]>(currentDaypart());
-  const [kids, setKids] = useState(defaultPartySizeKids);
-  const [context, setContext] = useState("");
+  const [kids, setKids] = useState(() => prefill?.partySizeKids ?? defaultPartySizeKids());
+  const [context, setContext] = useState(prefill?.waitContext ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [timerStart, setTimerStart] = useState<number | null>(null);
@@ -115,10 +120,13 @@ export function TtfSubmitPage() {
   const [timerNow, setTimerNow] = useState(() => Date.now());
 
   // Optional visit extras (#84): collapsible attribute ratings + note.
-  const [showRatings, setShowRatings] = useState(false);
+  // Prior ratings prefill open (#87); the note always starts empty.
+  const [showRatings, setShowRatings] = useState(
+    () => Object.keys(prefill?.ratings ?? {}).length > 0,
+  );
   const [showNote, setShowNote] = useState(false);
   const [metrics, setMetrics] = useState<MetricDefinition[] | null>(null);
-  const [ratings, setRatings] = useState<Ratings>({});
+  const [ratings, setRatings] = useState<Ratings>(() => ({ ...prefill?.ratings }));
   const [note, setNote] = useState("");
   // Parts already saved by a previous partially-failed submit, so a retry
   // never double-posts (each part hits its own existing moderated route).
@@ -310,6 +318,11 @@ export function TtfSubmitPage() {
     >
       <Card className="pb-0 md:pb-[var(--spacing-6)]">
         <form className="grid gap-3" onSubmit={handleSubmit}>
+          {prefill && (
+            <p className="m-0 rounded-md bg-brand-soft px-3 py-2 text-xs text-text-muted">
+              Prefilled from your last visit here — the timer and note always start fresh.
+            </p>
+          )}
           <div
             className="grid gap-3 rounded-md bg-brand-soft p-4 text-center motion-reduce:transition-none"
             style={{

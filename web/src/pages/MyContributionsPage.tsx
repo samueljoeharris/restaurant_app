@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
@@ -12,7 +12,8 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { useToast } from "../components/ui/useToast";
 import { useCachedResource } from "../hooks/useCachedResource";
-import { restaurantDetailPath } from "../lib/mapEntryKey";
+import { fetchLogAgainPrefill } from "../lib/logItAgain";
+import { restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { invalidateContributionData } from "../lib/pageDataCache";
 import type {
   MetricDefinition,
@@ -68,12 +69,14 @@ function contributionSummary(item: UserContribution): string {
 export function MyContributionsPage() {
   const { idToken } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<KindFilter>("all");
   const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNoteText, setEditNoteText] = useState("");
   const [editAttributeValue, setEditAttributeValue] = useState<boolean | number | string | undefined>();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [logAgainId, setLogAgainId] = useState<string | null>(null);
 
   const { data, loading, error, refresh } = useCachedResource<{
     items: UserContribution[];
@@ -182,6 +185,22 @@ export function MyContributionsPage() {
     }
   }
 
+  // "Log it again" (#87): re-fetches this restaurant's contributions (the
+  // loaded list may be filtered to one kind) and opens the submit flow
+  // prefilled from the most recent visit. Timer and note always start empty.
+  async function logItAgain(item: UserContribution) {
+    if (!idToken) return;
+    setLogAgainId(item.id);
+    try {
+      const prefill = await fetchLogAgainPrefill(idToken, item.restaurant_id);
+      navigate(restaurantSubmitPath({ id: item.restaurant_id }), { state: { prefill } });
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Couldn't start a new visit", "error");
+    } finally {
+      setLogAgainId(null);
+    }
+  }
+
   return (
     <Page
       title="Your contributions"
@@ -252,6 +271,17 @@ export function MyContributionsPage() {
                   </div>
 
                   <div className="flex shrink-0 gap-2">
+                    {!isEditing && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        disabled={logAgainId === item.id}
+                        onClick={() => logItAgain(item)}
+                      >
+                        {logAgainId === item.id ? "…" : "Log it again"}
+                      </Button>
+                    )}
                     {item.kind === "ttf" && !isEditing && (
                       <ButtonLink
                         to={`/account/contributions/ttf/${item.id}/edit`}
