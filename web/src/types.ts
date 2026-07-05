@@ -218,10 +218,20 @@ export interface ActivityEventItem {
   id: string;
   restaurant_id: string;
   restaurant_name: string;
-  event_type: "ttf" | "attribute" | "note";
+  event_type: "ttf" | "attribute" | "note" | "profile_match";
   source_id: string;
   headline: string;
   created_at: string;
+}
+
+/** Preference-aware discovery match result for one restaurant (#88). */
+export interface FamilyMatchResult {
+  matches: boolean;
+  reasons: string[];
+}
+
+export interface FamilyMatchResponse {
+  results: Record<string, FamilyMatchResult>;
 }
 
 export interface ActivityInboxResponse {

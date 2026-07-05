@@ -10,6 +10,7 @@ EVENT_HEADLINES = {
     "ttf": "New speed visit logged",
     "attribute": "New parent rating added",
     "note": "New parent note posted",
+    "profile_match": "New spot matches your family profile",
 }
 
 
@@ -20,15 +21,34 @@ def emit_activity_event(
     event_type: str,
     source_id: UUID,
     actor_firebase_uid: str,
+    headline: str | None = None,
+    target_firebase_uid: str | None = None,
 ) -> None:
-    headline = EVENT_HEADLINES.get(event_type, "New update")
+    """Insert an activity event.
+
+    Most event types (ttf/attribute/note) reach users via a
+    ``restaurant_watches`` row and use the default per-type headline.
+    ``target_firebase_uid`` targets one specific user directly instead
+    (profile_match — the recipient hasn't necessarily watched this
+    restaurant), and ``headline`` lets callers override the default text
+    with something specific to that event (e.g. naming the match reason).
+    """
+    resolved_headline = headline or EVENT_HEADLINES.get(event_type, "New update")
     conn.execute(
         """
         INSERT INTO activity_events (
-            restaurant_id, event_type, source_id, actor_firebase_uid, headline
-        ) VALUES (%s, %s, %s, %s, %s)
+            restaurant_id, event_type, source_id, actor_firebase_uid,
+            headline, target_firebase_uid
+        ) VALUES (%s, %s, %s, %s, %s, %s)
         """,
-        (restaurant_id, event_type, source_id, actor_firebase_uid, headline),
+        (
+            restaurant_id,
+            event_type,
+            source_id,
+            actor_firebase_uid,
+            resolved_headline,
+            target_firebase_uid,
+        ),
     )
 
 
@@ -43,10 +63,18 @@ _INBOX_BASE = """
         e.actor_firebase_uid,
         r.name AS restaurant_name
     FROM activity_events e
-    JOIN restaurant_watches w ON w.restaurant_id = e.restaurant_id
     JOIN restaurants r ON r.id = e.restaurant_id
-    WHERE w.firebase_uid = %(uid)s
-      AND e.actor_firebase_uid <> %(uid)s
+    WHERE e.actor_firebase_uid <> %(uid)s
+      AND (
+        e.target_firebase_uid = %(uid)s
+        OR (
+            e.target_firebase_uid IS NULL
+            AND EXISTS (
+                SELECT 1 FROM restaurant_watches w
+                WHERE w.restaurant_id = e.restaurant_id AND w.firebase_uid = %(uid)s
+            )
+        )
+      )
 """
 
 
@@ -103,7 +131,12 @@ def list_activity_for_restaurant(
     *,
     limit: int = 50,
 ) -> list[dict[str, Any]]:
-    """Per-spot update thread — watched restaurants only."""
+    """Per-spot update thread — watched restaurants only.
+
+    Excludes profile_match events: those are personal, derived from another
+    user's private family-profile data (allergies etc.), and must never
+    surface in this restaurant-wide thread even to other watchers.
+    """
     watched = conn.execute(
         """
         SELECT 1 FROM restaurant_watches
@@ -128,6 +161,7 @@ def list_activity_for_restaurant(
         JOIN restaurants r ON r.id = e.restaurant_id
         WHERE e.restaurant_id = %s
           AND e.actor_firebase_uid <> %s
+          AND e.event_type <> 'profile_match'
         ORDER BY e.created_at DESC
         LIMIT %s
         """,

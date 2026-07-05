@@ -5,4 +5,5 @@ export const METRIC_CATEGORY_LABELS: Record<string, string> = {
   kids_menu: "Kids menu",
   service: "Service",
   safety: "Safety",
+  dietary: "Dietary",
 };

@@ -22,6 +22,8 @@ interface ExploreFilterBarProps {
   query: string;
   filtersOpen: boolean;
   onToggleFilters: () => void;
+  /** Which chips to render, in order. Defaults to every ScoutFilter. */
+  availableFilters?: ScoutFilter[];
 }
 
 export function ExploreFilterBar({
@@ -36,6 +38,7 @@ export function ExploreFilterBar({
   query,
   filtersOpen,
   onToggleFilters,
+  availableFilters = Object.keys(SCOUT_FILTER_LABELS) as ScoutFilter[],
 }: ExploreFilterBarProps) {
   const navigate = useNavigate();
   const activeExtraCount = [browseZip, browseTag].filter(Boolean).length;
@@ -48,7 +51,7 @@ export function ExploreFilterBar({
           role="group"
           aria-label="Scout quality filters"
         >
-          {(Object.keys(SCOUT_FILTER_LABELS) as ScoutFilter[]).map((filter) => (
+          {availableFilters.map((filter) => (
             <Link
               key={filter}
               to={exploreUrl({

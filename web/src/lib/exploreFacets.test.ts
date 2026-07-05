@@ -34,8 +34,23 @@ describe("exploreFacets", () => {
     expect(parseScoutFilter("fast-starters")).toBe("fast-starters");
     expect(parseScoutFilter("parent-data")).toBe("parent-data");
     expect(parseScoutFilter("needs-data")).toBe("needs-data");
+    expect(parseScoutFilter("family-fit")).toBe("family-fit");
     expect(parseScoutFilter(null)).toBe("all");
     expect(parseScoutFilter("bogus")).toBe("all");
+  });
+
+  it("family-fit only matches restaurants with a positive match result", () => {
+    const matched = stubRestaurant({ id: "00000000-0000-4000-8000-000000000010" });
+    const unmatched = stubRestaurant({ id: "00000000-0000-4000-8000-000000000011" });
+    const noId = stubRestaurant({ id: null });
+    const matches = new Map([
+      ["00000000-0000-4000-8000-000000000010", { matches: true, reasons: ["gluten-free options"] }],
+      ["00000000-0000-4000-8000-000000000011", { matches: false, reasons: [] }],
+    ]);
+    expect(matchesScoutFilter(matched, "family-fit", matches)).toBe(true);
+    expect(matchesScoutFilter(unmatched, "family-fit", matches)).toBe(false);
+    expect(matchesScoutFilter(noId, "family-fit", matches)).toBe(false);
+    expect(matchesScoutFilter(matched, "family-fit")).toBe(false);
   });
 
   it("buildExploreFacets groups city and zip from addresses", () => {

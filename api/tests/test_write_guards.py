@@ -17,6 +17,9 @@ WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 ALLOWLIST: dict[tuple[str, str], Callable[..., object]] = {
     ("POST", "/v1/coverage/ensure"): get_current_user,
     ("POST", "/v1/me/delete-account"): require_account_deletion,
+    # Read-only query with a body (restaurant id list) — no mutation, so no
+    # write rate limit / App Check needed, same shape as coverage/ensure (#88).
+    ("POST", "/v1/me/family-matches"): get_current_user,
 }
 
 EXCLUDED_PREFIXES = ("/v1/admin", "/v1/internal")

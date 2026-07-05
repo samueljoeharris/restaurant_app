@@ -373,7 +373,7 @@ class ActivityEventItem(BaseModel):
     id: UUID
     restaurant_id: UUID
     restaurant_name: str
-    event_type: Literal["ttf", "attribute", "note"]
+    event_type: Literal["ttf", "attribute", "note", "profile_match"]
     source_id: UUID
     headline: str
     created_at: datetime
@@ -405,6 +405,20 @@ class WatchedRestaurantsResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class FamilyMatchRequest(BaseModel):
+    restaurant_ids: list[UUID] = Field(min_length=1, max_length=100)
+
+
+class FamilyMatchResult(BaseModel):
+    matches: bool
+    reasons: list[str]
+
+
+class FamilyMatchResponse(BaseModel):
+    # Keyed by restaurant id (string form — pydantic dict keys must be str).
+    results: dict[str, FamilyMatchResult]
 
 
 class DevicePushTokenRequest(BaseModel):
