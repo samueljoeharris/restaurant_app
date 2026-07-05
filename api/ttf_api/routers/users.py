@@ -204,22 +204,35 @@ def list_my_contributions(
     limit: int = Query(50, ge=1, le=_MAX_LIMIT),
     offset: int = Query(0, ge=0),
     kind: Literal["ttf", "attribute", "note"] | None = Query(None),
+    restaurant_id: UUID | None = Query(None),
 ) -> UserContributionsResponse:
     params: dict = {"uid": user.firebase_uid, "limit": limit, "offset": offset}
-    kind_filter = ""
+    filters = []
     if kind:
-        kind_filter = "WHERE kind = %(kind)s"
+        filters.append("kind = %(kind)s")
         params["kind"] = kind
+    if restaurant_id:
+        # "Log it again" prefill (#87): one restaurant's prior contributions.
+        filters.append("restaurant_id = %(restaurant_id)s")
+        params["restaurant_id"] = restaurant_id
+    where = f"WHERE {' AND '.join(filters)}" if filters else ""
 
     sql = (
         f"WITH combined AS ({_CONTRIBUTIONS_UNION}) "
-        f"SELECT * FROM combined {kind_filter} "
+        f"SELECT * FROM combined {where} "
         "ORDER BY submitted_at DESC "
         "LIMIT %(limit)s OFFSET %(offset)s"
     )
 
     with get_conn() as conn:
-        total = _contributions_count(conn, user.firebase_uid, kind)
+        if restaurant_id:
+            count_sql = (
+                f"WITH combined AS ({_CONTRIBUTIONS_UNION}) "
+                f"SELECT COUNT(*)::int AS total FROM combined {where}"
+            )
+            total = int(conn.execute(count_sql, params).fetchone()["total"])
+        else:
+            total = _contributions_count(conn, user.firebase_uid, kind)
         rows = conn.execute(sql, params).fetchall()
 
     return UserContributionsResponse(
