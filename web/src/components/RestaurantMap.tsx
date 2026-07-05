@@ -42,6 +42,18 @@ const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 const MAPS_MAP_ID =
   import.meta.env.VITE_GOOGLE_MAPS_MAP_ID?.trim() || "DEMO_MAP_ID";
 
+function MapLayoutResize({ layoutKey }: { layoutKey: string }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    const id = window.requestAnimationFrame(() => {
+      google.maps.event.trigger(map, "resize");
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [map, layoutKey]);
+  return null;
+}
+
 function FitBounds({
   restaurants,
   fitKey,
@@ -262,7 +274,7 @@ function SearchArea({
         "pointer-events-none absolute z-[5]",
         mobileLayout
           ? "top-[calc(1rem+env(safe-area-inset-top,0px))] right-4 left-4 flex justify-center"
-          : cn("top-4", withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4"),
+          : cn("top-4", withSidebar ? "left-[calc(var(--explore-sidebar-width)+1rem)]" : "left-4"),
       )}
     >
       <Button
@@ -306,7 +318,7 @@ function MapLegend({
           ? "top-[calc(1rem+env(safe-area-inset-top,0px))] right-4 max-w-[calc(100%-2rem)] justify-end"
           : cn(
               "bottom-4 max-w-[min(36rem,calc(100%-var(--map-panel-width)-2rem))]",
-              withSidebar ? "left-[calc(min(24rem,30vw)+1rem)]" : "left-4",
+              withSidebar ? "left-[calc(var(--explore-sidebar-width)+1rem)]" : "left-4",
             ),
       )}
       aria-label="Map pin legend"
@@ -512,6 +524,7 @@ export function RestaurantMap({
   userLocation = null,
   cameraTarget = null,
   withSidebar = false,
+  sidebarLayoutKey = "expanded",
   fitKey = "all",
   onSearchArea,
   onViewportChange,
@@ -533,6 +546,8 @@ export function RestaurantMap({
   userLocation?: { lat: number; lng: number } | null;
   cameraTarget?: { lat: number; lng: number } | null;
   withSidebar?: boolean;
+  /** Changes when the explore sidebar width changes — triggers map resize. */
+  sidebarLayoutKey?: string;
   fitKey?: string;
   onSearchArea?: (lat: number, lng: number, radiusM: number) => void;
   onViewportChange?: (bbox: {
@@ -593,6 +608,7 @@ export function RestaurantMap({
           mapId={MAPS_MAP_ID}
           className="h-full w-full"
         >
+          <MapLayoutResize layoutKey={sidebarLayoutKey} />
           <FitBounds
             restaurants={restaurants}
             fitKey={fitKey}
