@@ -8,6 +8,7 @@ import { DetailDrawer } from "../../components/admin/DetailDrawer";
 import { FilterBar, FilterField } from "../../components/admin/FilterBar";
 import { StatusBadge } from "../../components/admin/StatusBadge";
 import { Button } from "../../components/ui/Button";
+import { FormField } from "../../components/ui/FormField";
 import { useToast } from "../../components/ui/useToast";
 import { applyContributorMutation, removeContributorFromList } from "../../lib/adminContributorSync";
 import {
@@ -268,8 +269,7 @@ export function AdminUsersPage() {
             <div className="flex flex-wrap gap-2">
               <StatusBadge kind="trust" value={detail.trust_level} />
             </div>
-            <label className="grid gap-1">
-              Trust tier
+            <FormField label="Trust tier" className="gap-1">
               <select
                 value={detail.trust_level}
                 disabled={busy}
@@ -279,7 +279,7 @@ export function AdminUsersPage() {
                   <option key={tier.value} value={tier.value}>{tier.label}</option>
                 ))}
               </select>
-            </label>
+            </FormField>
             {contributorTrustDescription(detail.trust_level) ? (
               <p className="m-0 text-text-muted">{contributorTrustDescription(detail.trust_level)}</p>
             ) : null}

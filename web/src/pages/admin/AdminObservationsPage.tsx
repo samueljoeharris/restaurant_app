@@ -166,7 +166,7 @@ export function AdminObservationsPage() {
                   </Button>
                 ) : (
                   <select
-                    className="max-w-[10rem] text-sm"
+                    className="w-auto max-w-[10rem] text-sm"
                     defaultValue=""
                     disabled={busyId === r.id}
                     onChange={(e) => {

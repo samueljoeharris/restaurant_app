@@ -12,6 +12,7 @@ import { DeleteAccountSettings } from "../components/DeleteAccountSettings";
 import { MfaSettings } from "../components/MfaSettings";
 import { api } from "../api/client";
 import { Button } from "../components/ui/Button";
+import { FormField } from "../components/ui/FormField";
 import { Page } from "../components/ui/Page";
 import { useTheme, type ThemeMode } from "../hooks/useTheme";
 import { cn } from "../lib/cn";
@@ -156,8 +157,7 @@ export function AccountPage() {
             />
           ))}
           <SettingsPanel title="Alert cadence" subtitle="How often we bundle updates">
-            <label className="grid gap-2 text-sm font-semibold">
-              Delivery
+            <FormField label="Delivery">
               <select
                 value={prefs.cadence}
                 onChange={(e) =>
@@ -170,7 +170,7 @@ export function AccountPage() {
                 <option value="daily">Daily digest</option>
                 <option value="realtime_bundle">Realtime (bundled)</option>
               </select>
-            </label>
+            </FormField>
           </SettingsPanel>
         </>
       )}
@@ -179,14 +179,13 @@ export function AccountPage() {
       <SettingsLinkRow href="/privacy" label="Privacy & data" />
 
       <SettingsPanel title="Family profile" subtitle="Kids' ages personalize speed tips">
-        <label className="grid gap-2 text-sm font-semibold">
-          Kids&apos; ages (comma-separated)
+        <FormField label="Kids' ages (comma-separated)">
           <input
             value={kidsInput}
             onChange={(e) => setKidsInput(e.target.value)}
             placeholder="e.g. 2, 5"
           />
-        </label>
+        </FormField>
         <Button disabled={saving} onClick={() => void saveFamilyProfile()}>
           {saving ? "Saving…" : "Save family profile"}
         </Button>

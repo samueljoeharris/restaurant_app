@@ -9,6 +9,7 @@ import { Z } from "../lib/overlayStack";
 import { userStorage } from "../lib/userStorage";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
+import { FormField } from "./ui/FormField";
 import { ScoutMascot } from "./ScoutMascot";
 
 interface OnboardingModalProps {
@@ -76,8 +77,7 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
           <ScoutMascot className="h-28 w-28 object-contain" size={112} />
         </div>
         <form className="grid gap-4" onSubmit={handleSubmit}>
-          <label className="grid gap-2 text-sm">
-            Kids&apos; ages (comma-separated)
+          <FormField label="Kids' ages (comma-separated)">
             <input
               type="text"
               value={agesInput}
@@ -85,7 +85,7 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
               placeholder="e.g. 2, 5"
               required
             />
-          </label>
+          </FormField>
           {error && <p className="text-sm font-semibold text-error">{error}</p>}
           <Button type="submit" disabled={busy} fullWidth>
             {busy ? "Saving…" : "Continue"}
