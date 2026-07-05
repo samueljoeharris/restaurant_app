@@ -15,6 +15,7 @@ import { useCachedResource } from "../hooks/useCachedResource";
 import { fetchLogAgainPrefill } from "../lib/logItAgain";
 import { restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { invalidateContributionData } from "../lib/pageDataCache";
+import { groupContributionsIntoVisits } from "../lib/visitGrouping";
 import type {
   MetricDefinition,
   UserAttributeContribution,
@@ -78,19 +79,29 @@ export function MyContributionsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [logAgainId, setLogAgainId] = useState<string | null>(null);
 
+  // Visit grouping (#86) needs every kind at once to bundle a sitting
+  // together, so the kind filter below is applied client-side to the
+  // grouped visits rather than as a server-side query param.
   const { data, loading, error, refresh } = useCachedResource<{
     items: UserContribution[];
     total: number;
   }>(
-    idToken ? `contributions:${filter}` : null,
+    idToken ? "contributions:all" : null,
     async () => {
-      const kind = filter === "all" ? undefined : filter;
-      const res = await api.listMyContributions(idToken!, { kind, limit: 100 });
+      const res = await api.listMyContributions(idToken!, { limit: 200 });
       return { items: res.items, total: res.total };
     },
   );
-  const items = data?.items ?? [];
   const total = data?.total ?? 0;
+
+  const visits = useMemo(() => groupContributionsIntoVisits(data?.items ?? []), [data]);
+  const visibleVisits = useMemo(
+    () =>
+      filter === "all"
+        ? visits
+        : visits.filter((visit) => visit.items.some((item) => item.kind === filter)),
+    [visits, filter],
+  );
 
   useEffect(() => {
     if (!idToken) return;
@@ -186,14 +197,14 @@ export function MyContributionsPage() {
   }
 
   // "Log it again" (#87): re-fetches this restaurant's contributions (the
-  // loaded list may be filtered to one kind) and opens the submit flow
+  // loaded list may already be visit-filtered) and opens the submit flow
   // prefilled from the most recent visit. Timer and note always start empty.
-  async function logItAgain(item: UserContribution) {
+  async function logItAgain(visitKey: string, restaurantId: string) {
     if (!idToken) return;
-    setLogAgainId(item.id);
+    setLogAgainId(visitKey);
     try {
-      const prefill = await fetchLogAgainPrefill(idToken, item.restaurant_id);
-      navigate(restaurantSubmitPath({ id: item.restaurant_id }), { state: { prefill } });
+      const prefill = await fetchLogAgainPrefill(idToken, restaurantId);
+      navigate(restaurantSubmitPath({ id: restaurantId }), { state: { prefill } });
     } catch (err) {
       toast(err instanceof Error ? err.message : "Couldn't start a new visit", "error");
     } finally {
@@ -228,7 +239,7 @@ export function MyContributionsPage() {
       {loading && <p className="text-text-muted">Loading…</p>}
       {error && <p className="text-sm font-semibold text-error">{error}</p>}
 
-      {!loading && !error && items.length === 0 && (
+      {!loading && !error && visits.length === 0 && (
         <EmptyState
           emoji="📝"
           title="Nothing here yet"
@@ -238,154 +249,177 @@ export function MyContributionsPage() {
         />
       )}
 
-      {!loading && !error && items.length > 0 && (
+      {!loading && !error && visits.length > 0 && (
         <p className="text-sm text-text-muted">
           {total} contribution{total === 1 ? "" : "s"}
-          {filter !== "all" ? ` · filtered` : ""}
+          {filter !== "all"
+            ? ` · ${visibleVisits.length} visit${visibleVisits.length === 1 ? "" : "s"} filtered`
+            : ` · ${visits.length} visit${visits.length === 1 ? "" : "s"}`}
         </p>
       )}
 
       <ul className="m-0 grid list-none gap-3 p-0">
-        {items.map((item) => {
-          const isEditing = editingId === item.id;
-          const isBusy = busyId === item.id;
-
-          return (
-            <li key={`${item.kind}-${item.id}`}>
-              <Card>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Badge variant="neutral">{KIND_LABELS[item.kind]}</Badge>
-                      <time className="text-sm text-text-muted">{fmtDate(item.submitted_at)}</time>
-                    </div>
-                    <Link
-                      to={restaurantDetailPath({ id: item.restaurant_id })}
-                      className="mb-1 inline-block font-semibold text-brand"
-                    >
-                      {item.restaurant_name}
-                    </Link>
-                    {!isEditing && (
-                      <p className="m-0 text-sm text-text-muted">{contributionSummary(item)}</p>
-                    )}
-                  </div>
-
-                  <div className="flex shrink-0 gap-2">
-                    {!isEditing && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        disabled={logAgainId === item.id}
-                        onClick={() => logItAgain(item)}
-                      >
-                        {logAgainId === item.id ? "…" : "Log it again"}
-                      </Button>
-                    )}
-                    {item.kind === "ttf" && !isEditing && (
-                      <ButtonLink
-                        to={`/account/contributions/ttf/${item.id}/edit`}
-                        size="sm"
-                        variant="secondary"
-                      >
-                        Edit
-                      </ButtonLink>
-                    )}
-                    {item.kind === "attribute" && !isEditing && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => startEditAttribute(item)}
-                      >
-                        Edit
-                      </Button>
-                    )}
-                    {item.kind === "note" && !isEditing && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => startEditNote(item)}
-                      >
-                        Edit
-                      </Button>
-                    )}
-                    {!isEditing && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        disabled={isBusy}
-                        onClick={() => handleDelete(item)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {isEditing && item.kind === "note" && (
-                  <form
-                    className="mt-4 grid gap-3 border-t border-border pt-4"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      saveNote(item);
-                    }}
+        {visibleVisits.map((visit) => (
+          <li key={visit.key}>
+            <Card>
+              <div className="mb-3 flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <Link
+                    to={restaurantDetailPath({ id: visit.restaurantId })}
+                    className="mb-1 inline-block font-semibold text-brand"
                   >
-                    <label>
-                      Edit note
-                      <textarea
-                        value={editNoteText}
-                        onChange={(e) => setEditNoteText(e.target.value)}
-                        rows={4}
-                        maxLength={2000}
-                        required
-                      />
-                    </label>
-                    <div className="grid gap-2">
-                      <Button type="submit" disabled={isBusy || !editNoteText.trim()}>
-                        {isBusy ? "Saving…" : "Save"}
-                      </Button>
-                      <Button type="button" variant="ghost" onClick={cancelEdit}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </form>
-                )}
+                    {visit.restaurantName}
+                  </Link>
+                  <p className="m-0 text-sm text-text-muted">
+                    <time>{fmtDate(visit.latestAt)}</time>
+                    {visit.items.length > 1
+                      ? ` · ${visit.items.length} parts from this visit`
+                      : null}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="shrink-0"
+                  disabled={logAgainId === visit.key}
+                  onClick={() => logItAgain(visit.key, visit.restaurantId)}
+                >
+                  {logAgainId === visit.key ? "…" : "Log it again"}
+                </Button>
+              </div>
 
-                {isEditing && item.kind === "attribute" && (
-                  <div className="mt-4 grid gap-3 border-t border-border pt-4">
-                    <p className="text-sm">
-                      <strong>{item.metric_label}</strong>
-                    </p>
-                    {metricsByKey.get(item.metric_key) ? (
-                      <AttributeInput
-                        metric={metricsByKey.get(item.metric_key)!}
-                        value={editAttributeValue}
-                        onChange={setEditAttributeValue}
-                      />
-                    ) : (
-                      <p className="text-sm text-text-muted">This metric is no longer available.</p>
-                    )}
-                    <div className="grid gap-2">
-                      <Button
-                        type="button"
-                        disabled={isBusy || editAttributeValue === undefined}
-                        onClick={() => saveAttribute(item)}
-                      >
-                        {isBusy ? "Saving…" : "Save"}
-                      </Button>
-                      <Button type="button" variant="ghost" onClick={cancelEdit}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </Card>
-            </li>
-          );
-        })}
+              <ul className="m-0 grid list-none gap-3 divide-y divide-border p-0">
+                {visit.items.map((item) => {
+                  const isEditing = editingId === item.id;
+                  const isBusy = busyId === item.id;
+
+                  return (
+                    <li
+                      key={`${item.kind}-${item.id}`}
+                      className={visit.items.length > 1 ? "pt-3 first:pt-0" : undefined}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-2 flex items-center gap-2">
+                            <Badge variant="neutral">{KIND_LABELS[item.kind]}</Badge>
+                            <time className="text-sm text-text-muted">{fmtDate(item.submitted_at)}</time>
+                          </div>
+                          {!isEditing && (
+                            <p className="m-0 text-sm text-text-muted">{contributionSummary(item)}</p>
+                          )}
+                        </div>
+
+                        <div className="flex shrink-0 gap-2">
+                          {item.kind === "ttf" && !isEditing && (
+                            <ButtonLink
+                              to={`/account/contributions/ttf/${item.id}/edit`}
+                              size="sm"
+                              variant="secondary"
+                            >
+                              Edit
+                            </ButtonLink>
+                          )}
+                          {item.kind === "attribute" && !isEditing && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => startEditAttribute(item)}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          {item.kind === "note" && !isEditing && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => startEditNote(item)}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          {!isEditing && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              disabled={isBusy}
+                              onClick={() => handleDelete(item)}
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {isEditing && item.kind === "note" && (
+                        <form
+                          className="mt-4 grid gap-3 border-t border-border pt-4"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            saveNote(item);
+                          }}
+                        >
+                          <label>
+                            Edit note
+                            <textarea
+                              value={editNoteText}
+                              onChange={(e) => setEditNoteText(e.target.value)}
+                              rows={4}
+                              maxLength={2000}
+                              required
+                            />
+                          </label>
+                          <div className="grid gap-2">
+                            <Button type="submit" disabled={isBusy || !editNoteText.trim()}>
+                              {isBusy ? "Saving…" : "Save"}
+                            </Button>
+                            <Button type="button" variant="ghost" onClick={cancelEdit}>
+                              Cancel
+                            </Button>
+                          </div>
+                        </form>
+                      )}
+
+                      {isEditing && item.kind === "attribute" && (
+                        <div className="mt-4 grid gap-3 border-t border-border pt-4">
+                          <p className="text-sm">
+                            <strong>{item.metric_label}</strong>
+                          </p>
+                          {metricsByKey.get(item.metric_key) ? (
+                            <AttributeInput
+                              metric={metricsByKey.get(item.metric_key)!}
+                              value={editAttributeValue}
+                              onChange={setEditAttributeValue}
+                            />
+                          ) : (
+                            <p className="text-sm text-text-muted">
+                              This metric is no longer available.
+                            </p>
+                          )}
+                          <div className="grid gap-2">
+                            <Button
+                              type="button"
+                              disabled={isBusy || editAttributeValue === undefined}
+                              onClick={() => saveAttribute(item)}
+                            >
+                              {isBusy ? "Saving…" : "Save"}
+                            </Button>
+                            <Button type="button" variant="ghost" onClick={cancelEdit}>
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </Card>
+          </li>
+        ))}
       </ul>
     </Page>
   );
