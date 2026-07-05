@@ -27,12 +27,16 @@ from ttf_api.schemas import (
     DevicePushTokenRequest,
     DevicePushTokenResponse,
     ExtendedUserProfile,
+    FamilyMatchRequest,
+    FamilyMatchResponse,
+    FamilyMatchResult,
     NotificationPreferences,
     NotificationPreferencesUpdate,
     UserProfilePatch,
     WatchedRestaurantEntry,
     WatchedRestaurantsResponse,
 )
+from ttf_api.family_match import compute_family_match
 from ttf_api.family_profile import (
     ALLERGENS,
     ATMOSPHERE_PREFERENCES,
@@ -202,6 +206,32 @@ def patch_profile(
                 params,
             )
         return _build_extended_profile(conn, user)
+
+
+@router.post("/family-matches", response_model=FamilyMatchResponse)
+def get_family_matches(
+    body: FamilyMatchRequest,
+    user: Annotated[AuthUser, Depends(get_current_user)],
+) -> FamilyMatchResponse:
+    """Preference-aware discovery (#88): does each restaurant fit my family?
+
+    Bounded to the restaurant ids the caller is already looking at (e.g. the
+    current map viewport) — matching recomputes aggregates per restaurant,
+    which isn't cheap enough to run over the whole catalog per request.
+    """
+    with get_conn() as conn:
+        profile = ensure_user_profile(conn, user.firebase_uid)
+        rows = conn.execute(
+            "SELECT id, cuisine_tags FROM restaurants WHERE id = ANY(%s)",
+            (body.restaurant_ids,),
+        ).fetchall()
+        results: dict[str, FamilyMatchResult] = {}
+        for row in rows:
+            match = compute_family_match(
+                conn, row["id"], list(row["cuisine_tags"] or []), profile
+            )
+            results[str(row["id"])] = FamilyMatchResult(**match)
+        return FamilyMatchResponse(results=results)
 
 
 @router.get("/watches", response_model=WatchedRestaurantsResponse)

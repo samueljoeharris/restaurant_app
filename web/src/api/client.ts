@@ -37,6 +37,7 @@ import type {
   UserContribution,
   UserTtfContribution,
   ExtendedUserProfile,
+  FamilyMatchResponse,
   NotificationPreferences,
   ActivityInboxResponse,
   WatchedRestaurantsResponse,
@@ -203,6 +204,12 @@ export const api = {
     request<ExtendedUserProfile>("/v1/me/profile", {
       method: "PATCH",
       body: JSON.stringify(body),
+    }, token),
+
+  getFamilyMatches: (restaurantIds: string[], token: string) =>
+    request<FamilyMatchResponse>("/v1/me/family-matches", {
+      method: "POST",
+      body: JSON.stringify({ restaurant_ids: restaurantIds }),
     }, token),
 
   listWatches: (token: string, opts: { limit?: number; offset?: number } = {}) => {

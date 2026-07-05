@@ -24,11 +24,13 @@ interface RestaurantListCardProps {
   active?: boolean;
   density?: "default" | "compact";
   showWatch?: boolean;
+  /** "Fits my family" match reasons (#88) — community-reported, shown as a badge. */
+  matchReasons?: string[];
 }
 
 export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProps>(
   function RestaurantListCard(
-    { restaurant: r, onSelect, active = false, density = "default", showWatch = false },
+    { restaurant: r, onSelect, active = false, density = "default", showWatch = false, matchReasons },
     ref,
   ) {
     const hasTtf = r.ttf.sample_size > 0;
@@ -39,6 +41,10 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
     const watch = useWatch(restaurantId, r.watched ?? false);
     const { idToken } = useAuth();
     const intentProps = useIntentPrefetch(() => prefetchRestaurantDetail(r, idToken));
+    const fitBadgeTitle =
+      matchReasons && matchReasons.length > 0
+        ? `Fits your family: ${matchReasons.join(", ")} (reported by parents)`
+        : undefined;
 
     const className = cn(
       density === "compact" ? compactCardClassName : defaultCardClassName,
@@ -67,6 +73,7 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
               {hasRatings ? ` · ★${r.attribute_rating_count}` : ""}
               {hasNotes ? ` · 💬${r.note_count}` : ""}
               {r.watched ? " · saved" : ""}
+              {fitBadgeTitle ? " · 👪 fits" : ""}
             </span>
           </div>
           {showWatch && restaurantId && (
@@ -92,7 +99,7 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
             )}
           </div>
           <span className="text-sm text-text-muted">{r.address}</span>
-          {hasData ? (
+          {hasData || fitBadgeTitle ? (
             <div className="mt-2 flex flex-wrap gap-2">
               {hasTtf ? (
                 <Badge variant={r.ttf.sample_size >= 3 ? "brand" : "neutral"}>
@@ -104,6 +111,11 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
               )}
               {hasRatings && <Badge variant="neutral">★ {r.attribute_rating_count}</Badge>}
               {hasNotes && <Badge variant="neutral">💬 {r.note_count}</Badge>}
+              {fitBadgeTitle && (
+                <span title={fitBadgeTitle}>
+                  <Badge variant="success">👪 Fits your family</Badge>
+                </span>
+              )}
             </div>
           ) : (
             <span className="mt-2 block text-sm text-text-muted">Be the first to contribute</span>

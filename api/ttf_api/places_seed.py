@@ -11,6 +11,7 @@ import httpx
 from psycopg import Connection
 
 from ttf_api.config import settings
+from ttf_api.family_match import notify_profile_matches_for_restaurant
 from ttf_api.restaurant_changelog import log_change
 
 GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -310,6 +311,12 @@ def upsert_restaurant(
                 seed_job_id=seed_job_id,
                 changed_fields=changes,
             )
+            notify_profile_matches_for_restaurant(
+                conn,
+                restaurant_id=existing["id"],
+                restaurant_name=row["name"],
+                cuisine_tags=row["cuisine_tags"] or [],
+            )
             return "reactivated"
 
         if new_status == "closed" and prev_status != "closed":
@@ -377,6 +384,13 @@ def upsert_restaurant(
         reason="google_places_closed" if action == "closed" else None,
         seed_job_id=seed_job_id,
     )
+    if action == "added":
+        notify_profile_matches_for_restaurant(
+            conn,
+            restaurant_id=inserted["id"],
+            restaurant_name=row["name"],
+            cuisine_tags=row["cuisine_tags"] or [],
+        )
     return "inserted" if action == "added" else "closed"
 
 

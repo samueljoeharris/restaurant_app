@@ -49,9 +49,17 @@ import {
   matchesBrowseFilters,
   matchesExploreSearch,
   matchesScoutFilter,
+  parseScoutFilter,
+  SCOUT_FILTER_LABELS,
   type ScoutFilter,
 } from "../lib/exploreFacets";
-import type { RestaurantDetailResponse, RestaurantMapEntry } from "../types";
+import { hasMatchablePreferences, matchReasonsFor } from "../lib/familyMatch";
+import type {
+  ExtendedUserProfile,
+  FamilyMatchResult,
+  RestaurantDetailResponse,
+  RestaurantMapEntry,
+} from "../types";
 
 function detailToMapEntry(detail: RestaurantDetailResponse): RestaurantMapEntry {
   return {
@@ -74,14 +82,9 @@ const scoutFilterSummaries: Record<Exclude<ScoutFilter, "all">, string> = {
   "fast-starters": "Places with starter-speed observations of 10 minutes or less.",
   "parent-data": "Restaurants with at least one parent observation, rating, or note.",
   "needs-data": "Places someone asked us to scout, still waiting for a first parent contribution.",
+  "family-fit":
+    "Matches your saved family profile — cuisine, dietary, and allergy signals reported by other parents, not a safety guarantee.",
 };
-
-function getScoutFilter(value: string | null): ScoutFilter {
-  if (value === "fast-starters" || value === "parent-data" || value === "needs-data") {
-    return value;
-  }
-  return "all";
-}
 
 function formatPlaceCount(count: number) {
   return `${count} ${count === 1 ? "place" : "places"}`;
@@ -134,7 +137,7 @@ export function ExploreMapPage() {
   const isPendingPlaceMode = Boolean(paramPlaceId && !isRadiusMode);
 
   // Explore browse / filter params
-  const activeFilter = getScoutFilter(searchParams.get("filter"));
+  const activeFilter = parseScoutFilter(searchParams.get("filter"));
   const query = searchParams.get("q") ?? "";
   const browseCity = searchParams.get("city");
   const browseZip = searchParams.get("zip");
@@ -150,6 +153,65 @@ export function ExploreMapPage() {
   useEffect(() => {
     restaurantsRef.current = restaurants;
   }, [restaurants]);
+
+  // "Fits my family" (#88): profile-derived filter chip + match reasons.
+  const [familyProfile, setFamilyProfile] = useState<ExtendedUserProfile | null>(null);
+  const [familyMatches, setFamilyMatches] = useState<Map<string, FamilyMatchResult> | null>(null);
+
+  // Load the account's profile once signed in (mirrors AccountPage's fetch).
+  useEffect(() => {
+    if (!idToken) return;
+    let cancelled = false;
+    api
+      .getProfile(idToken)
+      .then((p) => {
+        if (!cancelled) setFamilyProfile(p);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [idToken]);
+
+  const familyFilterUsable = Boolean(
+    idToken && familyProfile && hasMatchablePreferences(familyProfile),
+  );
+
+  // Fetch match reasons only for restaurants currently on screen, and only
+  // once the chip is selected — matching recomputes attribute aggregates
+  // per restaurant, so it's deliberately not run for the whole catalog.
+  useEffect(() => {
+    if (activeFilter !== "family-fit" || !idToken || !familyFilterUsable) return;
+    const ids = restaurants.map((r) => r.id).filter((id): id is string => Boolean(id));
+    const missing = (familyMatches ? ids.filter((id) => !familyMatches.has(id)) : ids).slice(
+      0,
+      100,
+    );
+    if (missing.length === 0) return;
+    let cancelled = false;
+    api
+      .getFamilyMatches(missing, idToken)
+      .then((res) => {
+        if (cancelled) return;
+        setFamilyMatches((prev) => {
+          const next = new Map(prev ?? []);
+          for (const [id, result] of Object.entries(res.results)) next.set(id, result);
+          return next;
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [activeFilter, idToken, familyFilterUsable, restaurants, familyMatches]);
+
+  const availableScoutFilters = useMemo(
+    () =>
+      (Object.keys(SCOUT_FILTER_LABELS) as ScoutFilter[]).filter(
+        (f) => f !== "family-fit" || familyFilterUsable,
+      ),
+    [familyFilterUsable],
+  );
 
   // Merge stub pin when arriving from Home search (navigation state).
   const optimisticSel = focusState?.optimisticRestaurant;
@@ -599,9 +661,18 @@ export function ExploreMapPage() {
       (r) =>
         matchesExploreSearch(r, query) &&
         matchesBrowseFilters(r, browseCity, browseZip, browseTag) &&
-        matchesScoutFilter(r, activeFilter),
+        matchesScoutFilter(r, activeFilter, familyMatches ?? undefined),
     );
-  }, [restaurants, isRadiusMode, query, browseCity, browseZip, browseTag, activeFilter]);
+  }, [
+    restaurants,
+    isRadiusMode,
+    query,
+    browseCity,
+    browseZip,
+    browseTag,
+    activeFilter,
+    familyMatches,
+  ]);
 
   /** Pins + sheet: always include focused/selected venues even when browse filters hide them. */
   const mapRestaurants = useMemo(() => {
@@ -697,6 +768,7 @@ export function ExploreMapPage() {
           onSelect={() => handleListSelect(key)}
           density="compact"
           showWatch
+          matchReasons={matchReasonsFor(familyMatches, r.id)}
         />
       </li>
     );
@@ -744,6 +816,7 @@ export function ExploreMapPage() {
             query={query}
             filtersOpen={filtersOpen}
             onToggleFilters={() => setFiltersOpen((v) => !v)}
+            availableFilters={availableScoutFilters}
           />
         )}
 

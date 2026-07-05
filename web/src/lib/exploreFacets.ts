@@ -1,6 +1,6 @@
-import type { RestaurantMapEntry } from "../types";
+import type { FamilyMatchResult, RestaurantMapEntry } from "../types";
 
-export type ScoutFilter = "all" | "fast-starters" | "parent-data" | "needs-data";
+export type ScoutFilter = "all" | "fast-starters" | "parent-data" | "needs-data" | "family-fit";
 
 export type ExploreFacet = {
   key: string;
@@ -44,13 +44,20 @@ export function hasFastStarterData(restaurant: RestaurantMapEntry) {
   );
 }
 
-export function matchesScoutFilter(restaurant: RestaurantMapEntry, filter: ScoutFilter) {
+export function matchesScoutFilter(
+  restaurant: RestaurantMapEntry,
+  filter: ScoutFilter,
+  familyMatches?: Map<string, FamilyMatchResult>,
+) {
   if (filter === "fast-starters") return hasFastStarterData(restaurant);
   if (filter === "parent-data") return hasParentData(restaurant);
   // Only venues someone asked us to scout count — bulk pre-seeded catalog
   // entries without a request stay out of the queue (#63).
   if (filter === "needs-data") {
     return Boolean(restaurant.scouting_requested) && !hasParentData(restaurant);
+  }
+  if (filter === "family-fit") {
+    return Boolean(restaurant.id && familyMatches?.get(restaurant.id)?.matches);
   }
   return true;
 }
@@ -137,10 +144,16 @@ export const SCOUT_FILTER_LABELS: Record<ScoutFilter, string> = {
   "fast-starters": "Quick starters",
   "parent-data": "Parent-rated",
   "needs-data": "Needs scouting",
+  "family-fit": "Fits my family",
 };
 
 export function parseScoutFilter(value: string | null): ScoutFilter {
-  if (value === "fast-starters" || value === "parent-data" || value === "needs-data") {
+  if (
+    value === "fast-starters" ||
+    value === "parent-data" ||
+    value === "needs-data" ||
+    value === "family-fit"
+  ) {
     return value;
   }
   return "all";
