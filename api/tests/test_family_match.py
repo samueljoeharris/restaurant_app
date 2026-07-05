@@ -82,8 +82,73 @@ class TestMatchReasons:
         assert match_reasons([], aggregates, profile) == ["has booster seats"]
 
     def test_no_reasons_and_no_dislike_conflict_means_no_match(self):
-        profile = _profile(dietary_restrictions=["halal"])  # no metric mapping (yet)
+        profile = _profile(dietary_restrictions=["pescatarian"])  # intentionally unmapped
         assert match_reasons(["american"], {}, profile) == []
+
+    def test_halal_restriction_matches_confident_positive_aggregate(self):
+        profile = _profile(dietary_restrictions=["halal"])
+        aggregates = _ok_agg("halal_accommodation", True)
+        assert match_reasons([], aggregates, profile) == ["halal accommodation"]
+
+    def test_kosher_restriction_matches_confident_positive_aggregate(self):
+        profile = _profile(dietary_restrictions=["kosher"])
+        aggregates = _ok_agg("kosher_accommodation", True)
+        assert match_reasons([], aggregates, profile) == ["kosher accommodation"]
+
+    def test_booth_and_outdoor_seating_atmosphere_match(self):
+        profile = _profile(atmosphere_preferences=["booth_seating", "outdoor_seating"])
+        aggregates = {
+            **_ok_agg("booth_seating", True),
+            **_ok_agg("outdoor_seating", True),
+        }
+        reasons = match_reasons([], aggregates, profile)
+        assert "booth seating" in reasons
+        assert "outdoor seating" in reasons
+
+    def test_quiet_preferred_matches_below_noise_threshold(self):
+        profile = _profile(atmosphere_preferences=["quiet_preferred"])
+        aggregates = {"noise_level": {"status": "ok", "aggregate": {"value": 2.0}}}
+        assert match_reasons([], aggregates, profile) == ["a quiet atmosphere"]
+
+    def test_quiet_preferred_no_match_above_noise_threshold(self):
+        profile = _profile(atmosphere_preferences=["quiet_preferred"])
+        aggregates = {"noise_level": {"status": "ok", "aggregate": {"value": 3.5}}}
+        assert match_reasons([], aggregates, profile) == []
+
+    def test_quiet_preferred_no_match_when_not_confident(self):
+        profile = _profile(atmosphere_preferences=["quiet_preferred"])
+        aggregates = {"noise_level": {"status": "early", "aggregate": {"value": 1.0}}}
+        assert match_reasons([], aggregates, profile) == []
+
+    def test_quick_service_matches_above_speed_threshold(self):
+        profile = _profile(atmosphere_preferences=["quick_service"])
+        aggregates = {"kid_food_speed_general": {"status": "ok", "aggregate": {"value": 4.0}}}
+        assert match_reasons([], aggregates, profile) == ["quick kid food"]
+
+    def test_quick_service_no_match_below_speed_threshold(self):
+        profile = _profile(atmosphere_preferences=["quick_service"])
+        aggregates = {"kid_food_speed_general": {"status": "ok", "aggregate": {"value": 2.0}}}
+        assert match_reasons([], aggregates, profile) == []
+
+    def test_roomy_tables_matches_enum_winner(self):
+        profile = _profile(atmosphere_preferences=["roomy_tables"])
+        aggregates = {
+            "table_spacing": {
+                "status": "ok",
+                "aggregate": {"value": "roomy", "confidence": 0.8, "distribution": {"roomy": 0.8}},
+            }
+        }
+        assert match_reasons([], aggregates, profile) == ["roomy tables"]
+
+    def test_roomy_tables_no_match_when_enum_winner_differs(self):
+        profile = _profile(atmosphere_preferences=["roomy_tables"])
+        aggregates = {
+            "table_spacing": {
+                "status": "ok",
+                "aggregate": {"value": "cramped", "confidence": 0.6, "distribution": {"cramped": 0.6}},
+            }
+        }
+        assert match_reasons([], aggregates, profile) == []
 
 
 class TestFamilyMatchEndpoint:
