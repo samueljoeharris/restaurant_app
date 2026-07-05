@@ -15,6 +15,7 @@ const IOS_THEME_PATH = path.join(ROOT, "ios", "TTF", "TTF", "Utilities", "Theme.
 const IOS_TTF_TIER_PATH = path.join(ROOT, "ios", "TTF", "TTF", "Utilities", "TtfTier.swift");
 const WEB_TTF_TIER_PATH = path.join(ROOT, "web", "src", "lib", "ttfTier.ts");
 const WEB_MAP_PIN_PATH = path.join(ROOT, "web", "src", "lib", "mapPin.ts");
+const WEB_OVERLAY_STACK_PATH = path.join(ROOT, "web", "src", "lib", "overlayStack.ts");
 
 function camelToKebab(key) {
   return key.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
@@ -385,6 +386,23 @@ export const SEARCH_FOCUS_PIN_COLOR = "${c.pinSearchFocus.light}";
       pinColorsBlock.trimEnd(),
     );
     await writeFile(WEB_MAP_PIN_PATH, updated);
+  }
+
+  // overlayStack.ts Z scale — generated from tokens.zIndex (issue #60).
+  const overlayStack = await readFile(WEB_OVERLAY_STACK_PATH, "utf8");
+  const zEntries = Object.entries(tokens.zIndex)
+    .map(([key, value]) => `  ${key}: ${Number(value)},`)
+    .join("\n");
+  const zBlock = `// Values generated from design/tokens.json zIndex — edit there, then npm run tokens:generate.
+export const Z = {
+${zEntries}
+} as const;`;
+  const zPattern =
+    /(?:\/\/ Values generated from design\/tokens\.json zIndex[^\n]*\n)?export const Z = \{[\s\S]*?\} as const;/;
+  if (!zPattern.test(overlayStack)) {
+    console.warn("overlayStack.ts: Z block not found — skip patch");
+  } else {
+    await writeFile(WEB_OVERLAY_STACK_PATH, overlayStack.replace(zPattern, zBlock));
   }
 
   console.log("Generated:");
