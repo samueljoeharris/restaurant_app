@@ -10,6 +10,7 @@ import { MapSearchSidebar } from "../components/MapSearchSidebar";
 import { PlaceSearchBox } from "../components/PlaceSearchBox";
 import { RestaurantListCard } from "../components/RestaurantListCard";
 import { RestaurantMap } from "../components/RestaurantMap";
+import { VirtualizedResultRows } from "../components/VirtualizedResultRows";
 import { EmptyState } from "../components/ui/EmptyState";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { cn } from "../lib/cn";
@@ -54,6 +55,11 @@ import {
   type ScoutFilter,
 } from "../lib/exploreFacets";
 import { hasMatchablePreferences, matchReasonsFor } from "../lib/familyMatch";
+import {
+  buildResultRows,
+  shouldVirtualizeResults,
+  type ResultRow,
+} from "../lib/resultVirtualization";
 import type {
   ExtendedUserProfile,
   FamilyMatchResult,
@@ -253,6 +259,7 @@ export function ExploreMapPage() {
   const [popInKeys, setPopInKeys] = useState<ReadonlySet<string>>(() => new Set());
 
   const activeCardRef = useRef<HTMLElement>(null);
+  const resultsScrollRef = useRef<HTMLDivElement>(null);
   const searchPopInRef = useRef(false);
   const focusKeyRef = useRef<string | null>(null);
   const activatingPlaceRef = useRef<string | null>(null);
@@ -466,17 +473,6 @@ export function ExploreMapPage() {
       cancelled = true;
     };
   }, [focusParam, focusLocation, idToken]);
-
-  // Scroll the matching card into view when the map selection changes.
-  useEffect(() => {
-    if (selectedId && activeCardRef.current) {
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      activeCardRef.current.scrollIntoView({
-        block: "nearest",
-        behavior: reduceMotion ? "auto" : "smooth",
-      });
-    }
-  }, [selectedId]);
 
   // ——— Search box handlers (stay on the combined view) ———
   const handleSelectPlace = useCallback(
@@ -720,6 +716,24 @@ export function ExploreMapPage() {
     return groupRestaurantsByCity(filtered);
   }, [filtered, isRadiusMode, browseCity, browseZip, browseTag, query]);
 
+  // Windowed rendering past ~200 results (#81) — small lists render normally.
+  const resultRows = useMemo(() => buildResultRows(filtered, grouped), [filtered, grouped]);
+  const virtualizeResults = shouldVirtualizeResults(resultRows.length);
+
+  // Scroll the matching card into view when the map selection changes.
+  // Virtualized lists scroll themselves (VirtualizedResultRows) since a
+  // windowed row's DOM node doesn't exist until it's rendered.
+  useEffect(() => {
+    if (virtualizeResults) return;
+    if (selectedId && activeCardRef.current) {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      activeCardRef.current.scrollIntoView({
+        block: "nearest",
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    }
+  }, [selectedId, virtualizeResults]);
+
   const withContributions = useMemo(
     () => restaurants.filter((r) => matchesScoutFilter(r, "parent-data")).length,
     [restaurants],
@@ -771,6 +785,31 @@ export function ExploreMapPage() {
           matchReasons={matchReasonsFor(familyMatches, r.id)}
         />
       </li>
+    );
+  }
+
+  /** Same per-row markup as renderCard/the grouped city header, flattened for VirtualizedResultRows. */
+  function renderRow(row: ResultRow) {
+    if (row.type === "header") {
+      return (
+        <header className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="m-0 text-lg">{row.city}</h2>
+          <span className="text-sm text-text-muted">{formatPlaceCount(row.count)}</span>
+        </header>
+      );
+    }
+    const r = row.restaurant;
+    return (
+      <div className="pb-3">
+        <RestaurantListCard
+          restaurant={r}
+          active={selectedId === row.key}
+          onSelect={() => handleListSelect(row.key)}
+          density="compact"
+          showWatch
+          matchReasons={matchReasonsFor(familyMatches, r.id)}
+        />
+      </div>
     );
   }
 
@@ -861,7 +900,16 @@ export function ExploreMapPage() {
       {showListLoading && <SkeletonList count={6} />}
       {error && <p className="text-sm font-semibold text-error">{error}</p>}
 
-      {!showListLoading && !error && filtered.length > 0 && grouped && (
+      {!showListLoading && !error && filtered.length > 0 && virtualizeResults && (
+        <VirtualizedResultRows
+          rows={resultRows}
+          scrollRef={resultsScrollRef}
+          selectedId={selectedId}
+          renderRow={renderRow}
+        />
+      )}
+
+      {!showListLoading && !error && filtered.length > 0 && !virtualizeResults && grouped && (
         <div className="grid gap-6">
           {grouped.map(({ city, items }) => (
             <section key={city}>
@@ -875,7 +923,7 @@ export function ExploreMapPage() {
         </div>
       )}
 
-      {!showListLoading && !error && filtered.length > 0 && !grouped && (
+      {!showListLoading && !error && filtered.length > 0 && !virtualizeResults && !grouped && (
         <ul className="m-0 grid list-none gap-3 p-0">{filtered.map(renderCard)}</ul>
       )}
 
@@ -944,6 +992,7 @@ export function ExploreMapPage() {
           pinSheetOpen={!!selectedId}
           onCollapsedChange={setSidebarCollapsed}
           search={placeSearch}
+          resultsRef={resultsScrollRef}
         >
           {sidebarListContent}
         </MapSearchSidebar>
@@ -986,6 +1035,7 @@ export function ExploreMapPage() {
           pinSheetOpen={!!selectedId}
           embedded
           search={placeSearch}
+          resultsRef={resultsScrollRef}
         >
           {sidebarListContent}
         </MapSearchSidebar>

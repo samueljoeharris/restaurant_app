@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode, type RefObject } from "react";
 
 import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { useCollapsiblePanel } from "../hooks/useCollapsiblePanel";
@@ -14,6 +14,9 @@ interface MapSearchSidebarProps {
   pinSheetOpen?: boolean;
   /** In-flow footer on mobile map (not an absolute overlay). */
   embedded?: boolean;
+  /** Ref to the scrollable results container — lets a caller virtualize
+   * large lists against the actual scrolling element (#81). */
+  resultsRef?: RefObject<HTMLDivElement | null>;
 }
 
 function SheetHandle({
@@ -76,6 +79,7 @@ export function MapSearchSidebar({
   onCollapsedChange,
   pinSheetOpen = false,
   embedded = false,
+  resultsRef,
 }: MapSearchSidebarProps) {
   const isMobile = useIsMobile();
   const { collapsed, toggle } = useCollapsiblePanel("(max-width: 80rem)");
@@ -138,6 +142,7 @@ export function MapSearchSidebar({
               <div className="[&_.place-search]:mb-0">{search}</div>
             </div>
             <div
+              ref={resultsRef}
               id="map-search-sidebar-results"
               className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 [&_.place-search]:mb-3"
             >
@@ -192,6 +197,7 @@ export function MapSearchSidebar({
           </div>
 
           <div
+            ref={resultsRef}
             id="map-search-sidebar-results"
             className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 [&_.place-search]:mb-3"
           >
