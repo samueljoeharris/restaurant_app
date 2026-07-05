@@ -20,6 +20,21 @@
     }
   }
 
+  /* Cross-route View Transitions (#79) — a quick fade on browsers that
+     support the API; react-router's viewTransition opt-in no-ops elsewhere. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 150ms;
+    animation-timing-function: var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+    }
+  }
+
   body {
     @apply m-0 font-sans text-base leading-normal text-text bg-bg;
     background-image: radial-gradient(

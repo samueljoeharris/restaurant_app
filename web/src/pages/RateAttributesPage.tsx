@@ -100,7 +100,7 @@ export function RateAttributesPage() {
         `Saved ${changedKeys.length} rating${changedKeys.length === 1 ? "" : "s"} — check Parent ratings on the restaurant page.`,
         "success",
       );
-      navigate(`/restaurants/${restaurantId}`);
+      navigate(`/restaurants/${restaurantId}`, { viewTransition: true });
     } catch (err) {
       setError(authErrorMessage(err));
     } finally {

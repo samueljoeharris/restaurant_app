@@ -27,7 +27,7 @@ function SavedRow({ entry }: { entry: WatchedRestaurantEntry }) {
   return (
     <div className="flex items-start justify-between gap-3 border-b border-border/60 py-3">
       <div className="min-w-0">
-        <Link to={`/restaurants/${id}`} className="font-bold hover:text-brand">
+        <Link to={`/restaurants/${id}`} viewTransition className="font-bold hover:text-brand">
           {r.name}
         </Link>
         <p className="mt-1 text-sm text-text-muted">{r.address}</p>

@@ -133,6 +133,7 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
       <Link
         ref={ref as React.Ref<HTMLAnchorElement>}
         to={restaurantDetailPath(r)}
+        viewTransition
         className={className}
         {...intentProps}
       >

@@ -165,7 +165,7 @@ export function TtfSubmitPage() {
       );
       invalidateContributionData(restaurantId);
       toast("Observation saved — thanks!", "success");
-      navigate(`/restaurants/${restaurantId}`);
+      navigate(`/restaurants/${restaurantId}`, { viewTransition: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed");
     } finally {

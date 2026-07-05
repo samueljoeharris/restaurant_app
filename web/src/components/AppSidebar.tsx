@@ -81,6 +81,7 @@ export function AppSidebar({
           <Link
             key={tab.to}
             to={tab.to}
+            viewTransition
             className={cn(
               "flex items-center gap-3 rounded-md p-3 text-sm font-semibold text-text-muted transition-[color,background] duration-fast ease-out hover:bg-bg hover:text-text",
               isNavActive(pathname, tab.to) && "bg-brand-soft text-brand",
