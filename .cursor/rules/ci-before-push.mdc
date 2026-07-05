@@ -5,6 +5,8 @@ alwaysApply: true
 
 # CI before push
 
+**Canonical:** [AGENTS.md](../../AGENTS.md) § When to commit and push. Details below for Cursor.
+
 Before `git push` to `main`:
 
 1. Run `./scripts/ci-check.sh` (or `--all` if unsure what changed). Requires Docker running.

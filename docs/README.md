@@ -33,7 +33,8 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [TEST_FLOWS.md](TEST_FLOWS.md) | Live UI audit catalog (manual QA) |
 | [IOS_DESIGN.md](IOS_DESIGN.md) | Phase 3 iOS implementation plan — Cursor/Xcode workflow, architecture, milestones |
 | [../ios/TTF/README.md](../ios/TTF/README.md) | iOS Xcode setup and local runbook |
-| [../AGENTS.md](../AGENTS.md) | AI coding agent guidance for this repository |
+| [../AGENTS.md](../AGENTS.md) | AI coding agent guidance for this repository (canonical) |
+| [../CLAUDE.md](../CLAUDE.md) | Claude Code entry — imports AGENTS.md |
 
 ## Current implementation notes
 
