@@ -22,7 +22,6 @@ ALLOWLIST: dict[tuple[str, str], Callable[..., object]] = {
 EXCLUDED_PREFIXES = ("/v1/admin", "/v1/internal")
 EXCLUDED_PATHS = {
     ("POST", "/v1/auth/handoff"),
-    ("POST", "/v1/restaurants/seed-jobs"),
 }
 
 

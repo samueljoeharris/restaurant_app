@@ -16,6 +16,7 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [ADMIN_AUTH.md](ADMIN_AUTH.md) | **Operator console** — IAP, admin claims, Firebase SSO bridge |
 | [AUTH.md](AUTH.md) | Auth index — which doc to read for public vs admin |
 | [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) | Current `littlescout.app` DNS, TLS, IAP, and smoke-test runbook |
+| [API_ROUTES.md](API_ROUTES.md) | Canonical web routes and API endpoint contract across web, mobile web, and iOS |
 | [../api/README.md](../api/README.md) | API local development and endpoint summary |
 | [../web/README.md](../web/README.md) | Web pilot local setup and Cloud Run deploy notes |
 | [../infra/terraform/README.md](../infra/terraform/README.md) | Terraform bootstrap, dev stack, and WIF setup |

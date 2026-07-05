@@ -11,13 +11,12 @@ import { useIsMobile } from "../hooks/useBreakpoint";
 import { useIntentPrefetch } from "../hooks/useIntentPrefetch";
 import { MapMarkerLayer } from "./MapMarkerLayer";
 import { PlacePracticalInfo } from "./PlacePracticalInfo";
+import { RestaurantTtfStats } from "./RestaurantTtfStats";
 import { WatchButton } from "./WatchButton";
 import { cn } from "../lib/cn";
 import { prefetchRestaurantDetail } from "../lib/detailPrefetch";
 import { Z } from "../lib/overlayStack";
 import {
-  formatTtfMedian,
-  ttfTier,
   TTF_TIER_COLORS,
   TTF_TIER_LABELS,
   type TtfTier,
@@ -35,7 +34,6 @@ import {
 import type { RestaurantMapEntry } from "../types";
 import { Badge } from "./ui/Badge";
 import { Button, ButtonAnchor, ButtonLink } from "./ui/Button";
-import { Stat, StatGrid } from "./ui/Stat";
 
 const DEFAULT_MAP_CENTER = { lat: 42.2418, lng: -71.1662 };
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() ?? "";
@@ -365,9 +363,7 @@ function MapRestaurantSheet({
   onClose: () => void;
   mobileLayout?: boolean;
 }) {
-  const tier = ttfTier(entry.ttf);
   const hasTtf = entry.ttf.sample_size > 0;
-  const confirmedTtf = entry.ttf.sample_size >= 3;
   const googleOnly = isGoogleOnlyEntry(entry);
   const googleMapsUrl = googleMapsUrlForEntry(entry);
   const restaurantId = entry.id ?? null;
@@ -435,37 +431,11 @@ function MapRestaurantSheet({
             Kid food speed
           </h3>
           {hasTtf ? (
-            <>
-              <StatGrid>
-                <Stat
-                  label="Median"
-                  value={formatTtfMedian(entry.ttf)}
-                  highlight={confirmedTtf}
-                />
-                <Stat
-                  label="Quality"
-                  value={entry.ttf.avg_quality?.toFixed(1) ?? "—"}
-                />
-                <Stat
-                  label="Visits"
-                  value={entry.ttf.sample_size}
-                  hint={confirmedTtf ? undefined : "need 3 for tier"}
-                />
-              </StatGrid>
-              <p className="m-0 flex items-center gap-2 text-sm text-text-muted">
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{
-                    background: confirmedTtf
-                      ? TTF_TIER_COLORS[tier]
-                      : TTF_TIER_COLORS[previewTtfTierFromEntry(entry)],
-                  }}
-                />
-                {confirmedTtf
-                  ? TTF_TIER_LABELS[tier]
-                  : `Early signal — ${entry.ttf.sample_size} visit${entry.ttf.sample_size === 1 ? "" : "s"} logged`}
-              </p>
-            </>
+            <RestaurantTtfStats
+              ttf={entry.ttf}
+              highlightMedian={entry.ttf.sample_size >= 3}
+              showEarlySignal
+            />
           ) : (
             <p className="m-0 rounded-md bg-bg p-3 text-sm text-text-muted">
               No fries timer yet — be the first parent to clock a visit.
@@ -501,14 +471,6 @@ function MapRestaurantSheet({
       </div>
     </aside>
   );
-}
-
-function previewTtfTierFromEntry(entry: RestaurantMapEntry): TtfTier {
-  const median = entry.ttf.median_minutes;
-  if (median === null) return "unknown";
-  if (median <= 8) return "fast";
-  if (median <= 15) return "ok";
-  return "slow";
 }
 
 export function RestaurantMap({

@@ -1,17 +1,19 @@
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { PlacePracticalInfo } from "../components/PlacePracticalInfo";
+import { RestaurantTtfStats } from "../components/RestaurantTtfStats";
+import { BackLink } from "../components/ui/BackLink";
 import { ButtonLink, ButtonAnchor } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
-import { Stat, StatGrid } from "../components/ui/Stat";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import { placeEntryCacheKey } from "../lib/pageDataCache";
 import {
+  restaurantDetailPath,
   restaurantRatePath,
   restaurantReviewPath,
   restaurantSubmitPath,
@@ -19,9 +21,6 @@ import {
 import { googleMapsUrlForEntry } from "../lib/googleMapsUrl";
 import { reviewChatAvailable } from "../lib/reviewChat";
 import type { RestaurantMapEntry } from "../types";
-
-const backLinkClass =
-  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
 
 export function PlaceRestaurantDetailPage() {
   const { placeId } = useParams<{ placeId: string }>();
@@ -38,28 +37,28 @@ export function PlaceRestaurantDetailPage() {
 
   if (!idToken) {
     return (
-      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<BackLink to="/map" viewTransition>← Explore</BackLink>}>
         <EmptyState title="Sign in required" description="Sign in to view restaurant details from Google Places." />
       </Page>
     );
   }
   if (error) {
     return (
-      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<BackLink to="/map" viewTransition>← Explore</BackLink>}>
         <p className="text-sm font-semibold text-error">{error}</p>
       </Page>
     );
   }
   if (loading || !entry) {
     return (
-      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<BackLink to="/map" viewTransition>← Explore</BackLink>}>
         <SkeletonList count={3} />
       </Page>
     );
   }
 
   if (entry.id) {
-    return <Navigate to={`/restaurants/${entry.id}`} replace />;
+    return <Navigate to={restaurantDetailPath(entry)} replace />;
   }
 
   const hasTtf = entry.ttf.sample_size > 0;
@@ -67,7 +66,7 @@ export function PlaceRestaurantDetailPage() {
   const showReviewChat = reviewChatAvailable();
 
   return (
-    <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>} title={entry.name} subtitle={entry.address}>
+    <Page narrow back={<BackLink to="/map" viewTransition>← Explore</BackLink>} title={entry.name} subtitle={entry.address}>
       <Card title="Hours & directions" subtitle="Live info from Google Maps">
         <PlacePracticalInfo target={entry} showWeekdayHours />
       </Card>
@@ -87,11 +86,7 @@ export function PlaceRestaurantDetailPage() {
       <Card title="Kid food speed" subtitle="How fast did kid food arrive?" accent>
         {hasTtf ? (
           <>
-            <StatGrid>
-              <Stat label="Median" value={`${entry.ttf.median_minutes ?? "—"}m`} highlight />
-              <Stat label="Quality" value={entry.ttf.avg_quality?.toFixed(1) ?? "—"} />
-              <Stat label="Visits" value={entry.ttf.sample_size} />
-            </StatGrid>
+            <RestaurantTtfStats ttf={entry.ttf} />
             <ButtonLink to={restaurantSubmitPath(entry)} fullWidth>
               Log another visit
             </ButtonLink>

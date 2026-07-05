@@ -8,6 +8,7 @@ import type { ActivityEventItem } from "../types";
 import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useFixedOverlayPosition } from "../hooks/useFixedOverlayPosition";
 import { cn } from "../lib/cn";
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { Z } from "../lib/overlayStack";
 import { Button } from "./ui/Button";
 
@@ -70,7 +71,7 @@ export function ActivityInbox() {
               items.map((item) => (
                 <Link
                   key={item.id}
-                  to={`/restaurants/${item.restaurant_id}`}
+                  to={restaurantDetailPath({ id: item.restaurant_id })}
                   className={cn(
                     "block border-b border-border/60 px-4 py-3 text-sm transition-colors hover:bg-brand-soft/40",
                   )}

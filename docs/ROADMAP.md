@@ -41,6 +41,7 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 | [#60](https://github.com/samueljoeharris/restaurant_app/issues/60) | Web layout a11y remainder (focus trap, FormField) — z-index in tokens ✅ |
 | [#61](https://github.com/samueljoeharris/restaurant_app/issues/61) | Watchlist v1 remaining (push, iOS parity) — notification channel map |
 | [#62](https://github.com/samueljoeharris/restaurant_app/issues/62) | Admin moderation QA — see [TEST_FLOWS.md](TEST_FLOWS.md) ADM-* |
+| [#99](https://github.com/samueljoeharris/restaurant_app/issues/99) | DRY + route/API alignment audit — P0 web cleanup merged; API/iOS parity follow-ups remain |
 | [#40](https://github.com/samueljoeharris/restaurant_app/issues/40) | Phase 4 pilot: invite testers and gather feedback (after TestFlight) |
 | [#39](https://github.com/samueljoeharris/restaurant_app/issues/39) | Prod GCP cutover — scaffold merged; apply pending billing/credentials |
 

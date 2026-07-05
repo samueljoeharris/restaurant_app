@@ -34,6 +34,7 @@ FILTER_GROUPS: dict[str, list[str]] = {
     # Cross-stack API contract — client, routes, OpenAPI, and shared schemas.
     "apiContract": [
         "web/src/api/**",
+        "ios/TTF/TTF/Services/APIClient.swift",
         "api/ttf_api/routers/**",
         "api/openapi.yaml",
         "api/ttf_api/schemas.py",

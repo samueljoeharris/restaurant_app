@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { AttributeInput } from "../components/AttributeInput";
+import { BackLink } from "../components/ui/BackLink";
 import { Badge } from "../components/ui/Badge";
 import { Button, ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -11,6 +12,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { useToast } from "../components/ui/useToast";
 import { useCachedResource } from "../hooks/useCachedResource";
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { invalidateContributionData } from "../lib/pageDataCache";
 import type {
   MetricDefinition,
@@ -33,9 +35,6 @@ const KIND_LABELS: Record<UserContribution["kind"], string> = {
   attribute: "Rating",
   note: "Note",
 };
-
-const backLinkClass =
-  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -188,9 +187,9 @@ export function MyContributionsPage() {
       title="Your contributions"
       subtitle="View, edit, or remove your speed observations, ratings, and notes."
       back={
-        <Link to="/account" className={backLinkClass}>
+        <BackLink to="/account">
           ← Account
-        </Link>
+        </BackLink>
       }
     >
       <div className="mb-4 flex flex-wrap gap-2">
@@ -242,7 +241,7 @@ export function MyContributionsPage() {
                       <time className="text-sm text-text-muted">{fmtDate(item.submitted_at)}</time>
                     </div>
                     <Link
-                      to={`/restaurants/${item.restaurant_id}`}
+                      to={restaurantDetailPath({ id: item.restaurant_id })}
                       className="mb-1 inline-block font-semibold text-brand"
                     >
                       {item.restaurant_name}

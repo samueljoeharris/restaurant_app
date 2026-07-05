@@ -9,6 +9,7 @@ import { ReportContentButton } from "../components/ReportContentButton";
 import { ContributionRecencyChart } from "../components/ContributionRecencyChart";
 import { RestaurantDetailTabs } from "../components/RestaurantDetailTabs";
 import { RestaurantHero } from "../components/RestaurantHero";
+import { BackLink } from "../components/ui/BackLink";
 import { Badge } from "../components/ui/Badge";
 import { Button, ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -25,11 +26,9 @@ import {
   fetchRestaurantDetailBundle,
   type RestaurantDetailBundle,
 } from "../lib/restaurantDetailResource";
+import { restaurantRatePath, restaurantReviewPath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { WATCHLIST_CHANGED_EVENT, type WatchlistChangedDetail } from "../lib/watchlist";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
-
-const backLinkClass =
-  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
 
 export function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -99,7 +98,7 @@ export function RestaurantDetailPage() {
 
   if (error && !data) {
     return (
-      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<BackLink to="/map" viewTransition>← Explore</BackLink>}>
         <p className="text-sm font-semibold text-error">{error}</p>
       </Page>
     );
@@ -107,7 +106,7 @@ export function RestaurantDetailPage() {
 
   if (loading || !data || !id) {
     return (
-      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<BackLink to="/map" viewTransition>← Explore</BackLink>}>
         <SkeletonList count={2} />
       </Page>
     );
@@ -121,7 +120,7 @@ export function RestaurantDetailPage() {
       narrow
       title={r.name}
       subtitle={r.address}
-      back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}
+      back={<BackLink to="/map" viewTransition>← Explore</BackLink>}
     >
       {r.cuisine_tags.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">
@@ -158,7 +157,7 @@ export function RestaurantDetailPage() {
               subtitle="Stroller access, noise, kids menu, and more"
               action={
                 idToken ? (
-                  <ButtonLink to={`/restaurants/${r.id}/rate`} variant="secondary" size="sm">
+                  <ButtonLink to={restaurantRatePath(r)} variant="secondary" size="sm">
                     Rate visit
                   </ButtonLink>
                 ) : undefined
@@ -227,13 +226,13 @@ export function RestaurantDetailPage() {
           >
             {idToken ? (
               <>
-                <ButtonLink to={`/restaurants/${r.id}/review`} fullWidth>
+                <ButtonLink to={restaurantReviewPath(r)} fullWidth>
                   Chat through your review
                 </ButtonLink>
-                <ButtonLink to={`/restaurants/${r.id}/submit`} variant="secondary" fullWidth className="mt-2">
+                <ButtonLink to={restaurantSubmitPath(r)} variant="secondary" fullWidth className="mt-2">
                   Submit speed observation
                 </ButtonLink>
-                <ButtonLink to={`/restaurants/${r.id}/rate`} variant="secondary" fullWidth className="mt-2">
+                <ButtonLink to={restaurantRatePath(r)} variant="secondary" fullWidth className="mt-2">
                   Rate parent attributes
                 </ButtonLink>
               </>
