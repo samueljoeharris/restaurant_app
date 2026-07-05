@@ -12,6 +12,7 @@ import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
 import { EMPTY_CONTRIBUTION_RECENCY } from "../lib/contributionRecency";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
+import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
 import { TTF_TIER_COLORS, type TtfTier } from "../lib/ttfTier";
 import type { RestaurantDetailResponse, TtfSubmission } from "../types";
 
@@ -146,6 +147,7 @@ export function TtfSubmitPage() {
       if (!restaurantId && placeId) {
         const materialized = await api.materializePlace(placeId, idToken);
         restaurantId = materialized.restaurant.id;
+        invalidatePlaceEntry(placeId);
       }
       if (!restaurantId) throw new Error("Restaurant not found");
       await api.submitTtf(
@@ -161,6 +163,7 @@ export function TtfSubmitPage() {
         },
         idToken,
       );
+      invalidateContributionData(restaurantId);
       toast("Observation saved — thanks!", "success");
       navigate(`/restaurants/${restaurantId}`);
     } catch (err) {

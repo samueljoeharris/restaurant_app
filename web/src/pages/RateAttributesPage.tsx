@@ -10,6 +10,7 @@ import { Card } from "../components/ui/Card";
 import { Page } from "../components/ui/Page";
 import { useToast } from "../components/ui/useToast";
 import { cn } from "../lib/cn";
+import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
 import type { MetricDefinition } from "../types";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -86,6 +87,7 @@ export function RateAttributesPage() {
       if (!restaurantId && placeId) {
         const materialized = await api.materializePlace(placeId, idToken);
         restaurantId = materialized.restaurant.id;
+        invalidatePlaceEntry(placeId);
       }
       if (!restaurantId) throw new Error("Restaurant not found");
       for (const metric of changedKeys) {
@@ -93,6 +95,7 @@ export function RateAttributesPage() {
         if (value === undefined) continue;
         await api.submitAttribute(restaurantId, metric.key, value, idToken);
       }
+      invalidateContributionData(restaurantId);
       toast(
         `Saved ${changedKeys.length} rating${changedKeys.length === 1 ? "" : "s"} — check Parent ratings on the restaurant page.`,
         "success",

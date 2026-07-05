@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { authErrorMessage } from "../auth/errors";
 import { cn } from "../lib/cn";
+import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { useToast } from "./ui/useToast";
@@ -121,7 +122,9 @@ export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChat
     try {
       if (placeId) {
         const result = await api.submitPlaceContributions(placeId, preview.draft, idToken);
+        invalidatePlaceEntry(placeId);
         const entry = await api.getPlaceEntry(placeId, idToken);
+        invalidateContributionData(entry.id);
         toast(
           result.pending_review
             ? "Review submitted for moderation — thanks for helping other families!"
@@ -134,6 +137,7 @@ export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChat
         return;
       }
       const result = await api.submitContributions(restaurantId!, preview.draft, idToken);
+      invalidateContributionData(restaurantId);
       toast(
         result.pending_review
           ? "Review submitted for moderation — thanks for helping other families!"

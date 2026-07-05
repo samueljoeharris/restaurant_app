@@ -10,6 +10,7 @@ import { ChoiceChip, ChoiceChipGroup } from "../components/ui/ChoiceChip";
 import { Page } from "../components/ui/Page";
 import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
+import { invalidateContributionData } from "../lib/pageDataCache";
 import type { TtfSubmission, UserTtfContribution } from "../types";
 
 const ITEM_TYPES: { value: TtfSubmission["item_type"]; label: string; emoji: string }[] = [
@@ -90,6 +91,7 @@ export function TtfContributionEditPage() {
         },
         idToken,
       );
+      invalidateContributionData(observation?.restaurant_id);
       toast("Observation updated", "success");
       navigate("/account/contributions");
     } catch (err) {
