@@ -25,9 +25,9 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 | Issue | Summary |
 |-------|---------|
-| [#64](https://github.com/samueljoeharris/restaurant_app/issues/64) | **Whimsical Bluebird rebrand** — design kit integration audit + build ([TEST_FLOWS.md](TEST_FLOWS.md)) |
+| [#85](https://github.com/samueljoeharris/restaurant_app/issues/85) | Family profile — **rescope to [#91](https://github.com/samueljoeharris/restaurant_app/issues/91)** (minimal constraints only) |
+| [#84](https://github.com/samueljoeharris/restaurant_app/issues/84) | Visit logging v1 — one quick flow at the table |
 | [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline (blocked on [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) secrets) |
-| [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | **App Store Connect secrets + iOS CI signing** — the one human-only blocker; see [TESTFLIGHT_EXECUTION_PLAN.md](TESTFLIGHT_EXECUTION_PLAN.md) §2 |
 
 ---
 
@@ -35,14 +35,17 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 | Issue | Summary |
 |-------|---------|
-| [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | Pre-launch hardening — write guards merged; prod smoke + App Check key deferred |
-| [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | App Store Connect secrets and iOS CI signing (prerequisite for #36) |
+| [#90](https://github.com/samueljoeharris/restaurant_app/issues/90) | **Epic:** Best for your family here — answer-first explore (minimal) |
+| [#91–#95](https://github.com/samueljoeharris/restaurant_app/issues/90) | Profile → ranker → answer card → explore simplify → smooth shell |
+| [#84](https://github.com/samueljoeharris/restaurant_app/issues/84) | Visit logging v1 — one quick flow to log a whole visit |
+| [#95](https://github.com/samueljoeharris/restaurant_app/issues/95) | Web smooth shell — #78 SWR, prefetch, view transitions |
+| [#72](https://github.com/samueljoeharris/restaurant_app/issues/72) | Anonymous map browse — see answer before sign-up |
 | [#59](https://github.com/samueljoeharris/restaurant_app/issues/59) | Push delivery — web FCM, real send, scheduler |
-| [#60](https://github.com/samueljoeharris/restaurant_app/issues/60) | Web layout a11y remainder (focus trap, FormField) — z-index in tokens ✅ |
+| [#60](https://github.com/samueljoeharris/restaurant_app/issues/60) | Web layout a11y remainder (focus trap, FormField) |
 | [#61](https://github.com/samueljoeharris/restaurant_app/issues/61) | Watchlist v1 remaining (push, iOS parity) |
 | [#62](https://github.com/samueljoeharris/restaurant_app/issues/62) | Admin moderation QA — see [TEST_FLOWS.md](TEST_FLOWS.md) ADM-* |
-| [#40](https://github.com/samueljoeharris/restaurant_app/issues/40) | Phase 4 pilot: invite testers and gather feedback (after TestFlight) |
-| [#39](https://github.com/samueljoeharris/restaurant_app/issues/39) | Prod GCP cutover — scaffold merged; apply pending billing/credentials |
+| [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | Pre-launch hardening — write guards merged; prod smoke deferred |
+| [#40](https://github.com/samueljoeharris/restaurant_app/issues/40) | Phase 4 pilot: invite testers (after TestFlight) |
 
 ---
 
@@ -57,6 +60,7 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 | [#43](https://github.com/samueljoeharris/restaurant_app/issues/43) | Caching — ETag + client cache ✅; invalidation + geohash keys remain |
 | [#44](https://github.com/samueljoeharris/restaurant_app/issues/44) | Ratings trust and moderation |
 | [#45](https://github.com/samueljoeharris/restaurant_app/issues/45) | TTF submit timer UX ideas |
+| [#88](https://github.com/samueljoeharris/restaurant_app/issues/88) | ~~Preference filters~~ superseded by [#90](https://github.com/samueljoeharris/restaurant_app/issues/90) |
 | [MAP_STYLE.md](MAP_STYLE.md) | Bluebird Google Map Style + MapKit POI-off |
 | [DESIGN_TOKENS.md](DESIGN_TOKENS.md) | Bluebird token reference |
 
@@ -74,4 +78,4 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 ---
 
-*Last updated: 2026-06-20. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
+*Last updated: 2026-07-05. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
