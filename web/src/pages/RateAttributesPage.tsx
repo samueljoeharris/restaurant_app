@@ -5,11 +5,13 @@ import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { authErrorMessage } from "../auth/errors";
 import { AttributeInput } from "../components/AttributeInput";
+import { BackLink } from "../components/ui/BackLink";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Page } from "../components/ui/Page";
 import { useToast } from "../components/ui/useToast";
 import { cn } from "../lib/cn";
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
 import type { MetricDefinition } from "../types";
 
@@ -22,9 +24,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 type Ratings = Record<string, boolean | number | string | undefined>;
-
-const backLinkClass =
-  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
 
 export function RateAttributesPage() {
   const { id, placeId } = useParams<{ id?: string; placeId?: string }>();
@@ -75,7 +74,7 @@ export function RateAttributesPage() {
       ? "Save ratings"
       : `Save ${changedKeys.length} rating${changedKeys.length === 1 ? "" : "s"}`;
 
-  const backTo = id ? `/restaurants/${id}` : `/restaurants/place/${encodeURIComponent(placeId!)}`;
+  const backTo = restaurantDetailPath({ id: id ?? null, google_place_id: placeId ?? null });
   const needsAuth = Boolean(placeId && !id && !idToken);
 
   async function handleSubmit() {
@@ -100,7 +99,7 @@ export function RateAttributesPage() {
         `Saved ${changedKeys.length} rating${changedKeys.length === 1 ? "" : "s"} — check Parent ratings on the restaurant page.`,
         "success",
       );
-      navigate(`/restaurants/${restaurantId}`, { viewTransition: true });
+      navigate(restaurantDetailPath({ id: restaurantId }), { viewTransition: true });
     } catch (err) {
       setError(authErrorMessage(err));
     } finally {
@@ -132,9 +131,9 @@ export function RateAttributesPage() {
       title="Rate visit"
       subtitle={restaurantName}
       back={
-        <Link to={backTo} className={backLinkClass}>
+        <BackLink to={backTo}>
           ← Back
-        </Link>
+        </BackLink>
       }
     >
       <Card subtitle="Tap an option for each attribute — selected items highlight in orange.">

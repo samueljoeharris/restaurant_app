@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { authErrorMessage } from "../auth/errors";
 import { cn } from "../lib/cn";
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -132,7 +133,7 @@ export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChat
           "success",
         );
         if (entry.id) {
-          navigate(`/restaurants/${entry.id}`, { viewTransition: true });
+          navigate(restaurantDetailPath(entry), { viewTransition: true });
         }
         return;
       }

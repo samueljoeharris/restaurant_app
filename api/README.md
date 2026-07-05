@@ -19,8 +19,8 @@ From repo root (Postgres must be healthy):
 |--------|------|--------|
 | GET | `/health` | ✅ |
 | GET | `/v1/restaurants` | ✅ (empty until seeded) |
-| POST | `/v1/restaurants/seed-jobs` | ✅ start background Places seed by ZIP/city/coords |
-| GET | `/v1/restaurants/seed-jobs/{id}` | ✅ poll seed job status |
+| POST | `/v1/admin/seed-jobs` | ✅ start background Places seed by ZIP/city/coords |
+| GET | `/v1/admin/seed-jobs/{id}` | ✅ poll seed job status |
 | GET | `/v1/restaurants/{id}` | ✅ |
 | POST | `/v1/coverage/ensure` | ✅ signed-in user requests background seeding for their location (guarded) |
 | GET | `/v1/metrics` | ✅ (12 seed metrics) |
@@ -73,10 +73,10 @@ so user contributions are preserved.
 
 ### Background seed by ZIP / location
 
-Authenticated clients can request a background seed job:
+Admins can request a background seed job:
 
 ```bash
-curl -X POST http://localhost:8080/v1/restaurants/seed-jobs \
+curl -X POST http://localhost:8080/v1/admin/seed-jobs \
   -H "Authorization: Bearer dev:pilot-tester-1" \
   -H "Content-Type: application/json" \
   -d '{"location": "02026", "radius_m": 8000}'
@@ -86,7 +86,7 @@ The API returns `202 Accepted` with a `job.id`. Poll:
 
 ```bash
 curl -H "Authorization: Bearer dev:pilot-tester-1" \
-  http://localhost:8080/v1/restaurants/seed-jobs/{job_id}
+  http://localhost:8080/v1/admin/seed-jobs/{job_id}
 ```
 
 Recent jobs for the same rounded area/radius are reused for

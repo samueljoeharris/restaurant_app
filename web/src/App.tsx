@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
@@ -29,6 +29,11 @@ function suspend(node: ReactNode) {
   return <Suspense fallback={<RouteFallback />}>{node}</Suspense>;
 }
 
+function CanonicalMapRedirect() {
+  const location = useLocation();
+  return <Navigate to={{ pathname: "/map", search: location.search }} replace />;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -47,11 +52,7 @@ export default function App() {
           />
           <Route
             path="/restaurants"
-            element={
-              <Layout>
-                <ExploreMapPage />
-              </Layout>
-            }
+            element={<CanonicalMapRedirect />}
           />
           <Route
             path="/restaurants/place/:placeId/review"

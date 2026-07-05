@@ -168,9 +168,9 @@ Terraform stores the key in `ttf-recaptcha-site-key`, wires Firebase App Check, 
 
 Write endpoints require Firebase ID token + (when enabled) `X-Firebase-AppCheck` + rate limit.
 
-**Admin-only endpoints beyond `/v1/admin/*`:**
+**Admin-only endpoints beyond standard user writes:**
 
-- `POST /v1/restaurants/seed-jobs` and `GET /v1/restaurants/seed-jobs/{job_id}` require the `role=admin` claim (Maps API cost control). The public app only shows the seed form to admins.
+- `/v1/admin/*` requires the `role=admin` claim (including seed jobs for Maps API cost control).
 - `POST /v1/auth/handoff` requires `role=admin` — it exists solely for the admin→public-app SSO link.
 
 ---

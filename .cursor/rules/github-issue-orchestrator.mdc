@@ -5,6 +5,8 @@ alwaysApply: true
 
 # GitHub issue orchestrator
 
+**Canonical:** [AGENTS.md](../../AGENTS.md) § GitHub issue delivery. Cursor skill has sub-agent and issue-comment details.
+
 When the user assigns a **GitHub issue** ("work on #42", "implement issue 42", issue URL):
 
 1. **Read and follow** [.cursor/skills/github-issue-orchestrator/SKILL.md](.cursor/skills/github-issue-orchestrator/SKILL.md).

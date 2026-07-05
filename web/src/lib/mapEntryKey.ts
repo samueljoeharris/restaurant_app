@@ -17,7 +17,7 @@ export function findMapEntry(
 export function restaurantDetailPath(entry: Pick<RestaurantMapEntry, "id" | "google_place_id">): string {
   if (entry.id) return `/restaurants/${entry.id}`;
   if (entry.google_place_id) return `/restaurants/place/${encodeURIComponent(entry.google_place_id)}`;
-  return "/restaurants";
+  return "/map";
 }
 
 export function restaurantSubmitPath(entry: Pick<RestaurantMapEntry, "id" | "google_place_id">): string {
@@ -25,7 +25,7 @@ export function restaurantSubmitPath(entry: Pick<RestaurantMapEntry, "id" | "goo
   if (entry.google_place_id) {
     return `/restaurants/place/${encodeURIComponent(entry.google_place_id)}/submit`;
   }
-  return "/restaurants";
+  return "/map";
 }
 
 export function restaurantReviewPath(entry: Pick<RestaurantMapEntry, "id" | "google_place_id">): string {
@@ -33,7 +33,7 @@ export function restaurantReviewPath(entry: Pick<RestaurantMapEntry, "id" | "goo
   if (entry.google_place_id) {
     return `/restaurants/place/${encodeURIComponent(entry.google_place_id)}/review`;
   }
-  return "/restaurants";
+  return "/map";
 }
 
 export function restaurantRatePath(entry: Pick<RestaurantMapEntry, "id" | "google_place_id">): string {
@@ -41,5 +41,5 @@ export function restaurantRatePath(entry: Pick<RestaurantMapEntry, "id" | "googl
   if (entry.google_place_id) {
     return `/restaurants/place/${encodeURIComponent(entry.google_place_id)}/rate`;
   }
-  return "/restaurants";
+  return "/map";
 }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { BackLink } from "../components/ui/BackLink";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { ChoiceChip, ChoiceChipGroup } from "../components/ui/ChoiceChip";
@@ -11,31 +12,8 @@ import { Page } from "../components/ui/Page";
 import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
 import { invalidateContributionData } from "../lib/pageDataCache";
+import { TTF_DAYPARTS, TTF_ITEM_TYPES, TTF_PORTIONS } from "../lib/ttfFormOptions";
 import type { TtfSubmission, UserTtfContribution } from "../types";
-
-const ITEM_TYPES: { value: TtfSubmission["item_type"]; label: string; emoji: string }[] = [
-  { value: "fries", label: "Fries", emoji: "🍟" },
-  { value: "apple_slices", label: "Apple slices", emoji: "🍎" },
-  { value: "bread", label: "Bread", emoji: "🍞" },
-  { value: "kids_meal", label: "Kids meal", emoji: "🧒" },
-  { value: "other", label: "Other", emoji: "🍽️" },
-];
-
-const PORTIONS: { value: TtfSubmission["portion_size"]; label: string }[] = [
-  { value: "kid", label: "Kid" },
-  { value: "regular", label: "Regular" },
-  { value: "shareable", label: "Shareable" },
-];
-
-const DAYPARTS: { value: TtfSubmission["daypart"]; label: string }[] = [
-  { value: "breakfast", label: "Breakfast" },
-  { value: "lunch", label: "Lunch" },
-  { value: "dinner", label: "Dinner" },
-  { value: "late", label: "Late" },
-];
-
-const backLinkClass =
-  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
 
 export function TtfContributionEditPage() {
   const { observationId } = useParams<{ observationId: string }>();
@@ -115,9 +93,9 @@ export function TtfContributionEditPage() {
         narrow
         title="Edit observation"
         back={
-          <Link to="/account/contributions" className={backLinkClass}>
+          <BackLink to="/account/contributions">
             ← Your contributions
-          </Link>
+          </BackLink>
         }
       >
         <p className="text-sm font-semibold text-error">{error}</p>
@@ -133,9 +111,9 @@ export function TtfContributionEditPage() {
       title="Edit observation"
       subtitle={observation.restaurant_name}
       back={
-        <Link to="/account/contributions" className={backLinkClass}>
+        <BackLink to="/account/contributions">
           ← Your contributions
-        </Link>
+        </BackLink>
       }
     >
       <Card>
@@ -154,7 +132,7 @@ export function TtfContributionEditPage() {
           <fieldset className="field-group grid gap-2">
             <legend className="text-sm font-semibold">What arrived?</legend>
             <ChoiceChipGroup columns={2}>
-              {ITEM_TYPES.map((item) => (
+              {TTF_ITEM_TYPES.map((item) => (
                 <ChoiceChip
                   key={item.value}
                   selected={itemType === item.value}
@@ -174,7 +152,7 @@ export function TtfContributionEditPage() {
           <fieldset className="field-group grid gap-2">
             <legend className="text-sm font-semibold">Portion</legend>
             <ChoiceChipGroup columns={3}>
-              {PORTIONS.map((opt) => (
+              {TTF_PORTIONS.map((opt) => (
                 <ChoiceChip
                   key={opt.value}
                   selected={portion === opt.value}
@@ -189,7 +167,7 @@ export function TtfContributionEditPage() {
           <fieldset className="field-group grid gap-2">
             <legend className="text-sm font-semibold">Daypart</legend>
             <ChoiceChipGroup columns={2}>
-              {DAYPARTS.map((opt) => (
+              {TTF_DAYPARTS.map((opt) => (
                 <ChoiceChip
                   key={opt.value}
                   selected={daypart === opt.value}

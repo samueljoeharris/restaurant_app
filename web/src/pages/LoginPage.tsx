@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 import { useAuth } from "../auth/useAuth";
 import { authErrorMessage } from "../auth/errors";
@@ -12,6 +12,13 @@ import { Button, ButtonAnchor } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Skeleton } from "../components/ui/Skeleton";
 import { cn } from "../lib/cn";
+
+function safeNextPath(search: string): string | null {
+  const next = new URLSearchParams(search).get("next");
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return null;
+  if (next === "/login" || next.startsWith("/login?")) return null;
+  return next;
+}
 
 function AuthShell({ children }: { children: ReactNode }) {
   return (
@@ -51,6 +58,7 @@ function AuthHeroTitle({
 }
 
 export function LoginPage() {
+  const location = useLocation();
   const {
     user,
     loading,
@@ -70,6 +78,7 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   const admin = isAdminSite;
+  const postAuthPath = !admin ? (safeNextPath(location.search) ?? defaultAuthedPath) : defaultAuthedPath;
 
   if (loading) {
     return (
@@ -89,7 +98,7 @@ export function LoginPage() {
     if (isAdminSite) {
       return <Navigate to={isAdmin ? "/admin" : "/access-denied"} replace />;
     }
-    return <Navigate to={defaultAuthedPath} replace />;
+    return <Navigate to={postAuthPath} replace />;
   }
 
   if (isAdminSite && !import.meta.env.DEV) {

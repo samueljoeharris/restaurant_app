@@ -35,7 +35,6 @@ import type {
   SeedLocation,
   TtfSubmission,
   UserContribution,
-  UserProfile,
   UserTtfContribution,
   ExtendedUserProfile,
   NotificationPreferences,
@@ -99,50 +98,44 @@ function normalizeMapEntries(rows: RestaurantMapEntry[]): RestaurantMapEntry[] {
   }));
 }
 
+type RestaurantMapBbox = {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+};
+
+function restaurantMapPath(bbox?: RestaurantMapBbox): string {
+  if (!bbox) return "/v1/restaurants/map";
+  const params = new URLSearchParams({
+    min_lat: String(bbox.minLat),
+    max_lat: String(bbox.maxLat),
+    min_lng: String(bbox.minLng),
+    max_lng: String(bbox.maxLng),
+  });
+  return `/v1/restaurants/map?${params}`;
+}
+
 export const api = {
   listRestaurants: (q?: string) => {
     const params = q ? `?q=${encodeURIComponent(q)}` : "";
     return request<RestaurantSummary[]>(`/v1/restaurants${params}`);
   },
 
-  listRestaurantsForMap: (bbox?: {
-    minLat: number;
-    maxLat: number;
-    minLng: number;
-    maxLng: number;
-  }) => {
-    let path = "/v1/restaurants/map";
-    if (bbox) {
-      const params = new URLSearchParams({
-        min_lat: String(bbox.minLat),
-        max_lat: String(bbox.maxLat),
-        min_lng: String(bbox.minLng),
-        max_lng: String(bbox.maxLng),
-      });
-      path += `?${params}`;
-    }
-    return request<RestaurantMapEntry[]>(path).then(normalizeMapEntries);
+  listRestaurantsForMap: (bbox?: RestaurantMapBbox) => {
+    return request<RestaurantMapEntry[]>(restaurantMapPath(bbox)).then(normalizeMapEntries);
   },
 
   /** Map fetch with optional ETag revalidation (304 → notModified). */
   listRestaurantsForMapCached: async (opts?: {
-    bbox?: { minLat: number; maxLat: number; minLng: number; maxLng: number };
+    bbox?: RestaurantMapBbox;
     etag?: string | null;
   }): Promise<{
     rows: RestaurantMapEntry[] | null;
     etag: string | null;
     notModified: boolean;
   }> => {
-    let path = "/v1/restaurants/map";
-    if (opts?.bbox) {
-      const params = new URLSearchParams({
-        min_lat: String(opts.bbox.minLat),
-        max_lat: String(opts.bbox.maxLat),
-        min_lng: String(opts.bbox.minLng),
-        max_lng: String(opts.bbox.maxLng),
-      });
-      path += `?${params}`;
-    }
+    const path = restaurantMapPath(opts?.bbox);
     const headers = new Headers();
     if (opts?.etag) headers.set("If-None-Match", opts.etag);
     const response = await fetch(`${API_URL}${path}`, { headers });
@@ -171,18 +164,6 @@ export const api = {
     };
   },
 
-  triggerRestaurantSeed: (
-    body: { location: string; radius_m?: number; force?: boolean },
-    token: string,
-  ) =>
-    request<RestaurantSeedJobResponse>("/v1/restaurants/seed-jobs", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }, token),
-
-  getRestaurantSeedJob: (id: string, token: string) =>
-    request<RestaurantSeedJobResponse>(`/v1/restaurants/seed-jobs/${id}`, {}, token),
-
   getRestaurant: (id: string, token?: string | null) =>
     request<RestaurantDetailResponse>(`/v1/restaurants/${id}`, {}, token ?? undefined),
 
@@ -198,9 +179,6 @@ export const api = {
   getCoverageJob: (jobId: string, token: string) =>
     request<CoverageJobStatus>(`/v1/coverage/jobs/${jobId}`, {}, token),
 
-  getMe: (token: string) =>
-    request<UserProfile>("/v1/me", {}, token),
-
   getProfile: (token: string) =>
     request<ExtendedUserProfile>("/v1/me/profile", {}, token),
 
@@ -212,6 +190,13 @@ export const api = {
       home_lng?: number | null;
       home_label?: string | null;
       timezone?: string;
+      allergies?: string[];
+      allergy_notes?: string | null;
+      dietary_restrictions?: string[];
+      cuisine_likes?: string[];
+      cuisine_dislikes?: string[];
+      atmosphere_preferences?: string[];
+      preference_notes?: string | null;
       complete_onboarding?: boolean;
     },
   ) =>

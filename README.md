@@ -25,7 +25,8 @@ A social restaurant rating app for **parents and caregivers** dining out with ch
 
 | Doc | Description |
 |-----|-------------|
-| [AGENTS.md](AGENTS.md) | Guidance for AI coding agents |
+| [AGENTS.md](AGENTS.md) | Guidance for AI coding agents (canonical) |
+| [CLAUDE.md](CLAUDE.md) | Claude Code entry — imports AGENTS.md |
 | [docs/README.md](docs/README.md) | Documentation index and recommended reading order |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component map, runtime topology, auth/data flows, and CI/CD |
 | [docs/DESIGN.md](docs/DESIGN.md) | Product vision, data model, TTF spec, architecture, naming conventions |
@@ -66,7 +67,7 @@ restaurant_app/
 
 1. Read [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 2. Configure MCP servers per [docs/MCP_SETUP.md](docs/MCP_SETUP.md) if using Cursor tools
-3. For local full-stack web development, use the Firebase emulator flow in [docs/WEB_AUTH.md](docs/WEB_AUTH.md) or [AGENTS.md](AGENTS.md#local-full-stack-no-cloud-firebase-secrets)
+3. For local full-stack web development, use the Firebase emulator flow in [docs/WEB_AUTH.md](docs/WEB_AUTH.md) or [AGENTS.md](AGENTS.md#local-full-stack--firebase-emulator-optional)
 4. For deployed dev testing, use:
    - Web pilot: `https://app.dev.littlescout.app`
    - API health: `https://api.dev.littlescout.app/health`

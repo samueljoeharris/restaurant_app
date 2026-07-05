@@ -223,7 +223,7 @@ RestaurantNote {
 }
 ```
 
-#### User (Firebase Auth — not stored in Postgres)
+#### User (Firebase Auth + `user_profiles` row)
 
 ```
 UserProfile {
@@ -231,6 +231,17 @@ UserProfile {
   display_name: string         // JWT `name`
   email: string                // JWT `email`
   contribution_count: int        // computed from contributions
+  kids_ages: int[]               // family profile
+  // Family profile v2 (#85) — private to the account, never in public
+  // aggregates or activity events. Vocabulary keys live in code
+  // (api/ttf_api/family_profile.py), not DB enums:
+  allergies: string[]            // ALLERGENS keys
+  allergy_notes: string          // free-form "other"
+  dietary_restrictions: string[] // DIETARY_RESTRICTIONS keys
+  cuisine_likes: string[]        // lowercase tags, matches cuisine_tags
+  cuisine_dislikes: string[]
+  atmosphere_preferences: string[] // maps onto metric_definitions keys
+  preference_notes: string
 }
 ```
 

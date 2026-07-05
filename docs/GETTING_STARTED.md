@@ -182,7 +182,8 @@ See [IOS_DESIGN.md](IOS_DESIGN.md) and [ios/TTF/README.md](../ios/TTF/README.md)
 
 | Doc | Purpose |
 |-----|---------|
-| [AGENTS.md](../AGENTS.md) | Guidance for AI coding agents |
+| [AGENTS.md](../AGENTS.md) | Guidance for AI coding agents (canonical) |
+| [CLAUDE.md](../CLAUDE.md) | Claude Code — imports AGENTS.md |
 | [docs/README.md](README.md) | Documentation index and reading order |
 | [DESIGN.md](DESIGN.md) | Full product + technical design |
 | [WEB_AUTH.md](WEB_AUTH.md) | Public app sign-up, sign-in, Google, MFA |

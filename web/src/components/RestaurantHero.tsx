@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 
 import { PlacePracticalInfo } from "./PlacePracticalInfo";
+import { RestaurantTtfStats } from "./RestaurantTtfStats";
 import { WatchButton } from "./WatchButton";
 import { ButtonLink } from "./ui/Button";
-import { Stat, StatGrid } from "./ui/Stat";
 import { useWatch } from "../hooks/useWatch";
 import { googleMapsUrlForEntry } from "../lib/googleMapsUrl";
-import { formatTtfMedian } from "../lib/ttfTier";
+import { restaurantSubmitPath } from "../lib/mapEntryKey";
 import type { AttributeEntry, RestaurantDetailResponse } from "../types";
 import { EmptyState } from "./ui/EmptyState";
 
@@ -30,6 +30,7 @@ export function RestaurantHero({ data, attributes, id, idToken, kidsAges = [] }:
   const { restaurant: r, ttf } = data;
   const { watched, busy, toggle } = useWatch(id, data.watched ?? false);
   const googleUrl = googleMapsUrlForEntry(r);
+  const submitPath = restaurantSubmitPath(r);
   const topAttrs = attributes.slice(0, 3).map((a) => a.label).join(" · ");
   const ageLine =
     ttf.sample_size > 0
@@ -39,26 +40,27 @@ export function RestaurantHero({ data, attributes, id, idToken, kidsAges = [] }:
   return (
     <section className="mb-4 overflow-hidden rounded-lg border border-brand/25 bg-gradient-to-b from-brand-soft to-surface to-40% p-5 shadow-sm">
       {ttf.sample_size === 0 ? (
-        <EmptyState
-          mascot
-          title="No speed data yet"
-          description="Be the first parent to clock a visit."
-          actionLabel="Start the timer"
-          actionTo={`/restaurants/${id}/submit`}
+        <RestaurantTtfStats
+          ttf={ttf}
+          empty={
+            <EmptyState
+              mascot
+              title="No speed data yet"
+              description="Be the first parent to clock a visit."
+              actionLabel="Start the timer"
+              actionTo={submitPath}
+            />
+          }
         />
       ) : (
         <>
-          <StatGrid>
-            <Stat label="Median" value={`${formatTtfMedian(ttf)}`} highlight />
-            <Stat label="Quality" value={ttf.avg_quality?.toFixed(1) ?? "—"} />
-            <Stat label="Visits" value={ttf.sample_size} />
-          </StatGrid>
+          <RestaurantTtfStats ttf={ttf} />
           {ageLine && <p className="mt-2 text-sm font-semibold text-brand">{ageLine}</p>}
         </>
       )}
       <div className="mt-4 flex flex-wrap gap-2">
         <WatchButton watched={watched} busy={busy} onClick={() => void toggle()} />
-        <ButtonLink to={`/restaurants/${id}/submit`}>
+        <ButtonLink to={submitPath}>
           {ttf.sample_size === 0 ? "Log visit" : "Log another visit"}
         </ButtonLink>
       </div>

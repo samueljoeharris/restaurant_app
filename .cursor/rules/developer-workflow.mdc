@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Developer workflow
 
+**Canonical:** [AGENTS.md](../../AGENTS.md) § Agent workflow (backlog, commits, issue delivery). This rule extends it for Cursor sessions.
+
 Inferred from past agent sessions and repo conventions. When in doubt, match this.
 
 ## Default stance

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { BackLink } from "../components/ui/BackLink";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { ChoiceChip, ChoiceChipGroup } from "../components/ui/ChoiceChip";
@@ -13,32 +14,9 @@ import { useToast } from "../components/ui/useToast";
 import { EMPTY_CONTRIBUTION_RECENCY } from "../lib/contributionRecency";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
+import { TTF_DAYPARTS, TTF_ITEM_TYPES, TTF_PORTIONS } from "../lib/ttfFormOptions";
 import { TTF_TIER_COLORS, type TtfTier } from "../lib/ttfTier";
 import type { RestaurantDetailResponse, TtfSubmission } from "../types";
-
-const ITEM_TYPES: { value: TtfSubmission["item_type"]; label: string; emoji: string }[] = [
-  { value: "fries", label: "Fries", emoji: "🍟" },
-  { value: "apple_slices", label: "Apple slices", emoji: "🍎" },
-  { value: "bread", label: "Bread", emoji: "🍞" },
-  { value: "kids_meal", label: "Kids meal", emoji: "🧒" },
-  { value: "other", label: "Other", emoji: "🍽️" },
-];
-
-const PORTIONS: { value: TtfSubmission["portion_size"]; label: string }[] = [
-  { value: "kid", label: "Kid" },
-  { value: "regular", label: "Regular" },
-  { value: "shareable", label: "Shareable" },
-];
-
-const DAYPARTS: { value: TtfSubmission["daypart"]; label: string }[] = [
-  { value: "breakfast", label: "Breakfast" },
-  { value: "lunch", label: "Lunch" },
-  { value: "dinner", label: "Dinner" },
-  { value: "late", label: "Late" },
-];
-
-const backLinkClass =
-  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
 
 function currentDaypart(): TtfSubmission["daypart"] {
   const hour = new Date().getHours();
@@ -165,7 +143,7 @@ export function TtfSubmitPage() {
       );
       invalidateContributionData(restaurantId);
       toast("Observation saved — thanks!", "success");
-      navigate(`/restaurants/${restaurantId}`, { viewTransition: true });
+      navigate(restaurantDetailPath({ id: restaurantId }), { viewTransition: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Submit failed");
     } finally {
@@ -193,15 +171,14 @@ export function TtfSubmitPage() {
       title="Submit observation"
       subtitle={restaurant.restaurant.name}
       back={
-        <Link
+        <BackLink
           to={restaurantDetailPath({
             id: id ?? restaurant.restaurant.id,
             google_place_id: placeId ?? restaurant.restaurant.google_place_id,
           })}
-          className={backLinkClass}
         >
           ← Back
-        </Link>
+        </BackLink>
       }
     >
       <Card className="pb-0 md:pb-[var(--spacing-6)]">
@@ -269,7 +246,7 @@ export function TtfSubmitPage() {
           <fieldset className="field-group grid gap-2">
             <legend className="text-sm font-semibold">What arrived?</legend>
             <ChoiceChipGroup columns={2}>
-              {ITEM_TYPES.map((item) => (
+              {TTF_ITEM_TYPES.map((item) => (
                 <ChoiceChip
                   key={item.value}
                   selected={itemType === item.value}
@@ -289,7 +266,7 @@ export function TtfSubmitPage() {
           <fieldset className="field-group grid gap-2">
             <legend className="text-sm font-semibold">Portion</legend>
             <ChoiceChipGroup columns={3}>
-              {PORTIONS.map((opt) => (
+              {TTF_PORTIONS.map((opt) => (
                 <ChoiceChip
                   key={opt.value}
                   selected={portion === opt.value}
@@ -304,7 +281,7 @@ export function TtfSubmitPage() {
           <fieldset className="field-group grid gap-2">
             <legend className="text-sm font-semibold">Daypart</legend>
             <ChoiceChipGroup columns={2}>
-              {DAYPARTS.map((opt) => (
+              {TTF_DAYPARTS.map((opt) => (
                 <ChoiceChip
                   key={opt.value}
                   selected={daypart === opt.value}

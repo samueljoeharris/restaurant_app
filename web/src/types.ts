@@ -203,6 +203,14 @@ export interface ExtendedUserProfile extends UserProfile {
   onboarding_completed: boolean;
   inbox_read_through: string;
   timezone: string;
+  /** Family profile v2 (#85) — private to the account. */
+  allergies: string[];
+  allergy_notes: string | null;
+  dietary_restrictions: string[];
+  cuisine_likes: string[];
+  cuisine_dislikes: string[];
+  atmosphere_preferences: string[];
+  preference_notes: string | null;
   notification_preferences: NotificationPreferences;
 }
 

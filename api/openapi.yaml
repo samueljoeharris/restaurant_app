@@ -107,51 +107,6 @@ paths:
         "422":
           description: Invalid bbox (partial bounds or min not less than max)
 
-  /v1/restaurants/seed-jobs:
-    post:
-      tags: [restaurants]
-      summary: Start a background restaurant seed job for a ZIP, city, or coordinates
-      security: [{ firebase: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RestaurantSeedJobRequest"
-      responses:
-        "202":
-          description: Seed job accepted or reused
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RestaurantSeedJobResponse"
-        "400":
-          description: Invalid or un-geocodable location
-        "503":
-          description: Server-side Maps key is not configured
-
-  /v1/restaurants/seed-jobs/{job_id}:
-    get:
-      tags: [restaurants]
-      summary: Poll a restaurant seed job
-      security: [{ firebase: [] }]
-      parameters:
-        - name: job_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Seed job status
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RestaurantSeedJobResponse"
-        "404":
-          description: Seed job not found
-
   /v1/restaurants/{id}:
     get:
       tags: [restaurants]
@@ -701,76 +656,6 @@ components:
         - $ref: "#/components/schemas/RestaurantSummary"
         - type: object
           properties:
-            ttf: { $ref: "#/components/schemas/TtfAggregate" }
-            note_count: { type: integer, default: 0 }
-            attribute_rating_count: { type: integer, default: 0 }
-
-    RestaurantSeedJobRequest:
-      type: object
-      properties:
-        location:
-          type: string
-          nullable: true
-          description: ZIP, city/state, or address to geocode before seeding
-          example: "02026"
-        lat:
-          type: number
-          format: double
-          nullable: true
-        lng:
-          type: number
-          format: double
-          nullable: true
-        radius_m:
-          type: integer
-          default: 8000
-          minimum: 1000
-          maximum: 25000
-        force:
-          type: boolean
-          default: false
-      oneOf:
-        - required: [location]
-        - required: [lat, lng]
-
-    RestaurantSeedJob:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        pilot_city: { type: string }
-        area_key: { type: string }
-        query: { type: string, nullable: true }
-        lat: { type: number, format: double }
-        lng: { type: number, format: double }
-        radius_m: { type: integer }
-        refresh: { type: boolean }
-        status:
-          type: string
-          enum: [pending, running, succeeded, failed, skipped]
-        error: { type: string, nullable: true }
-        inserted_count: { type: integer }
-        updated_count: { type: integer }
-        closed_count: { type: integer }
-        outside_area_count: { type: integer }
-        skipped_count: { type: integer }
-        out_of_area_count: { type: integer }
-        unique_places_count: { type: integer }
-        started_at: { type: string, format: date-time, nullable: true }
-        finished_at: { type: string, format: date-time, nullable: true }
-        created_at: { type: string, format: date-time }
-        updated_at: { type: string, format: date-time }
-
-    RestaurantSeedJobResponse:
-      type: object
-      properties:
-        job: { $ref: "#/components/schemas/RestaurantSeedJob" }
-        reused: { type: boolean }
-
-    RestaurantMapEntry:
-      allOf:
-        - $ref: "#/components/schemas/RestaurantSummary"
-        - type: object
-          properties:
             ttf:
               $ref: "#/components/schemas/TtfAggregate"
             note_count: { type: integer }
@@ -789,6 +674,33 @@ components:
             onboarding_completed: { type: boolean }
             inbox_read_through: { type: string, format: date-time }
             timezone: { type: string }
+            # Family profile v2 (#85). Private to the account — never included
+            # in public aggregates or activity events. Keys are validated in
+            # code (ttf_api/family_profile.py), not DB enums.
+            allergies:
+              type: array
+              items:
+                type: string
+                enum: [peanut, tree_nut, dairy, egg, gluten_wheat, soy, shellfish, fish, sesame]
+            allergy_notes: { type: string, nullable: true }
+            dietary_restrictions:
+              type: array
+              items:
+                type: string
+                enum: [vegetarian, vegan, pescatarian, gluten_free, dairy_free, nut_free, halal, kosher]
+            cuisine_likes:
+              type: array
+              items: { type: string }
+              description: Free-form lowercase cuisine tags (matched against restaurants.cuisine_tags)
+            cuisine_dislikes:
+              type: array
+              items: { type: string }
+            atmosphere_preferences:
+              type: array
+              items:
+                type: string
+                enum: [booth_seating, outdoor_seating, quiet_preferred, roomy_tables, stroller_space, booster_seats, quick_service]
+            preference_notes: { type: string, nullable: true }
             notification_preferences:
               $ref: "#/components/schemas/NotificationPreferences"
 
@@ -811,6 +723,13 @@ components:
         home_lng: { type: number, format: double, nullable: true }
         home_label: { type: string, nullable: true }
         timezone: { type: string }
+        allergies: { type: array, items: { type: string } }
+        allergy_notes: { type: string, nullable: true, maxLength: 500 }
+        dietary_restrictions: { type: array, items: { type: string } }
+        cuisine_likes: { type: array, items: { type: string } }
+        cuisine_dislikes: { type: array, items: { type: string } }
+        atmosphere_preferences: { type: array, items: { type: string } }
+        preference_notes: { type: string, nullable: true, maxLength: 500 }
         complete_onboarding: { type: boolean }
 
     NotificationPreferences:

@@ -154,9 +154,8 @@ The `/map` query uses **pre-aggregated LEFT JOINs** (one scan per child table) i
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
-| POST | `/v1/restaurants/seed-jobs` | Admin | Geocode location → enqueue Places seed job |
-| GET | `/v1/restaurants/seed-jobs/{job_id}` | Admin | Poll seed job |
-| POST | `/v1/admin/seed-jobs` | Admin | Same + GCP console links |
+| POST | `/v1/admin/seed-jobs` | Admin | Geocode location → enqueue Places seed job + GCP console links |
+| GET | `/v1/admin/seed-jobs/{job_id}` | Admin | Poll seed job |
 | GET/POST/PATCH/DELETE | `/v1/admin/seed-locations` | Admin | Manage seed areas |
 | POST | `/v1/admin/refresh-runs` | Admin | Refresh all enabled seed locations + catalog pass |
 | POST | `/v1/internal/pubsub/seed-jobs` | Internal | Pub/Sub worker runs seed |

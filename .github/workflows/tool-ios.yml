@@ -1,6 +1,8 @@
 name: iOS
 
-# Manual build tool (workflow_dispatch only) — wire into deploy.yml when ios/** CI is ready.
+# Manual build tool (workflow_dispatch only).
+# Path detection for ios/** is wired in deploy.yml via ci_path_filters.py;
+# full Xcode/TestFlight builds stay manual until Phase 3 CI is expanded.
 on:
   workflow_dispatch:
     inputs:

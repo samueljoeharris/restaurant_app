@@ -2,20 +2,17 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from ttf_api.ugc_write import insert_attribute_rating, insert_note, insert_ttf_observation
 
 from ttf_api.aggregates import build_attribute_aggregates
-from ttf_api.auth import AuthUser, get_optional_user, require_admin
+from ttf_api.auth import AuthUser, get_optional_user
 from ttf_api.security import require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.map_query import build_bbox_filter
 from ttf_api.map_entries import MAP_SELECT, apply_watched_flags, row_to_map_entry
 from ttf_api.user_profiles import fetch_watched_ids
-from ttf_api.places_seed import PlacesSeedError
-from ttf_api.pubsub_seed import enqueue_seed_job
-from ttf_api.seed_jobs import create_seed_job, get_seed_job, resolve_seed_area
 from ttf_api.ugc_sql import PUBLIC_NOTE_FILTER, TTF_AGGREGATE_FILTER
 from ttf_api.schemas import (
     AttributeSubmissionRequest,
@@ -26,9 +23,6 @@ from ttf_api.schemas import (
     NoteSubmissionResponse,
     RestaurantDetail,
     RestaurantDetailResponse,
-    RestaurantSeedJob,
-    RestaurantSeedJobRequest,
-    RestaurantSeedJobResponse,
     RestaurantMapEntry,
     RestaurantSummary,
     TtfAggregate,
@@ -155,17 +149,6 @@ def _ensure_restaurant(conn, restaurant_id: UUID) -> dict:
     return row
 
 
-def _seed_job_response(row: dict, reused: bool = False) -> RestaurantSeedJobResponse:
-    return RestaurantSeedJobResponse(job=RestaurantSeedJob(**row), reused=reused)
-
-
-def _raise_seed_error(exc: PlacesSeedError) -> None:
-    status_code = status.HTTP_400_BAD_REQUEST
-    if "MAPS_API_KEY" in str(exc):
-        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    raise HTTPException(status_code=status_code, detail=str(exc)) from exc
-
-
 @router.get("", response_model=list[RestaurantSummary])
 def list_restaurants(
     q: str | None = Query(None, description="Name search"),
@@ -254,45 +237,6 @@ def search_restaurants(
         rows = conn.execute(sql, params).fetchall()
         watched_ids = fetch_watched_ids(conn, user.firebase_uid) if user else set()
     return _map_entries_from_rows(rows, watched_ids)
-
-
-@router.post(
-    "/seed-jobs",
-    response_model=RestaurantSeedJobResponse,
-    status_code=status.HTTP_202_ACCEPTED,
-)
-def trigger_restaurant_seed_job(
-    body: RestaurantSeedJobRequest,
-    background_tasks: BackgroundTasks,
-    user: Annotated[AuthUser, Depends(require_admin)],
-) -> RestaurantSeedJobResponse:
-    try:
-        area = resolve_seed_area(body.location, body.lat, body.lng, body.radius_m)
-    except PlacesSeedError as exc:
-        _raise_seed_error(exc)
-
-    job, reused = create_seed_job(
-        area,
-        query=body.location.strip() if body.location else area.label,
-        requested_by=user.firebase_uid,
-        force=body.force,
-    )
-    # Re-enqueue even when reused: unsticks pending jobs whose original enqueue
-    # was lost (run_seed_job's status guard makes duplicate delivery a no-op).
-    if job["status"] == "pending":
-        enqueue_seed_job(job["id"], background_tasks=background_tasks)
-    return _seed_job_response(job, reused=reused)
-
-
-@router.get("/seed-jobs/{job_id}", response_model=RestaurantSeedJobResponse)
-def get_restaurant_seed_job(
-    job_id: UUID,
-    _user: Annotated[AuthUser, Depends(require_admin)],
-) -> RestaurantSeedJobResponse:
-    job = get_seed_job(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Seed job not found")
-    return _seed_job_response(job)
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantDetailResponse)
