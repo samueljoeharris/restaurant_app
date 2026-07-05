@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { AttributeInput } from "../components/AttributeInput";
 import { BackLink } from "../components/ui/BackLink";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -11,12 +12,15 @@ import { ChoiceChip, ChoiceChipGroup } from "../components/ui/ChoiceChip";
 import { Page } from "../components/ui/Page";
 import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
+import { cn } from "../lib/cn";
 import { EMPTY_CONTRIBUTION_RECENCY } from "../lib/contributionRecency";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
+import { METRIC_CATEGORY_LABELS } from "../lib/metricCategories";
 import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
 import { TTF_DAYPARTS, TTF_ITEM_TYPES, TTF_PORTIONS } from "../lib/ttfFormOptions";
 import { TTF_TIER_COLORS, type TtfTier } from "../lib/ttfTier";
-import type { RestaurantDetailResponse, TtfSubmission } from "../types";
+import { userStorage } from "../lib/userStorage";
+import type { MetricDefinition, RestaurantDetailResponse, TtfSubmission } from "../types";
 
 function currentDaypart(): TtfSubmission["daypart"] {
   const hour = new Date().getHours();
@@ -39,6 +43,58 @@ function elapsedTier(minutes: number): TtfTier {
   return "slow";
 }
 
+type Ratings = Record<string, boolean | number | string | undefined>;
+
+/** Default kids-in-party: last logged visit, else profile kids count (#84). */
+function defaultPartySizeKids(): number {
+  const last = userStorage.getLastVisitDefaults()?.partySizeKids;
+  if (last && last >= 1) return Math.min(last, 12);
+  const kidsAges = userStorage.getProfileCache()?.kidsAges?.length ?? 0;
+  return kidsAges >= 1 ? Math.min(kidsAges, 12) : 1;
+}
+
+/** Collapsed-by-default optional section of the visit form (#84). */
+function CollapsibleSection({
+  title,
+  summary,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  summary?: string | null;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      className={cn(
+        "rounded-md border bg-bg transition-[border-color] duration-fast",
+        summary ? "border-brand/35" : "border-border",
+      )}
+    >
+      <button
+        type="button"
+        className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 px-4 py-2.5 text-left"
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <span className="text-sm font-semibold">
+          {title}
+          {summary && (
+            <span className="ml-2 font-medium text-brand">{summary}</span>
+          )}
+        </span>
+        <span aria-hidden className="text-text-muted">
+          {open ? "▴" : "▾"}
+        </span>
+      </button>
+      {open && <div className="grid gap-3 border-t border-border p-4">{children}</div>}
+    </section>
+  );
+}
+
 export function TtfSubmitPage() {
   const { id, placeId } = useParams<{ id?: string; placeId?: string }>();
   const navigate = useNavigate();
@@ -50,13 +106,28 @@ export function TtfSubmitPage() {
   const [quality, setQuality] = useState(4);
   const [portion, setPortion] = useState<TtfSubmission["portion_size"]>("kid");
   const [daypart, setDaypart] = useState<TtfSubmission["daypart"]>(currentDaypart());
-  const [kids, setKids] = useState(1);
+  const [kids, setKids] = useState(defaultPartySizeKids);
   const [context, setContext] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [timerStart, setTimerStart] = useState<number | null>(null);
   const [timerStopped, setTimerStopped] = useState<number | null>(null);
   const [timerNow, setTimerNow] = useState(() => Date.now());
+
+  // Optional visit extras (#84): collapsible attribute ratings + note.
+  const [showRatings, setShowRatings] = useState(false);
+  const [showNote, setShowNote] = useState(false);
+  const [metrics, setMetrics] = useState<MetricDefinition[] | null>(null);
+  const [ratings, setRatings] = useState<Ratings>({});
+  const [note, setNote] = useState("");
+  // Parts already saved by a previous partially-failed submit, so a retry
+  // never double-posts (each part hits its own existing moderated route).
+  const savedParts = useRef({
+    restaurantId: null as string | null,
+    ttf: false,
+    attrs: new Set<string>(),
+    note: false,
+  });
 
   useEffect(() => {
     if (id) { api.getRestaurant(id).then(setRestaurant); return; }
@@ -80,6 +151,25 @@ export function TtfSubmitPage() {
     const interval = window.setInterval(() => setTimerNow(Date.now()), 1000);
     return () => window.clearInterval(interval);
   }, [timerStart, timerStopped]);
+
+  // Lazy-load metric definitions the first time the ratings section opens.
+  useEffect(() => {
+    if (!showRatings || metrics !== null) return;
+    api.listMetrics().then(setMetrics).catch(() => setMetrics([]));
+  }, [showRatings, metrics]);
+
+  const groupedMetrics = useMemo(() => {
+    const map = new Map<string, MetricDefinition[]>();
+    for (const metric of metrics ?? []) {
+      const list = map.get(metric.category) ?? [];
+      list.push(metric);
+      map.set(metric.category, list);
+    }
+    return map;
+  }, [metrics]);
+
+  const changedRatings = (metrics ?? []).filter((m) => ratings[m.key] !== undefined);
+  const noteText = note.trim();
 
   const timerRunning = timerStart !== null && timerStopped === null;
   const timerMs =
@@ -120,32 +210,69 @@ export function TtfSubmitPage() {
     setBusy(true);
     setError(null);
     const minutes = timerStart !== null ? timerMinutes : elapsed;
+    const saved = savedParts.current;
     try {
-      let restaurantId = id ?? null;
+      let restaurantId = id ?? saved.restaurantId;
       if (!restaurantId && placeId) {
         const materialized = await api.materializePlace(placeId, idToken);
         restaurantId = materialized.restaurant.id;
         invalidatePlaceEntry(placeId);
       }
       if (!restaurantId) throw new Error("Restaurant not found");
-      await api.submitTtf(
-        restaurantId,
-        {
-          elapsed_minutes: minutes,
-          item_type: itemType,
-          item_quality: quality,
-          portion_size: portion,
-          daypart,
-          party_size_kids: kids,
-          wait_context: context.trim() || undefined,
-        },
-        idToken,
-      );
+      saved.restaurantId = restaurantId;
+
+      // Sequential calls to the existing routes so each content type keeps
+      // its own moderation gate; savedParts makes a retry finish the rest.
+      if (!saved.ttf) {
+        await api.submitTtf(
+          restaurantId,
+          {
+            elapsed_minutes: minutes,
+            item_type: itemType,
+            item_quality: quality,
+            portion_size: portion,
+            daypart,
+            party_size_kids: kids,
+            wait_context: context.trim() || undefined,
+          },
+          idToken,
+        );
+        saved.ttf = true;
+        userStorage.setLastVisitDefaults({ partySizeKids: kids });
+      }
+      for (const metric of changedRatings) {
+        const value = ratings[metric.key];
+        if (value === undefined || saved.attrs.has(metric.key)) continue;
+        await api.submitAttribute(restaurantId, metric.key, value, idToken);
+        saved.attrs.add(metric.key);
+      }
+      let notePending = false;
+      if (noteText && !saved.note) {
+        const created = await api.submitNote(restaurantId, noteText, idToken);
+        saved.note = true;
+        notePending = Boolean(created.pending_review);
+      }
+
       invalidateContributionData(restaurantId);
-      toast("Observation saved — thanks!", "success");
+      const parts = ["Visit logged"];
+      if (saved.attrs.size > 0) {
+        parts.push(`${saved.attrs.size} rating${saved.attrs.size === 1 ? "" : "s"}`);
+      }
+      if (saved.note) parts.push(notePending ? "note (pending review)" : "note");
+      toast(`${parts.join(" + ")} — thanks!`, "success");
       navigate(restaurantDetailPath({ id: restaurantId }), { viewTransition: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Submit failed");
+      const done: string[] = [];
+      if (saved.ttf) done.push("timing");
+      if (saved.attrs.size > 0) {
+        done.push(`${saved.attrs.size} rating${saved.attrs.size === 1 ? "" : "s"}`);
+      }
+      const message = err instanceof Error ? err.message : "Submit failed";
+      setError(
+        done.length > 0
+          ? `${message} — ${done.join(" and ")} saved; submit again to finish the rest.`
+          : message,
+      );
     } finally {
       setBusy(false);
     }
@@ -314,11 +441,70 @@ export function TtfSubmitPage() {
             />
           </label>
 
+          <CollapsibleSection
+            title="Rate attributes"
+            summary={
+              changedRatings.length > 0
+                ? `${changedRatings.length} selected`
+                : null
+            }
+            open={showRatings}
+            onToggle={() => setShowRatings((v) => !v)}
+          >
+            {metrics === null ? (
+              <p className="m-0 text-sm text-text-muted">Loading attributes…</p>
+            ) : metrics.length === 0 ? (
+              <p className="m-0 text-sm text-text-muted">No attributes available.</p>
+            ) : (
+              [...groupedMetrics.entries()].map(([category, items]) => (
+                <section key={category} className="grid gap-2">
+                  <h3 className="m-0 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    {METRIC_CATEGORY_LABELS[category] ?? category}
+                  </h3>
+                  {items.map((metric) => (
+                    <div key={metric.key} className="grid gap-1.5">
+                      <span className="text-sm font-semibold">{metric.label}</span>
+                      <AttributeInput
+                        metric={metric}
+                        value={ratings[metric.key]}
+                        onChange={(value) =>
+                          setRatings((prev) => ({ ...prev, [metric.key]: value }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </section>
+              ))
+            )}
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Add a note"
+            summary={noteText ? "1 note" : null}
+            open={showNote}
+            onToggle={() => setShowNote((v) => !v)}
+          >
+            <label className="m-0">
+              <span className="sr-only">Note</span>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={3}
+                maxLength={2000}
+                placeholder="Anything other parents should know about this visit…"
+              />
+            </label>
+          </CollapsibleSection>
+
           {error && <p className="text-sm font-semibold text-error">{error}</p>}
           {submitHint && <p className="m-0 text-xs text-warning">{submitHint}</p>}
           <div className="sticky bottom-0 -mx-5 border-t border-border bg-surface px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
             <Button type="submit" fullWidth className="min-h-11" disabled={!canSubmit}>
-              {busy ? "Submitting…" : "Submit observation"}
+              {busy
+                ? "Submitting…"
+                : changedRatings.length > 0 || noteText
+                  ? "Log visit"
+                  : "Submit observation"}
             </Button>
           </div>
         </form>

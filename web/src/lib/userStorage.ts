@@ -25,6 +25,11 @@ export type PushPrimeState = {
   osPromptDeferred: boolean;
 };
 
+/** Smart defaults remembered from the last logged visit (#84). */
+export type LastVisitDefaults = {
+  partySizeKids: number;
+};
+
 const KEYS = {
   profile: "ls:profile:cache",
   prefs: "ls:prefs:cache",
@@ -34,6 +39,7 @@ const KEYS = {
   pushPrime: "ls:push:primeState",
   onboardingDraft: "ls:onboarding:draft",
   toastEvent: "ls:toast:lastEventId",
+  lastVisit: "ls:ttf:lastVisitDefaults",
 } as const;
 
 function readJson<T>(key: string): T | null {
@@ -98,6 +104,12 @@ export const userStorage = {
   },
   clearOnboardingDraft() {
     localStorage.removeItem(KEYS.onboardingDraft);
+  },
+  getLastVisitDefaults(): LastVisitDefaults | null {
+    return readJson<LastVisitDefaults>(KEYS.lastVisit);
+  },
+  setLastVisitDefaults(defaults: LastVisitDefaults) {
+    writeJson(KEYS.lastVisit, defaults);
   },
   getLastToastEventId(): string | null {
     return sessionStorage.getItem(KEYS.toastEvent);

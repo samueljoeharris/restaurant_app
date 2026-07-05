@@ -12,16 +12,9 @@ import { Page } from "../components/ui/Page";
 import { useToast } from "../components/ui/useToast";
 import { cn } from "../lib/cn";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
+import { METRIC_CATEGORY_LABELS } from "../lib/metricCategories";
 import { invalidateContributionData, invalidatePlaceEntry } from "../lib/pageDataCache";
 import type { MetricDefinition } from "../types";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  access: "Access",
-  atmosphere: "Atmosphere",
-  kids_menu: "Kids menu",
-  service: "Service",
-  safety: "Safety",
-};
 
 type Ratings = Record<string, boolean | number | string | undefined>;
 
@@ -140,7 +133,7 @@ export function RateAttributesPage() {
         {[...grouped.entries()].map(([category, items]) => (
           <section key={category} className="mb-4 grid gap-3">
             <h2 className="mt-2 text-sm font-semibold capitalize text-text-muted first:mt-0">
-              {CATEGORY_LABELS[category] ?? category}
+              {METRIC_CATEGORY_LABELS[category] ?? category}
             </h2>
             {items.map((metric) => {
               const isSet = ratings[metric.key] !== undefined;
