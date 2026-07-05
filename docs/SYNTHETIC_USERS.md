@@ -1,6 +1,11 @@
 # Synthetic agent users
 
-Browser-based simulation of parent activity on **app.dev** using **Cursor Automations** and Cloud Agent desktop browser control.
+Simulation of parent activity on **dev** (never prod) via two coexisting implementations:
+
+1. **In-repo package (#89)** — `scripts/synthetic-users/synthetic_users/`, API-first, off by default. See [In-repo package](#in-repo-package-89) below.
+2. **Cursor Automations** — browser-based, using Cloud Agent desktop browser control. See [Cursor Automations setup](#cursor-automations-setup) below.
+
+Both share the same registry (`scripts/synthetic-users/registry.py`, Secret Manager `ttf-agent-users-registry`) and identity scheme, so agent users created by either path show up to the other.
 
 **Decisions (locked in):**
 
@@ -8,6 +13,101 @@ Browser-based simulation of parent activity on **app.dev** using **Cursor Automa
 - Email pattern: `scout-agent-{nn}@littlescout.app`
 - Synthetic data counts toward app.dev aggregates (dev-only; prod will not run these agents)
 - Users tagged with Firebase custom claim `synthetic: true`
+
+## In-repo package (#89)
+
+`scripts/synthetic-users/synthetic_users/` is a runnable Python package — scenario runners, personas, two drivers, structured JSONL logs, a local CLI, and a `workflow_dispatch`-only GitHub Actions workflow. **Nothing in it runs on a schedule.** A human always kicks off a run.
+
+### Scenarios
+
+| Scenario | What it does |
+|----------|--------------|
+| `signup` | Firebase email/password sign-up, tag `synthetic: true` (via `api/scripts/set_synthetic_claim.py`), register in the registry |
+| `search` | Sign in, search restaurants, open one |
+| `submit_ttf` | Submit a random-but-plausible TTF observation |
+| `update_ttf` | Edit an existing observation for a user with prior observations |
+| `rate_attributes` | Rate one community attribute (boolean/enum/numeric, matching `/v1/metrics`) |
+| `post_note` | Post a short freeform note |
+| `review_chat` | Chat-through-your-review: reply loop → extract a draft → submit contributions |
+| `team` | Runs N personas concurrently across the default rotation (`search`, `submit_ttf`, `rate_attributes`, `post_note`), each with jittered pacing |
+
+### Personas
+
+Five hand-picked personas in `synthetic_users/personas.py` (`toddler_lunch`, `big_family_weekend`, `early_riser`, `after_school`, `date_night_plus_kid`) vary family size, kids' ages, cuisine bias, daypart bias, and contribution style, so generated data reads as plausible variety rather than uniform noise. `--agents N` assigns personas round-robin and deterministically (same N always yields the same mix).
+
+### Drivers
+
+- **`--driver api`** (default) — Firebase email/password sign-in → ID token → real `/v1` endpoints via stdlib `urllib` (no third-party HTTP dependency). Covers all seven scenarios.
+- **`--driver browser`** (optional) — Playwright, the true UI path, covering `signup`/`search`/`submit_ttf`/`update_ttf` (the four scenarios already documented for manual/Cursor use below). Requires `pip install playwright && playwright install chromium`. `rate_attributes`/`post_note`/`review_chat` raise `NotImplementedError` pointing back to `--driver api`.
+
+### Guardrails (hard-coded, not configurable)
+
+- `--target` only accepts `dev`; `synthetic_users/config.py` resolves it to `app.dev.littlescout.app` / `api.dev.littlescout.app` / `ttf-restaurant-dev` — there is no override flag for these URLs
+- `synthetic_users/guardrails.py` re-checks every resolved host ends with `.dev.littlescout.app` and the GCP project is exactly `ttf-restaurant-dev`
+- Every registry email must match the `scout-agent-{nn}@littlescout.app` scheme (`assert_synthetic_email`) — enforced on both `next_email()` and `add_user()`
+- `signup` always tags the new account `synthetic: true` via `api/scripts/set_synthetic_claim.py` before registering it
+
+### Running it locally
+
+```bash
+cd scripts/synthetic-users
+
+# Safe with no secrets at all — logs intended calls, no network access:
+python3 -m synthetic_users run --scenario team --agents 5 --target dev --dry-run
+
+# Real run against dev (needs FIREBASE_API_KEY — see below):
+export FIREBASE_API_KEY="$(grep VITE_FIREBASE_API_KEY ../../web/.env.local | cut -d= -f2-)"
+python3 -m synthetic_users run --scenario team --agents 5 --target dev
+
+# One scenario, browser driver:
+python3 -m synthetic_users run --scenario submit_ttf --target dev --driver browser
+```
+
+`FIREBASE_API_KEY` (or `VITE_FIREBASE_API_KEY`, already synced to `web/.env.local` by `./scripts/sync-secrets.sh`) is the web Firebase API key — needed for the Identity Toolkit REST sign-up/sign-in calls. `signup` additionally needs `.secrets/firebase-sa.json` (same file used by `api/scripts/set_synthetic_claim.py`), via `./scripts/sync-secrets.sh`.
+
+Run logs land in `scripts/synthetic-users/runs/*.jsonl` (git-ignored) — one JSON object per action, plus a stdout summary from `RunLogger.summary()`.
+
+### Running via GitHub Actions
+
+[`tool-synthetic-users.yml`](../.github/workflows/tool-synthetic-users.yml) is **`workflow_dispatch`-only — no schedule**. Trigger it from the Actions tab with `scenario`, `agents`, `driver`, and `dry_run` inputs. `dry_run` defaults to `true`, so a first run is always safe. For a real run, add repo secrets `FIREBASE_API_KEY` and (for `signup`) `FIREBASE_SERVICE_ACCOUNT_JSON` (base64-encoded service account JSON, same shape as `IOS_GOOGLE_SERVICE_INFO_PLIST` in `tool-ios.yml`).
+
+**Known limitation:** the Actions runner doesn't sync the registry from Secret Manager, so each real (non-dry-run) run starts from an empty registry unless `--registry` points at a checked-out/synced file. Wiring the registry through Secret Manager sync in CI is tracked as follow-up, not required for this to be safely runnable on demand.
+
+### Tests
+
+Pure logic only (no network, no secrets needed):
+
+```bash
+cd scripts/synthetic-users
+python3 -m pytest -q
+```
+
+Covers persona generation/determinism, guardrail checks (dev-host acceptance/rejection, synthetic email scheme), registry read/write round-tripping against the sibling `registry.py` file format, JSONL log formatting, target resolution, and the team orchestrator's scenario dispatch/rotation (via injected fake scenario modules — still no network).
+
+### Package layout
+
+```
+scripts/synthetic-users/
+  registry.py                 # existing CLI — unchanged, still the format's source of truth
+  synthetic_users/
+    cli.py                    # `python -m synthetic_users run ...`
+    team.py                   # concurrent orchestrator, jittered pacing, scenario rotation
+    config.py                 # target resolution (dev-only, closed set)
+    guardrails.py             # hard-coded dev-only + synthetic-email checks
+    personas.py                # persona presets + random TTF/attribute value generation
+    registry_client.py         # library wrapper over the sibling registry.py
+    runlog.py                  # JSONL log events + stdout summary
+    http_client.py              # stdlib HTTP helper (API driver)
+    drivers/
+      base.py                  # SyntheticDriver protocol
+      api_driver.py             # Firebase REST + /v1 endpoints (primary)
+      browser_driver.py          # optional Playwright driver
+    scenarios/
+      common.py                 # ScenarioResult, step() logging helper
+      signup.py, search.py, submit_ttf.py, update_ttf.py,
+      rate_attributes.py, post_note.py, review_chat.py
+    tests/                      # pure-logic unit tests (pytest)
+```
 
 ## What this does
 

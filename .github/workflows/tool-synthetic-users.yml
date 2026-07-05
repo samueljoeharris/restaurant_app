@@ -1,0 +1,101 @@
+name: Synthetic Users
+
+# Manual ops tool (#89) — workflow_dispatch ONLY, no schedule. Enabling
+# recurrence is a deliberate later decision; this workflow exists so a human
+# can kick off a run on demand, not so it runs itself.
+#
+# Guardrails are hard-coded in scripts/synthetic-users/synthetic_users/ —
+# target is always "dev" (there is no other choice) and every account is
+# tagged synthetic:true + registered via scripts/synthetic-users/registry.py.
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Scenario to run ("team" = default rotation)
+        required: true
+        default: team
+        type: choice
+        options:
+          - team
+          - signup
+          - search
+          - submit_ttf
+          - update_ttf
+          - rate_attributes
+          - post_note
+          - review_chat
+      agents:
+        description: Number of personas to run concurrently
+        required: false
+        default: "3"
+        type: string
+      driver:
+        description: API driver (fast, full coverage) or browser (Playwright, true UI path)
+        required: false
+        default: api
+        type: choice
+        options:
+          - api
+          - browser
+      dry_run:
+        description: Log intended calls with no network access (safe without secrets)
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: tool-synthetic-users
+  cancel-in-progress: false
+
+jobs:
+  run:
+    name: Run synthetic user team (${{ inputs.scenario }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scripts/synthetic-users
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install Playwright (browser driver only)
+        if: ${{ inputs.driver == 'browser' }}
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Install firebase-admin (real signup runs only)
+        if: ${{ inputs.dry_run == 'false' }}
+        run: pip install firebase-admin==6.6.0
+
+      # Real (non-dry-run) runs need these to sign in and tag accounts.
+      # Not required for --dry-run, so the workflow still works with no
+      # secrets configured — set them up when you're ready to run for real.
+      - name: Write Firebase service account (real runs only)
+        if: ${{ inputs.dry_run == 'false' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          mkdir -p ../../.secrets
+          echo "$FIREBASE_SERVICE_ACCOUNT_JSON" | base64 --decode > ../../.secrets/firebase-sa.json
+
+      - name: Run
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        run: |
+          args=(run --scenario "${{ inputs.scenario }}" --agents "${{ inputs.agents }}" --target dev --driver "${{ inputs.driver }}")
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          python3 -m synthetic_users "${args[@]}"
+
+      - name: Upload run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthetic-users-run-log
+          path: scripts/synthetic-users/runs/*.jsonl
+          if-no-files-found: ignore

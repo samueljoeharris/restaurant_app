@@ -31,6 +31,10 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+.pytest_cache/
+
+# Synthetic user run logs (#89) — JSONL artifacts, not source
+scripts/synthetic-users/runs/*.jsonl
 
 # Node
 node_modules/
