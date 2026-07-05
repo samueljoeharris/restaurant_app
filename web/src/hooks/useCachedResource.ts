@@ -19,6 +19,14 @@ export function invalidateCachedResource(prefix: string) {
   }
 }
 
+/** Warm the cache on user intent (#80). No-op when cached or in flight. */
+export function prefetchCachedResource<T>(key: string, fetcher: () => Promise<T>): void {
+  if (cache.has(key) || inflight.has(key)) return;
+  fetchDeduped(key, fetcher).catch(() => {
+    // Best-effort: the page fetch will surface any real error.
+  });
+}
+
 function fetchDeduped<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
   const existing = inflight.get(key);
   if (existing) return existing as Promise<T>;

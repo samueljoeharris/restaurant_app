@@ -1,8 +1,11 @@
 import { forwardRef } from "react";
 import { Link } from "react-router-dom";
 
+import { useAuth } from "../auth/useAuth";
+import { useIntentPrefetch } from "../hooks/useIntentPrefetch";
 import { useWatch } from "../hooks/useWatch";
 import { cn } from "../lib/cn";
+import { prefetchRestaurantDetail } from "../lib/detailPrefetch";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { formatTtfMedian, ttfTier, ttfTierColor } from "../lib/ttfTier";
 import type { RestaurantMapEntry } from "../types";
@@ -34,6 +37,8 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
     const hasData = hasTtf || hasRatings || hasNotes;
     const restaurantId = r.id ?? null;
     const watch = useWatch(restaurantId, r.watched ?? false);
+    const { idToken } = useAuth();
+    const intentProps = useIntentPrefetch(() => prefetchRestaurantDetail(r, idToken));
 
     const className = cn(
       density === "compact" ? compactCardClassName : defaultCardClassName,
@@ -117,6 +122,7 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
           )}
           aria-pressed={active}
           onClick={onSelect}
+          {...intentProps}
         >
           {body}
         </button>
@@ -124,7 +130,12 @@ export const RestaurantListCard = forwardRef<HTMLElement, RestaurantListCardProp
     }
 
     return (
-      <Link ref={ref as React.Ref<HTMLAnchorElement>} to={restaurantDetailPath(r)} className={className}>
+      <Link
+        ref={ref as React.Ref<HTMLAnchorElement>}
+        to={restaurantDetailPath(r)}
+        className={className}
+        {...intentProps}
+      >
         {body}
       </Link>
     );

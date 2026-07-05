@@ -21,18 +21,15 @@ import {
   invalidateContributionData,
   restaurantDetailCacheKey,
 } from "../lib/pageDataCache";
+import {
+  fetchRestaurantDetailBundle,
+  type RestaurantDetailBundle,
+} from "../lib/restaurantDetailResource";
 import { WATCHLIST_CHANGED_EVENT, type WatchlistChangedDetail } from "../lib/watchlist";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
 
 const backLinkClass =
   "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
-
-interface RestaurantDetailBundle {
-  detail: RestaurantDetailResponse;
-  attributes: AttributeEntry[];
-  notes: RestaurantNote[];
-  kidsAges: number[];
-}
 
 export function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -50,20 +47,7 @@ export function RestaurantDetailPage() {
 
   const { loading, error, refresh } = useCachedResource<RestaurantDetailBundle>(
     id ? restaurantDetailCacheKey(id, Boolean(idToken)) : null,
-    async () => {
-      const [detail, attrs, notesRes, profile] = await Promise.all([
-        api.getRestaurant(id!, idToken),
-        api.getAttributes(id!),
-        api.listNotes(id!),
-        idToken ? api.getProfile(idToken).catch(() => null) : Promise.resolve(null),
-      ]);
-      return {
-        detail,
-        attributes: Object.values(attrs.attributes),
-        notes: notesRes.notes,
-        kidsAges: profile?.kids_ages ?? [],
-      };
-    },
+    () => fetchRestaurantDetailBundle(id!, idToken),
     {
       onData: (bundle) => {
         setData(bundle.detail);
