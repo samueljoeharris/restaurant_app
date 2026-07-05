@@ -789,6 +789,33 @@ components:
             onboarding_completed: { type: boolean }
             inbox_read_through: { type: string, format: date-time }
             timezone: { type: string }
+            # Family profile v2 (#85). Private to the account — never included
+            # in public aggregates or activity events. Keys are validated in
+            # code (ttf_api/family_profile.py), not DB enums.
+            allergies:
+              type: array
+              items:
+                type: string
+                enum: [peanut, tree_nut, dairy, egg, gluten_wheat, soy, shellfish, fish, sesame]
+            allergy_notes: { type: string, nullable: true }
+            dietary_restrictions:
+              type: array
+              items:
+                type: string
+                enum: [vegetarian, vegan, pescatarian, gluten_free, dairy_free, nut_free, halal, kosher]
+            cuisine_likes:
+              type: array
+              items: { type: string }
+              description: Free-form lowercase cuisine tags (matched against restaurants.cuisine_tags)
+            cuisine_dislikes:
+              type: array
+              items: { type: string }
+            atmosphere_preferences:
+              type: array
+              items:
+                type: string
+                enum: [booth_seating, outdoor_seating, quiet_preferred, roomy_tables, stroller_space, booster_seats, quick_service]
+            preference_notes: { type: string, nullable: true }
             notification_preferences:
               $ref: "#/components/schemas/NotificationPreferences"
 
@@ -811,6 +838,13 @@ components:
         home_lng: { type: number, format: double, nullable: true }
         home_label: { type: string, nullable: true }
         timezone: { type: string }
+        allergies: { type: array, items: { type: string } }
+        allergy_notes: { type: string, nullable: true, maxLength: 500 }
+        dietary_restrictions: { type: array, items: { type: string } }
+        cuisine_likes: { type: array, items: { type: string } }
+        cuisine_dislikes: { type: array, items: { type: string } }
+        atmosphere_preferences: { type: array, items: { type: string } }
+        preference_notes: { type: string, nullable: true, maxLength: 500 }
         complete_onboarding: { type: boolean }
 
     NotificationPreferences:

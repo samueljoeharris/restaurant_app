@@ -12,10 +12,18 @@ import { DeleteAccountSettings } from "../components/DeleteAccountSettings";
 import { MfaSettings } from "../components/MfaSettings";
 import { api } from "../api/client";
 import { Button } from "../components/ui/Button";
-import { FormField } from "../components/ui/FormField";
+import { CheckboxField, FormField } from "../components/ui/FormField";
 import { Page } from "../components/ui/Page";
+import { TagInput } from "../components/ui/TagInput";
 import { useTheme, type ThemeMode } from "../hooks/useTheme";
 import { cn } from "../lib/cn";
+import {
+  ALLERGEN_OPTIONS,
+  ATMOSPHERE_OPTIONS,
+  DIETARY_RESTRICTION_OPTIONS,
+  toggleKey,
+  type FamilyProfileOption,
+} from "../lib/familyProfile";
 import { scoutingSubtitle, trailScoutBadge } from "../lib/scoutProfile";
 import { userStorage } from "../lib/userStorage";
 import type { ExtendedUserProfile, NotificationPreferences } from "../types";
@@ -37,11 +45,59 @@ const ALERT_TOGGLES: { key: keyof Pick<
   { key: "push_enabled", label: "Push notifications" },
 ];
 
+interface FamilyForm {
+  allergies: string[];
+  allergyNotes: string;
+  dietaryRestrictions: string[];
+  cuisineLikes: string[];
+  cuisineDislikes: string[];
+  atmospherePreferences: string[];
+  preferenceNotes: string;
+}
+
+const EMPTY_FAMILY_FORM: FamilyForm = {
+  allergies: [],
+  allergyNotes: "",
+  dietaryRestrictions: [],
+  cuisineLikes: [],
+  cuisineDislikes: [],
+  atmospherePreferences: [],
+  preferenceNotes: "",
+};
+
 function Eyebrow({ children }: { children: string }) {
   return (
     <p className="mt-1 text-[length:var(--text-label)] font-extrabold uppercase tracking-[var(--text-tracking-label)] text-text-muted">
       {children}
     </p>
+  );
+}
+
+function CheckboxGroup({
+  legend,
+  options,
+  selected,
+  onToggle,
+}: {
+  legend: string;
+  options: FamilyProfileOption[];
+  selected: string[];
+  onToggle: (key: string) => void;
+}) {
+  return (
+    <fieldset className="field-group grid gap-2">
+      <legend className="mb-2 text-sm font-semibold">{legend}</legend>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+        {options.map(({ key, label }) => (
+          <CheckboxField
+            key={key}
+            label={label}
+            checked={selected.includes(key)}
+            onChange={() => onToggle(key)}
+          />
+        ))}
+      </div>
+    </fieldset>
   );
 }
 
@@ -51,6 +107,7 @@ export function AccountPage() {
   const [profile, setProfile] = useState<ExtendedUserProfile | null>(null);
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [kidsInput, setKidsInput] = useState("");
+  const [family, setFamily] = useState<FamilyForm>(EMPTY_FAMILY_FORM);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -61,6 +118,15 @@ export function AccountPage() {
         setProfile(p);
         setPrefs(p.notification_preferences);
         setKidsInput(p.kids_ages.join(", "));
+        setFamily({
+          allergies: p.allergies,
+          allergyNotes: p.allergy_notes ?? "",
+          dietaryRestrictions: p.dietary_restrictions,
+          cuisineLikes: p.cuisine_likes,
+          cuisineDislikes: p.cuisine_dislikes,
+          atmospherePreferences: p.atmosphere_preferences,
+          preferenceNotes: p.preference_notes ?? "",
+        });
         userStorage.setProfileCache({
           kidsAges: p.kids_ages,
           homeLabel: p.home_label,
@@ -88,9 +154,22 @@ export function AccountPage() {
       .split(/[,\s]+/)
       .map((s) => parseInt(s.trim(), 10))
       .filter((n) => !Number.isNaN(n));
-    const updated = await api.patchProfile(idToken, { kids_ages: kidsAges, complete_onboarding: true });
-    setProfile(updated);
-    setSaving(false);
+    try {
+      const updated = await api.patchProfile(idToken, {
+        kids_ages: kidsAges,
+        allergies: family.allergies,
+        allergy_notes: family.allergyNotes.trim(),
+        dietary_restrictions: family.dietaryRestrictions,
+        cuisine_likes: family.cuisineLikes,
+        cuisine_dislikes: family.cuisineDislikes,
+        atmosphere_preferences: family.atmospherePreferences,
+        preference_notes: family.preferenceNotes.trim(),
+        complete_onboarding: true,
+      });
+      setProfile(updated);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function savePrefs(patch: Partial<NotificationPreferences>) {
@@ -178,7 +257,10 @@ export function AccountPage() {
       <SettingsLinkRow to="/account/contributions" label="My contributions" />
       <SettingsLinkRow href="/privacy" label="Privacy & data" />
 
-      <SettingsPanel title="Family profile" subtitle="Kids' ages personalize speed tips">
+      <SettingsPanel
+        title="Family profile"
+        subtitle="Personalizes tips and discovery — private to your account"
+      >
         <FormField label="Kids' ages (comma-separated)">
           <input
             value={kidsInput}
@@ -186,6 +268,74 @@ export function AccountPage() {
             placeholder="e.g. 2, 5"
           />
         </FormField>
+
+        <CheckboxGroup
+          legend="Allergies"
+          options={ALLERGEN_OPTIONS}
+          selected={family.allergies}
+          onToggle={(key) =>
+            setFamily((f) => ({ ...f, allergies: toggleKey(f.allergies, key) }))
+          }
+        />
+        <FormField
+          label="Other allergies"
+          hint="Anything not covered above, e.g. kiwi, strawberries"
+        >
+          <input
+            value={family.allergyNotes}
+            onChange={(e) => setFamily((f) => ({ ...f, allergyNotes: e.target.value }))}
+            maxLength={500}
+            placeholder="e.g. kiwi"
+          />
+        </FormField>
+
+        <CheckboxGroup
+          legend="Dietary restrictions"
+          options={DIETARY_RESTRICTION_OPTIONS}
+          selected={family.dietaryRestrictions}
+          onToggle={(key) =>
+            setFamily((f) => ({
+              ...f,
+              dietaryRestrictions: toggleKey(f.dietaryRestrictions, key),
+            }))
+          }
+        />
+
+        <FormField label="Cuisines we love" hint="Press Enter or comma to add">
+          <TagInput
+            value={family.cuisineLikes}
+            onChange={(cuisineLikes) => setFamily((f) => ({ ...f, cuisineLikes }))}
+            placeholder="e.g. pizza, sushi"
+          />
+        </FormField>
+        <FormField label="Cuisines to skip">
+          <TagInput
+            value={family.cuisineDislikes}
+            onChange={(cuisineDislikes) => setFamily((f) => ({ ...f, cuisineDislikes }))}
+            placeholder="e.g. seafood"
+          />
+        </FormField>
+
+        <CheckboxGroup
+          legend="Seating & atmosphere"
+          options={ATMOSPHERE_OPTIONS}
+          selected={family.atmospherePreferences}
+          onToggle={(key) =>
+            setFamily((f) => ({
+              ...f,
+              atmospherePreferences: toggleKey(f.atmospherePreferences, key),
+            }))
+          }
+        />
+        <FormField label="Anything else">
+          <input
+            value={family.preferenceNotes}
+            onChange={(e) => setFamily((f) => ({ ...f, preferenceNotes: e.target.value }))}
+            maxLength={500}
+            placeholder="e.g. crayons and paper win every time"
+          />
+        </FormField>
+
         <Button disabled={saving} onClick={() => void saveFamilyProfile()}>
           {saving ? "Saving…" : "Save family profile"}
         </Button>

@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field
 
 from ttf_api.activity_events import (
@@ -31,6 +32,13 @@ from ttf_api.schemas import (
     UserProfilePatch,
     WatchedRestaurantEntry,
     WatchedRestaurantsResponse,
+)
+from ttf_api.family_profile import (
+    ALLERGENS,
+    ATMOSPHERE_PREFERENCES,
+    DIETARY_RESTRICTIONS,
+    validate_choice_list,
+    validate_cuisine_tags,
 )
 from ttf_api.user_profiles import (
     ensure_user_profile,
@@ -91,6 +99,13 @@ def _build_extended_profile(conn, user: AuthUser) -> ExtendedUserProfile:
         onboarding_completed=profile["onboarding_completed_at"] is not None,
         inbox_read_through=profile["inbox_read_through"],
         timezone=profile["timezone"],
+        allergies=list(profile["allergies"] or []),
+        allergy_notes=profile["allergy_notes"],
+        dietary_restrictions=list(profile["dietary_restrictions"] or []),
+        cuisine_likes=list(profile["cuisine_likes"] or []),
+        cuisine_dislikes=list(profile["cuisine_dislikes"] or []),
+        atmosphere_preferences=list(profile["atmosphere_preferences"] or []),
+        preference_notes=profile["preference_notes"],
         watch_count=watches,
         unread_activity_count=unread,
         notification_preferences=_prefs_to_schema(prefs),
@@ -141,6 +156,41 @@ def patch_profile(
         if body.timezone is not None:
             updates.append("timezone = %s")
             params.append(body.timezone.strip() or "America/New_York")
+        if body.allergies is not None:
+            updates.append("allergies = %s")
+            params.append(Jsonb(validate_choice_list(body.allergies, ALLERGENS, "allergy")))
+        if body.allergy_notes is not None:
+            updates.append("allergy_notes = %s")
+            params.append(body.allergy_notes.strip() or None)
+        if body.dietary_restrictions is not None:
+            updates.append("dietary_restrictions = %s")
+            params.append(
+                Jsonb(
+                    validate_choice_list(
+                        body.dietary_restrictions, DIETARY_RESTRICTIONS, "dietary restriction"
+                    )
+                )
+            )
+        if body.cuisine_likes is not None:
+            updates.append("cuisine_likes = %s")
+            params.append(Jsonb(validate_cuisine_tags(body.cuisine_likes, "cuisine likes")))
+        if body.cuisine_dislikes is not None:
+            updates.append("cuisine_dislikes = %s")
+            params.append(Jsonb(validate_cuisine_tags(body.cuisine_dislikes, "cuisine dislikes")))
+        if body.atmosphere_preferences is not None:
+            updates.append("atmosphere_preferences = %s")
+            params.append(
+                Jsonb(
+                    validate_choice_list(
+                        body.atmosphere_preferences,
+                        ATMOSPHERE_PREFERENCES,
+                        "atmosphere preference",
+                    )
+                )
+            )
+        if body.preference_notes is not None:
+            updates.append("preference_notes = %s")
+            params.append(body.preference_notes.strip() or None)
         if body.complete_onboarding:
             updates.append("onboarding_completed_at = COALESCE(onboarding_completed_at, now())")
 

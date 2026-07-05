@@ -330,6 +330,15 @@ class ExtendedUserProfile(UserProfile):
     onboarding_completed: bool = False
     inbox_read_through: datetime
     timezone: str = "America/New_York"
+    # Family profile v2 (#85) — private to the account; never expose in
+    # public aggregates, activity events, or admin views.
+    allergies: list[str] = Field(default_factory=list)
+    allergy_notes: str | None = None
+    dietary_restrictions: list[str] = Field(default_factory=list)
+    cuisine_likes: list[str] = Field(default_factory=list)
+    cuisine_dislikes: list[str] = Field(default_factory=list)
+    atmosphere_preferences: list[str] = Field(default_factory=list)
+    preference_notes: str | None = None
     notification_preferences: NotificationPreferences = Field(default_factory=NotificationPreferences)
 
 
@@ -339,6 +348,13 @@ class UserProfilePatch(BaseModel):
     home_lng: float | None = None
     home_label: str | None = Field(None, max_length=120)
     timezone: str | None = Field(None, max_length=64)
+    allergies: list[str] | None = Field(None, max_length=32)
+    allergy_notes: str | None = Field(None, max_length=500)
+    dietary_restrictions: list[str] | None = Field(None, max_length=32)
+    cuisine_likes: list[str] | None = Field(None, max_length=32)
+    cuisine_dislikes: list[str] | None = Field(None, max_length=32)
+    atmosphere_preferences: list[str] | None = Field(None, max_length=32)
+    preference_notes: str | None = Field(None, max_length=500)
     complete_onboarding: bool = False
 
 

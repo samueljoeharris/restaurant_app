@@ -212,6 +212,13 @@ export const api = {
       home_lng?: number | null;
       home_label?: string | null;
       timezone?: string;
+      allergies?: string[];
+      allergy_notes?: string | null;
+      dietary_restrictions?: string[];
+      cuisine_likes?: string[];
+      cuisine_dislikes?: string[];
+      atmosphere_preferences?: string[];
+      preference_notes?: string | null;
       complete_onboarding?: boolean;
     },
   ) =>
