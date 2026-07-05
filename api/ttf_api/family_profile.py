@@ -50,11 +50,13 @@ DIETARY_RESTRICTIONS = (
     "kosher",
 )
 
-# Seating/atmosphere preference keys. Where possible these correspond to
-# metric_definitions attribute keys so discovery can compute match reasons:
+# Seating/atmosphere preference keys. Every key maps to a metric_definitions
+# attribute so discovery can compute match reasons (see ttf_api/family_match.py
+# for thresholds on the numeric/enum ones):
 #   quiet_preferred -> noise_level, roomy_tables -> table_spacing,
 #   stroller_space -> stroller_friendly, quick_service -> kid_food_speed_general,
-#   booster_seats -> booster_seats.
+#   booster_seats -> booster_seats, booth_seating -> booth_seating,
+#   outdoor_seating -> outdoor_seating.
 ATMOSPHERE_PREFERENCES = (
     "booth_seating",
     "outdoor_seating",

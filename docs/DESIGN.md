@@ -253,11 +253,12 @@ Match reasons are decision support ("reported by parents"), never a safety
 guarantee. The web "Fits my family" Explore filter (`POST /v1/me/family-matches`,
 bounded to on-screen restaurant ids) and a `profile_match` activity-event type
 (targeted at one user via `activity_events.target_firebase_uid`, emitted when
-a restaurant is newly added/reactivated in the catalog) both consume it. Not
-every vocabulary key has a matching attribute yet — halal/kosher restrictions
-and numeric/enum atmosphere signals (`noise_level`, `table_spacing`,
-`kid_food_speed_general`) need product-defined thresholds and are tracked as
-follow-up work.
+a restaurant is newly added/reactivated in the catalog) both consume it.
+Every vocabulary key maps to a metric-backed match reason (#101) — including
+halal/kosher restrictions and numeric/enum atmosphere signals (`noise_level`,
+`table_spacing`, `kid_food_speed_general`, with product-defined cutoffs
+documented in `ttf_api/family_match.py`) — except `pescatarian`, intentionally
+unmapped (no clear boolean venue signal).
 
 ### Aggregation Rules
 

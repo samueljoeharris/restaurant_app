@@ -1,4 +1,4 @@
-"""Preference-aware discovery matching: family profile vs. restaurant data (#88).
+"""Preference-aware discovery matching: family profile vs. restaurant data (#88, #101).
 
 Matches are computed from crowd-reported attribute aggregates
 (``aggregates.build_attribute_aggregates``) and the restaurant's cuisine
@@ -11,11 +11,24 @@ user-facing copy built from these reasons must keep that framing (e.g.
 "reported by parents") and never imply the venue is verified safe for an
 allergy.
 
-Not every family_profile vocabulary key has a corresponding venue attribute
-yet (pescatarian/halal/kosher restrictions, and the noise_level/table_spacing/
-kid_food_speed_general numeric-or-enum atmosphere signals which need
-product-defined thresholds). Those simply produce no match reason today —
-see the #88 follow-up issue for broadening coverage.
+Numeric/enum atmosphere thresholds (#101 product decision — see the #101
+issue comment for the write-up): applied only once the metric clears
+``min_sample_size`` (``status == "ok"``), same confidence bar as the boolean
+checks.
+
+- ``quiet_preferred`` -> ``noise_level`` (numeric 1-5, 1 quiet .. 5 loud):
+  matches at average <= 2.5, i.e. the quieter half of the scale.
+- ``quick_service`` -> ``kid_food_speed_general`` (numeric 1-5, 1 slow ..
+  5 fast): matches at average >= 3.5, i.e. the faster half of the scale.
+- ``roomy_tables`` -> ``table_spacing`` (enum roomy/average/cramped):
+  matches when the confidence-weighted winning value is exactly "roomy".
+
+Every ``ALLERGENS`` / ``DIETARY_RESTRICTIONS`` / ``ATMOSPHERE_PREFERENCES``
+vocabulary key (family_profile.py) now maps to a metric-backed match reason,
+*except* ``pescatarian``: intentionally unmapped — there's no clear boolean
+venue signal distinct from "has seafood/fish options" that a restaurant could
+be community-rated on, so it stays a cuisine/notes-only preference with no
+attribute match.
 """
 
 from __future__ import annotations
@@ -46,11 +59,26 @@ _RESTRICTION_METRIC: dict[str, tuple[str, str]] = {
     "gluten_free": ("gluten_free_options", "gluten-free options"),
     "dairy_free": ("dairy_free_options", "dairy-free options"),
     "nut_free": ("nut_free_options", "nut-free options"),
+    "halal": ("halal_accommodation", "halal accommodation"),
+    "kosher": ("kosher_accommodation", "kosher accommodation"),
+    # "pescatarian" intentionally unmapped — see module docstring.
 }
-# Boolean atmosphere metrics only (see module docstring for the numeric/enum gap).
+# Boolean atmosphere metrics.
 _ATMOSPHERE_METRIC: dict[str, tuple[str, str]] = {
     "stroller_space": ("stroller_friendly", "stroller friendly"),
     "booster_seats": ("booster_seats", "has booster seats"),
+    "booth_seating": ("booth_seating", "booth seating"),
+    "outdoor_seating": ("outdoor_seating", "outdoor seating"),
+}
+# Numeric atmosphere thresholds: (metric key, reason phrase, cutoff, want_at_least).
+# See module docstring for the product rationale behind each cutoff.
+_NUMERIC_ATMOSPHERE_METRIC: dict[str, tuple[str, str, float, bool]] = {
+    "quiet_preferred": ("noise_level", "a quiet atmosphere", 2.5, False),
+    "quick_service": ("kid_food_speed_general", "quick kid food", 3.5, True),
+}
+# Enum atmosphere match: (metric key, reason phrase, expected winning value).
+_ENUM_ATMOSPHERE_METRIC: dict[str, tuple[str, str, str]] = {
+    "roomy_tables": ("table_spacing", "roomy tables", "roomy"),
 }
 _GENERAL_ALLERGY_METRIC = ("allergy_menu_available", "allergy menu available")
 
@@ -82,6 +110,31 @@ def _is_confident_positive(aggregates: dict[str, Any], metric_key: str) -> bool:
         return False
     agg = entry.get("aggregate") or {}
     return agg.get("value") is True
+
+
+def _is_confident_numeric_threshold(
+    aggregates: dict[str, Any], metric_key: str, threshold: float, want_at_least: bool
+) -> bool:
+    """True once a numeric metric clears its sample-size bar and the cutoff.
+
+    Same "ok" confidence bar as ``_is_confident_positive``; see module
+    docstring for how each cutoff was chosen.
+    """
+    entry = aggregates.get(metric_key)
+    if not entry or entry.get("status") != "ok":
+        return False
+    value = (entry.get("aggregate") or {}).get("value")
+    if not isinstance(value, (int, float)):
+        return False
+    return value >= threshold if want_at_least else value <= threshold
+
+
+def _is_confident_enum_value(aggregates: dict[str, Any], metric_key: str, expected: str) -> bool:
+    """True once an enum metric clears its sample-size bar and the winning value matches."""
+    entry = aggregates.get(metric_key)
+    if not entry or entry.get("status") != "ok":
+        return False
+    return (entry.get("aggregate") or {}).get("value") == expected
 
 
 def match_reasons(
@@ -127,6 +180,24 @@ def match_reasons(
         if mapping and mapping[0] not in seen_metrics and _is_confident_positive(aggregates, mapping[0]):
             reasons.append(mapping[1])
             seen_metrics.add(mapping[0])
+            continue
+        numeric = _NUMERIC_ATMOSPHERE_METRIC.get(key)
+        if numeric:
+            metric_key, phrase, threshold, want_at_least = numeric
+            if metric_key not in seen_metrics and _is_confident_numeric_threshold(
+                aggregates, metric_key, threshold, want_at_least
+            ):
+                reasons.append(phrase)
+                seen_metrics.add(metric_key)
+            continue
+        enum_mapping = _ENUM_ATMOSPHERE_METRIC.get(key)
+        if enum_mapping:
+            metric_key, phrase, expected = enum_mapping
+            if metric_key not in seen_metrics and _is_confident_enum_value(
+                aggregates, metric_key, expected
+            ):
+                reasons.append(phrase)
+                seen_metrics.add(metric_key)
 
     return reasons
 
