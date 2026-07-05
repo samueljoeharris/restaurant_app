@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, startTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -10,6 +10,7 @@ import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { useToast } from "../components/ui/useToast";
+import { invalidateCachedResource, useCachedResource } from "../hooks/useCachedResource";
 import type {
   MetricDefinition,
   UserAttributeContribution,
@@ -68,42 +69,25 @@ export function MyContributionsPage() {
   const { idToken } = useAuth();
   const { toast } = useToast();
   const [filter, setFilter] = useState<KindFilter>("all");
-  const [items, setItems] = useState<UserContribution[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<MetricDefinition[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNoteText, setEditNoteText] = useState("");
   const [editAttributeValue, setEditAttributeValue] = useState<boolean | number | string | undefined>();
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!idToken) return;
-    let cancelled = false;
-    startTransition(() => setLoading(true));
-    const kind = filter === "all" ? undefined : filter;
-    api
-      .listMyContributions(idToken, { kind, limit: 100 })
-      .then((data) => {
-        if (!cancelled) {
-          setItems(data.items);
-          setTotal(data.total);
-          setError(null);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Could not load contributions");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [filter, idToken]);
+  const { data, loading, error, refresh } = useCachedResource<{
+    items: UserContribution[];
+    total: number;
+  }>(
+    idToken ? `contributions:${filter}` : null,
+    async () => {
+      const kind = filter === "all" ? undefined : filter;
+      const res = await api.listMyContributions(idToken!, { kind, limit: 100 });
+      return { items: res.items, total: res.total };
+    },
+  );
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
 
   useEffect(() => {
     if (!idToken) return;
@@ -120,19 +104,9 @@ export function MyContributionsPage() {
   }, [idToken]);
 
   async function reload() {
-    if (!idToken) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const kind = filter === "all" ? undefined : filter;
-      const data = await api.listMyContributions(idToken, { kind, limit: 100 });
-      setItems(data.items);
-      setTotal(data.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load contributions");
-    } finally {
-      setLoading(false);
-    }
+    // Edits touch every filter view, so drop them all before refetching.
+    invalidateCachedResource("contributions:");
+    await refresh();
   }
 
   const metricsByKey = useMemo(

@@ -119,7 +119,7 @@ export function PlaceSearchBox({
           ref={listRef}
           id={menuId}
           role="listbox"
-          className="fixed m-0 max-h-72 list-none overflow-y-auto rounded-lg border border-border-strong bg-surface p-1 shadow-md"
+          className="fixed m-0 max-h-72 list-none overflow-y-auto overscroll-contain rounded-lg border border-border-strong bg-surface p-1 shadow-md"
           style={{ ...panelStyle, zIndex: Z.dropdown }}
           aria-label="Place suggestions"
         >
