@@ -206,8 +206,12 @@ def main() -> int:
 
     if args.files:
         changed = args.files
+    elif args.github_output and (args.before or args.after):
+        changed = git_changed_files(args.before, args.after or "HEAD")
     elif not sys.stdin.isatty():
         changed = [line.strip() for line in sys.stdin if line.strip()]
+        if not changed:
+            changed = git_changed_files(args.before, args.after or "HEAD")
     else:
         changed = git_changed_files(args.before, args.after or "HEAD")
 
