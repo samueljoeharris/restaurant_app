@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 import { useAuth } from "../../auth/useAuth";
 import { DataTable, Pagination } from "../../components/admin/DataTable";
 import { Button } from "../../components/ui/Button";
+import { CheckboxField, FormField } from "../../components/ui/FormField";
 import { useToast } from "../../components/ui/useToast";
 import type {
   AdminAuditLogRow,
@@ -455,6 +456,7 @@ export function AdminCatalogRefreshPage() {
                       type="checkbox"
                       checked={loc.enabled}
                       disabled={busy}
+                      aria-label={`Include ${loc.label} in scheduled refresh`}
                       onChange={() => toggleLocation(loc)}
                     />
                   ),
@@ -503,8 +505,7 @@ export function AdminCatalogRefreshPage() {
                 onChange={(e) => setLocation(e.target.value)}
                 required
               />
-              <label className="flex flex-col gap-1 text-sm">
-                Radius (mi)
+              <FormField label="Radius (mi)" className="gap-1">
                 <input
                   type="number"
                   min={MIN_RADIUS_MI}
@@ -513,15 +514,12 @@ export function AdminCatalogRefreshPage() {
                   value={radiusMi}
                   onChange={(e) => setRadiusMi(Number(e.target.value))}
                 />
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={force}
-                  onChange={(e) => setForce(e.target.checked)}
-                />
-                Force (ignore cooldown)
-              </label>
+              </FormField>
+              <CheckboxField
+                label="Force (ignore cooldown)"
+                checked={force}
+                onChange={(e) => setForce(e.target.checked)}
+              />
               <Button type="submit" disabled={busy || !location.trim()}>
                 {busy ? "Starting…" : "Start seed run"}
               </Button>
@@ -543,38 +541,31 @@ export function AdminCatalogRefreshPage() {
                 those replace this fallback.
               </p>
               <div className="flex max-w-md flex-col items-stretch gap-3">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={config.enabled}
-                    onChange={(e) => setConfig({ ...config, enabled: e.target.checked })}
-                  />
-                  Enabled
-                </label>
-                <label className="flex flex-col gap-1 text-sm">
-                  Schedule (cron)
+                <CheckboxField
+                  label="Enabled"
+                  checked={config.enabled}
+                  onChange={(e) => setConfig({ ...config, enabled: e.target.checked })}
+                />
+                <FormField label="Schedule (cron)" className="gap-1">
                   <input
                     value={config.schedule_cron}
                     onChange={(e) => setConfig({ ...config, schedule_cron: e.target.value })}
                   />
-                </label>
-                <label className="flex flex-col gap-1 text-sm">
-                  Timezone
+                </FormField>
+                <FormField label="Timezone" className="gap-1">
                   <input
                     value={config.schedule_timezone}
                     onChange={(e) => setConfig({ ...config, schedule_timezone: e.target.value })}
                   />
-                </label>
-                <label className="flex flex-col gap-1 text-sm">
-                  Default area
+                </FormField>
+                <FormField label="Default area" className="gap-1">
                   <input
                     placeholder="e.g. a city or ZIP code"
                     value={config.default_location ?? ""}
                     onChange={(e) => setConfig({ ...config, default_location: e.target.value })}
                   />
-                </label>
-                <label className="flex flex-col gap-1 text-sm">
-                  Default radius (mi)
+                </FormField>
+                <FormField label="Default radius (mi)" className="gap-1">
                   <input
                     type="number"
                     min={MIN_RADIUS_MI}
@@ -588,7 +579,7 @@ export function AdminCatalogRefreshPage() {
                       })
                     }
                   />
-                </label>
+                </FormField>
                 <p className="text-sm text-text-muted">
                   Last scheduled: {fmtTime(config.last_scheduled_at)}
                 </p>
@@ -715,8 +706,7 @@ export function AdminCatalogRefreshPage() {
           <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
             <header className="flex flex-wrap items-end justify-between gap-4">
               <h2 className="text-lg">Change log</h2>
-              <label className="grid min-w-[min(100%,12rem)] gap-2 text-sm font-semibold">
-                Action
+              <FormField label="Action" className="min-w-[min(100%,12rem)]">
                 <select
                   value={changelogAction}
                   onChange={(e) => {
@@ -732,7 +722,7 @@ export function AdminCatalogRefreshPage() {
                   <option value="closed">Closed</option>
                   <option value="outside_area">Outside area</option>
                 </select>
-              </label>
+              </FormField>
             </header>
             {changelogLoading && <p className="text-sm text-text-muted">Updating…</p>}
             <DataTable

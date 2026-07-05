@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { useToast } from "../components/ui/useToast";
+import { invalidateWatchData } from "../lib/pageDataCache";
 import { setRestaurantWatched } from "../lib/restaurantMapCache";
 import { userStorage } from "../lib/userStorage";
 import { notifyWatchlistChanged, resolveWatchedState } from "../lib/watchlist";
@@ -43,6 +44,7 @@ export function useWatch(restaurantId: string | null | undefined, initialWatched
       delete cleared[restaurantId];
       userStorage.setWatchOptimistic(cleared);
       setRestaurantWatched(restaurantId, next);
+      invalidateWatchData(restaurantId);
       notifyWatchlistChanged(restaurantId, next);
       setRevision((n) => n + 1);
     } catch (err) {

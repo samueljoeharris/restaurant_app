@@ -10,7 +10,8 @@ import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { useToast } from "../components/ui/useToast";
-import { invalidateCachedResource, useCachedResource } from "../hooks/useCachedResource";
+import { useCachedResource } from "../hooks/useCachedResource";
+import { invalidateContributionData } from "../lib/pageDataCache";
 import type {
   MetricDefinition,
   UserAttributeContribution,
@@ -103,9 +104,10 @@ export function MyContributionsPage() {
     };
   }, [idToken]);
 
-  async function reload() {
-    // Edits touch every filter view, so drop them all before refetching.
-    invalidateCachedResource("contributions:");
+  async function reload(restaurantId: string) {
+    // Edits touch every filter view plus the restaurant's cached detail
+    // aggregates, so drop them all before refetching.
+    invalidateContributionData(restaurantId);
     await refresh();
   }
 
@@ -139,7 +141,7 @@ export function MyContributionsPage() {
       await api.updateMyNote(item.id, editNoteText.trim(), idToken, item.tags);
       toast("Note updated", "success");
       cancelEdit();
-      await reload();
+      await reload(item.restaurant_id);
     } catch (err) {
       toast(err instanceof Error ? err.message : "Update failed", "error");
     } finally {
@@ -154,7 +156,7 @@ export function MyContributionsPage() {
       await api.updateMyAttribute(item.id, editAttributeValue, idToken);
       toast("Rating updated", "success");
       cancelEdit();
-      await reload();
+      await reload(item.restaurant_id);
     } catch (err) {
       toast(err instanceof Error ? err.message : "Update failed", "error");
     } finally {
@@ -173,7 +175,7 @@ export function MyContributionsPage() {
       else await api.deleteMyNote(item.id, idToken);
       toast(`${KIND_LABELS[item.kind]} deleted`, "success");
       if (editingId === item.id) cancelEdit();
-      await reload();
+      await reload(item.restaurant_id);
     } catch (err) {
       toast(err instanceof Error ? err.message : "Delete failed", "error");
     } finally {

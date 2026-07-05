@@ -1,5 +1,4 @@
 import { Link, Navigate, useParams } from "react-router-dom";
-import { useCallback, useState } from "react";
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { PlacePracticalInfo } from "../components/PlacePracticalInfo";
@@ -9,7 +8,9 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { Stat, StatGrid } from "../components/ui/Stat";
+import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import { placeEntryCacheKey } from "../lib/pageDataCache";
 import {
   restaurantRatePath,
   restaurantReviewPath,
@@ -25,23 +26,15 @@ const backLinkClass =
 export function PlaceRestaurantDetailPage() {
   const { placeId } = useParams<{ placeId: string }>();
   const { idToken } = useAuth();
-  const [entry, setEntry] = useState<RestaurantMapEntry | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  const loadPlace = useCallback(() => {
-    if (!placeId || !idToken) return;
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    void api.getPlaceEntry(placeId, idToken)
-      .then((data) => { if (!cancelled) setEntry(data); })
-      .catch((err) => { if (!cancelled) setError(err instanceof Error ? err.message : "Load failed"); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [placeId, idToken]);
+  const { data: entry, loading, error, refresh } = useCachedResource<RestaurantMapEntry>(
+    placeId && idToken ? placeEntryCacheKey(placeId) : null,
+    () => api.getPlaceEntry(placeId!, idToken!),
+  );
 
-  useRefreshOnNavigate(loadPlace, [placeId, idToken]);
+  useRefreshOnNavigate(() => {
+    void refresh();
+  }, [refresh]);
 
   if (!idToken) {
     return (

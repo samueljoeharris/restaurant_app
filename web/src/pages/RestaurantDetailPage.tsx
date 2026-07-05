@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -15,7 +15,16 @@ import { Card } from "../components/ui/Card";
 import { Page } from "../components/ui/Page";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/useToast";
+import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import {
+  invalidateContributionData,
+  restaurantDetailCacheKey,
+} from "../lib/pageDataCache";
+import {
+  fetchRestaurantDetailBundle,
+  type RestaurantDetailBundle,
+} from "../lib/restaurantDetailResource";
 import { WATCHLIST_CHANGED_EVENT, type WatchlistChangedDetail } from "../lib/watchlist";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
 
@@ -26,46 +35,32 @@ export function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { idToken } = useAuth();
   const { toast } = useToast();
+  // Local copies of the cached bundle so optimistic updates (note prepend,
+  // watch toggle) can adjust the view without touching the cache.
   const [data, setData] = useState<RestaurantDetailResponse | null>(null);
   const [attributes, setAttributes] = useState<AttributeEntry[]>([]);
   const [notes, setNotes] = useState<RestaurantNote[]>([]);
   const [kidsAges, setKidsAges] = useState<number[]>([]);
   const [noteText, setNoteText] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [noteError, setNoteError] = useState<string | null>(null);
   const [noteBusy, setNoteBusy] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  const loadRestaurant = useCallback(() => {
-    if (!id) return;
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    Promise.all([
-      api.getRestaurant(id, idToken),
-      api.getAttributes(id),
-      api.listNotes(id),
-      idToken ? api.getProfile(idToken).catch(() => null) : Promise.resolve(null),
-    ])
-      .then(([detail, attrs, notesRes, profile]) => {
-        if (cancelled) return;
-        setData(detail);
-        setAttributes(Object.values(attrs.attributes));
-        setNotes(notesRes.notes);
-        if (profile) setKidsAges(profile.kids_ages);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Load failed");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [id, idToken]);
+  const { loading, error, refresh } = useCachedResource<RestaurantDetailBundle>(
+    id ? restaurantDetailCacheKey(id, Boolean(idToken)) : null,
+    () => fetchRestaurantDetailBundle(id!, idToken),
+    {
+      onData: (bundle) => {
+        setData(bundle.detail);
+        setAttributes(bundle.attributes);
+        setNotes(bundle.notes);
+        setKidsAges(bundle.kidsAges);
+      },
+    },
+  );
 
-  useRefreshOnNavigate(loadRestaurant, [id, idToken]);
+  useRefreshOnNavigate(() => {
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     const onWatchlistChanged = (event: Event) => {
@@ -84,6 +79,7 @@ export function RestaurantDetailPage() {
     setNoteError(null);
     try {
       const created = await api.submitNote(id, noteText.trim(), idToken);
+      invalidateContributionData(id);
       if (!created.pending_review) {
         setNotes((prev) => [created, ...prev]);
       }
@@ -101,7 +97,7 @@ export function RestaurantDetailPage() {
     }
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
         <p className="text-sm font-semibold text-error">{error}</p>

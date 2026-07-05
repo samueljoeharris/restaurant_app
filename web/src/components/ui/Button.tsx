@@ -1,6 +1,6 @@
 import type { VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, type LinkProps } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
 import { buttonVariants } from "./button-variants";
@@ -15,10 +15,7 @@ type BaseProps = ButtonVariantProps & {
 type ButtonProps = BaseProps &
   ButtonHTMLAttributes<HTMLButtonElement> & { to?: undefined };
 
-type LinkButtonProps = BaseProps & {
-  to: string;
-  replace?: boolean;
-};
+type LinkButtonProps = BaseProps & Omit<LinkProps, "className" | "children">;
 
 export function Button({
   variant,
@@ -46,14 +43,12 @@ export function ButtonLink({
   fullWidth,
   className,
   children,
-  to,
-  replace,
+  ...props
 }: LinkButtonProps) {
   return (
     <Link
-      to={to}
-      replace={replace}
       className={cn(buttonVariants({ variant, size, fullWidth }), className)}
+      {...props}
     >
       {children}
     </Link>

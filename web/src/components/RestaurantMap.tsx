@@ -8,10 +8,12 @@ import {
 } from "@vis.gl/react-google-maps";
 
 import { useIsMobile } from "../hooks/useBreakpoint";
+import { useIntentPrefetch } from "../hooks/useIntentPrefetch";
 import { MapMarkerLayer } from "./MapMarkerLayer";
 import { PlacePracticalInfo } from "./PlacePracticalInfo";
 import { WatchButton } from "./WatchButton";
 import { cn } from "../lib/cn";
+import { prefetchRestaurantDetail } from "../lib/detailPrefetch";
 import { Z } from "../lib/overlayStack";
 import {
   formatTtfMedian,
@@ -23,6 +25,7 @@ import {
 import { mapEntryKey, restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { mapPinFill, PIN_NOTES_COLOR, PIN_RATINGS_COLOR } from "../lib/mapPin";
 import { googleMapsUrlForEntry, isGoogleOnlyEntry } from "../lib/googleMapsUrl";
+import { useAuth } from "../auth/useAuth";
 import { useWatch } from "../hooks/useWatch";
 import {
   MAP_ZOOM_AREA_SEARCH,
@@ -357,6 +360,8 @@ function MapRestaurantSheet({
   const googleMapsUrl = googleMapsUrlForEntry(entry);
   const restaurantId = entry.id ?? null;
   const { watched, busy, toggle } = useWatch(restaurantId, entry.watched ?? false);
+  const { idToken } = useAuth();
+  const detailIntentProps = useIntentPrefetch(() => prefetchRestaurantDetail(entry, idToken));
 
   return (
     <aside
@@ -468,7 +473,7 @@ function MapRestaurantSheet({
       </div>
 
       <div className="shrink-0 border-t border-border bg-surface px-4 pt-3 pb-4">
-        <ButtonLink to={restaurantDetailPath(entry)} fullWidth>
+        <ButtonLink to={restaurantDetailPath(entry)} fullWidth {...detailIntentProps}>
           {googleOnly ? "Scout this place" : "View full details"}
         </ButtonLink>
         {entry.ttf.sample_size === 0 && (

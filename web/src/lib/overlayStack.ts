@@ -1,9 +1,10 @@
 /** Shared z-index scale — modal > toast > dropdown > map sheets > bottom nav > sidebar. */
+// Values generated from design/tokens.json zIndex — edit there, then npm run tokens:generate.
 export const Z = {
+  mapPanel: 3,
+  mapSidebar: 4,
   mapStatus: 6,
   mapFab: 9,
-  mapSidebar: 4,
-  mapPanel: 3,
   sidebar: 30,
   bottomNav: 40,
   mapSheet: 50,

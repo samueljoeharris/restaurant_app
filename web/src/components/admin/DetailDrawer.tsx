@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
+import { useDialogFocus } from "../../hooks/useDialogFocus";
 import { cn } from "../../lib/cn";
 import { Z } from "../../lib/overlayStack";
 import { Button } from "../ui/Button";
@@ -19,7 +20,10 @@ export function DetailDrawer({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const drawerRef = useRef<HTMLElement>(null);
+
   useBodyScrollLock(open);
+  useDialogFocus(open, drawerRef, onClose);
 
   if (!open) return null;
 
@@ -33,6 +37,7 @@ export function DetailDrawer({
         onClick={onClose}
       />
       <aside
+        ref={drawerRef}
         className={cn(
           "fixed top-0 right-0 flex h-full w-[min(100%,28rem)] flex-col",
           "border-l border-border bg-surface shadow-lg",
@@ -40,6 +45,7 @@ export function DetailDrawer({
         style={{ zIndex: Z.modal }}
         role="dialog"
         aria-modal="true"
+        aria-label={title}
       >
         <header className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="m-0 text-lg">{title}</h2>

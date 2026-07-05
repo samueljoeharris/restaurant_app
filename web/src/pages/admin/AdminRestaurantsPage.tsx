@@ -9,6 +9,7 @@ import { FilterBar, FilterField } from "../../components/admin/FilterBar";
 import { StatusBadge } from "../../components/admin/StatusBadge";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
+import { FormField } from "../../components/ui/FormField";
 import { useToast } from "../../components/ui/useToast";
 import type { AdminRestaurantDetail, AdminRestaurantRow } from "../../types";
 
@@ -209,16 +210,13 @@ export function AdminRestaurantsPage() {
       >
         {detail ? (
           <div className="grid gap-4">
-            <label className="grid gap-1 text-sm">
-              Name
+            <FormField label="Name" className="gap-1">
               <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-            </label>
-            <label className="grid gap-1 text-sm">
-              Address
+            </FormField>
+            <FormField label="Address" className="gap-1">
               <input value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
-            </label>
-            <label className="grid gap-1 text-sm">
-              Status
+            </FormField>
+            <FormField label="Status" className="gap-1">
               <select
                 value={form.status}
                 onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as AdminRestaurantRow["status"] }))}
@@ -228,7 +226,7 @@ export function AdminRestaurantsPage() {
                 <option value="outside_area">Outside area</option>
                 <option value="tombstoned">Tombstoned</option>
               </select>
-            </label>
+            </FormField>
             <div className="rounded-md border border-border bg-bg p-3 text-sm">
               <p className="m-0">Median speed: {detail.ttf_median_minutes ?? "—"} min ({detail.ttf_sample_size} samples)</p>
               <p className="m-0 mt-1 text-text-muted">{detail.note_count} notes · {detail.pending_moderation_count} pending moderation</p>

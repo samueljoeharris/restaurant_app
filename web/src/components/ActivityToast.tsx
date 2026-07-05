@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { useBlockingModalOpen } from "../hooks/useModalPresence";
 import type { ActivityEventItem } from "../types";
 import { userStorage } from "../lib/userStorage";
 import { cn } from "../lib/cn";
@@ -10,10 +11,13 @@ import { Z } from "../lib/overlayStack";
 
 export function ActivityToast() {
   const { idToken } = useAuth();
+  // Stay quiet while a blocking modal (onboarding) is open; the unread event
+  // is not consumed, so it surfaces on the next poll after the modal closes.
+  const modalOpen = useBlockingModalOpen();
   const [toast, setToast] = useState<ActivityEventItem | null>(null);
 
   useEffect(() => {
-    if (!idToken || document.hidden) return;
+    if (!idToken || modalOpen || document.hidden) return;
     let cancelled = false;
 
     async function poll() {
@@ -37,9 +41,9 @@ export function ActivityToast() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [idToken]);
+  }, [idToken, modalOpen]);
 
-  if (!toast) return null;
+  if (!toast || modalOpen) return null;
 
   return (
     <div
