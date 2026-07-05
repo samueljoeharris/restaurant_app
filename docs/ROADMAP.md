@@ -37,9 +37,9 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 |-------|---------|
 | [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | Pre-launch hardening — write guards merged; prod smoke + App Check key deferred |
 | [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | App Store Connect secrets and iOS CI signing (prerequisite for #36) |
-| [#59](https://github.com/samueljoeharris/restaurant_app/issues/59) | Push delivery — web FCM, real send, scheduler |
+| [#59](https://github.com/samueljoeharris/restaurant_app/issues/59) | Push delivery — web FCM, real send, scheduler, + cadence/event-toggle enforcement & account push wiring |
 | [#60](https://github.com/samueljoeharris/restaurant_app/issues/60) | Web layout a11y remainder (focus trap, FormField) — z-index in tokens ✅ |
-| [#61](https://github.com/samueljoeharris/restaurant_app/issues/61) | Watchlist v1 remaining (push, iOS parity) |
+| [#61](https://github.com/samueljoeharris/restaurant_app/issues/61) | Watchlist v1 remaining (push, iOS parity) — notification channel map |
 | [#62](https://github.com/samueljoeharris/restaurant_app/issues/62) | Admin moderation QA — see [TEST_FLOWS.md](TEST_FLOWS.md) ADM-* |
 | [#40](https://github.com/samueljoeharris/restaurant_app/issues/40) | Phase 4 pilot: invite testers and gather feedback (after TestFlight) |
 | [#39](https://github.com/samueljoeharris/restaurant_app/issues/39) | Prod GCP cutover — scaffold merged; apply pending billing/credentials |
@@ -57,6 +57,8 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 | [#43](https://github.com/samueljoeharris/restaurant_app/issues/43) | Caching — ETag + client cache ✅; invalidation + geohash keys remain |
 | [#44](https://github.com/samueljoeharris/restaurant_app/issues/44) | Ratings trust and moderation |
 | [#45](https://github.com/samueljoeharris/restaurant_app/issues/45) | TTF submit timer UX ideas |
+| [#97](https://github.com/samueljoeharris/restaurant_app/issues/97) | Email weekly digest — provider, templates, scheduled send (greenfield; sibling of #59 push) |
+| [#74](https://github.com/samueljoeharris/restaurant_app/issues/74) | iOS push (APNs) — after web push #59 proven; blocked on #46 signing |
 | [MAP_STYLE.md](MAP_STYLE.md) | Bluebird Google Map Style + MapKit POI-off |
 | [DESIGN_TOKENS.md](DESIGN_TOKENS.md) | Bluebird token reference |
 
@@ -74,4 +76,4 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 ---
 
-*Last updated: 2026-06-20. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
+*Last updated: 2026-07-05. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
