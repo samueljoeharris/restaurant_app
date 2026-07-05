@@ -1,6 +1,17 @@
 # AGENTS.md — TTF Restaurant App
 
-Guidance for AI coding agents working in this repository.
+Guidance for AI coding agents working in this repository. **Canonical source** — other agent entry points import or reference this file.
+
+## How instructions layer
+
+| Tool | Entry file | What it adds |
+|------|------------|--------------|
+| **Any agent** | `AGENTS.md` (this file) | Stack, constraints, workflow, local dev, key docs |
+| **Claude Code** | [CLAUDE.md](CLAUDE.md) | `@AGENTS.md` import + session bootstrap notes |
+| **Cursor** | [.cursor/rules/](.cursor/rules/) | Always-on rules (ponytail, backlog, CI, issue orchestrator) — content mirrored here |
+| **Cursor skills** | [.cursor/skills/](.cursor/skills/) | Issue delivery, design kit, synthetic-user flows |
+
+Keep one source of truth here. Update AGENTS.md first; thin wrappers (`CLAUDE.md`, `.mdc` rules) should point here, not duplicate.
 
 ## Project
 
@@ -29,9 +40,12 @@ Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.
 
 ```
 restaurant_app/
-├── AGENTS.md          # this file
-├── docs/              # DESIGN, GETTING_STARTED, MCP_SETUP
+├── AGENTS.md          # this file — canonical agent guidance
+├── CLAUDE.md          # Claude Code entry (@AGENTS.md import)
+├── .claude/           # Claude Code hooks (session-start)
+├── .cursor/rules/     # Cursor always-on rules (mirror AGENTS.md workflow)
 ├── .cursor/mcp.json   # MCP config (env vars only, no secrets)
+├── docs/              # DESIGN, GETTING_STARTED, MCP_SETUP
 ├── api/               # Phase 2
 ├── web/               # Phase 2.5 web pilot + admin build
 ├── firebase/          # Firebase emulator config/data
@@ -86,14 +100,64 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 
 1. Check [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for current phase before scaffolding new code
 2. Prefer minimal, focused diffs — match existing conventions in surrounding code
-3. Cross-cutting changes (API schema + iOS model + migration) belong in one commit/ push to `main` in this monorepo
+3. Cross-cutting changes (API schema + iOS model + migration) belong in one commit/push to `main` in this monorepo
 4. **Solo dev CI:** push directly to `main` — workflows do not run on pull requests ([docs/CI.md](docs/CI.md))
 5. Use path-filtered CI awareness: `api/**`, `web/**`, `infra/**`, and future `ios/**` drive which pipeline jobs run
-6. MCP servers available: GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
+6. MCP servers (Cursor): GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
 
-### Agent orchestration
+### Backlog discipline
 
-Claude (Opus) acts as orchestrator for complex tasks. Delegate to sub-agents rather than doing everything in one context:
+Before starting new feature work:
+
+1. Read [docs/ROADMAP.md](docs/ROADMAP.md) — canonical one-screen queue
+2. Check open GitHub issues labeled `now`, `next`, or `later` in `samueljoeharris/restaurant_app`
+3. **Max 3 items in `now`.** Do not add a fourth without bumping one out
+4. Research docs (`AI_CONTRIBUTION_RESEARCH.md`, `MAP_SEARCH_AND_SEEDING.md`, etc.) are design notes — link from issues; they are not competing backlogs
+5. New work needs an issue in `now`, or explicit user approval to bump something out of `now`
+
+When completing work: close or update the issue; move labels if the queue shifts. Assigned issue delivery overrides `now` queue hesitation.
+
+### When to commit and push
+
+| Trigger | Action |
+|---------|--------|
+| User says commit, push, merge, or "do everything you can" on shippable work | Commit + push after `./scripts/ci-check.sh` |
+| User assigns GitHub issue delivery | Commits in scope — see **GitHub issue delivery** below |
+| User says "implement the plan" / "don't stop until done" | Commit when complete; merge/push if they said merge |
+| Audit, review, or question-only | **Do not** commit unless asked |
+| Default | **Do not** commit |
+
+**Before push:** run `./scripts/ci-check.sh`. Never `git push --no-verify`. After push, confirm **CI/CD / CI** is green on GitHub Actions before claiming deploy is done ([docs/CI.md](docs/CI.md)). Path detection (`scripts/ci_path_filters.py`) drives which deploy jobs run; cross-stack API contract paths trigger both API and Web deploys.
+
+### GitHub issue delivery
+
+When the user assigns a GitHub issue ("work on #42", issue URL):
+
+1. Read the issue title, body, and linked docs; infer minimal shippable scope
+2. Do not ask questions until success or **3 failed attempts** — use defaults above
+3. Loop: plan → implement → `./scripts/ci-check.sh` → push `main` → watch **CI/CD** → validate live (API curl / browser when deployable)
+4. Update the issue each attempt; close on success or post failure report after attempt 3
+5. One final chat message at each gate — no status pings mid-loop
+
+In **Cursor**, also follow [.cursor/skills/github-issue-orchestrator/SKILL.md](.cursor/skills/github-issue-orchestrator/SKILL.md) for sub-agent delegation and issue comments.
+
+### Coding discipline (ponytail)
+
+Lazy means efficient, not careless. Before writing code, climb this ladder:
+
+1. Does this need to be built? (YAGNI)
+2. Does it already exist here? Reuse it
+3. Stdlib / platform / installed dependency? Use that
+4. Can it be one line? Make it one line
+5. Only then: minimum code that works
+
+Bug fix = root cause: grep every caller of the function you touch; fix the shared function once. No abstractions nobody asked for; no new dependencies if avoidable; deletion over addition. Mark intentional shortcuts with a `ponytail:` comment naming the ceiling and upgrade path. Non-trivial logic gets one runnable check (smallest thing that fails if the logic breaks).
+
+Not lazy about: understanding the problem, trust-boundary validation, data-loss prevention, security, accessibility, anything explicitly requested.
+
+### Cursor agent orchestration
+
+When using Cursor's Agent tool for complex tasks, delegate rather than doing everything in one context:
 
 | Task type | Sub-agent model | When to spawn |
 |-----------|----------------|---------------|
@@ -109,6 +173,10 @@ Claude (Opus) acts as orchestrator for complex tasks. Delegate to sub-agents rat
 - Use `isolation: "worktree"` in the Agent tool for sub-agents that make file changes, so failures don't dirty the working tree
 
 **Model override:** Pass `model: "sonnet"` or `model: "haiku"` in the Agent tool call. Example: research and code sub-agents both use `"sonnet"`; fast single-lookup agents use `"haiku"`.
+
+### Claude Code bootstrap
+
+Remote Claude Code sessions run [.claude/hooks/session-start.sh](.claude/hooks/session-start.sh): installs web/API deps and scaffolds emulator env files. iOS and Docker CI paths are skipped on Linux. See [CLAUDE.md](CLAUDE.md).
 
 ## Pull requests
 
@@ -159,10 +227,7 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 | [docs/AUTH.md](docs/AUTH.md) | Auth index |
 | [docs/LITTLESCOUT_DOMAIN.md](docs/LITTLESCOUT_DOMAIN.md) | `littlescout.app` DNS and deploy runbook |
 | [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP configuration |
-
-## Commits
-
-Only create git commits when the user explicitly asks.
+| [CLAUDE.md](CLAUDE.md) | Claude Code entry point (imports this file) |
 
 ## Cursor Cloud specific instructions
 

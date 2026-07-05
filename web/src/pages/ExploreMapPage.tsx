@@ -10,7 +10,6 @@ import { MapSearchSidebar } from "../components/MapSearchSidebar";
 import { PlaceSearchBox } from "../components/PlaceSearchBox";
 import { RestaurantListCard } from "../components/RestaurantListCard";
 import { RestaurantMap } from "../components/RestaurantMap";
-import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { cn } from "../lib/cn";
@@ -93,6 +92,7 @@ export function ExploreMapPage() {
   const location = useLocation();
   const { idToken } = useAuth();
   const isMobile = useIsMobile();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Keep filter links on whichever route mounted this page (/map or /restaurants).
@@ -702,8 +702,151 @@ export function ExploreMapPage() {
     );
   }
 
+  const sidebarListContent = (
+    <>
+      {(isRadiusMode || isPendingPlaceMode) && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-brand/25 bg-brand-soft px-4 py-3 text-sm">
+          <span className="flex-1 font-semibold text-brand">
+            {paramPlace
+              ? isPendingPlaceMode
+                ? `Places near ${paramPlace} · locating area`
+                : `Places near ${paramPlace} · within ${Math.round(radiusM / 1000)} km`
+              : isPendingPlaceMode
+                ? "Locating area…"
+                : `Within ${Math.round(radiusM / 1000)} km`}
+          </span>
+          {radiusLoading && (
+            <span className="text-xs text-text-muted italic">loading nearby…</span>
+          )}
+          <button
+            type="button"
+            className="cursor-pointer rounded-full border border-brand px-[0.6rem] py-[0.2rem] font-[inherit] text-xs font-bold text-brand transition-[background,color] duration-fast hover:bg-brand hover:text-text-inverse"
+            onClick={clearRadiusMode}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {!isRadiusMode &&
+        !isPendingPlaceMode &&
+        !showListLoading &&
+        restaurants.length > 0 && (
+          <ExploreFilterBar
+            activeFilter={activeFilter}
+            browseCity={browseCity}
+            browseZip={browseZip}
+            browseTag={browseTag}
+            cities={facets.cities}
+            zips={facets.zips}
+            tags={facets.tags}
+            exploreUrl={exploreUrl}
+            query={query}
+            filtersOpen={filtersOpen}
+            onToggleFilters={() => setFiltersOpen((v) => !v)}
+          />
+        )}
+
+      {!isRadiusMode &&
+        !isPendingPlaceMode &&
+        (browseCity || browseZip || browseTag) && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {browseCity && (
+              <button
+                type="button"
+                className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
+                onClick={() => clearBrowseParam("city")}
+              >
+                {browseCity} ×
+              </button>
+            )}
+            {browseZip && (
+              <button
+                type="button"
+                className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
+                onClick={() => clearBrowseParam("zip")}
+              >
+                ZIP {browseZip} ×
+              </button>
+            )}
+            {browseTag && (
+              <button
+                type="button"
+                className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
+                onClick={() => clearBrowseParam("tag")}
+              >
+                {browseTag} ×
+              </button>
+            )}
+          </div>
+        )}
+
+      {!showListLoading && !error && summaryText && (
+        <p className="mb-3 text-sm text-text-muted">{summaryText}</p>
+      )}
+
+      {showListLoading && <SkeletonList count={6} />}
+      {error && <p className="text-sm font-semibold text-error">{error}</p>}
+
+      {!showListLoading && !error && filtered.length > 0 && grouped && (
+        <div className="grid gap-6">
+          {grouped.map(({ city, items }) => (
+            <section key={city}>
+              <header className="mb-3 flex items-baseline justify-between gap-3">
+                <h2 className="m-0 text-lg">{city}</h2>
+                <span className="text-sm text-text-muted">{formatPlaceCount(items.length)}</span>
+              </header>
+              <ul className="m-0 grid list-none gap-3 p-0">{items.map(renderCard)}</ul>
+            </section>
+          ))}
+        </div>
+      )}
+
+      {!showListLoading && !error && filtered.length > 0 && !grouped && (
+        <ul className="m-0 grid list-none gap-3 p-0">{filtered.map(renderCard)}</ul>
+      )}
+
+      {!showListLoading && !error && filtered.length === 0 && restaurants.length > 0 && (
+        <EmptyState
+          emoji="🔎"
+          title="No matches"
+          description={
+            isRadiusMode || isPendingPlaceMode
+              ? "No restaurants found in this area. Try a larger radius."
+              : "Try a different search term, town, ZIP, or filter."
+          }
+        />
+      )}
+
+      {!showListLoading && !error && restaurants.length === 0 && (
+        <EmptyState
+          emoji="🔎"
+          title="No restaurants yet"
+          description={
+            isRadiusMode || isPendingPlaceMode
+              ? "No restaurants found in this area yet. Check back soon — we may still be scouting it."
+              : "The catalog is still filling in for this area. Check back soon."
+          }
+        />
+      )}
+    </>
+  );
+
+  const placeSearch = (
+    <PlaceSearchBox
+      onSelectPlace={handleSelectPlace}
+      onSelectRestaurant={handleSelectRestaurant}
+      placeholder="Search by name, place, or neighborhood…"
+    />
+  );
+
   return (
-    <div className={cn("relative h-full min-h-0", isMobile && "flex flex-col")}>
+    <div
+      className={cn(
+        "h-full min-h-0",
+        isMobile ? "relative flex flex-col" : "flex",
+      )}
+    >
       {statusMessage && (
         <p
           className={cn(
@@ -722,7 +865,18 @@ export function ExploreMapPage() {
         </p>
       )}
 
-      <div className={cn("relative min-h-0", isMobile ? "flex-1" : "h-full")}>
+      {!isMobile && (
+        <MapSearchSidebar
+          resultCount={filtered.length}
+          pinSheetOpen={!!selectedId}
+          onCollapsedChange={setSidebarCollapsed}
+          search={placeSearch}
+        >
+          {sidebarListContent}
+        </MapSearchSidebar>
+      )}
+
+      <div className={cn("relative min-h-0 min-w-0 flex-1", isMobile ? "flex flex-col" : "h-full")}>
         <RestaurantMap
           restaurants={mapRestaurants}
           focusId={focusId}
@@ -734,7 +888,8 @@ export function ExploreMapPage() {
           error={error}
           searchBusy={searchBusy}
           userLocation={userLocation}
-          withSidebar
+          withSidebar={!isMobile && !sidebarCollapsed}
+          sidebarLayoutKey={sidebarCollapsed ? "collapsed" : "expanded"}
           fitKey={fitKey}
           onSearchArea={handleSearchArea}
           onViewportChange={viewportEnabled ? handleViewportChange : undefined}
@@ -752,148 +907,16 @@ export function ExploreMapPage() {
         />
       </div>
 
-      <MapSearchSidebar
-        resultCount={filtered.length}
-        pinSheetOpen={!!selectedId}
-        embedded={isMobile}
-        search={
-          <PlaceSearchBox
-            onSelectPlace={handleSelectPlace}
-            onSelectRestaurant={handleSelectRestaurant}
-            placeholder="Search by name, place, or neighborhood…"
-          />
-        }
-      >
-        {(isRadiusMode || isPendingPlaceMode) && (
-          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-brand/25 bg-brand-soft px-4 py-3 text-sm">
-            <span className="flex-1 font-semibold text-brand">
-              {paramPlace
-                ? isPendingPlaceMode
-                  ? `Places near ${paramPlace} · locating area`
-                  : `Places near ${paramPlace} · within ${Math.round(radiusM / 1000)} km`
-                : isPendingPlaceMode
-                  ? "Locating area…"
-                  : `Within ${Math.round(radiusM / 1000)} km`}
-            </span>
-            {radiusLoading && (
-              <span className="text-xs text-text-muted italic">loading nearby…</span>
-            )}
-            <button
-              type="button"
-              className="cursor-pointer rounded-full border border-brand px-[0.6rem] py-[0.2rem] font-[inherit] text-xs font-bold text-brand transition-[background,color] duration-fast hover:bg-brand hover:text-text-inverse"
-              onClick={clearRadiusMode}
-            >
-              Clear
-            </button>
-          </div>
-        )}
-
-        {!isRadiusMode &&
-          !isPendingPlaceMode &&
-          !showListLoading &&
-          restaurants.length > 0 && (
-            <ExploreFilterBar
-              activeFilter={activeFilter}
-              browseCity={browseCity}
-              browseZip={browseZip}
-              browseTag={browseTag}
-              cities={facets.cities}
-              zips={facets.zips}
-              tags={facets.tags}
-              resultCount={filtered.length}
-              exploreUrl={exploreUrl}
-              query={query}
-              filtersOpen={filtersOpen}
-              onToggleFilters={() => setFiltersOpen((v) => !v)}
-            />
-          )}
-
-        {!isRadiusMode &&
-          !isPendingPlaceMode &&
-          (browseCity || browseZip || browseTag) && (
-            <div className="mb-3 flex flex-wrap gap-2">
-              {browseCity && (
-                <button
-                  type="button"
-                  className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
-                  onClick={() => clearBrowseParam("city")}
-                >
-                  {browseCity} ×
-                </button>
-              )}
-              {browseZip && (
-                <button
-                  type="button"
-                  className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
-                  onClick={() => clearBrowseParam("zip")}
-                >
-                  ZIP {browseZip} ×
-                </button>
-              )}
-              {browseTag && (
-                <button
-                  type="button"
-                  className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
-                  onClick={() => clearBrowseParam("tag")}
-                >
-                  {browseTag} ×
-                </button>
-              )}
-            </div>
-          )}
-
-        {!showListLoading && !error && (
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <Badge variant="brand">{formatPlaceCount(filtered.length)}</Badge>
-            <span className="text-sm text-text-muted">{summaryText}</span>
-          </div>
-        )}
-
-        {showListLoading && <SkeletonList count={6} />}
-        {error && <p className="text-sm font-semibold text-error">{error}</p>}
-
-        {!showListLoading && !error && filtered.length > 0 && grouped && (
-          <div className="grid gap-6">
-            {grouped.map(({ city, items }) => (
-              <section key={city}>
-                <header className="mb-3 flex items-baseline justify-between gap-3">
-                  <h2 className="m-0 text-lg">{city}</h2>
-                  <span className="text-sm text-text-muted">{formatPlaceCount(items.length)}</span>
-                </header>
-                <ul className="m-0 grid list-none gap-3 p-0">{items.map(renderCard)}</ul>
-              </section>
-            ))}
-          </div>
-        )}
-
-        {!showListLoading && !error && filtered.length > 0 && !grouped && (
-          <ul className="m-0 grid list-none gap-3 p-0">{filtered.map(renderCard)}</ul>
-        )}
-
-        {!showListLoading && !error && filtered.length === 0 && restaurants.length > 0 && (
-          <EmptyState
-            emoji="🔎"
-            title="No matches"
-            description={
-              isRadiusMode || isPendingPlaceMode
-                ? "No restaurants found in this area. Try a larger radius."
-                : "Try a different search term, town, ZIP, or filter."
-            }
-          />
-        )}
-
-        {!showListLoading && !error && restaurants.length === 0 && (
-          <EmptyState
-            emoji="🔎"
-            title="No restaurants yet"
-            description={
-              isRadiusMode || isPendingPlaceMode
-                ? "No restaurants found in this area yet. Check back soon — we may still be scouting it."
-                : "The catalog is still filling in for this area. Check back soon."
-            }
-          />
-        )}
-      </MapSearchSidebar>
+      {isMobile && (
+        <MapSearchSidebar
+          resultCount={filtered.length}
+          pinSheetOpen={!!selectedId}
+          embedded
+          search={placeSearch}
+        >
+          {sidebarListContent}
+        </MapSearchSidebar>
+      )}
       {isMobile && <AppBottomNav embedded />}
     </div>
   );

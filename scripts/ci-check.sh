@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Local CI parity checks (Docker-first) — run before push: ./scripts/ci-check.sh
 # Installed automatically via: ./scripts/setup-githooks.sh
+#
+# Path filters: scripts/ci_path_filters.py (must match .github/workflows/deploy.yml)
 set -euo pipefail
 
 if [[ "${SKIP_CI:-}" == "1" ]]; then
@@ -14,6 +16,8 @@ cd "$ROOT"
 RUN_WEB=false
 RUN_API=false
 RUN_INFRA=false
+RUN_IOS=false
+RUN_TOKENS=false
 RUN_SECRETS=false
 MODE="smart"
 
@@ -58,6 +62,8 @@ while [[ $# -gt 0 ]]; do
       RUN_WEB=true
       RUN_API=true
       RUN_INFRA=true
+      RUN_IOS=true
+      RUN_TOKENS=true
       RUN_SECRETS=true
       MODE="all"
       shift
@@ -105,25 +111,21 @@ collect_changed_files() {
   printf '%s' "$files"
 }
 
+apply_path_filters() {
+  local changed="$1"
+  local flags
+  flags="$(printf '%s\n' "$changed" | python3 "$ROOT/scripts/ci_path_filters.py" --shell-env)"
+  eval "$flags"
+}
+
 if [[ "$MODE" != "all" ]]; then
-  changed="$(collect_changed_files)"
-  if echo "$changed" | grep -qE '^web/'; then RUN_WEB=true; fi
-  if echo "$changed" | grep -qE '^api/'; then RUN_API=true; fi
-  if echo "$changed" | grep -qE '^infra/terraform/'; then RUN_INFRA=true; fi
-  if echo "$changed" | grep -qE '^\.github/workflows/(deploy\.yml|reusable-)'; then
-    RUN_WEB=true
-    RUN_API=true
-    RUN_INFRA=true
-  fi
-  if echo "$changed" | grep -qE '^(\.gitleaks\.toml|scripts/secret-scan\.sh)'; then
+  apply_path_filters "$(collect_changed_files)"
+  if echo "$(collect_changed_files)" | grep -qE '^(\.gitleaks\.toml|scripts/secret-scan\.sh)'; then
     RUN_SECRETS=true
-  fi
-  if echo "$changed" | grep -qE '^\.github/workflows/reusable-terraform\.yml'; then
-    RUN_INFRA=true
   fi
 fi
 
-if ! $RUN_WEB && ! $RUN_API && ! $RUN_INFRA && ! $RUN_SECRETS; then
+if ! $RUN_WEB && ! $RUN_API && ! $RUN_INFRA && ! $RUN_IOS && ! $RUN_TOKENS && ! $RUN_SECRETS; then
   echo "ci-check: no relevant changes — skipping (use --all to force)"
   exit 0
 fi
@@ -133,20 +135,6 @@ fail() {
   exit 1
 }
 
-warn_cross_stack() {
-  local changed="$1"
-  if echo "$changed" | grep -qE '^web/src/api/' && ! echo "$changed" | grep -qE '^api/'; then
-    echo "⚠️  web API client changed but api/ did not — deploy API workflow after push if endpoints changed."
-  fi
-  if echo "$changed" | grep -qE '^api/ttf_api/routers/' && ! echo "$changed" | grep -qE '^web/'; then
-    echo "ℹ️  API routes changed — web may need redeploy if response shapes changed."
-  fi
-}
-
-if [[ "$MODE" != "all" ]]; then
-  warn_cross_stack "$(collect_changed_files)"
-fi
-
 require_docker
 
 echo "=== TTF ci-check ($MODE, Docker) ==="
@@ -155,18 +143,11 @@ if $RUN_SECRETS; then
   bash "$ROOT/scripts/secret-scan.sh" detect
 fi
 
+if $RUN_TOKENS; then
+  bash "$ROOT/scripts/verify-design-tokens.sh"
+fi
+
 if $RUN_WEB; then
-  echo "→ design tokens: verify generated outputs are fresh"
-  node "$ROOT/scripts/generate-design-tokens.mjs"
-  if ! git diff --quiet -- \
-    "$ROOT/web/src/styles/tokens.generated.css" \
-    "$ROOT/web/src/lib/ttfTier.ts" \
-    "$ROOT/ios/TTF/TTF/Utilities/Theme.swift" \
-    "$ROOT/ios/TTF/TTF/Utilities/TtfTier.swift" \
-    "$ROOT/ios/TTF/TTF/Resources/Colors.xcassets" \
-    "$ROOT/ios/TTF/TTF/Resources/Assets.xcassets/AccentColor.colorset/Contents.json"; then
-    fail "Design token outputs are stale — run: cd web && npm run tokens:generate && commit"
-  fi
   echo "→ web: docker build (web/Dockerfile)"
   docker build "${VITE_CI_ARGS[@]}" -t ttf-web-ci ./web
   echo "✓ web build"
@@ -190,6 +171,10 @@ if $RUN_INFRA; then
   docker compose run --rm --no-TTY terraform -chdir=environments/dev init -backend=false -input=false >/dev/null
   docker compose run --rm --no-TTY terraform -chdir=environments/dev validate
   echo "✓ terraform validate"
+fi
+
+if $RUN_IOS && ! $RUN_WEB; then
+  echo "ℹ️  ios/** changed — token outputs verified; full Xcode build: Actions → iOS → Run workflow"
 fi
 
 echo "=== ci-check passed ==="

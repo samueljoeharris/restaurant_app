@@ -7,6 +7,7 @@ import { useBlockingModalOpen } from "../hooks/useModalPresence";
 import type { ActivityEventItem } from "../types";
 import { userStorage } from "../lib/userStorage";
 import { cn } from "../lib/cn";
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { Z } from "../lib/overlayStack";
 
 export function ActivityToast() {
@@ -57,7 +58,7 @@ export function ActivityToast() {
       <p className="m-0 text-sm font-semibold">{toast.restaurant_name}</p>
       <p className="mt-1 text-sm text-text-muted">{toast.headline}</p>
       <Link
-        to={`/restaurants/${toast.restaurant_id}`}
+        to={restaurantDetailPath({ id: toast.restaurant_id })}
         className="mt-2 inline-block text-sm font-semibold text-brand"
         onClick={() => setToast(null)}
       >

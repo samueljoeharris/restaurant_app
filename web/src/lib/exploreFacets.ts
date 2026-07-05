@@ -136,7 +136,7 @@ export const SCOUT_FILTER_LABELS: Record<ScoutFilter, string> = {
   all: "All",
   "fast-starters": "Quick starters",
   "parent-data": "Parent-rated",
-  "needs-data": "Requested — needs scouting",
+  "needs-data": "Needs scouting",
 };
 
 export function parseScoutFilter(value: string | null): ScoutFilter {

@@ -16,6 +16,7 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [ADMIN_AUTH.md](ADMIN_AUTH.md) | **Operator console** — IAP, admin claims, Firebase SSO bridge |
 | [AUTH.md](AUTH.md) | Auth index — which doc to read for public vs admin |
 | [LITTLESCOUT_DOMAIN.md](LITTLESCOUT_DOMAIN.md) | Current `littlescout.app` DNS, TLS, IAP, and smoke-test runbook |
+| [API_ROUTES.md](API_ROUTES.md) | Canonical web routes and API endpoint contract across web, mobile web, and iOS |
 | [../api/README.md](../api/README.md) | API local development and endpoint summary |
 | [../web/README.md](../web/README.md) | Web pilot local setup and Cloud Run deploy notes |
 | [../infra/terraform/README.md](../infra/terraform/README.md) | Terraform bootstrap, dev stack, and WIF setup |
@@ -33,7 +34,8 @@ Start here when you are orienting yourself in the Little Scout repo.
 | [TEST_FLOWS.md](TEST_FLOWS.md) | Live UI audit catalog (manual QA) |
 | [IOS_DESIGN.md](IOS_DESIGN.md) | Phase 3 iOS implementation plan — Cursor/Xcode workflow, architecture, milestones |
 | [../ios/TTF/README.md](../ios/TTF/README.md) | iOS Xcode setup and local runbook |
-| [../AGENTS.md](../AGENTS.md) | AI coding agent guidance for this repository |
+| [../AGENTS.md](../AGENTS.md) | AI coding agent guidance for this repository (canonical) |
+| [../CLAUDE.md](../CLAUDE.md) | Claude Code entry — imports AGENTS.md |
 
 ## Current implementation notes
 

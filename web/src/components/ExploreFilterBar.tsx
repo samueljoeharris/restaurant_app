@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import type { ExploreFacet, ScoutFilter } from "../lib/exploreFacets";
 import { SCOUT_FILTER_LABELS } from "../lib/exploreFacets";
 import { cn } from "../lib/cn";
-import { Badge } from "./ui/Badge";
 
 interface ExploreFilterBarProps {
   activeFilter: ScoutFilter;
@@ -13,7 +12,6 @@ interface ExploreFilterBarProps {
   cities: ExploreFacet[];
   zips: ExploreFacet[];
   tags: ExploreFacet[];
-  resultCount: number;
   exploreUrl: (params: {
     filter: ScoutFilter;
     q: string;
@@ -34,7 +32,6 @@ export function ExploreFilterBar({
   cities,
   zips,
   tags,
-  resultCount,
   exploreUrl,
   query,
   filtersOpen,
@@ -105,7 +102,6 @@ export function ExploreFilterBar({
         >
           Filters{activeExtraCount > 0 ? ` (${activeExtraCount})` : ""}
         </button>
-        <Badge variant="neutral">{resultCount} places</Badge>
       </div>
       {filtersOpen && (
         <div className="space-y-2 rounded-md border border-border/70 bg-bg/50 p-3">

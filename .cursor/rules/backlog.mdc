@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Backlog discipline
 
+**Canonical:** [AGENTS.md](../../AGENTS.md) § Backlog discipline.
+
 Before starting new feature work:
 
 1. Read [docs/ROADMAP.md](docs/ROADMAP.md) — canonical one-screen queue.

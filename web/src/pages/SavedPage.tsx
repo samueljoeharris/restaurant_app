@@ -14,6 +14,7 @@ import { SkeletonList } from "../components/ui/Skeleton";
 import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { formatTtfMedian } from "../lib/ttfTier";
 import type { ExtendedUserProfile, WatchedRestaurantEntry } from "../types";
 import { userStorage } from "../lib/userStorage";
@@ -27,7 +28,7 @@ function SavedRow({ entry }: { entry: WatchedRestaurantEntry }) {
   return (
     <div className="flex items-start justify-between gap-3 border-b border-border/60 py-3">
       <div className="min-w-0">
-        <Link to={`/restaurants/${id}`} viewTransition className="font-bold hover:text-brand">
+        <Link to={restaurantDetailPath(r)} viewTransition className="font-bold hover:text-brand">
           {r.name}
         </Link>
         <p className="mt-1 text-sm text-text-muted">{r.address}</p>

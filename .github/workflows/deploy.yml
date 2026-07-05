@@ -3,6 +3,8 @@ name: CI/CD
 # Entry-point pipeline (push to main). Reusable deploy modules use the
 # reusable-* prefix; manual ops use tool-* — see .github/workflows/README.md.
 #
+# Path filters: scripts/ci_path_filters.py (single source of truth).
+#
 # Single pipeline on push to main: checks -> terraform -> build+deploy.
 # Fast checks (typecheck, lint, app-import smoke, terraform fmt) gate the
 # expensive jobs; each Docker image is built exactly once, in its deploy job,
@@ -26,26 +28,19 @@ jobs:
       infra: ${{ steps.filter.outputs.infra }}
       api: ${{ steps.filter.outputs.api }}
       web: ${{ steps.filter.outputs.web }}
+      ios: ${{ steps.filter.outputs.ios }}
+      tokens: ${{ steps.filter.outputs.tokens }}
     steps:
       - uses: actions/checkout@v6
-
-      - uses: dorny/paths-filter@v4
-        id: filter
         with:
-          filters: |
-            infra:
-              - 'infra/**'
-              - '.github/workflows/reusable-terraform.yml'
-              - '.github/workflows/deploy.yml'
-            api:
-              - 'api/**'
-              - '.github/workflows/reusable-api.yml'
-              - '.github/workflows/deploy.yml'
-            web:
-              - 'web/**'
-              - '.github/workflows/reusable-web.yml'
-              - '.github/workflows/reusable-admin-web.yml'
-              - '.github/workflows/deploy.yml'
+          fetch-depth: 0
+
+      - name: Detect path changes
+        id: filter
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: python3 scripts/ci_path_filters.py --github-output
 
   ci:
     name: CI
@@ -53,6 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
+      - name: Verify design token outputs
+        if: needs.changes.outputs.tokens == 'true'
+        run: bash scripts/verify-design-tokens.sh
 
       # --- Web: typecheck + lint (no bundling — the deploy job builds for real) ---
       - if: needs.changes.outputs.web == 'true'
@@ -110,6 +109,12 @@ jobs:
       - name: Terraform fmt
         if: needs.changes.outputs.infra == 'true'
         run: terraform fmt -check -recursive infra/terraform
+
+      - name: iOS path changed
+        if: needs.changes.outputs.ios == 'true'
+        run: |
+          echo "ios/** or design/** changed — token outputs verified above when applicable."
+          echo "Full Xcode build: Actions → iOS → Run workflow (tool-ios.yml)."
 
   terraform:
     name: Terraform

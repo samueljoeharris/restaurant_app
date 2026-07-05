@@ -1,14 +1,13 @@
 import { useCallback, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { ReviewChat } from "../components/ReviewChat";
+import { BackLink } from "../components/ui/BackLink";
 import { Page } from "../components/ui/Page";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
-
-const backLinkClass =
-  "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand";
+import { restaurantDetailPath } from "../lib/mapEntryKey";
 
 export function ReviewChatPage() {
   const { id, placeId } = useParams<{ id?: string; placeId?: string }>();
@@ -40,7 +39,7 @@ export function ReviewChatPage() {
 
   if (!id && !placeId) return null;
 
-  const backTo = id ? `/restaurants/${id}` : `/restaurants/place/${encodeURIComponent(placeId!)}`;
+  const backTo = restaurantDetailPath({ id: id ?? null, google_place_id: placeId ?? null });
 
   return (
     <Page
@@ -48,9 +47,9 @@ export function ReviewChatPage() {
       title="Share your visit"
       subtitle={loading ? "Loading…" : name}
       back={
-        <Link to={backTo} className={backLinkClass}>
+        <BackLink to={backTo}>
           ← Back
-        </Link>
+        </BackLink>
       }
     >
       {!loading && (
