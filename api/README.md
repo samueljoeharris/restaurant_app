@@ -41,6 +41,17 @@ curl http://localhost:8080/v1/metrics
 curl http://localhost:8080/v1/restaurants
 ```
 
+## Unit + integration tests
+
+```bash
+cd api && python -m pytest          # unit tests only (DB tests skip)
+
+# DB-backed integration tests (watchlist/activity, moderation) need a
+# disposable Postgres database — its tables are truncated between tests:
+TTF_TEST_DATABASE_URL=postgresql://ttf_app:ttf_local@localhost:5432/ttf_test \
+  python -m pytest
+```
+
 ## Seed restaurants (Places API)
 
 Requires `MAPS_API_KEY` in `.secrets/api.env` (via `./scripts/sync-secrets.sh`).

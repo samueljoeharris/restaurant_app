@@ -26,6 +26,10 @@ CONTENT_TABLE = {
     "attribute_rating": ("restaurant_attribute_ratings", "attribute"),
 }
 
+# ttf_observations carries moderation_status only; it has no visibility column
+# (aggregates filter on moderation_status + excluded_from_aggregate instead).
+_TABLES_WITH_VISIBILITY = {"restaurant_notes", "restaurant_attribute_ratings"}
+
 EVENT_TYPE = {
     "note": "note",
     "ttf_observation": "ttf",
@@ -95,10 +99,11 @@ def _publish_content(conn, item: dict[str, Any]) -> None:
     content_type = item["content_type"]
     content_id = item["content_id"]
     table, _ = CONTENT_TABLE[content_type]
+    visibility_sql = ", visibility = 'public'" if table in _TABLES_WITH_VISIBILITY else ""
     conn.execute(
         f"""
         UPDATE {table}
-        SET moderation_status = 'approved', visibility = 'public'
+        SET moderation_status = 'approved'{visibility_sql}
         WHERE id = %s
         """,
         (content_id,),
@@ -118,10 +123,11 @@ def _hide_content(conn, item: dict[str, Any]) -> None:
     content_type = item["content_type"]
     content_id = item["content_id"]
     table, _ = CONTENT_TABLE[content_type]
+    visibility_sql = ", visibility = 'removed'" if table in _TABLES_WITH_VISIBILITY else ""
     conn.execute(
         f"""
         UPDATE {table}
-        SET moderation_status = 'rejected', visibility = 'removed'
+        SET moderation_status = 'rejected'{visibility_sql}
         WHERE id = %s
         """,
         (content_id,),
