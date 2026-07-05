@@ -51,6 +51,11 @@ jobs:
   run:
     name: Run synthetic user team (${{ inputs.scenario }})
     runs-on: ubuntu-latest
+    # secrets.* is not allowed in step-level if: conditions (invalid-workflow
+    # startup failure). Surface it via env at the job level so steps can gate on
+    # env.FIREBASE_SERVICE_ACCOUNT_JSON instead.
+    env:
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
     defaults:
       run:
         working-directory: scripts/synthetic-users
@@ -75,9 +80,7 @@ jobs:
       # Not required for --dry-run, so the workflow still works with no
       # secrets configured — set them up when you're ready to run for real.
       - name: Write Firebase service account (real runs only)
-        if: ${{ inputs.dry_run == 'false' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
-        env:
-          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        if: ${{ inputs.dry_run == 'false' && env.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
         run: |
           mkdir -p ../../.secrets
           echo "$FIREBASE_SERVICE_ACCOUNT_JSON" | base64 --decode > ../../.secrets/firebase-sa.json
