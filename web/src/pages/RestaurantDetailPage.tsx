@@ -99,7 +99,7 @@ export function RestaurantDetailPage() {
 
   if (error && !data) {
     return (
-      <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
         <p className="text-sm font-semibold text-error">{error}</p>
       </Page>
     );
@@ -107,7 +107,7 @@ export function RestaurantDetailPage() {
 
   if (loading || !data || !id) {
     return (
-      <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
         <SkeletonList count={2} />
       </Page>
     );
@@ -121,7 +121,7 @@ export function RestaurantDetailPage() {
       narrow
       title={r.name}
       subtitle={r.address}
-      back={<Link to="/map" className={backLinkClass}>← Explore</Link>}
+      back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}
     >
       {r.cuisine_tags.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">

@@ -132,7 +132,7 @@ export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChat
           "success",
         );
         if (entry.id) {
-          navigate(`/restaurants/${entry.id}`);
+          navigate(`/restaurants/${entry.id}`, { viewTransition: true });
         }
         return;
       }

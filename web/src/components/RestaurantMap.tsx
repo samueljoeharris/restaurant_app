@@ -473,7 +473,7 @@ function MapRestaurantSheet({
       </div>
 
       <div className="shrink-0 border-t border-border bg-surface px-4 pt-3 pb-4">
-        <ButtonLink to={restaurantDetailPath(entry)} fullWidth {...detailIntentProps}>
+        <ButtonLink to={restaurantDetailPath(entry)} fullWidth viewTransition {...detailIntentProps}>
           {googleOnly ? "Scout this place" : "View full details"}
         </ButtonLink>
         {entry.ttf.sample_size === 0 && (

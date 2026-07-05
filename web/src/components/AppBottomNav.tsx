@@ -32,6 +32,7 @@ export function AppBottomNav({ embedded = false }: AppBottomNavProps) {
           <Link
             key={tab.to}
             to={tab.to}
+            viewTransition
             className={cn(
               "relative flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-[0.625rem] font-bold font-display leading-none transition-colors duration-fast",
               active ? "text-brand" : "text-text-muted",

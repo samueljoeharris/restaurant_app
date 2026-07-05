@@ -38,21 +38,21 @@ export function PlaceRestaurantDetailPage() {
 
   if (!idToken) {
     return (
-      <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
         <EmptyState title="Sign in required" description="Sign in to view restaurant details from Google Places." />
       </Page>
     );
   }
   if (error) {
     return (
-      <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
         <p className="text-sm font-semibold text-error">{error}</p>
       </Page>
     );
   }
   if (loading || !entry) {
     return (
-      <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>}>
+      <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>}>
         <SkeletonList count={3} />
       </Page>
     );
@@ -67,7 +67,7 @@ export function PlaceRestaurantDetailPage() {
   const showReviewChat = reviewChatAvailable();
 
   return (
-    <Page narrow back={<Link to="/map" className={backLinkClass}>← Explore</Link>} title={entry.name} subtitle={entry.address}>
+    <Page narrow back={<Link to="/map" viewTransition className={backLinkClass}>← Explore</Link>} title={entry.name} subtitle={entry.address}>
       <Card title="Hours & directions" subtitle="Live info from Google Maps">
         <PlacePracticalInfo target={entry} showWeekdayHours />
       </Card>
