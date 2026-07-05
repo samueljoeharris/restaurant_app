@@ -6,18 +6,11 @@ import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useCollapsiblePanel } from "../hooks/useCollapsiblePanel";
 import { useIsMobile } from "../hooks/useBreakpoint";
 import { cn } from "../lib/cn";
+import { isContributionRoute, isPublicRoute } from "../lib/routeAccess";
 import { AppBottomNav } from "./AppBottomNav";
 import { AppSidebar } from "./AppSidebar";
 import { MobileAppHeader } from "./MobileAppHeader";
 import { Skeleton } from "./ui/Skeleton";
-
-function isContributionRoute(pathname: string) {
-  return (
-    pathname.includes("/submit") ||
-    pathname.includes("/rate") ||
-    pathname.includes("/review")
-  );
-}
 
 export function Layout({ children }: { children: ReactNode }) {
   const { user, loading, logout } = useAuth();
@@ -44,7 +37,7 @@ export function Layout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (!user && !isPublicRoute(location.pathname)) {
     return <Navigate to="/login" replace />;
   }
 
@@ -63,6 +56,7 @@ export function Layout({ children }: { children: ReactNode }) {
               collapsed={navCollapsed}
               onToggleCollapsed={toggleNavCollapsed}
               onLogout={() => logout()}
+              signedIn={!!user}
             />
           )}
           {isMobile && !isMap && <MobileAppHeader />}

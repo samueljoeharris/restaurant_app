@@ -6,16 +6,19 @@ import { cn } from "../lib/cn";
 import { Z } from "../lib/overlayStack";
 import { ActivityInbox } from "./ActivityInbox";
 import { ScoutLogo } from "./ScoutLogo";
-import { Button } from "./ui/Button";
+import { Button, ButtonLink } from "./ui/Button";
 
 export function AppSidebar({
   collapsed,
   onToggleCollapsed,
   onLogout,
+  signedIn = true,
 }: {
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onLogout: () => void;
+  /** Anonymous visitors (#72) see "Sign in" here instead of "Sign out". */
+  signedIn?: boolean;
 }) {
   const { pathname } = useLocation();
   const { unreadCount } = useActivityBadge();
@@ -107,17 +110,31 @@ export function AppSidebar({
       </nav>
 
       <div className={cn("border-t border-border p-4 px-3", collapsed && "px-2")}>
-        <Button
-          variant="ghost"
-          size="sm"
-          fullWidth
-          className={cn(collapsed && "justify-center px-2")}
-          onClick={onLogout}
-          title={collapsed ? "Sign out" : undefined}
-          aria-label="Sign out"
-        >
-          {collapsed ? <span aria-hidden>🚪</span> : "Sign out"}
-        </Button>
+        {signedIn ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            fullWidth
+            className={cn(collapsed && "justify-center px-2")}
+            onClick={onLogout}
+            title={collapsed ? "Sign out" : undefined}
+            aria-label="Sign out"
+          >
+            {collapsed ? <span aria-hidden>🚪</span> : "Sign out"}
+          </Button>
+        ) : (
+          <ButtonLink
+            to="/login"
+            variant="ghost"
+            size="sm"
+            fullWidth
+            className={cn(collapsed && "justify-center px-2")}
+            title={collapsed ? "Sign in" : undefined}
+            aria-label="Sign in"
+          >
+            {collapsed ? <span aria-hidden>🔑</span> : "Sign in"}
+          </ButtonLink>
+        )}
       </div>
     </aside>
   );
