@@ -13,6 +13,8 @@ interface PlaceSearchBoxProps {
   placeholder?: string;
   lat?: number;
   lng?: number;
+  /** "floating" renders the map-overlay pill field (leading 🔍, full radius, lifted shadow). */
+  variant?: "default" | "floating";
 }
 
 export function PlaceSearchBox({
@@ -21,7 +23,9 @@ export function PlaceSearchBox({
   placeholder = "Search by name or place…",
   lat,
   lng,
+  variant = "default",
 }: PlaceSearchBoxProps) {
+  const floating = variant === "floating";
   const [inputValue, setInputValue] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -158,8 +162,16 @@ export function PlaceSearchBox({
     : null;
 
   return (
-    <div className="place-search mb-4 w-full">
+    <div className={cn("place-search w-full", floating ? "mb-0" : "mb-4")}>
       <div ref={anchorRef} className="relative flex items-center">
+        {floating && (
+          <span
+            className="pointer-events-none absolute left-4 text-sm leading-none"
+            aria-hidden="true"
+          >
+            🔍
+          </span>
+        )}
         <input
           ref={inputRef}
           role="combobox"
@@ -168,7 +180,11 @@ export function PlaceSearchBox({
           aria-controls={isOpen ? menuId : undefined}
           aria-activedescendant={activeOptionId}
           aria-label={placeholder}
-          className="pr-11"
+          className={cn(
+            "pr-11",
+            floating &&
+              "min-h-12 rounded-full border-transparent bg-surface pl-11 shadow-[0_4px_14px_rgb(47_58_66_/_14%)]",
+          )}
           type="text"
           value={inputValue}
           onChange={handleInputChange}
@@ -194,7 +210,12 @@ export function PlaceSearchBox({
       </div>
 
       {requiresSignIn && inputValue.trim().length > 0 && !loading && (
-        <p className="mt-1 text-sm text-text-muted">
+        <p
+          className={cn(
+            "mt-1 text-sm text-text-muted",
+            floating && "mx-auto w-fit rounded-full bg-surface/95 px-3 py-1 shadow-sm",
+          )}
+        >
           Sign in to search places and neighborhoods.
         </p>
       )}

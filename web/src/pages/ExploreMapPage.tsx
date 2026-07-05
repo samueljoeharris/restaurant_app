@@ -700,25 +700,34 @@ export function ExploreMapPage() {
 
   return (
     <div className={cn("relative h-full min-h-0", isMobile && "flex flex-col")}>
-      {statusMessage && (
-        <p
-          className={cn(
-            "pointer-events-none absolute left-1/2 z-[6] m-0 max-w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 rounded-full border border-border bg-surface/95 px-3 py-2 text-center text-xs leading-snug text-text shadow-md",
-            isMobile
-              ? "top-[calc(1rem+env(safe-area-inset-top,0px))]"
-              : "bottom-5",
-            (statusMessage.includes("Sign in") ||
-              statusMessage.includes("denied") ||
-              statusMessage.includes("unavailable")) &&
-              "border-error/25 text-error",
-          )}
-          role="status"
-        >
-          {statusMessage}
-        </p>
-      )}
-
       <div className={cn("relative min-h-0", isMobile ? "flex-1" : "h-full")}>
+        {statusMessage && (
+          <p
+            className={cn(
+              "pointer-events-none absolute left-1/2 z-[6] m-0 max-w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 rounded-full border border-border bg-surface/95 px-3 py-2 text-center text-xs leading-snug text-text shadow-md",
+              isMobile ? "bottom-[4.25rem]" : "bottom-5",
+              (statusMessage.includes("Sign in") ||
+                statusMessage.includes("denied") ||
+                statusMessage.includes("unavailable")) &&
+                "border-error/25 text-error",
+            )}
+            role="status"
+          >
+            {statusMessage}
+          </p>
+        )}
+
+        {isMobile && (
+          <div className="absolute inset-x-4 top-[calc(0.75rem+env(safe-area-inset-top,0px))] z-[6]">
+            <PlaceSearchBox
+              variant="floating"
+              onSelectPlace={handleSelectPlace}
+              onSelectRestaurant={handleSelectRestaurant}
+              placeholder="Search by name, place, or neighborhood…"
+            />
+          </div>
+        )}
+
         <RestaurantMap
           restaurants={mapRestaurants}
           focusId={focusId}
@@ -753,11 +762,13 @@ export function ExploreMapPage() {
         pinSheetOpen={!!selectedId}
         embedded={isMobile}
         search={
-          <PlaceSearchBox
-            onSelectPlace={handleSelectPlace}
-            onSelectRestaurant={handleSelectRestaurant}
-            placeholder="Search by name, place, or neighborhood…"
-          />
+          isMobile ? null : (
+            <PlaceSearchBox
+              onSelectPlace={handleSelectPlace}
+              onSelectRestaurant={handleSelectRestaurant}
+              placeholder="Search by name, place, or neighborhood…"
+            />
+          )
         }
       >
         {(isRadiusMode || isPendingPlaceMode) && (

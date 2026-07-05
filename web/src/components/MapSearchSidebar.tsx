@@ -96,16 +96,13 @@ export function MapSearchSidebar({
               </div>
               <button
                 type="button"
-                className="min-h-11 shrink-0 cursor-pointer rounded-md border border-border bg-bg px-3 text-sm font-semibold text-brand"
+                className="min-h-10 shrink-0 cursor-pointer rounded-full border-0 bg-brand-soft px-4 font-[inherit] text-sm font-bold text-brand transition-colors duration-fast"
                 onClick={() => setExpanded(false)}
                 aria-expanded
                 aria-controls="map-search-sidebar-results"
               >
                 Map
               </button>
-            </div>
-            <div className="shrink-0 border-b border-border px-4 py-3">
-              <div className="[&_.place-search]:mb-0">{search}</div>
             </div>
             <div
               id="map-search-sidebar-results"
@@ -116,10 +113,10 @@ export function MapSearchSidebar({
           </>
         ) : (
           <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2">
-            <p className="m-0 text-sm font-semibold text-text">{countLabel}</p>
+            <p className="m-0 text-sm font-bold text-text">{countLabel}</p>
             <button
               type="button"
-              className="min-h-11 shrink-0 cursor-pointer rounded-md border border-border bg-bg px-3 text-sm font-semibold text-brand"
+              className="min-h-10 shrink-0 cursor-pointer rounded-full border-0 bg-brand-soft px-4 font-[inherit] text-sm font-bold text-brand transition-colors duration-fast"
               onClick={() => setExpanded(true)}
               aria-expanded={false}
               aria-controls="map-search-sidebar-results"
