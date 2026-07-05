@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { authErrorMessage } from "../auth/errors";
 import { useAuth } from "../auth/useAuth";
 import { ADMIN_APP_URL } from "../buildTarget";
 import { AccountStatPill } from "../components/account/AccountStatPill";
@@ -15,6 +16,7 @@ import { Button } from "../components/ui/Button";
 import { CheckboxField, FormField } from "../components/ui/FormField";
 import { Page } from "../components/ui/Page";
 import { TagInput } from "../components/ui/TagInput";
+import { useToast } from "../components/ui/useToast";
 import { useTheme, type ThemeMode } from "../hooks/useTheme";
 import { cn } from "../lib/cn";
 import {
@@ -65,6 +67,19 @@ const EMPTY_FAMILY_FORM: FamilyForm = {
   preferenceNotes: "",
 };
 
+/** Build the form state from a profile response (API-normalized values). */
+function familyFormFromProfile(p: ExtendedUserProfile): FamilyForm {
+  return {
+    allergies: p.allergies,
+    allergyNotes: p.allergy_notes ?? "",
+    dietaryRestrictions: p.dietary_restrictions,
+    cuisineLikes: p.cuisine_likes,
+    cuisineDislikes: p.cuisine_dislikes,
+    atmospherePreferences: p.atmosphere_preferences,
+    preferenceNotes: p.preference_notes ?? "",
+  };
+}
+
 function Eyebrow({ children }: { children: string }) {
   return (
     <p className="mt-1 text-[length:var(--text-label)] font-extrabold uppercase tracking-[var(--text-tracking-label)] text-text-muted">
@@ -109,6 +124,8 @@ export function AccountPage() {
   const [kidsInput, setKidsInput] = useState("");
   const [family, setFamily] = useState<FamilyForm>(EMPTY_FAMILY_FORM);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!idToken) return;
@@ -118,15 +135,7 @@ export function AccountPage() {
         setProfile(p);
         setPrefs(p.notification_preferences);
         setKidsInput(p.kids_ages.join(", "));
-        setFamily({
-          allergies: p.allergies,
-          allergyNotes: p.allergy_notes ?? "",
-          dietaryRestrictions: p.dietary_restrictions,
-          cuisineLikes: p.cuisine_likes,
-          cuisineDislikes: p.cuisine_dislikes,
-          atmospherePreferences: p.atmosphere_preferences,
-          preferenceNotes: p.preference_notes ?? "",
-        });
+        setFamily(familyFormFromProfile(p));
         userStorage.setProfileCache({
           kidsAges: p.kids_ages,
           homeLabel: p.home_label,
@@ -150,6 +159,7 @@ export function AccountPage() {
   async function saveFamilyProfile() {
     if (!idToken) return;
     setSaving(true);
+    setSaveError(null);
     const kidsAges = kidsInput
       .split(/[,\s]+/)
       .map((s) => parseInt(s.trim(), 10))
@@ -167,6 +177,11 @@ export function AccountPage() {
         complete_onboarding: true,
       });
       setProfile(updated);
+      setKidsInput(updated.kids_ages.join(", "));
+      setFamily(familyFormFromProfile(updated));
+      toast("Family profile saved.", "success");
+    } catch (err) {
+      setSaveError(authErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -336,6 +351,7 @@ export function AccountPage() {
           />
         </FormField>
 
+        {saveError && <p className="text-sm font-semibold text-error">{saveError}</p>}
         <Button disabled={saving} onClick={() => void saveFamilyProfile()}>
           {saving ? "Saving…" : "Save family profile"}
         </Button>
