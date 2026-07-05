@@ -35,13 +35,17 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 | Issue | Summary |
 |-------|---------|
-| [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | Pre-launch hardening — write guards merged; prod smoke + App Check key deferred |
-| [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | App Store Connect secrets and iOS CI signing (prerequisite for #36) |
+| [#90](https://github.com/samueljoeharris/restaurant_app/issues/90) | **Epic:** Best for your family here — answer-first explore (minimal) |
+| [#91–#95](https://github.com/samueljoeharris/restaurant_app/issues/90) | Profile → ranker → answer card → explore simplify → smooth shell (#78 SWR/prefetch/transitions) |
+| [#84](https://github.com/samueljoeharris/restaurant_app/issues/84) | Visit logging v1 — one quick flow to log a whole visit |
+| [#85](https://github.com/samueljoeharris/restaurant_app/issues/85) | Family profile — **rescope to [#91](https://github.com/samueljoeharris/restaurant_app/issues/91)** (minimal constraints only) |
+| [#72](https://github.com/samueljoeharris/restaurant_app/issues/72) | Anonymous map browse — see answer before sign-up |
 | [#59](https://github.com/samueljoeharris/restaurant_app/issues/59) | Push delivery — web FCM, real send, scheduler, + cadence/event-toggle enforcement & account push wiring |
 | [#60](https://github.com/samueljoeharris/restaurant_app/issues/60) | Web layout a11y remainder (focus trap, FormField) — z-index in tokens ✅ |
 | [#61](https://github.com/samueljoeharris/restaurant_app/issues/61) | Watchlist v1 remaining (push, iOS parity) — notification channel map |
 | [#62](https://github.com/samueljoeharris/restaurant_app/issues/62) | Admin moderation QA — see [TEST_FLOWS.md](TEST_FLOWS.md) ADM-* |
 | [#99](https://github.com/samueljoeharris/restaurant_app/issues/99) | DRY + route/API alignment audit — P0 web cleanup merged; API/iOS parity follow-ups remain |
+| [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | Pre-launch hardening — write guards merged; prod smoke + App Check key deferred |
 | [#40](https://github.com/samueljoeharris/restaurant_app/issues/40) | Phase 4 pilot: invite testers and gather feedback (after TestFlight) |
 | [#39](https://github.com/samueljoeharris/restaurant_app/issues/39) | Prod GCP cutover — scaffold merged; apply pending billing/credentials |
 
@@ -60,6 +64,7 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 | [#45](https://github.com/samueljoeharris/restaurant_app/issues/45) | TTF submit timer UX ideas |
 | [#97](https://github.com/samueljoeharris/restaurant_app/issues/97) | Email weekly digest — provider, templates, scheduled send (greenfield; sibling of #59 push) |
 | [#74](https://github.com/samueljoeharris/restaurant_app/issues/74) | iOS push (APNs) — after web push #59 proven; blocked on #46 signing |
+| [#88](https://github.com/samueljoeharris/restaurant_app/issues/88) | ~~Preference filters~~ superseded by [#90](https://github.com/samueljoeharris/restaurant_app/issues/90) |
 | [MAP_STYLE.md](MAP_STYLE.md) | Bluebird Google Map Style + MapKit POI-off |
 | [DESIGN_TOKENS.md](DESIGN_TOKENS.md) | Bluebird token reference |
 
