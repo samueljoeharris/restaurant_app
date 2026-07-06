@@ -28,12 +28,16 @@ export function restaurantSubmitPath(entry: Pick<RestaurantMapEntry, "id" | "goo
   return "/map";
 }
 
-export function restaurantReviewPath(entry: Pick<RestaurantMapEntry, "id" | "google_place_id">): string {
-  if (entry.id) return `/restaurants/${entry.id}/review`;
-  if (entry.google_place_id) {
-    return `/restaurants/place/${encodeURIComponent(entry.google_place_id)}/review`;
-  }
-  return "/map";
+/**
+ * Stable DIY entry point: the submit route with `?manual=1`, which forces
+ * LogVisitPage into the manual timer/form (the "fill it out yourself" escape
+ * hatch and the synthetic-user submit path). #100.
+ */
+export function restaurantManualSubmitPath(
+  entry: Pick<RestaurantMapEntry, "id" | "google_place_id">,
+): string {
+  const path = restaurantSubmitPath(entry);
+  return path === "/map" ? path : `${path}?manual=1`;
 }
 
 export function restaurantRatePath(entry: Pick<RestaurantMapEntry, "id" | "google_place_id">): string {

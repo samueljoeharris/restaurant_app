@@ -99,7 +99,9 @@ class BrowserDriver:
         if self.dry_run:
             return {"id": "dry-run-observation", **body}
         page = self._page
-        page.goto(f"{self.web_base_url}/restaurants/{restaurant_id}/submit")
+        # ?manual=1 forces the DIY timer/form; the bare /submit route is now the
+        # agent-first chat shell (#100).
+        page.goto(f"{self.web_base_url}/restaurants/{restaurant_id}/submit?manual=1")
         page.get_by_label("Or enter elapsed minutes").fill(str(body["elapsed_minutes"]))
         page.get_by_role("button", name="Submit observation").click()
         page.wait_for_timeout(1500)

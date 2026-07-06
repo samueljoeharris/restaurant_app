@@ -15,7 +15,6 @@ import { placeEntryCacheKey } from "../lib/pageDataCache";
 import {
   restaurantDetailPath,
   restaurantRatePath,
-  restaurantReviewPath,
   restaurantSubmitPath,
 } from "../lib/mapEntryKey";
 import { googleMapsUrlForEntry } from "../lib/googleMapsUrl";
@@ -77,7 +76,7 @@ export function PlaceRestaurantDetailPage() {
           subtitle="Describe your meal in your own words"
           accent
         >
-          <ButtonLink to={restaurantReviewPath(entry)} fullWidth>
+          <ButtonLink to={restaurantSubmitPath(entry)} fullWidth>
             Chat through your review
           </ButtonLink>
         </Card>

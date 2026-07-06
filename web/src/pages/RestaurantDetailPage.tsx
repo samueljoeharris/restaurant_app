@@ -27,7 +27,7 @@ import {
   fetchRestaurantDetailBundle,
   type RestaurantDetailBundle,
 } from "../lib/restaurantDetailResource";
-import { restaurantRatePath, restaurantReviewPath, restaurantSubmitPath } from "../lib/mapEntryKey";
+import { restaurantManualSubmitPath, restaurantRatePath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { WATCHLIST_CHANGED_EVENT, type WatchlistChangedDetail } from "../lib/watchlist";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
 
@@ -260,14 +260,14 @@ export function RestaurantDetailPage() {
                   </ButtonLink>
                 )}
                 <ButtonLink
-                  to={restaurantReviewPath(r)}
+                  to={restaurantSubmitPath(r)}
                   variant={logAgainPrefill ? "secondary" : "primary"}
                   fullWidth
                   className={logAgainPrefill ? "mt-2" : undefined}
                 >
                   Chat through your review
                 </ButtonLink>
-                <ButtonLink to={restaurantSubmitPath(r)} variant="secondary" fullWidth className="mt-2">
+                <ButtonLink to={restaurantManualSubmitPath(r)} variant="secondary" fullWidth className="mt-2">
                   Submit speed observation
                 </ButtonLink>
                 <ButtonLink to={restaurantRatePath(r)} variant="secondary" fullWidth className="mt-2">

@@ -38,7 +38,7 @@ Five hand-picked personas in `synthetic_users/personas.py` (`toddler_lunch`, `bi
 ### Drivers
 
 - **`--driver api`** (default) — Firebase email/password sign-in → ID token → real `/v1` endpoints via stdlib `urllib` (no third-party HTTP dependency). Covers all seven scenarios.
-- **`--driver browser`** (optional) — Playwright, the true UI path, covering `signup`/`search`/`submit_ttf`/`update_ttf` (the four scenarios already documented for manual/Cursor use below). Requires `pip install playwright && playwright install chromium`. `rate_attributes`/`post_note`/`review_chat` raise `NotImplementedError` pointing back to `--driver api`.
+- **`--driver browser`** (optional) — Playwright, the true UI path, covering `signup`/`search`/`submit_ttf`/`update_ttf` (the four scenarios already documented for manual/Cursor use below). Requires `pip install playwright && playwright install chromium`. `rate_attributes`/`post_note`/`review_chat` raise `NotImplementedError` pointing back to `--driver api`. `submit_ttf` drives the DIY timer/form via the stable `…/submit?manual=1` URL — the bare `…/submit` route is the agent-first chat shell (#100).
 
 ### Guardrails (hard-coded, not configurable)
 

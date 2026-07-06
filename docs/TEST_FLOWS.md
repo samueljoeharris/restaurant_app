@@ -347,15 +347,31 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 
 ---
 
-### WEB-TTF-01 — TTF submit timer
+### WEB-TTF-01 — TTF submit timer (DIY form)
 
 | Field | Value |
 |-------|-------|
 | **ID** | WEB-TTF-01 |
-| **Route(s)** | `…/submit` |
+| **Route(s)** | `…/submit?manual=1` (stable DIY path; also the synthetic-user submit URL) |
 | **Priority** | P0 |
 
-**Steps** — Start timer; submit observation; mango/primary CTAs readable.
+**Steps** — Start timer; submit observation; mango/primary CTAs readable. Reached from the agent-first shell's **Fill it out yourself**, from **Submit speed observation** on the detail page, or directly via `?manual=1`. Flag off (`VITE_ENABLE_REVIEW_CHAT`) or a "Log it again" prefill also lands here.
+
+**Audit** | app.dev | ☐ | ☐ | | | |
+
+---
+
+### WEB-REV-01 — Log a visit (agent-first) + DIY fallback
+
+| Field | Value |
+|-------|-------|
+| **ID** | WEB-REV-01 |
+| **Route(s)** | `…/submit` (agent), `…/submit?manual=1` (DIY) |
+| **Priority** | P2 |
+
+**Steps** — Requires `VITE_ENABLE_REVIEW_CHAT=true`. Open `…/submit`: chat is the primary surface. Describe a visit → **Preview submission** → the **Your draft** panel (right rail on md+, collapsible disclosure on mobile) lists captured fields, still-needed required fields (warning colour) and errors (danger colour); **Submit review** appears only when ready. **Fill it out yourself** switches to `…/submit?manual=1` (WEB-TTF-01), preserving the place/id variant. Old `…/review` links redirect to `…/submit`.
+
+**Expected (theme)** — Two-column chat + draft rail on md+; single stacked column with a "Your draft" disclosure on mobile.
 
 **Audit** | app.dev | ☐ | ☐ | | | |
 
@@ -491,7 +507,6 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 | WEB-DET-06 | Report button | P1 |
 | WEB-TTF-02 | TTF edit | P2 |
 | WEB-RATE-01 | Attribute rating | P1 |
-| WEB-REV-01 | Review chat | P2 |
 | WEB-ACCT-02 | Notification prefs | P1 |
 | WEB-ACCT-03 | My contributions | P1 |
 | WEB-LEGAL-02 | Moderation policy | P2 |

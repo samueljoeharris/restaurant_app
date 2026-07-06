@@ -22,6 +22,12 @@ type ReviewChatProps = {
   restaurantName: string;
   restaurantId?: string;
   placeId?: string;
+  /**
+   * "inline" (default) stacks the extracted draft below the chat. "sidebar"
+   * (agent-first Log a visit, #100) renders the chat left with the draft in a
+   * right rail on md+, collapsing to a "Your draft" disclosure on mobile.
+   */
+  layout?: "inline" | "sidebar";
 };
 
 function formatReviewField(field: unknown): string {
@@ -36,7 +42,7 @@ function formatReviewField(field: unknown): string {
   return String(field);
 }
 
-export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChatProps) {
+export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "inline" }: ReviewChatProps) {
   const navigate = useNavigate();
   const { idToken } = useAuth();
   const { toast } = useToast();
@@ -182,97 +188,153 @@ export function ReviewChat({ restaurantId, placeId, restaurantName }: ReviewChat
     );
   }
 
-  return (
-    <Card title="Review assistant" subtitle="Describe your visit — we'll fill in the right fields">
-      <div className="flex flex-col gap-3">
+  const messageList = (
+    <div
+      className="flex max-h-80 min-h-[min(50dvh,20rem)] flex-col gap-2 overflow-y-auto overscroll-contain rounded-md bg-surface-muted p-2 md:min-h-0"
+      ref={scrollRef}
+    >
+      {messages.map((message, index) => (
         <div
-          className="flex max-h-80 min-h-[min(50dvh,20rem)] flex-col gap-2 overflow-y-auto overscroll-contain rounded-md bg-surface-muted p-2 md:min-h-0"
-          ref={scrollRef}
-        >
-          {messages.map((message, index) => (
-            <div
-              key={`${message.role}-${index}`}
-              className={cn(
-                "max-w-[92%] rounded-md px-3 py-2 text-sm leading-normal whitespace-pre-wrap",
-                message.role === "assistant"
-                  ? "self-start border border-border bg-surface"
-                  : "self-end border border-brand/25 bg-brand-soft",
-              )}
-            >
-              {message.text}
-            </div>
-          ))}
-          {busy && !preview && (
-            <div className="max-w-[92%] self-start rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-muted">
-              Thinking…
-            </div>
+          key={`${message.role}-${index}`}
+          className={cn(
+            "max-w-[92%] rounded-md px-3 py-2 text-sm leading-normal whitespace-pre-wrap",
+            message.role === "assistant"
+              ? "self-start border border-border bg-surface"
+              : "self-end border border-brand/25 bg-brand-soft",
           )}
+        >
+          {message.text}
         </div>
+      ))}
+      {busy && !preview && (
+        <div className="max-w-[92%] self-start rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-muted">
+          Thinking…
+        </div>
+      )}
+    </div>
+  );
 
-        {extractSummary && (
-          <div className="rounded-md bg-surface-muted p-3 text-sm">
-            <p>{extractSummary}</p>
-          </div>
-        )}
+  const composer = (
+    <div>
+      <textarea
+        className="w-full resize-y"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        rows={3}
+        placeholder="We waited about 10 minutes for apple slices… stroller was easy…"
+        disabled={busy || !schema}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            void sendMessage();
+          }
+        }}
+      />
+      <div className="mt-2 flex justify-end gap-2">
+        <Button type="button" variant="secondary" onClick={handlePreview} disabled={busy || messages.length < 2}>
+          Preview submission
+        </Button>
+        <Button type="button" onClick={() => void sendMessage()} disabled={busy || !input.trim() || !schema}>
+          Send
+        </Button>
+      </div>
+    </div>
+  );
 
-        {preview && (
-          <div className="rounded-md bg-surface-muted p-3 text-sm">
-            <p className="mb-2 font-semibold">
-              {preview.ready_to_submit ? "Ready to submit" : "Needs a bit more detail"}
-            </p>
-            {preview.missing_required.length > 0 && (
-              <ul className="mb-2 pl-4">
+  const errorLine = error ? <p className="text-sm font-semibold text-error">{error}</p> : null;
+
+  // Extracted draft — rendered inline below the chat, or in the sidebar rail.
+  const draftPanel = (
+    <div className="flex flex-col gap-3 text-sm">
+      {extractSummary && <p className="rounded-md bg-surface-muted p-3">{extractSummary}</p>}
+      {preview ? (
+        <div className="rounded-md bg-surface-muted p-3">
+          <p className="mb-2 font-semibold">
+            {preview.ready_to_submit ? "Ready to submit" : "Needs a bit more detail"}
+          </p>
+          <DraftSummary draft={preview.draft} />
+          {preview.missing_required.length > 0 && (
+            <div className="mb-2">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-warning">Still needed</p>
+              <ul className="pl-4 text-warning">
                 {preview.missing_required.map((field, index) => {
                   const label = formatReviewField(field);
                   return <li key={`${label}-${index}`}>{label}</li>;
                 })}
               </ul>
-            )}
-            {preview.errors.length > 0 && (
-              <ul className="mb-2 pl-4 text-error">
+            </div>
+          )}
+          {preview.errors.length > 0 && (
+            <div className="mb-2">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-error">Fix these</p>
+              <ul className="pl-4 text-error">
                 {preview.errors.map((err, index) => {
                   const label = formatReviewField(err);
                   return <li key={`${label}-${index}`}>{label}</li>;
                 })}
               </ul>
-            )}
-            <DraftSummary draft={preview.draft} />
-            {preview.ready_to_submit && (
-              <Button type="button" onClick={handleSubmit} disabled={busy} fullWidth>
-                {busy ? "Submitting…" : "Submit review"}
-              </Button>
-            )}
-          </div>
-        )}
-
-        {error && <p className="text-sm font-semibold text-error">{error}</p>}
-
-        <div>
-          <textarea
-            className="w-full resize-y"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            rows={3}
-            placeholder="We waited about 10 minutes for apple slices… stroller was easy…"
-            disabled={busy || !schema}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                void sendMessage();
-              }
-            }}
-          />
-          <div className="mt-2 flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={handlePreview} disabled={busy || messages.length < 2}>
-              Preview submission
+            </div>
+          )}
+          {preview.ready_to_submit && (
+            <Button type="button" onClick={handleSubmit} disabled={busy} fullWidth>
+              {busy ? "Submitting…" : "Submit review"}
             </Button>
-            <Button type="button" onClick={() => void sendMessage()} disabled={busy || !input.trim() || !schema}>
-              Send
-            </Button>
-          </div>
+          )}
         </div>
-      </div>
-    </Card>
+      ) : (
+        <p className="rounded-md border border-dashed border-border p-3 text-text-muted">
+          Fields appear here as you chat — tap <span className="font-semibold">Preview submission</span> to update.
+        </p>
+      )}
+    </div>
+  );
+
+  if (layout === "inline") {
+    return (
+      <Card title="Review assistant" subtitle="Describe your visit — we'll fill in the right fields">
+        <div className="flex flex-col gap-3">
+          {messageList}
+          {draftPanel}
+          {errorLine}
+          {composer}
+        </div>
+      </Card>
+    );
+  }
+
+  const pendingCount = preview ? preview.missing_required.length + preview.errors.length : 0;
+  const draftBadge = !preview
+    ? null
+    : preview.ready_to_submit
+      ? "Ready"
+      : pendingCount > 0
+        ? `${pendingCount} to add`
+        : "In progress";
+
+  return (
+    <div className="grid items-start gap-4 md:grid-cols-[1fr_20rem]">
+      <Card title="Tell me about your visit" subtitle="I'll turn it into the right fields as we chat">
+        <div className="flex flex-col gap-3">
+          {messageList}
+          {errorLine}
+          {composer}
+        </div>
+      </Card>
+
+      {/* Desktop rail (md+) */}
+      <aside className="hidden md:sticky md:top-4 md:block">
+        <Card title="Your draft">{draftPanel}</Card>
+      </aside>
+
+      {/* Mobile disclosure — stacks under the chat, opens once a draft exists */}
+      <details className="rounded-lg border border-border bg-surface md:hidden" open={Boolean(preview)}>
+        <summary className="min-h-11 cursor-pointer px-4 py-2.5 text-sm font-semibold">
+          Your draft
+          {draftBadge && <span className="ml-2 font-medium text-brand">{draftBadge}</span>}
+        </summary>
+        <div className="border-t border-border p-4">{draftPanel}</div>
+      </details>
+    </div>
   );
 }
 

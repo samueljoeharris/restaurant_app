@@ -1,7 +1,8 @@
 import { lazy, Suspense, type ReactNode } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 
 import { AuthProvider } from "./auth/AuthContext";
+import { restaurantSubmitPath } from "./lib/mapEntryKey";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
 import { Layout } from "./components/Layout";
 import { RouteFallback } from "./components/RouteFallback";
@@ -20,9 +21,8 @@ const SavedPage = lazy(() => import("./pages/SavedPage").then((m) => ({ default:
 const PlaceRestaurantDetailPage = lazy(() => import("./pages/PlaceRestaurantDetailPage").then((m) => ({ default: m.PlaceRestaurantDetailPage })));
 const RestaurantDetailPage = lazy(() => import("./pages/RestaurantDetailPage").then((m) => ({ default: m.RestaurantDetailPage })));
 const RateAttributesPage = lazy(() => import("./pages/RateAttributesPage").then((m) => ({ default: m.RateAttributesPage })));
-const ReviewChatPage = lazy(() => import("./pages/ReviewChatPage").then((m) => ({ default: m.ReviewChatPage })));
+const LogVisitPage = lazy(() => import("./pages/LogVisitPage").then((m) => ({ default: m.LogVisitPage })));
 const TtfContributionEditPage = lazy(() => import("./pages/TtfContributionEditPage").then((m) => ({ default: m.TtfContributionEditPage })));
-const TtfSubmitPage = lazy(() => import("./pages/TtfSubmitPage").then((m) => ({ default: m.TtfSubmitPage })));
 
 // Per-page boundary so Layout (sidebar/nav) stays mounted while a chunk loads.
 function suspend(node: ReactNode) {
@@ -32,6 +32,18 @@ function suspend(node: ReactNode) {
 function CanonicalMapRedirect() {
   const location = useLocation();
   return <Navigate to={{ pathname: "/map", search: location.search }} replace />;
+}
+
+// #100: the review chat now lives inside the agent-first /submit shell. Keep
+// the old /review paths alive as a redirect so stale links don't 404.
+function ReviewChatRedirect() {
+  const { id, placeId } = useParams<{ id?: string; placeId?: string }>();
+  return (
+    <Navigate
+      to={restaurantSubmitPath({ id: id ?? null, google_place_id: placeId ?? null })}
+      replace
+    />
+  );
 }
 
 export default function App() {
@@ -56,9 +68,7 @@ export default function App() {
           />
           <Route
             path="/restaurants/place/:placeId/review"
-            element={
-              <Layout>{suspend(<ReviewChatPage />)}</Layout>
-            }
+            element={<ReviewChatRedirect />}
           />
           <Route
             path="/restaurants/place/:placeId/rate"
@@ -69,7 +79,7 @@ export default function App() {
           <Route
             path="/restaurants/place/:placeId/submit"
             element={
-              <Layout>{suspend(<TtfSubmitPage />)}</Layout>
+              <Layout>{suspend(<LogVisitPage />)}</Layout>
             }
           />
           <Route
@@ -118,14 +128,12 @@ export default function App() {
           />
           <Route
             path="/restaurants/:id/review"
-            element={
-              <Layout>{suspend(<ReviewChatPage />)}</Layout>
-            }
+            element={<ReviewChatRedirect />}
           />
           <Route
             path="/restaurants/:id/submit"
             element={
-              <Layout>{suspend(<TtfSubmitPage />)}</Layout>
+              <Layout>{suspend(<LogVisitPage />)}</Layout>
             }
           />
           <Route path="/admin/*" element={<AdminSiteRedirect />} />
