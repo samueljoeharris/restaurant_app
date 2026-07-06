@@ -25,7 +25,7 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 | Issue | Summary |
 |-------|---------|
-| [#64](https://github.com/samueljoeharris/restaurant_app/issues/64) | **Whimsical Bluebird rebrand** — design kit integration audit + build ([TEST_FLOWS.md](TEST_FLOWS.md)) |
+| [#100](https://github.com/samueljoeharris/restaurant_app/issues/100) | **Log a visit: agent-first entry** — review chat as primary `/submit` surface + draft sidebar; manual form is the DIY fallback |
 | [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline (blocked on [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) secrets) |
 | [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | **App Store Connect secrets + iOS CI signing** — the one human-only blocker; see [TESTFLIGHT_EXECUTION_PLAN.md](TESTFLIGHT_EXECUTION_PLAN.md) §2 |
 
@@ -74,6 +74,7 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 | Issue | Summary |
 |-------|---------|
+| [#64](https://github.com/samueljoeharris/restaurant_app/issues/64) | Whimsical Bluebird rebrand — design kit (web + iOS, Google Map Style) ✅ |
 | [#50](https://github.com/samueljoeharris/restaurant_app/issues/50) | Recency histogram on restaurant detail ✅ |
 | [#37](https://github.com/samueljoeharris/restaurant_app/issues/37) | Public web auth — Google sign-in on `app.dev` ✅ |
 | [#33](https://github.com/samueljoeharris/restaurant_app/issues/33) | Account deletion |
@@ -82,4 +83,4 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 ---
 
-*Last updated: 2026-07-05. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
+*Last updated: 2026-07-06. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
