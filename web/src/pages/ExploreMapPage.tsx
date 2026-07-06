@@ -972,9 +972,7 @@ export function ExploreMapPage() {
         <p
           className={cn(
             "pointer-events-none absolute left-1/2 z-[6] m-0 max-w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 rounded-full border border-border bg-surface/95 px-3 py-2 text-center text-xs leading-snug text-text shadow-md",
-            isMobile
-              ? "top-[calc(1rem+env(safe-area-inset-top,0px))]"
-              : "bottom-5",
+            isMobile ? "bottom-[4.25rem]" : "bottom-5",
             (statusMessage.includes("Sign in") ||
               statusMessage.includes("denied") ||
               statusMessage.includes("unavailable")) &&
@@ -999,6 +997,17 @@ export function ExploreMapPage() {
       )}
 
       <div className={cn("relative min-h-0 min-w-0 flex-1", isMobile ? "flex flex-col" : "h-full")}>
+        {isMobile && (
+          <div className="absolute inset-x-4 top-[calc(0.75rem+env(safe-area-inset-top,0px))] z-[6]">
+            <PlaceSearchBox
+              variant="floating"
+              onSelectPlace={handleSelectPlace}
+              onSelectRestaurant={handleSelectRestaurant}
+              placeholder="Search by name, place, or neighborhood…"
+            />
+          </div>
+        )}
+
         <RestaurantMap
           restaurants={mapRestaurants}
           focusId={focusId}

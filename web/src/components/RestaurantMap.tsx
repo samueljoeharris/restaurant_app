@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   APIProvider,
   Map,
@@ -271,14 +271,14 @@ function SearchArea({
       className={cn(
         "pointer-events-none absolute z-[5]",
         mobileLayout
-          ? "top-[calc(1rem+env(safe-area-inset-top,0px))] right-4 left-4 flex justify-center"
+          ? "top-[calc(4.75rem+env(safe-area-inset-top,0px))] right-4 left-4 flex justify-center"
           : cn("top-4", withSidebar ? "left-[calc(var(--explore-sidebar-width)+1rem)]" : "left-4"),
       )}
     >
       <Button
         size="sm"
         variant="secondary"
-        className="pointer-events-auto rounded-full bg-surface/95 shadow-md"
+        className="pointer-events-auto rounded-full border-transparent bg-surface/95 text-brand shadow-[0_4px_14px_rgb(47_58_66_/_16%)] backdrop-blur-sm"
         disabled={busy || !map}
         onClick={() => {
           if (!map) return;
@@ -300,6 +300,36 @@ function SearchArea({
   );
 }
 
+function legendItems(): { swatch: ReactNode; label: string }[] {
+  const tiers: TtfTier[] = ["fast", "ok", "slow"];
+  return [
+    ...tiers.map((tier) => ({
+      swatch: (
+        <span className="map-legend-swatch" style={{ background: TTF_TIER_COLORS[tier] }} />
+      ),
+      label: TTF_TIER_LABELS[tier],
+    })),
+    {
+      swatch: <span className="map-legend-swatch map-legend-swatch--dashed" />,
+      label: "1–2 visits",
+    },
+    {
+      swatch: <span className="map-legend-swatch" style={{ background: PIN_RATINGS_COLOR }} />,
+      label: "Ratings",
+    },
+    {
+      swatch: <span className="map-legend-swatch" style={{ background: PIN_NOTES_COLOR }} />,
+      label: "Notes",
+    },
+    {
+      swatch: (
+        <span className="map-legend-swatch" style={{ background: TTF_TIER_COLORS.unknown }} />
+      ),
+      label: "No data",
+    },
+  ];
+}
+
 function MapLegend({
   withSidebar,
   mobileLayout,
@@ -307,49 +337,63 @@ function MapLegend({
   withSidebar: boolean;
   mobileLayout?: boolean;
 }) {
-  const tiers: TtfTier[] = ["fast", "ok", "slow"];
+  const [open, setOpen] = useState(false);
+  const items = legendItems();
+
+  if (mobileLayout) {
+    // Collapsed chip so the legend never crowds the map; expands to a card on tap.
+    return (
+      <div className="absolute bottom-4 left-4 z-[4] flex flex-col items-start gap-2">
+        {open && (
+          <div
+            className="grid gap-2 rounded-lg border border-border bg-surface/95 px-3.5 py-3 text-xs shadow-lg backdrop-blur-sm"
+            aria-label="Map pin legend"
+          >
+            {items.map(({ swatch, label }) => (
+              <span key={label} className="inline-flex items-center gap-2">
+                {swatch}
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
+        <button
+          type="button"
+          className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border border-transparent bg-surface/95 px-3.5 font-[inherit] text-xs font-bold text-text shadow-[0_4px_14px_rgb(47_58_66_/_16%)] backdrop-blur-sm"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={open ? "Hide map key" : "Show map key"}
+        >
+          <span className="inline-flex items-center gap-1" aria-hidden>
+            {(["fast", "ok", "slow"] as TtfTier[]).map((tier) => (
+              <span
+                key={tier}
+                className="h-2 w-2 rounded-full"
+                style={{ background: TTF_TIER_COLORS[tier] }}
+              />
+            ))}
+          </span>
+          Map key
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "absolute flex flex-wrap items-center gap-2 rounded-md bg-surface/92 px-3 py-2 text-xs shadow-sm",
-        mobileLayout
-          ? "top-[calc(1rem+env(safe-area-inset-top,0px))] right-4 max-w-[calc(100%-2rem)] justify-end"
-          : cn(
-              "bottom-4 max-w-[min(36rem,calc(100%-var(--map-panel-width)-2rem))]",
-              withSidebar ? "left-[calc(var(--explore-sidebar-width)+1rem)]" : "left-4",
-            ),
+        "absolute bottom-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-full border border-border/70 bg-surface/95 px-4 py-2 text-xs shadow-md backdrop-blur-sm",
+        "max-w-[min(36rem,calc(100%-var(--map-panel-width)-2rem))]",
+        withSidebar ? "left-[calc(var(--explore-sidebar-width)+1rem)]" : "left-4",
       )}
       aria-label="Map pin legend"
     >
-      <span className="mr-1 font-semibold">Speed tier</span>
-      {tiers.map((tier) => (
-        <span key={tier} className="inline-flex items-center gap-[0.35rem]">
-          <span
-            className="map-legend-swatch"
-            style={{ background: TTF_TIER_COLORS[tier] }}
-          />
-          {TTF_TIER_LABELS[tier]}
+      {items.map(({ swatch, label }) => (
+        <span key={label} className="inline-flex items-center gap-[0.35rem]">
+          {swatch}
+          {label}
         </span>
       ))}
-      <span className="inline-flex items-center gap-[0.35rem]">
-        <span className="map-legend-swatch map-legend-swatch--dashed" />
-        1–2 visits
-      </span>
-      <span className="inline-flex items-center gap-[0.35rem]">
-        <span className="map-legend-swatch" style={{ background: PIN_RATINGS_COLOR }} />
-        Ratings
-      </span>
-      <span className="inline-flex items-center gap-[0.35rem]">
-        <span className="map-legend-swatch" style={{ background: PIN_NOTES_COLOR }} />
-        Notes
-      </span>
-      <span className="inline-flex items-center gap-[0.35rem]">
-        <span
-          className="map-legend-swatch"
-          style={{ background: TTF_TIER_COLORS.unknown }}
-        />
-        No data
-      </span>
     </div>
   );
 }
@@ -371,13 +415,15 @@ function MapRestaurantSheet({
   const { idToken } = useAuth();
   const detailIntentProps = useIntentPrefetch(() => prefetchRestaurantDetail(entry, idToken));
 
+  const pinColor = mapPinFill(entry);
+
   return (
     <aside
       className={cn(
-        "flex flex-col overflow-hidden bg-surface shadow-md",
+        "flex flex-col overflow-hidden bg-surface",
         mobileLayout
-          ? "absolute inset-x-0 bottom-0 max-h-[min(58dvh,28rem)] rounded-t-xl border border-b-0 border-border"
-          : "absolute top-4 right-4 bottom-4 z-[3] min-h-72 w-[var(--map-panel-width)] rounded-lg",
+          ? "absolute inset-x-0 bottom-0 max-h-[min(58dvh,28rem)] rounded-t-[1.5rem] border-t border-border/60 shadow-[0_-12px_36px_rgb(47_58_66_/_22%)]"
+          : "absolute top-4 right-4 bottom-4 z-[3] min-h-72 w-[var(--map-panel-width)] rounded-lg border border-border shadow-lg",
       )}
       style={
         mobileLayout
@@ -386,23 +432,35 @@ function MapRestaurantSheet({
       }
       aria-label={`${entry.name} map details`}
     >
-      <div
-        className={cn(
-          "absolute top-0 bottom-0 left-0 w-1",
-          mobileLayout ? "rounded-tl-xl" : "rounded-l-lg",
-        )}
-        style={{ background: mapPinFill(entry) }}
-        aria-hidden
-      />
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pt-4 pb-3 pl-[calc(1rem+4px)]">
+      {mobileLayout && (
+        <div className="flex shrink-0 justify-center pt-2.5" aria-hidden>
+          <span className="h-1 w-9 rounded-full bg-border-strong" />
+        </div>
+      )}
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pt-3 pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className={cn("m-0 leading-tight", mobileLayout ? "text-xl" : "text-2xl")}>
-              {entry.name}
+            <h2
+              className={cn(
+                "m-0 flex items-center gap-2.5 leading-tight",
+                mobileLayout ? "text-xl" : "text-2xl",
+              )}
+            >
+              <span
+                className="h-3 w-3 shrink-0 rounded-full"
+                style={{
+                  background: pinColor,
+                  boxShadow: `0 0 0 4px color-mix(in srgb, ${pinColor} 18%, transparent)`,
+                }}
+                aria-hidden
+              />
+              <span className="min-w-0">{entry.name}</span>
             </h2>
             <p className="mt-2 text-sm leading-normal text-text-muted">{entry.address}</p>
             {googleOnly && (
-              <Badge variant="brand">Found on Google Maps · scout it in Little Scout</Badge>
+              <Badge variant="brand" className="mt-2">
+                Found on Google Maps · scout it in Little Scout
+              </Badge>
             )}
             {entry.cuisine_tags.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
@@ -416,11 +474,18 @@ function MapRestaurantSheet({
           </div>
           <button
             type="button"
-            className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-md border-0 bg-bg text-xl leading-none text-text-muted hover:text-text"
+            className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-surface-muted text-text-muted transition-colors duration-fast hover:bg-border hover:text-text"
             onClick={onClose}
             aria-label="Close"
           >
-            ×
+            <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+              <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
         </div>
 
@@ -437,7 +502,7 @@ function MapRestaurantSheet({
               showEarlySignal
             />
           ) : (
-            <p className="m-0 rounded-md bg-bg p-3 text-sm text-text-muted">
+            <p className="m-0 rounded-md bg-accent-soft p-3 text-sm font-semibold text-warning">
               No fries timer yet — be the first parent to clock a visit.
             </p>
           )}
@@ -454,7 +519,7 @@ function MapRestaurantSheet({
         </section>
       </div>
 
-      <div className="shrink-0 border-t border-border bg-surface px-4 pt-3 pb-4">
+      <div className="grid shrink-0 gap-2 border-t border-border/70 bg-surface px-4 pt-3 pb-4">
         <ButtonLink to={restaurantDetailPath(entry)} fullWidth viewTransition {...detailIntentProps}>
           {googleOnly ? "Scout this place" : "View full details"}
         </ButtonLink>
@@ -464,7 +529,14 @@ function MapRestaurantSheet({
           </ButtonLink>
         )}
         {googleMapsUrl && (
-          <ButtonAnchor href={googleMapsUrl} target="_blank" rel="noreferrer" variant="ghost" fullWidth>
+          <ButtonAnchor
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            variant="ghost"
+            size="sm"
+            fullWidth
+          >
             View on Google Maps
           </ButtonAnchor>
         )}
@@ -629,10 +701,10 @@ export function RestaurantMap({
         {selectedId && !sheetEntry && (
           <aside
             className={cn(
-              "absolute z-[3] flex flex-col overflow-hidden bg-surface shadow-md",
+              "absolute z-[3] flex flex-col overflow-hidden bg-surface",
               mobileLayout
-                ? "inset-x-0 max-h-48 rounded-t-xl border border-b-0 border-border"
-                : "top-4 right-4 bottom-4 min-h-72 w-[var(--map-panel-width)] rounded-lg",
+                ? "inset-x-0 bottom-0 max-h-48 rounded-t-[1.5rem] border-t border-border/60 shadow-[0_-12px_36px_rgb(47_58_66_/_22%)]"
+                : "top-4 right-4 bottom-4 min-h-72 w-[var(--map-panel-width)] rounded-lg border border-border shadow-lg",
             )}
             style={
               mobileLayout

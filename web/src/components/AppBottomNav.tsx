@@ -34,15 +34,21 @@ export function AppBottomNav({ embedded = false }: AppBottomNavProps) {
             to={tab.to}
             viewTransition
             className={cn(
-              "relative flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-[0.625rem] font-bold font-display leading-none transition-colors duration-fast",
+              "relative flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-md px-1 text-[0.625rem] font-bold font-display leading-none transition-colors duration-fast",
               active ? "text-brand" : "text-text-muted",
             )}
             aria-current={active ? "page" : undefined}
           >
-            <span className="relative text-base leading-none" aria-hidden>
+            <span
+              className={cn(
+                "relative rounded-full px-3 py-0.5 text-base leading-none transition-colors duration-fast",
+                active && "bg-brand-soft",
+              )}
+              aria-hidden
+            >
               {tab.icon}
               {tab.to === "/saved" && unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-1.5 h-2 w-2 rounded-full bg-brand" />
+                <span className="absolute top-0 right-1 h-2 w-2 rounded-full bg-brand" />
               )}
             </span>
             {tab.label}
