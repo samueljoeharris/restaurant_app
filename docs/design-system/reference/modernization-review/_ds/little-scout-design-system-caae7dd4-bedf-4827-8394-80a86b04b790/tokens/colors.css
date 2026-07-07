@@ -1,9 +1,6 @@
 /* Little Scout — color tokens (Bluebird theme).
-   CANONICAL palette (2026-07 modernization review — "light refresh: white
-   surfaces, warm ink"). This file is the source of truth; design/tokens.json
-   mirrors these values, and CI (scripts/verify-design-tokens.sh) fails on any
-   hex drift between the two. See ../../MODERNIZATION.md.
-   Base ramp first, then semantic aliases, then map basemap layers. */
+   Base ramp first, then semantic aliases, then map basemap layers.
+   Maps 1:1 onto the app's design/tokens.json keys (noted in comments). */
 :root {
   /* ---- Brand: sky blue ---- (tokens.json brand) */
   --ls-sky: #3FA7D6;
@@ -102,42 +99,4 @@
     --ls-warning: #E8B82E;
     --ls-error: #E05A4A;
   }
-}
-
-/* ── .dark class overrides — same values as the media-query block above.
-   Web toggles this class on <html> via useTheme(); the DS carries both the
-   class-scoped and prefers-color-scheme forms so either strategy resolves
-   to the same palette (MODERNIZATION.md: "Dark mode strategy"). ── */
-.dark {
-  --ls-sky: #5CB8E8;
-  --ls-sky-deep: #3FA7D6;
-  --ls-sky-soft: #1B3A4D;
-  --ls-mango: #FFC066;
-  --ls-mango-deep: #FFA040;
-  --ls-mango-soft: #3D2D14;
-  --ls-pop: #FFA040;
-  --ls-pop-soft: #3D2D14;
-
-  --ls-paper: #151E27;
-  --ls-surface: #1E2A35;
-  --ls-surface-muted: #192330;
-  --ls-border: #2E3E4D;
-  --ls-border-strong: #3D5060;
-
-  --ls-ink: #E8EDF2;
-  --ls-ink-muted: #8EA0B0;
-  --ls-ink-slate: #C8D8E8;
-
-  --ls-ttf-fast: #3DAB63;
-  --ls-ttf-fast-soft: #0E2519;
-  --ls-ttf-ok: #E8B82E;
-  --ls-ttf-ok-soft: #261D06;
-  --ls-ttf-slow: #E05A4A;
-  --ls-ttf-slow-soft: #2E100C;
-  --ls-ttf-none: #6A7D8C;
-  --ls-ttf-none-soft: #1E2830;
-
-  --ls-success: #3DAB63;
-  --ls-warning: #E8B82E;
-  --ls-error: #E05A4A;
 }

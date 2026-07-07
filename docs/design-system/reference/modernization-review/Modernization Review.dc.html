@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/little-scout-design-system-caae7dd4-bedf-4827-8394-80a86b04b790/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/little-scout-design-system-caae7dd4-bedf-4827-8394-80a86b04b790/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/little-scout-design-system-caae7dd4-bedf-4827-8394-80a86b04b790/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/little-scout-design-system-caae7dd4-bedf-4827-8394-80a86b04b790/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/little-scout-design-system-caae7dd4-bedf-4827-8394-80a86b04b790/tokens/effects.css">
+  <link rel="stylesheet" href="_ds/little-scout-design-system-caae7dd4-bedf-4827-8394-80a86b04b790/styles.css">
+  <script src="_ds/little-scout-design-system-caae7dd4-bedf-4827-8394-80a86b04b790/_ds_bundle.js"></script>
+  <style>
+    /* Pin the canvas to the LIGHT theme — mockups must show the light refresh
+       regardless of OS dark mode. Overrides the DS prefers-color-scheme block. */
+    :root{
+      --ls-sky:#3FA7D6;--ls-sky-deep:#2B8CBC;--ls-sky-soft:#D6EDF7;
+      --ls-mango:#FBA63C;--ls-mango-deep:#E08A1E;--ls-mango-soft:#FCE6C8;
+      --ls-pop:#F08A2E;--ls-pop-soft:#FCE6C8;
+      --ls-paper:#FFFFFF;--ls-surface:#FFFFFF;--ls-surface-muted:#F5F4F3;
+      --ls-border:#EADFC9;--ls-border-strong:#DCCDAE;
+      --ls-ink:#2C2722;--ls-ink-muted:#837766;--ls-ink-slate:#2F3A42;
+      --ls-ttf-fast:#2E8B57;--ls-ttf-fast-soft:#DCEFE2;
+      --ls-ttf-ok:#E0A52E;--ls-ttf-ok-soft:#FBE5C5;
+      --ls-ttf-slow:#D6543B;--ls-ttf-slow-soft:#F7DDD6;
+      --ls-ttf-none:#B4AA98;--ls-ttf-none-soft:#EFEAE0;
+      --ls-success:#2E8B57;--ls-warning:#E0A52E;--ls-error:#D6543B;
+      --ls-map-land:#F6EFE1;--ls-map-water:#CDE7F4;--ls-map-park:#DCEAD2;
+      --ls-map-road-major:#F0E2C2;--ls-map-road-minor:#EFE7D6;--ls-map-label:#8A98A0;
+    }
+    body{margin:0;background:#F0EEE9;font-family:var(--ls-font-body),system-ui,sans-serif}
+    a{color:var(--ls-sky-deep);text-decoration:none}
+    a:hover{color:var(--ls-sky)}
+    .dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+    .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 6px}
+    .dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+    .dv-tname{font:700 15px/1.2 var(--ls-font-display),system-ui,sans-serif;color:#1a1a1a}
+    .dv-tsub{font:600 12px/1.5 var(--ls-font-body),sans-serif;color:rgba(0,0,0,.5);margin:0 0 20px;max-width:760px}
+    .dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+    .dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+    .dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+    .dv-olabel{display:flex;align-items:baseline;gap:8px;font:600 11.5px/1.3 var(--ls-font-body),sans-serif;color:rgba(0,0,0,.6)}
+    .dv-opt:target .dv-oid{background:#2A78D6;color:#fff}
+    .dv-next{margin:22px 0 0;font:600 12px/1.5 var(--ls-font-body),sans-serif;color:rgba(0,0,0,.5)}
+    .dv-note{width:100%;max-width:390px;box-sizing:border-box;background:#FFF9E8;border:1px solid #EAD9A8;border-radius:8px;padding:10px 12px;font:600 11px/1.55 var(--ls-font-body),sans-serif;color:#6B5A2E;display:grid;gap:4px}
+    .dv-note--wide{max-width:1160px}
+    .dv-note b{color:#4A3D1B}
+    .wf{background:#fff;border:1.5px solid #3a3a3a;border-radius:12px;font-family:var(--ls-font-display),system-ui,sans-serif;color:#333;overflow:hidden}
+    .wf-h{font-weight:700;font-size:14px;color:#222}
+    .wf-sub{font:600 10.5px var(--ls-font-body),sans-serif;color:#8a8a8a}
+    .wf-box{border:1.5px dashed #a5a5a5;border-radius:8px;background:#FAFAF8;display:flex;align-items:center;justify-content:center;color:#8a8a8a;font-size:10.5px;font-weight:700;text-align:center}
+    .wf-btn{border:1.5px solid #3a3a3a;border-radius:8px;padding:9px 12px;font-weight:700;font-size:12px;text-align:center;background:#fff;color:#333}
+    .wf-btn--primary{background:#3FA7D6;border-color:#3FA7D6;color:#fff}
+    .wf-pill{border:1.5px solid #a5a5a5;border-radius:999px;padding:4px 10px;font-size:10.5px;font-weight:700;color:#666;display:inline-flex;gap:4px;align-items:center;background:#fff}
+    .wf-pill--on{border-color:#3FA7D6;color:#2B8CBC;background:#EAF5FB}
+    .wf-line{height:8px;border-radius:4px;background:#E4E1DB}
+    .wf-tag{font:700 9px var(--ls-font-body),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#999}
+    .fx{display:flex;align-items:center}
+  </style>
+</helmet>
+
+<section class="dv-turn" id="t1" data-screen-label="Audit">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Validation audit — design system vs main branch</span></div>
+  <p class="dv-tsub">Pulled <b>samueljoeharris/restaurant_app@main</b> (988ea9e, Jul 6). Compared <b>web/src/styles/tokens.generated.css</b> + live page/component code against the bound Little Scout (Bluebird) system, and mapped every routed screen against the UI-kit coverage. Findings below; updated designs for each flow follow in sections <a class="dv-oid" href="#t2">2</a>–<a class="dv-oid" href="#t6">6</a>.</p>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="1a" data-screen-label="Audit — token drift">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Token drift — fix in code (regenerate from design/tokens.json)</div>
+      <div style="width:560px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:18px 20px;display:grid;gap:12px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font:700 10px var(--ls-font-body);letter-spacing:.12em;color:#fff;background:var(--ls-ttf-slow);padding:3px 9px;border-radius:999px">HIGH</span>
+          <span style="font:700 13px var(--ls-font-display);color:#222">web tokens have drifted from the canonical palette</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px 14px;font:600 11.5px var(--ls-font-body);color:#444;align-items:center">
+          <span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#999">TOKEN</span><span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#999">WEB (main)</span><span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#999">DS CANON</span>
+          <span>TTF fast</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#2D8F4E"></i>#2D8F4E</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#2E8B57"></i>#2E8B57</span>
+          <span>TTF ok</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#D4A017"></i>#D4A017</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#E0A52E"></i>#E0A52E</span>
+          <span>TTF slow</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#C0392B"></i>#C0392B</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#D6543B"></i>#D6543B</span>
+          <span>Body text</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#2F3A42"></i>#2F3A42 cool slate</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#2C2722"></i>#2C2722 warm ink</span>
+          <span>Page bg</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#FBF6EC;border:1px solid #ddd"></i>#FBF6EC cream</span><span class="fx" style="gap:6px"><i style="width:13px;height:13px;border-radius:4px;background:#FFFFFF;border:1px solid #ddd"></i>#FFFFFF white</span>
+          <span>Error / success / warning</span><span style="font-size:10.5px">#B42318 / #067647 / #B54708</span><span style="font-size:10.5px">= TTF tier reds/greens/ambers</span>
+          <span>Border / surface-muted</span><span style="font-size:10.5px">#E8DFD0 / #F5EFE3</span><span style="font-size:10.5px">#EADFC9 / #F5F4F3</span>
+          <span>Brand hover</span><span style="font-size:10.5px">#3296C4</span><span style="font-size:10.5px">#2B8CBC</span>
+          <span>Dark page bg</span><span style="font-size:10.5px">#1A2332</span><span style="font-size:10.5px">#151E27</span>
+        </div>
+        <p style="margin:0;font:600 11.5px/1.55 var(--ls-font-body);color:#666">TTF tiers are <b>semantic data colors</b> — one source of truth only. Recommendation: make <code style="font-size:10px">scripts/generate-design-tokens.mjs</code> read the DS <code style="font-size:10px">design/tokens.json</code> verbatim; <code style="font-size:10px">scripts/verify-design-tokens.sh</code> should fail CI on any hex diff.</p>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1b" data-screen-label="Audit — system decisions">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>System decisions — resolve in the DS</div>
+      <div style="width:400px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:18px 20px;display:grid;gap:14px;font:600 11.5px/1.55 var(--ls-font-body);color:#444">
+        <div style="display:grid;gap:4px">
+          <span class="fx" style="gap:8px"><span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#fff;background:var(--ls-ttf-ok);padding:3px 9px;border-radius:999px">MED</span><b style="font-family:var(--ls-font-display);font-size:12.5px;color:#222">Paper-dot texture on the whole page body</b></span>
+          DS says dot-grid is for large empty areas, sparingly. Web applies it to every page. Decide: keep (and codify in DS) or strip to white.
+        </div>
+        <div style="display:grid;gap:4px">
+          <span class="fx" style="gap:8px"><span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#fff;background:var(--ls-ttf-ok);padding:3px 9px;border-radius:999px">MED</span><b style="font-family:var(--ls-font-display);font-size:12.5px;color:#222">Off-palette map-pin colors</b></span>
+          <code style="font-size:10px">--color-pin-ratings #9B6FD9</code> (purple) and <code style="font-size:10px">--color-pin-notes #5BA8D6</code> exist only in web. Purple is outside the Bluebird palette — either add a sanctioned "signal" ramp to the DS or retire the pin classes.
+        </div>
+        <div style="display:grid;gap:4px">
+          <span class="fx" style="gap:8px"><span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#fff;background:var(--ls-ttf-ok);padding:3px 9px;border-radius:999px">MED</span><b style="font-family:var(--ls-font-display);font-size:12.5px;color:#222">Dark mode: class vs media query</b></span>
+          Web ships a manual <code style="font-size:10px">.dark</code> toggle (useTheme); DS only ships <code style="font-size:10px">prefers-color-scheme</code>. Adopt the class strategy into the DS tokens so both stay in sync.
+        </div>
+        <div style="display:grid;gap:4px">
+          <span class="fx" style="gap:8px"><span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#666;background:#EDEBE6;padding:3px 9px;border-radius:999px">LOW</span><b style="font-family:var(--ls-font-display);font-size:12.5px;color:#222">Radius scale mismatch</b></span>
+          Web: 10/14/20/28. DS: buttons 14, cards 18, pills full. Cards render at 20px on web. Pick one scale and regenerate.
+        </div>
+        <div style="display:grid;gap:4px">
+          <span class="fx" style="gap:8px"><span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#666;background:#EDEBE6;padding:3px 9px;border-radius:999px">LOW</span><b style="font-family:var(--ls-font-display);font-size:12.5px;color:#222">Icons: SVG sprite vs emoji</b></span>
+          Web uses <code style="font-size:10px">public/icons.svg</code> stroke icons; DS mandates emoji wayfinding with Lucide as the sanctioned fallback. Confirm the sprite is Lucide-derived and note it in the DS iconography card.
+        </div>
+        <div style="display:grid;gap:4px">
+          <span class="fx" style="gap:8px"><span style="font:700 9.5px var(--ls-font-body);letter-spacing:.1em;color:#666;background:#EDEBE6;padding:3px 9px;border-radius:999px">LOW</span><b style="font-family:var(--ls-font-display);font-size:12.5px;color:#222">Map park green</b></span>
+          Web <code style="font-size:10px">#A8C9A0</code> vs DS sage <code style="font-size:10px">#DCEAD2</code>; land uses cream page bg vs DS warm ivory <code style="font-size:10px">#F6EFE1</code>.
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1c" data-screen-label="Audit — coverage map">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Coverage map — every routed flow vs kit coverage</div>
+      <div style="width:430px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:18px 20px;display:grid;gap:6px;font:600 11.5px/1.5 var(--ls-font-body);color:#444">
+        <span style="font:700 9.5px var(--ls-font-body);letter-spacing:.12em;color:#999">USER APP — ROUTES ON MAIN</span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/login <span style="color:var(--ls-ttf-fast)">in kit · refreshed <a class="dv-oid" href="#2a">2a</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/map (landing) <span style="color:var(--ls-ttf-fast)">in kit · refreshed <a class="dv-oid" href="#2b">2b</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/restaurants/:id <span style="color:var(--ls-ttf-fast)">in kit · refreshed <a class="dv-oid" href="#2c">2c</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">…/rate <span style="color:var(--ls-ttf-fast)">in kit · refreshed <a class="dv-oid" href="#2d">2d</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">…/submit — agent-first #100 <span style="color:var(--ls-ttf-slow)">NOT in kit → <a class="dv-oid" href="#3a">3a</a>·<a class="dv-oid" href="#3b">3b</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/saved + activity inbox <span style="color:var(--ls-ttf-slow)">NOT in kit → <a class="dv-oid" href="#2e">2e</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/account/contributions (+ TTF edit) <span style="color:var(--ls-ttf-ok)">partial → <a class="dv-oid" href="#2f">2f</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/account <span style="color:var(--ls-ttf-fast)">in kit · refreshed <a class="dv-oid" href="#2g">2g</a></span></span>
+        <span style="font:700 9.5px var(--ls-font-body);letter-spacing:.12em;color:#999;margin-top:8px">ROADMAP — NO DESIGN EXISTS</span>
+        <span class="fx" style="gap:8px;justify-content:space-between">#90 answer-first explore <span style="color:var(--ls-ttf-slow)">→ <a class="dv-oid" href="#4a">4a</a>·<a class="dv-oid" href="#4b">4b</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">#91/#85 family profile <span style="color:var(--ls-ttf-slow)">→ <a class="dv-oid" href="#4c">4c</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">#84 visit logging v1 <span style="color:var(--ls-ttf-slow)">→ <a class="dv-oid" href="#4d">4d</a></span></span>
+        <span style="font:700 9.5px var(--ls-font-body);letter-spacing:.12em;color:#999;margin-top:8px">ADMIN CONSOLE</span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/admin · moderation · restaurants · users <span style="color:var(--ls-ttf-fast)">in kit · refreshed <a class="dv-oid" href="#5a">5a</a>–<a class="dv-oid" href="#5d">5d</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/admin/data (observations) <span style="color:var(--ls-ttf-slow)">NOT in kit → <a class="dv-oid" href="#6a">6a</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/admin/tools/locations <span style="color:var(--ls-ttf-slow)">NOT in kit → <a class="dv-oid" href="#6b">6b</a></span></span>
+        <span class="fx" style="gap:8px;justify-content:space-between">/admin/account · /access-denied <span style="color:var(--ls-ttf-slow)">NOT in kit → <a class="dv-oid" href="#6c">6c</a>·<a class="dv-oid" href="#6d">6d</a></span></span>
+      </div>
+    </div>
+  </div>
+  <p class="dv-next">Handoff note for the agent team: each screen below carries a yellow spec card (route, source files, issue #s). Toggle them off in Tweaks. Try next: "expand <a class="dv-oid" href="#3b">3b</a> into a full flow" · "hi-fi the winning explore direction from <a class="dv-oid" href="#4a">4a</a>/<a class="dv-oid" href="#4b">4b</a>".</p>
+</section>
+
+
+<section class="dv-turn" id="t2" data-screen-label="User app hi-fi">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">User app — hi-fi refresh (mobile web, 390px)</span></div>
+  <p class="dv-tsub">Existing flows re-set on the canonical Bluebird tokens: white surfaces, warm ink, correct TTF tier hexes, DS radii, one primary action per screen. Built with the DS core components.</p>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="2a" data-screen-label="Login">
+      <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Login — /login</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:44px 32px 30px;text-align:center">
+          <img src="assets/logo.svg" alt="Little Scout" style="width:96px;height:96px">
+          <div style="display:grid;gap:4px">
+            <span style="font:700 26px var(--ls-font-display);color:var(--ls-ink)">Little Scout</span>
+            <span style="font:600 14px/1.5 var(--ls-font-body);color:var(--ls-ink-muted)">Find places where kid food comes fast.</span>
+          </div>
+          <div style="display:grid;gap:10px;width:100%;margin-top:18px">
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" size="lg" hint-size="100%,50px" style="width:100%">Continue with Google</x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="secondary" size="lg" hint-size="100%,50px" style="width:100%">Continue with Apple</x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="ghost" size="md" hint-size="100%,42px" style="width:100%">Just browse the map for now</x-import>
+          </div>
+          <span style="font:600 11.5px/1.6 var(--ls-font-body);color:var(--ls-ink-muted);margin-top:16px">By continuing you agree to our <a href="#2a">privacy policy</a> and <a href="#2a">moderation policy</a>.</span>
+        </div>
+        <div style="background:var(--ls-sky-soft);padding:14px 24px;display:flex;gap:12px;align-items:center">
+          <img src="assets/mascot.svg" alt="" style="width:44px;height:44px">
+          <span style="font:600 12.5px/1.5 var(--ls-font-body);color:var(--ls-ink-slate)">Parents near you logged <b>214</b> kid-food speeds this week.</span>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> Route /login (LoginPage.tsx). Adds the #72 anonymous-browse entry ("Just browse") so the answer is visible pre-signup. Google is primary; Apple ships with iOS Phase 3 (apple_sign_in.py already on main). Social-proof strip replaces the empty cream footer.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="2b" data-screen-label="Explore map">
+      <div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Explore — /map (landing)</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="padding:10px 14px 8px;display:grid;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;background:var(--ls-surface);border:1.5px solid var(--ls-border-strong);border-radius:9999px;padding:10px 16px;box-shadow:var(--ls-shadow-sm)">
+            <span aria-hidden="true">🔍</span>
+            <span style="font:600 13.5px var(--ls-font-body);color:var(--ls-ink-muted)">Search places or areas…</span>
+          </div>
+          <div style="display:flex;gap:6px;overflow:hidden">
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Fast food speed" icon="⏱️" active="{{ true }}" hint-size="auto,32px"></x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="High chairs" icon="🪑" hint-size="auto,32px"></x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Changing" icon="🚼" hint-size="auto,32px"></x-import>
+          </div>
+        </div>
+        <div style="position:relative;height:300px;background:var(--ls-map-land);overflow:hidden">
+          <div style="position:absolute;right:-60px;top:-40px;width:220px;height:240px;background:var(--ls-map-water);border-radius:46% 54% 60% 40%"></div>
+          <div style="position:absolute;left:26px;bottom:36px;width:110px;height:80px;background:var(--ls-map-park);border-radius:48% 52% 55% 45%"></div>
+          <div style="position:absolute;left:0;top:120px;width:100%;height:9px;background:var(--ls-map-road-major);transform:rotate(-7deg)"></div>
+          <div style="position:absolute;left:150px;top:0;width:7px;height:100%;background:var(--ls-map-road-minor);transform:rotate(9deg)"></div>
+          <span style="position:absolute;left:96px;top:78px;width:17px;height:17px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ls-ttf-fast);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)"></span>
+          <span style="position:absolute;left:206px;top:132px;width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ls-ttf-fast);border:3px solid #fff;box-shadow:0 0 0 4px rgba(63,167,214,.4),0 2px 8px rgba(0,0,0,.25)"></span>
+          <span style="position:absolute;left:288px;top:86px;width:17px;height:17px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ls-ttf-ok);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)"></span>
+          <span style="position:absolute;left:66px;top:186px;width:17px;height:17px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ls-ttf-slow);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)"></span>
+          <span style="position:absolute;left:250px;top:214px;width:17px;height:17px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ls-surface);border:2px solid var(--ls-sky);outline:2px dashed var(--ls-sky);outline-offset:2px"></span>
+          <span style="position:absolute;left:196px;top:118px;background:var(--ls-surface);border:1.5px solid var(--ls-ttf-fast);border-radius:9999px;padding:2px 8px;font:700 10px var(--ls-font-body);color:var(--ls-ink);box-shadow:0 1px 3px rgba(0,0,0,.15)">Nono's · 6 min</span>
+          <div style="position:absolute;right:12px;bottom:14px;width:44px;height:44px;border-radius:50%;background:var(--ls-surface);border:1px solid var(--ls-border);box-shadow:var(--ls-shadow-md);display:flex;align-items:center;justify-content:center;font-size:18px">🎯</div>
+          <div style="position:absolute;left:12px;bottom:14px;background:rgba(255,255,255,.92);border:1px solid var(--ls-border);border-radius:10px;padding:7px 10px;display:grid;gap:3px;font:700 9.5px var(--ls-font-body);color:var(--ls-ink-muted)">
+            <span class="fx" style="gap:5px"><i style="width:8px;height:9px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ls-ttf-fast);border:1px solid #fff"></i>Fast ≤ 8 min</span>
+            <span class="fx" style="gap:5px"><i style="width:8px;height:9px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ls-ttf-ok);border:1px solid #fff"></i>OK 8–15</span>
+            <span class="fx" style="gap:5px"><i style="width:8px;height:9px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ls-ttf-slow);border:1px solid #fff"></i>Slow 15+</span>
+          </div>
+        </div>
+        <div style="background:var(--ls-surface);border-top:1px solid var(--ls-border);border-radius:18px 18px 0 0;margin-top:-14px;position:relative;box-shadow:0 -4px 12px rgba(44,39,34,.07)">
+          <div style="width:38px;height:4px;border-radius:2px;background:var(--ls-border-strong);margin:8px auto 2px"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 16px 2px">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">23 SPOTS IN VIEW</span>
+            <span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Sort: fastest</span>
+          </div>
+          <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.RestaurantListCard" density="compact" name="Nono's Kitchen" ttf-minutes="{{ 6 }}" ttf-tier="fast" active="{{ true }}" watched="{{ true }}" hint-size="100%,54px"></x-import>
+          <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.RestaurantListCard" density="compact" name="Harbor Diner" ttf-minutes="{{ 11 }}" ttf-tier="ok" hint-size="100%,54px"></x-import>
+          <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.RestaurantListCard" density="compact" name="Copper Kettle" hint-size="100%,54px"></x-import>
+        </div>
+        <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.BottomNav" items="{{ navExplore }}" hint-size="100%,58px"></x-import>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> Route /map (ExploreMapPage.tsx, 37KB — the app's heaviest page). Refresh keeps search + chips + sheet but re-tokens the basemap (DS map layers, park sage #DCEAD2) and pins. Discover pins (dashed sky) and early-TTF (dashed white) states kept from map_pin classes. Legend anchors bottom-left per MapLocateFab position.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="2c" data-screen-label="Restaurant detail">
+      <div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Restaurant detail — /restaurants/:id</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="height:130px;background:linear-gradient(120deg,var(--ls-sky-soft),var(--ls-mango-soft));position:relative">
+          <span style="position:absolute;left:14px;top:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:15px">←</span>
+          <span style="position:absolute;right:14px;top:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:15px">💛</span>
+          <span style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font:600 10.5px var(--ls-font-body);color:var(--ls-ink-muted)">photo slot — Places hero</span>
+        </div>
+        <div style="padding:16px 18px 6px;display:grid;gap:12px">
+          <div style="display:grid;gap:3px">
+            <span style="font:700 22px var(--ls-font-display);color:var(--ls-ink)">Nono's Kitchen</span>
+            <span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink-muted)">412 Alder St · Italian · Open until 9pm</span>
+          </div>
+          <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.SpeedBadge" minutes="{{ 6 }}" tier="fast" meta="Median of 12 visits · last logged 2 days ago · dinner runs slower (9 min)" hint-size="100%,120px"></x-import>
+          <div style="display:flex;gap:10px">
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" size="md" hint-size="auto,44px" style="flex:1">Log a visit</x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="secondary" size="md" hint-size="auto,44px">💛 Saved</x-import>
+          </div>
+          <div style="display:grid;gap:8px">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">WHAT PARENTS FOUND</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="High chairs · 9 yes" icon="🪑" active="{{ true }}" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Changing table · 4 yes" icon="🚼" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Noise: lively" icon="🔇" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Add one" icon="＋" dashed="{{ true }}" hint-size="auto,32px"></x-import>
+            </div>
+          </div>
+          <div style="display:grid;gap:6px;background:var(--ls-surface-muted);border-radius:14px;padding:12px 14px">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">RECENT SPEED LOGS</span>
+            <div style="display:flex;align-items:flex-end;gap:5px;height:44px">
+              <div style="flex:1;height:30%;background:var(--ls-ttf-fast);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:45%;background:var(--ls-ttf-fast);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:38%;background:var(--ls-ttf-fast);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:70%;background:var(--ls-ttf-ok);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:34%;background:var(--ls-ttf-fast);border-radius:4px 4px 0 0"></div>
+              <div style="flex:1;height:52%;background:var(--ls-ttf-fast);border-radius:4px 4px 0 0"></div>
+            </div>
+            <span style="font:600 11px var(--ls-font-body);color:var(--ls-ink-muted)">6 visits in the last 90 days — mostly lunch</span>
+          </div>
+          <div style="display:grid;gap:8px;padding-bottom:12px">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">PARENT NOTES</span>
+            <div style="border:1px solid var(--ls-border);border-radius:14px;padding:11px 13px;display:grid;gap:4px">
+              <span style="font:700 12px var(--ls-font-display);color:var(--ls-ink)">"Crayons at the door, pasta in 5"</span>
+              <span style="font:600 11.5px/1.5 var(--ls-font-body);color:var(--ls-ink-muted)">Kids menu came out before drinks. Stroller fit past the bar easily. — Scouting for age 2 · May</span>
+            </div>
+          </div>
+        </div>
+        <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.BottomNav" items="{{ navExplore }}" hint-size="100%,58px"></x-import>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> Routes /restaurants/:id and /restaurants/place/:placeId (RestaurantDetailPage, RestaurantHero, RestaurantTtfStats, ContributionRecencyChart, AttributeSummary, WatchButton). SpeedBadge meta line now carries the daypart caveat — data the API already returns. Recency chart uses tier colors, not brand blue. One primary CTA: Log a visit.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="2d" data-screen-label="Rate attributes">
+      <div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>Rate attributes — …/rate</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="padding:12px 18px 18px;display:grid;gap:14px">
+          <div style="display:grid;gap:3px">
+            <span style="font:600 12px var(--ls-font-body);color:var(--ls-sky-deep)">← Nono's Kitchen</span>
+            <span style="font:700 21px var(--ls-font-display);color:var(--ls-ink)">How was it for kids?</span>
+            <span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink-muted)">Answer any — every one helps another family.</span>
+          </div>
+          <div style="display:grid;gap:7px">
+            <span style="font:700 13px var(--ls-font-display);color:var(--ls-ink)">🪑 High chairs?</span>
+            <div style="display:flex;gap:6px">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Yes" active="{{ true }}" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="No" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Didn't check" hint-size="auto,32px"></x-import>
+            </div>
+          </div>
+          <div style="display:grid;gap:7px">
+            <span style="font:700 13px var(--ls-font-display);color:var(--ls-ink)">🚼 Changing table?</span>
+            <div style="display:flex;gap:6px">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Yes" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="No" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Didn't check" hint-size="auto,32px"></x-import>
+            </div>
+          </div>
+          <div style="display:grid;gap:7px">
+            <span style="font:700 13px var(--ls-font-display);color:var(--ls-ink)">🔇 Noise level?</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Calm" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Lively" active="{{ true }}" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Loud" hint-size="auto,32px"></x-import>
+            </div>
+          </div>
+          <div style="display:grid;gap:7px">
+            <span style="font:700 13px var(--ls-font-display);color:var(--ls-ink)">🍝 Kids-menu quality?</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Great" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Fine" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="None" hint-size="auto,32px"></x-import>
+            </div>
+          </div>
+          <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Input" label="A note for other parents (optional)" placeholder="Crayons at the door, pasta in 5…" hint-size="100%,70px"></x-import>
+          <div style="display:grid;gap:8px;margin-top:2px">
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" size="lg" hint-size="100%,50px" style="width:100%">Share 2 ratings</x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="ghost" size="sm" hint-size="100%,36px" style="width:100%">Skip for now</x-import>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> Route …/rate (RateAttributesPage.tsx, AttributeInput). "Didn't check" replaces leaving blank — cleaner data than silence. Submit label counts answered questions; ghost skip keeps the DS button hierarchy (never two filled buttons).</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="2e" data-screen-label="Saved + activity">
+      <div class="dv-olabel"><a class="dv-oid" href="#2e">2e</a>Saved + activity inbox — /saved (new in kit)</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="padding:12px 16px 16px;display:grid;gap:12px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <span style="font:700 24px var(--ls-font-display);color:var(--ls-ink)">Saved</span>
+            <span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Mark all read</span>
+          </div>
+          <div style="display:grid;gap:8px">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">UPDATES ON YOUR SPOTS</span>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.UpdateCard" name="Nono's Kitchen" tier="fast" is-new="{{ true }}" hint-size="100%,78px">Kid food now 6 min (was 9) — 3 new visits 🎉</x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.UpdateCard" name="Harbor Diner" tier="ok" time="2d" hint-size="100%,78px">New parent note: "booster seats behind the host stand"</x-import>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:var(--ls-mango-soft);border-radius:14px;padding:11px 14px">
+            <span style="font-size:18px">🔔</span>
+            <span style="flex:1;font:600 12px/1.45 var(--ls-font-body);color:var(--ls-mango-deep)">Get a ping when a saved spot speeds up?</span>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="soft" size="sm" hint-size="auto,34px">Turn on</x-import>
+          </div>
+          <div style="display:grid;gap:8px">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">WATCHING · 4</span>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.RestaurantListCard" name="Nono's Kitchen" address="412 Alder St" ttf-minutes="{{ 6 }}" ttf-tier="fast" watched="{{ true }}" badges="{{ badgesKid }}" hint-size="100%,104px"></x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.RestaurantListCard" name="Harbor Diner" address="88 Front St" ttf-minutes="{{ 11 }}" ttf-tier="ok" watched="{{ true }}" badges="{{ badgesQuiet }}" hint-size="100%,104px"></x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.RestaurantListCard" name="Copper Kettle" address="19 Maple Ave" watched="{{ true }}" hint-size="100%,88px"></x-import>
+          </div>
+        </div>
+        <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.BottomNav" items="{{ navSaved }}" hint-size="100%,58px"></x-import>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> Route /saved (SavedPage.tsx, ActivityInbox, PushPrimeBanner, WatchButton, useActivityBadge). Merges the unread-strip + inbox + watch rows into one surface: updates first (that's why parents come back), push prime uses mango soft (#59 web FCM), rows use DS RestaurantListCard instead of the bespoke SavedRow. Empty state keeps the mascot + "Tap 💛 Watch" copy.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="2f" data-screen-label="My contributions">
+      <div class="dv-olabel"><a class="dv-oid" href="#2f">2f</a>My contributions — /account/contributions</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="padding:12px 16px 16px;display:grid;gap:12px">
+          <div style="display:grid;gap:3px">
+            <span style="font:700 24px var(--ls-font-display);color:var(--ls-ink)">My contributions</span>
+            <span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink-muted)">Everything you've logged, grouped by visit.</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;background:var(--ls-sky-soft);border-radius:14px;padding:10px 12px;display:grid;gap:1px"><span style="font:700 20px var(--ls-font-display);color:var(--ls-sky-deep)">17</span><span style="font:700 10.5px var(--ls-font-body);color:var(--ls-ink-muted)">speed logs</span></div>
+            <div style="flex:1;background:var(--ls-surface-muted);border-radius:14px;padding:10px 12px;display:grid;gap:1px"><span style="font:700 20px var(--ls-font-display);color:var(--ls-ink)">31</span><span style="font:700 10.5px var(--ls-font-body);color:var(--ls-ink-muted)">ratings</span></div>
+            <div style="flex:1;background:var(--ls-mango-soft);border-radius:14px;padding:10px 12px;display:grid;gap:1px"><span style="font:700 20px var(--ls-font-display);color:var(--ls-mango-deep)">🥾</span><span style="font:700 10.5px var(--ls-font-body);color:var(--ls-ink-muted)">Trail Scout</span></div>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:18px;overflow:hidden">
+            <div style="background:var(--ls-surface-muted);padding:9px 14px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font:700 12.5px var(--ls-font-display);color:var(--ls-ink)">Nono's Kitchen · Sat Jun 28</span>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="success" hint-size="auto,22px">Live</x-import>
+            </div>
+            <div style="padding:11px 14px;display:grid;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink)">⏱️ Kid food speed — <b>6 min</b> · pasta · ate it</span>
+                <span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Edit</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink)">🪑 High chairs — yes · 🔇 lively</span>
+                <span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Edit</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink-muted)">📝 "Crayons at the door, pasta in 5"</span>
+                <span style="font:700 12px var(--ls-font-display);color:var(--ls-ink-muted)">Delete</span>
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--ls-border);padding:9px 14px">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="soft" size="sm" hint-size="auto,34px">Log it again →</x-import>
+            </div>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:18px;overflow:hidden">
+            <div style="background:var(--ls-surface-muted);padding:9px 14px;display:flex;justify-content:space-between;align-items:center">
+              <span style="font:700 12.5px var(--ls-font-display);color:var(--ls-ink)">Harbor Diner · Sun Jun 15</span>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="warning" hint-size="auto,22px">In review</x-import>
+            </div>
+            <div style="padding:11px 14px">
+              <span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink)">⏱️ Kid food speed — <b>14 min</b> · grilled cheese</span>
+            </div>
+          </div>
+        </div>
+        <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.BottomNav" items="{{ navYou }}" hint-size="100%,58px"></x-import>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> Route /account/contributions (MyContributionsPage.tsx, visitGrouping.ts, logItAgain.ts #87). Visit-grouped cards match the code's grouping; "Log it again" prefills the manual form. Moderation status surfaces as DS Badge (Live / In review) — today the page hides pending state. Edit → /…/ttf/:observationId/edit.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="2g" data-screen-label="Account">
+      <div class="dv-olabel"><a class="dv-oid" href="#2g">2g</a>Account — /account</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="padding:12px 16px 16px;display:grid;gap:12px">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="width:54px;height:54px;border-radius:50%;background:var(--ls-sky-soft);display:flex;align-items:center;justify-content:center;font-size:24px">🙂</div>
+            <div style="display:grid;gap:1px">
+              <span style="font:700 18px var(--ls-font-display);color:var(--ls-ink)">Sam H.</span>
+              <span style="font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">Scouting for age 2 · near Alder Park</span>
+            </div>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="accent" style="margin-left:auto" hint-size="auto,22px">🥾 Trail Scout</x-import>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:18px;padding:13px 14px;display:grid;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">WHO ARE YOU SCOUTING FOR?</span>
+              <span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Edit</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Age 2" active="{{ true }}" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="No nuts" active="{{ true }}" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Stroller" active="{{ true }}" hint-size="auto,32px"></x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.AttributeChip" label="Add" dashed="{{ true }}" hint-size="auto,32px"></x-import>
+            </div>
+            <span style="font:600 11px/1.5 var(--ls-font-body);color:var(--ls-ink-muted)">Used to rank "best for your family" — see <a href="#4a">4a</a>.</span>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:18px;padding:13px 14px;display:grid;gap:12px">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">NOTIFICATIONS</span>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Toggle" checked="{{ true }}" label="Saved-spot updates" hint-size="100%,26px"></x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Toggle" checked="{{ true }}" label="Speed improvements 🎉" hint-size="100%,26px"></x-import>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Toggle" label="Weekly digest email" hint-size="100%,26px"></x-import>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:18px;padding:13px 14px;display:grid;gap:10px">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">SECURITY</span>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font:600 13px var(--ls-font-body);color:var(--ls-ink)">Two-step verification</span>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="success" hint-size="auto,22px">On</x-import>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font:600 13px var(--ls-font-body);color:var(--ls-ink)">Signed in with Google</span>
+              <span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Sign out</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 4px">
+            <span style="font:600 12px var(--ls-font-body);color:var(--ls-ttf-slow)">Delete account & data…</span>
+            <span style="font:600 11px var(--ls-font-body);color:var(--ls-ink-muted)">Privacy · Moderation policy</span>
+          </div>
+        </div>
+        <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.BottomNav" items="{{ navYou }}" hint-size="100%,58px"></x-import>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> Route /account (AccountPage.tsx, MfaSettings, DeleteAccountSettings, family_profile_v2 migration 013). The scouting-for card is the family profile (#91 minimal scope) surfaced where it already half-exists — ages + dietary + stroller as chips. Digest toggle is #97 (greenfield). Danger zone demoted to a text row per DS "one primary action".</div>
+      </sc-if>
+    </div>
+  </div>
+</section>
+
+<section class="dv-turn" id="t3" data-screen-label="Log a visit #100">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Log a visit — agent-first /submit (#100, active now)</span></div>
+  <p class="dv-tsub">Two treatments of the review chat as the primary submit surface. <a class="dv-oid" href="#3a">3a</a> re-skins what's on main (chat + explicit "Preview submission" + draft disclosure). <a class="dv-oid" href="#3b">3b</a> proposes live extraction — the draft fills itself as you type, no preview step. Manual timer/form stays one tap away in both.</p>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="3a" data-screen-label="Log visit — as shipped, refreshed">
+      <div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>As shipped, re-tokened — explicit preview step</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="padding:12px 16px 16px;display:grid;gap:11px">
+          <div style="display:grid;gap:3px">
+            <span style="font:600 12px var(--ls-font-body);color:var(--ls-sky-deep)">← Nono's Kitchen</span>
+            <span style="font:700 21px var(--ls-font-display);color:var(--ls-ink)">Log your visit</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--ls-surface-muted);border-radius:14px;padding:9px 12px">
+            <span style="flex:1;font:600 11.5px/1.4 var(--ls-font-body);color:var(--ls-ink-muted)">Rather not chat?</span>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="secondary" size="sm" hint-size="auto,32px">Fill it out yourself</x-import>
+          </div>
+          <div style="background:var(--ls-surface-muted);border-radius:14px;padding:10px;display:grid;gap:8px">
+            <div style="max-width:86%;justify-self:start;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:14px 14px 14px 4px;padding:9px 12px;font:600 12.5px/1.5 var(--ls-font-body);color:var(--ls-ink)">Want to tell me about your visit in your own words? I'll turn it into kid food speed, parent ratings, and notes for other families.</div>
+            <div style="max-width:86%;justify-self:end;background:var(--ls-sky-soft);border:1px solid rgba(63,167,214,.25);border-radius:14px 14px 4px 14px;padding:9px 12px;font:600 12.5px/1.5 var(--ls-font-body);color:var(--ls-ink)">We waited about 10 minutes for apple slices, high chair was easy, pretty loud around 6pm</div>
+            <div style="max-width:86%;justify-self:start;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:14px 14px 14px 4px;padding:9px 12px;font:600 12.5px/1.5 var(--ls-font-body);color:var(--ls-ink)">Got it — 10 min for apple slices 🎉 and high chairs: yes. Did the kids actually eat it, and was this lunch or dinner?</div>
+          </div>
+          <details open style="border:1px solid var(--ls-border);border-radius:14px;background:var(--ls-surface)">
+            <summary style="padding:10px 14px;font:700 13px var(--ls-font-display);color:var(--ls-ink);cursor:pointer">Your draft <span style="color:var(--ls-sky);font-size:12px;margin-left:6px">2 to add</span></summary>
+            <div style="border-top:1px solid var(--ls-border);padding:11px 14px;display:grid;gap:7px;font:600 12px var(--ls-font-body);color:var(--ls-ink)">
+              <span>⏱️ Speed: <b>10 min</b> · apple slices</span>
+              <span>🪑 High chairs: <b>yes</b> · 🔇 noise: <b>loud</b></span>
+              <span style="font:800 9.5px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ttf-ok);margin-top:2px">STILL NEEDED</span>
+              <span style="color:var(--ls-ink-muted)">· Did they eat it? &nbsp;· Daypart</span>
+            </div>
+          </details>
+          <div style="display:grid;gap:8px">
+            <div style="border:1.5px solid var(--ls-border-strong);border-radius:14px;padding:10px 13px;font:600 13px var(--ls-font-body);color:var(--ls-ink-muted);min-height:40px">They ate it all — this was dinner|</div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="secondary" size="md" hint-size="auto,42px">Preview submission</x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" size="md" hint-size="auto,42px">Send</x-import>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> LogVisitPage.tsx + ReviewChat.tsx layout="sidebar" as merged. Fixes vs main: chat bubbles get DS radii (14/4 corner) instead of uniform rounded-md; draft disclosure opens by default once fields exist; "Still needed" uses TTF-ok amber, not the drifted #B54708. Desktop keeps the md:grid-cols-[1fr_20rem] rail.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="3b" data-screen-label="Log visit — live draft">
+      <div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Proposed — live draft, no preview step</div>
+      <div style="width:390px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:28px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:14px 24px 6px;font:700 12px var(--ls-font-body);color:var(--ls-ink)"><span>9:41</span><span>𝗹𝗹𝗹 ⚡︎</span></div>
+        <div style="padding:12px 16px 0;display:grid;gap:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:grid;gap:2px">
+              <span style="font:600 12px var(--ls-font-body);color:var(--ls-sky-deep)">← Nono's Kitchen</span>
+              <span style="font:700 21px var(--ls-font-display);color:var(--ls-ink)">Log your visit</span>
+            </div>
+            <span style="font:700 11.5px var(--ls-font-display);color:var(--ls-ink-muted)">✍️ form instead</span>
+          </div>
+          <div style="background:var(--ls-surface-muted);border-radius:14px;padding:10px;display:grid;gap:8px">
+            <div style="max-width:86%;justify-self:start;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:14px 14px 14px 4px;padding:9px 12px;font:600 12.5px/1.5 var(--ls-font-body);color:var(--ls-ink)">How'd it go? Tell me anything — how long food took, gear, noise…</div>
+            <div style="max-width:86%;justify-self:end;background:var(--ls-sky-soft);border:1px solid rgba(63,167,214,.25);border-radius:14px 14px 4px 14px;padding:9px 12px;font:600 12.5px/1.5 var(--ls-font-body);color:var(--ls-ink)">Apple slices in 10, kid demolished them. High chair yes, loud at dinner.</div>
+            <div style="max-width:86%;justify-self:start;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:14px 14px 14px 4px;padding:9px 12px;font:600 12.5px/1.5 var(--ls-font-body);color:var(--ls-ink)">Perfect, that's everything I need 🎉 Anything you'd tell another parent? (optional)</div>
+          </div>
+        </div>
+        <div style="margin:10px 16px 0;border:1.5px solid var(--ls-ttf-fast);border-radius:18px;padding:12px 14px;display:grid;gap:9px;background:var(--ls-ttf-fast-soft)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font:800 10px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ttf-fast)">YOUR DRAFT — READY</span>
+            <span style="font:700 11px var(--ls-font-body);color:var(--ls-ttf-fast)">3 of 3 ●●●</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="background:var(--ls-surface);border:1.5px solid var(--ls-ttf-fast);border-radius:9999px;padding:5px 11px;font:700 11.5px var(--ls-font-body);color:var(--ls-ink)">⏱️ 10 min · dinner ✎</span>
+            <span style="background:var(--ls-surface);border:1.5px solid var(--ls-border);border-radius:9999px;padding:5px 11px;font:700 11.5px var(--ls-font-body);color:var(--ls-ink)">🍎 apple slices · ate it ✎</span>
+            <span style="background:var(--ls-surface);border:1.5px solid var(--ls-border);border-radius:9999px;padding:5px 11px;font:700 11.5px var(--ls-font-body);color:var(--ls-ink)">🪑 yes ✎</span>
+            <span style="background:var(--ls-surface);border:1.5px solid var(--ls-border);border-radius:9999px;padding:5px 11px;font:700 11.5px var(--ls-font-body);color:var(--ls-ink)">🔇 loud ✎</span>
+          </div>
+          <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" size="lg" hint-size="100%,50px" style="width:100%">Submit review</x-import>
+        </div>
+        <div style="padding:10px 16px 16px;display:grid;gap:8px">
+          <div style="border:1.5px solid var(--ls-border-strong);border-radius:9999px;padding:11px 16px;display:flex;align-items:center;gap:8px">
+            <span style="flex:1;font:600 13px var(--ls-font-body);color:var(--ls-ink-muted)">Add a note for parents…</span>
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--ls-sky);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:var(--ls-shadow-brand)">↑</span>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note"><b>Spec.</b> Proposed change to ReviewChat: run extractContributionDraft after every assistant turn (it's already a separate call) so the draft card fills live — kills the "Preview submission" button and one whole tap. Draft card border/fill tracks readiness tier: ivory → amber ("2 to add") → fast-green ("Ready"). Each chip ✎ opens the matching manual field pre-filled — the escape hatch becomes per-field, not all-or-nothing. Needs: debounce extraction, moderation copy unchanged.</div>
+      </sc-if>
+    </div>
+  </div>
+  <p class="dv-next">Try next: "storyboard <a class="dv-oid" href="#3b">3b</a> end-to-end including error + moderation states" · "same treatment for the manual timer form".</p>
+</section>
+
+<sc-if value="{{ showWireframes }}" hint-placeholder-val="{{ true }}">
+<section class="dv-turn" id="t4" data-screen-label="Roadmap wireframes">
+  <div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Roadmap flows — wireframes (nothing designed yet)</span></div>
+  <p class="dv-tsub">Low-fi on purpose — structure and flow only, for direction picks before hi-fi. <a class="dv-oid" href="#4a">4a</a>/<a class="dv-oid" href="#4b">4b</a> are the two honest shapes of #90 "answer-first explore"; <a class="dv-oid" href="#4c">4c</a> feeds both.</p>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="4a" data-screen-label="WF — answer card on map">
+      <div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a>#90 A — answer card ON the map</div>
+      <div class="wf" style="width:300px;display:flex;flex-direction:column">
+        <div style="padding:10px 14px 6px;display:flex;justify-content:space-between;align-items:center">
+          <span class="wf-h">Explore</span><span class="wf-tag">map stays landing</span>
+        </div>
+        <div style="position:relative;height:210px;background:repeating-linear-gradient(45deg,#F4F2EE,#F4F2EE 12px,#EFEDE8 12px,#EFEDE8 24px);border-top:1.5px solid #ddd;border-bottom:1.5px solid #ddd">
+          <span style="position:absolute;left:60px;top:50px;width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#3FA7D6;border:2px solid #fff"></span>
+          <span style="position:absolute;left:180px;top:90px;width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#999;border:2px solid #fff"></span>
+          <span style="position:absolute;left:120px;top:140px;width:14px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#999;border:2px solid #fff"></span>
+          <div style="position:absolute;left:10px;top:10px;right:10px" class="wf-box"><span style="padding:6px">search + context pills (age 2 · now · stroller)</span></div>
+        </div>
+        <div style="margin:-30px 12px 0;position:relative;background:#fff;border:2px solid #3FA7D6;border-radius:12px;padding:12px;display:grid;gap:8px;box-shadow:0 4px 10px rgba(0,0,0,.08)">
+          <span class="wf-tag" style="color:#2B8CBC">BEST FOR YOUR FAMILY RIGHT NOW</span>
+          <span class="wf-h" style="font-size:16px">Nono's Kitchen — 6 min ●</span>
+          <div style="display:grid;gap:4px;font:600 11px var(--ls-font-body);color:#666">
+            <span>✓ fast at lunch for toddlers</span>
+            <span>✓ high chairs + stroller space</span>
+            <span>✓ 8 min walk</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <div class="wf-btn wf-btn--primary" style="flex:1">Take us there</div>
+            <div class="wf-btn">Next pick →</div>
+          </div>
+        </div>
+        <div style="padding:10px 14px 12px;display:flex;justify-content:space-between">
+          <span class="wf-pill">runner-up: Harbor Diner · 11 min</span>
+          <span class="wf-pill">list ↓</span>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note" style="max-width:300px"><b>Why this shape.</b> Minimal delta from today's /map — the ranker (#92, family_match.py already on main) powers one card; map interaction untouched. Works for #72 anonymous browse: card renders with a "sign in to personalize" footer. Risk: card covers the sheet on small phones.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="4b" data-screen-label="WF — question-first home">
+      <div class="dv-olabel"><a class="dv-oid" href="#4b">4b</a>#90 B — question-first home, map demoted</div>
+      <div class="wf" style="width:300px;display:flex;flex-direction:column;gap:10px;padding:12px 14px">
+        <span class="wf-h" style="font-size:17px">Where to with the kids?</span>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <span class="wf-pill wf-pill--on">tonight 🌙</span>
+          <span class="wf-pill">age 2</span>
+          <span class="wf-pill">near home</span>
+          <span class="wf-pill">+ change</span>
+        </div>
+        <div style="display:grid;gap:8px">
+          <div style="border:2px solid #3FA7D6;border-radius:10px;padding:10px;display:grid;gap:4px">
+            <div style="display:flex;justify-content:space-between"><span class="wf-h">1. Nono's Kitchen</span><span class="wf-pill wf-pill--on">92% fit</span></div>
+            <span class="wf-sub">6 min ● · high chairs · calm before 6 · why? ▾</span>
+          </div>
+          <div style="border:1.5px solid #bbb;border-radius:10px;padding:10px;display:grid;gap:4px">
+            <div style="display:flex;justify-content:space-between"><span class="wf-h" style="font-weight:600">2. Harbor Diner</span><span class="wf-pill">81%</span></div>
+            <span class="wf-sub">11 min ● · changing table · loud at peak</span>
+          </div>
+          <div style="border:1.5px solid #bbb;border-radius:10px;padding:10px;display:grid;gap:4px">
+            <div style="display:flex;justify-content:space-between"><span class="wf-h" style="font-weight:600">3. Copper Kettle</span><span class="wf-pill">74%</span></div>
+            <span class="wf-sub">no speed data yet — be the first!</span>
+          </div>
+        </div>
+        <div class="wf-box" style="height:70px">map preview — tap to expand to full /map</div>
+        <div style="display:flex;justify-content:space-around;border-top:1.5px solid #ddd;padding-top:8px">
+          <span class="wf-pill wf-pill--on">🧭 Ask</span><span class="wf-pill">🗺️ Map</span><span class="wf-pill">💛</span><span class="wf-pill">🙂</span>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note" style="max-width:300px"><b>Why this shape.</b> The answer IS the screen; the map becomes a view, not the home. Bigger build: new landing route + nav change (Ask replaces Feed), and match-% needs the "why?" disclosure to earn trust (#93 answer card). Better for the TestFlight "parent on the go" bar; riskier vs shipped map habits.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="4c" data-screen-label="WF — family profile">
+      <div class="dv-olabel"><a class="dv-oid" href="#4c">4c</a>#91 family profile — 3 questions, once</div>
+      <div class="wf" style="width:300px;display:flex;flex-direction:column;gap:11px;padding:12px 14px">
+        <span class="wf-tag">ONBOARDING SHEET · ALSO EDITABLE FROM /ACCOUNT (<a class="dv-oid" href="#2g">2g</a>)</span>
+        <span class="wf-h" style="font-size:17px">Who are you scouting for?</span>
+        <div style="display:grid;gap:5px">
+          <span class="wf-sub">KIDS' AGES</span>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <span class="wf-pill">baby</span><span class="wf-pill wf-pill--on">1–3</span><span class="wf-pill">4–7</span><span class="wf-pill">8+</span>
+          </div>
+        </div>
+        <div style="display:grid;gap:5px">
+          <span class="wf-sub">ANYTHING WE MUST AVOID?</span>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <span class="wf-pill wf-pill--on">nut allergy</span><span class="wf-pill">gluten-free</span><span class="wf-pill">dairy</span><span class="wf-pill">none</span>
+          </div>
+        </div>
+        <div style="display:grid;gap:5px">
+          <span class="wf-sub">WHAT MAKES OR BREAKS A SPOT?</span>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <span class="wf-pill wf-pill--on">speed ⏱️</span><span class="wf-pill wf-pill--on">stroller room</span><span class="wf-pill">quiet</span><span class="wf-pill">patio</span>
+          </div>
+        </div>
+        <div class="wf-btn wf-btn--primary">Save — rank places for us</div>
+        <div class="wf-btn" style="border-style:dashed;color:#888">Skip for now</div>
+        <span class="wf-sub" style="text-align:center">3 taps max · no free text · powers <a class="dv-oid" href="#4a">4a</a>/<a class="dv-oid" href="#4b">4b</a> ranking</span>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note" style="max-width:300px"><b>Spec.</b> Rescoped per roadmap: #85 → #91 "minimal constraints only". Maps to migrations 013–016 (family_profile_v2, dietary + atmosphere attributes) — every chip is a column that already exists. Replaces the current OnboardingModal on first /saved visit.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="4d" data-screen-label="WF — visit logging v1">
+      <div class="dv-olabel"><a class="dv-oid" href="#4d">4d</a>#84 visit logging v1 — one sheet, whole visit</div>
+      <div class="wf" style="width:300px;display:flex;flex-direction:column;gap:10px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="wf-h">At Nono's? Log the visit</span>
+          <span class="wf-pill">✕</span>
+        </div>
+        <div style="border:2px solid #3FA7D6;border-radius:12px;padding:14px;display:grid;gap:6px;text-align:center">
+          <span class="wf-tag" style="color:#2B8CBC">STEP 1 · KID FOOD ORDERED</span>
+          <span class="wf-h" style="font-size:26px">04:32</span>
+          <div class="wf-btn wf-btn--primary">Food's here — stop ⏱️</div>
+          <span class="wf-sub">or type it: "about 10 min"</span>
+        </div>
+        <div style="display:grid;gap:5px;opacity:.75">
+          <span class="wf-tag">STEP 2 · WHILE YOU WAIT (OPTIONAL)</span>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <span class="wf-pill">🪑 yes/no</span><span class="wf-pill">🚼 yes/no</span><span class="wf-pill">🔇 calm/loud</span>
+          </div>
+        </div>
+        <div style="display:grid;gap:5px;opacity:.75">
+          <span class="wf-tag">STEP 3 · AFTER — DID THEY EAT IT?</span>
+          <div style="display:flex;gap:5px">
+            <span class="wf-pill">ate it 🎉</span><span class="wf-pill">picked</span><span class="wf-pill">nope</span>
+          </div>
+        </div>
+        <div class="wf-box" style="height:40px">note (voice or text) → feeds chat extractor (<a class="dv-oid" href="#3b">3b</a>)</div>
+        <div class="wf-btn">Save whole visit — works offline, syncs later</div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note" style="max-width:300px"><b>Spec.</b> #84 + timer ideas doc (TTF_SUBMIT_TIMER_IDEAS.md). One sheet lives ON the restaurant detail as a bottom sheet — no route change mid-meal. Timer is step 1 because it's time-sensitive; everything else is optional and can be finished later from My contributions (<a class="dv-oid" href="#2f">2f</a>). Same draft payload as the chat flow — one contribution schema.</div>
+      </sc-if>
+    </div>
+  </div>
+  <p class="dv-next">Try next: "hi-fi <a class="dv-oid" href="#4a">4a</a> with the real map tokens" · "merge <a class="dv-oid" href="#4d">4d</a> into <a class="dv-oid" href="#3b">3b</a> as one flow" · "more directions for #90".</p>
+</section>
+</sc-if>
+
+<section class="dv-turn" id="t5" data-screen-label="Admin hi-fi">
+  <div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">Admin console — hi-fi refresh (ttf-admin-web, 1160px)</span></div>
+  <p class="dv-tsub">The four kitted screens re-set on canonical tokens. Shell: warm-ivory sidebar, white content cards, TTF tiers only where they mean data. Nav gains the two unkitted routes (Data, Locations) so the shell finally matches AdminApp.tsx.</p>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="5a" data-screen-label="Admin — overview">
+      <div class="dv-olabel"><a class="dv-oid" href="#5a">5a</a>Overview — /admin</div>
+      <div style="width:1160px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:18px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex">
+        <div style="width:198px;flex:none;background:var(--ls-surface-muted);border-right:1px solid var(--ls-border);padding:16px 12px;display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:9px;padding:0 8px 14px">
+            <img src="assets/logo.svg" alt="" style="width:30px;height:30px">
+            <div style="display:grid"><span style="font:700 13px var(--ls-font-display);color:var(--ls-ink)">Little Scout</span><span style="font:700 9px var(--ls-font-body);letter-spacing:.12em;color:var(--ls-ink-muted)">OPERATOR</span></div>
+          </div>
+          <div style="background:var(--ls-sky);color:#fff;border-radius:10px;padding:9px 12px;font:700 12.5px var(--ls-font-display)">📊 Overview</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display);display:flex;justify-content:space-between;align-items:center">🛡️ Moderation <span style="background:var(--ls-pop);color:#fff;border-radius:9999px;font:700 10px var(--ls-font-body);padding:1px 7px">4</span></div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🍽️ Restaurants</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🙂 Users</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">📈 Data</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🗺️ Locations</div>
+          <div style="margin-top:auto;border-top:1px solid var(--ls-border);padding:12px 12px 0;font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">🙂 sam@ · Account</div>
+        </div>
+        <div style="flex:1;padding:22px 26px;display:grid;gap:16px;align-content:start">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="display:grid;gap:2px"><span style="font:700 22px var(--ls-font-display);color:var(--ls-ink)">Overview</span><span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink-muted)">Monday, July 6 · all systems normal</span></div>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="secondary" size="sm" hint-size="auto,34px">View audit log</x-import>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <div style="border:1px solid var(--ls-border);border-radius:18px;padding:14px 16px;display:grid;gap:2px"><span style="font:800 9.5px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">PENDING MODERATION</span><span style="font:700 28px var(--ls-font-display);color:var(--ls-pop)">4</span><span style="font:600 11px var(--ls-font-body);color:var(--ls-ink-muted)">oldest 6h — review now</span></div>
+            <div style="border:1px solid var(--ls-border);border-radius:18px;padding:14px 16px;display:grid;gap:2px"><span style="font:800 9.5px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">CONTRIBUTIONS · 7D</span><span style="font:700 28px var(--ls-font-display);color:var(--ls-ink)">214</span><span style="font:600 11px var(--ls-font-body);color:var(--ls-ttf-fast)">▲ 12% vs last week</span></div>
+            <div style="border:1px solid var(--ls-border);border-radius:18px;padding:14px 16px;display:grid;gap:2px"><span style="font:800 9.5px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">ACTIVE SCOUTS · 7D</span><span style="font:700 28px var(--ls-font-display);color:var(--ls-ink)">86</span><span style="font:600 11px var(--ls-font-body);color:var(--ls-ink-muted)">31 first-timers</span></div>
+            <div style="border:1px solid var(--ls-border);border-radius:18px;padding:14px 16px;display:grid;gap:2px"><span style="font:800 9.5px var(--ls-font-body);letter-spacing:.14em;color:var(--ls-ink-muted)">SPEED COVERAGE</span><span style="font:700 28px var(--ls-font-display);color:var(--ls-ink)">62%</span><span style="font:600 11px var(--ls-font-body);color:var(--ls-ink-muted)">of seeded venues have TTF</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px">
+            <div style="border:1px solid var(--ls-border);border-radius:18px;padding:16px 18px;display:grid;gap:10px;align-content:start">
+              <div style="display:flex;justify-content:space-between"><span style="font:700 14px var(--ls-font-display);color:var(--ls-ink)">Needs a human</span><span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Open queue →</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ls-border);padding-bottom:9px"><span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink)">Note flagged: possible phone number · Harbor Diner</span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="warning" hint-size="auto,22px">6h</x-import></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ls-border);padding-bottom:9px"><span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink)">Speed outlier: 45 min vs 7 min median · Nono's</span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="neutral" hint-size="auto,22px">2h</x-import></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink)">New-user burst: 9 notes in 10 min · same venue</span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="error" hint-size="auto,22px">escalated</x-import></div>
+            </div>
+            <div style="border:1px solid var(--ls-border);border-radius:18px;padding:16px 18px;display:grid;gap:10px;align-content:start">
+              <span style="font:700 14px var(--ls-font-display);color:var(--ls-ink)">Seeding & jobs</span>
+              <div style="display:flex;justify-content:space-between;font:600 12.5px var(--ls-font-body);color:var(--ls-ink)"><span>Alder Park refresh</span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="success" hint-size="auto,22px">done · 118 venues</x-import></div>
+              <div style="display:flex;justify-content:space-between;font:600 12.5px var(--ls-font-body);color:var(--ls-ink)"><span>Riverside seed</span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="brand" hint-size="auto,22px">running 64%</x-import></div>
+              <div style="display:flex;justify-content:space-between;font:600 12.5px var(--ls-font-body);color:var(--ls-ink)"><span>Nightly aggregate</span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="success" hint-size="auto,22px">02:00 ✓</x-import></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note dv-note--wide"><b>Spec.</b> Route /admin (AdminDashboardPage.tsx). Changes vs kit: nav includes Data + Locations (routes exist on main, kit omits them); "Needs a human" replaces a generic activity feed — it's the operator's actual job (moderation_service.py signals: flagged content, outliers, burst detection); pending count uses pop orange, never TTF red (that means slow food).</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="5b" data-screen-label="Admin — moderation">
+      <div class="dv-olabel"><a class="dv-oid" href="#5b">5b</a>Moderation queue — /admin/moderation</div>
+      <div style="width:1160px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:18px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex">
+        <div style="width:198px;flex:none;background:var(--ls-surface-muted);border-right:1px solid var(--ls-border);padding:16px 12px;display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:9px;padding:0 8px 14px"><img src="assets/logo.svg" alt="" style="width:30px;height:30px"><span style="font:700 13px var(--ls-font-display);color:var(--ls-ink)">Little Scout</span></div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">📊 Overview</div>
+          <div style="background:var(--ls-sky);color:#fff;border-radius:10px;padding:9px 12px;font:700 12.5px var(--ls-font-display);display:flex;justify-content:space-between;align-items:center">🛡️ Moderation <span style="background:#fff;color:var(--ls-sky-deep);border-radius:9999px;font:700 10px var(--ls-font-body);padding:1px 7px">4</span></div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🍽️ Restaurants</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🙂 Users</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">📈 Data</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🗺️ Locations</div>
+        </div>
+        <div style="flex:1;padding:22px 26px;display:grid;gap:14px;align-content:start">
+          <div style="display:grid;gap:2px"><span style="font:700 22px var(--ls-font-display);color:var(--ls-ink)">Moderation</span><span style="font:600 12.5px var(--ls-font-body);color:var(--ls-ink-muted)">Keep notes safe and medians honest — decisions are audit-logged.</span></div>
+          <div style="display:flex;gap:6px">
+            <span style="background:var(--ls-sky);color:#fff;border-radius:9999px;padding:7px 15px;font:700 12px var(--ls-font-display)">Pending · 4</span>
+            <span style="border:1.5px solid var(--ls-border);border-radius:9999px;padding:7px 15px;font:700 12px var(--ls-font-display);color:var(--ls-ink-muted)">Escalated · 1</span>
+            <span style="border:1.5px solid var(--ls-border);border-radius:9999px;padding:7px 15px;font:700 12px var(--ls-font-display);color:var(--ls-ink-muted)">Resolved</span>
+            <span style="margin-left:auto;border:1.5px solid var(--ls-border);border-radius:9999px;padding:7px 15px;font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">All types ▾</span>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:18px;padding:16px 18px;display:grid;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;gap:8px;align-items:center">
+                <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="warning" hint-size="auto,22px">auto-flag · PII</x-import>
+                <span style="font:700 13.5px var(--ls-font-display);color:var(--ls-ink)">Parent note · Harbor Diner</span>
+              </div>
+              <span style="font:600 11.5px var(--ls-font-body);color:var(--ls-ink-muted)">6h ago · by scout_88 · <b style="color:var(--ls-mango-deep)">🥾 Trail Scout</b> · 41 prior, 0 rejected</span>
+            </div>
+            <div style="background:var(--ls-surface-muted);border-radius:12px;padding:11px 14px;font:600 13px/1.5 var(--ls-font-body);color:var(--ls-ink)">"Ask for Marco, he sets up the corner booth for strollers — call <mark style="background:var(--ls-ttf-ok-soft);color:var(--ls-ttf-ok);border-radius:4px;padding:0 4px">555-0132</mark> ahead"</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" size="sm" hint-size="auto,36px">Approve</x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="secondary" size="sm" hint-size="auto,36px">Approve without phone #</x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="ghost" size="sm" hint-size="auto,36px">Reject…</x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="ghost" size="sm" hint-size="auto,36px">Escalate</x-import>
+              <span style="margin-left:auto;font:600 11px var(--ls-font-body);color:var(--ls-ink-muted)">⌨️ A approve · R reject · E escalate</span>
+            </div>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:18px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;gap:8px;align-items:center">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="neutral" hint-size="auto,22px">outlier</x-import>
+              <span style="font:600 13px var(--ls-font-body);color:var(--ls-ink)">Speed 45 min (median 7) · Nono's Kitchen · new user</span>
+            </div>
+            <span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Review →</span>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:18px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;gap:8px;align-items:center">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="error" hint-size="auto,22px">burst</x-import>
+              <span style="font:600 13px var(--ls-font-body);color:var(--ls-ink)">9 notes / 10 min, one venue · possible spam ring</span>
+            </div>
+            <span style="font:700 12px var(--ls-font-display);color:var(--ls-sky-deep)">Review →</span>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note dv-note--wide"><b>Spec.</b> Route /admin/moderation (AdminModerationPage.tsx, moderation_service.py, migration 010, TEST_FLOWS ADM-*). New vs kit: contributor trust context inline (contributorTrust.ts tiers), flagged-span highlighting, a surgical "approve without phone #" middle action, and keyboard shortcuts for queue speed (#62 QA asks for this).</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="5c" data-screen-label="Admin — restaurants">
+      <div class="dv-olabel"><a class="dv-oid" href="#5c">5c</a>Restaurants — /admin/restaurants (+ drawer)</div>
+      <div style="width:1160px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:18px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex">
+        <div style="width:198px;flex:none;background:var(--ls-surface-muted);border-right:1px solid var(--ls-border);padding:16px 12px;display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:9px;padding:0 8px 14px"><img src="assets/logo.svg" alt="" style="width:30px;height:30px"><span style="font:700 13px var(--ls-font-display);color:var(--ls-ink)">Little Scout</span></div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">📊 Overview</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🛡️ Moderation</div>
+          <div style="background:var(--ls-sky);color:#fff;border-radius:10px;padding:9px 12px;font:700 12.5px var(--ls-font-display)">🍽️ Restaurants</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🙂 Users</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">📈 Data</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🗺️ Locations</div>
+        </div>
+        <div style="flex:1;padding:22px 0 22px 26px;display:flex;gap:0;min-width:0">
+          <div style="flex:1;display:grid;gap:13px;align-content:start;padding-right:20px;min-width:0">
+            <span style="font:700 22px var(--ls-font-display);color:var(--ls-ink)">Restaurants</span>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;border:1.5px solid var(--ls-border-strong);border-radius:9999px;padding:8px 14px;font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">🔍 Search name or place id…</div>
+              <span style="border:1.5px solid var(--ls-border);border-radius:9999px;padding:8px 14px;font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">Tier: all ▾</span>
+              <span style="border:1.5px solid var(--ls-border);border-radius:9999px;padding:8px 14px;font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">Has TTF ▾</span>
+            </div>
+            <div style="border:1px solid var(--ls-border);border-radius:14px;overflow:hidden;font:600 12.5px var(--ls-font-body)">
+              <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:var(--ls-surface-muted);padding:9px 14px;font:800 9.5px var(--ls-font-body);letter-spacing:.12em;color:var(--ls-ink-muted)"><span>NAME</span><span>SPEED</span><span>VISITS</span><span>UPDATED</span></div>
+              <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;border-top:1px solid var(--ls-border);background:var(--ls-sky-soft);color:var(--ls-ink)"><span style="font-weight:700">Nono's Kitchen</span><span class="fx" style="gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:var(--ls-ttf-fast)"></i>6 min</span><span>12</span><span>2d ago</span></div>
+              <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;border-top:1px solid var(--ls-border);color:var(--ls-ink)"><span style="font-weight:700">Harbor Diner</span><span class="fx" style="gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:var(--ls-ttf-ok)"></i>11 min</span><span>8</span><span>5d ago</span></div>
+              <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;border-top:1px solid var(--ls-border);color:var(--ls-ink)"><span style="font-weight:700">Copper Kettle</span><span class="fx" style="gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:var(--ls-ttf-none)"></i>—</span><span>0</span><span>—</span></div>
+              <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;border-top:1px solid var(--ls-border);color:var(--ls-ink)"><span style="font-weight:700">Maple & Main</span><span class="fx" style="gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:var(--ls-ttf-slow)"></i>19 min</span><span>5</span><span>1d ago</span></div>
+            </div>
+            <span style="font:600 11.5px var(--ls-font-body);color:var(--ls-ink-muted)">Showing 4 of 214 · ‹ 1 2 3 … ›</span>
+          </div>
+          <div style="width:330px;flex:none;border-left:1px solid var(--ls-border);background:var(--ls-surface);padding:4px 22px 0;display:grid;gap:12px;align-content:start">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font:700 16px var(--ls-font-display);color:var(--ls-ink)">Nono's Kitchen</span><span style="font:600 14px var(--ls-font-body);color:var(--ls-ink-muted)">✕</span></div>
+            <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.SpeedBadge" minutes="{{ 6 }}" tier="fast" caption="Kid food speed" meta="12 visits · 1 excluded outlier" hint-size="100%,110px"></x-import>
+            <div style="display:grid;gap:6px;font:600 12px var(--ls-font-body);color:var(--ls-ink)">
+              <span style="font:800 9.5px var(--ls-font-body);letter-spacing:.12em;color:var(--ls-ink-muted)">PLACE RECORD</span>
+              <span>Google place · ChIJd8…kA ✓ linked</span>
+              <span>Seeded via Alder Park · refreshed 6d ago</span>
+              <span>Changelog: 14 events</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="secondary" size="sm" hint-size="auto,34px">Refresh from Places</x-import>
+              <x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Button" variant="ghost" size="sm" hint-size="auto,34px">View as parent ↗</x-import>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note dv-note--wide"><b>Spec.</b> Route /admin/restaurants (AdminRestaurantsPage.tsx, restaurant_changelog.py, places_seed.py). Tier dots in the table are the same semantic hexes as the app — the drift in <a class="dv-oid" href="#1a">1a</a> currently makes admin and app disagree about what "fast" looks like. Drawer keeps the kit pattern, adds seed provenance + changelog count.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="5d" data-screen-label="Admin — users">
+      <div class="dv-olabel"><a class="dv-oid" href="#5d">5d</a>Users & trust — /admin/users</div>
+      <div style="width:1160px;background:var(--ls-surface);border:1px solid var(--ls-border);border-radius:18px;box-shadow:var(--ls-shadow-lg);overflow:hidden;display:flex">
+        <div style="width:198px;flex:none;background:var(--ls-surface-muted);border-right:1px solid var(--ls-border);padding:16px 12px;display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:9px;padding:0 8px 14px"><img src="assets/logo.svg" alt="" style="width:30px;height:30px"><span style="font:700 13px var(--ls-font-display);color:var(--ls-ink)">Little Scout</span></div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">📊 Overview</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🛡️ Moderation</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🍽️ Restaurants</div>
+          <div style="background:var(--ls-sky);color:#fff;border-radius:10px;padding:9px 12px;font:700 12.5px var(--ls-font-display)">🙂 Users</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">📈 Data</div>
+          <div style="color:var(--ls-ink);border-radius:10px;padding:9px 12px;font:600 12.5px var(--ls-font-display)">🗺️ Locations</div>
+        </div>
+        <div style="flex:1;padding:22px 26px;display:grid;gap:13px;align-content:start">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font:700 22px var(--ls-font-display);color:var(--ls-ink)">Users & trust</span>
+            <span style="font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">Trust tier sets auto-publish (migration 011)</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;border:1.5px solid var(--ls-border-strong);border-radius:9999px;padding:8px 14px;font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">🔍 Search uid or handle…</div>
+            <span style="border:1.5px solid var(--ls-border);border-radius:9999px;padding:8px 14px;font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">Tier: all ▾</span>
+            <span style="border:1.5px solid var(--ls-border);border-radius:9999px;padding:8px 14px;font:600 12px var(--ls-font-body);color:var(--ls-ink-muted)">Flagged only</span>
+          </div>
+          <div style="border:1px solid var(--ls-border);border-radius:14px;overflow:hidden;font:600 12.5px var(--ls-font-body)">
+            <div style="display:grid;grid-template-columns:1.6fr 1.1fr 1fr 1fr 1.2fr;background:var(--ls-surface-muted);padding:9px 14px;font:800 9.5px var(--ls-font-body);letter-spacing:.12em;color:var(--ls-ink-muted)"><span>SCOUT</span><span>TRUST</span><span>CONTRIBS</span><span>REJECTED</span><span>ACTIONS</span></div>
+            <div style="display:grid;grid-template-columns:1.6fr 1.1fr 1fr 1fr 1.2fr;padding:10px 14px;border-top:1px solid var(--ls-border);align-items:center;color:var(--ls-ink)"><span style="font-weight:700">scout_88 · Sam</span><span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="accent" hint-size="auto,22px">🥾 Trail Scout</x-import></span><span>41</span><span>0</span><span style="color:var(--ls-sky-deep);font-weight:700">View · Adjust tier</span></div>
+            <div style="display:grid;grid-template-columns:1.6fr 1.1fr 1fr 1fr 1.2fr;padding:10px 14px;border-top:1px solid var(--ls-border);align-items:center;color:var(--ls-ink)"><span style="font-weight:700">jenny_pdx</span><span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="brand" hint-size="auto,22px">Pathfinder</x-import></span><span>17</span><span>1</span><span style="color:var(--ls-sky-deep);font-weight:700">View · Adjust tier</span></div>
+            <div style="display:grid;grid-template-columns:1.6fr 1.1fr 1fr 1fr 1.2fr;padding:10px 14px;border-top:1px solid var(--ls-border);align-items:center;color:var(--ls-ink)"><span style="font-weight:700">new_user_4021</span><span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="neutral" hint-size="auto,22px">New scout</x-import></span><span>2</span><span>0</span><span style="color:var(--ls-sky-deep);font-weight:700">View</span></div>
+            <div style="display:grid;grid-template-columns:1.6fr 1.1fr 1fr 1fr 1.2fr;padding:10px 14px;border-top:1px solid var(--ls-border);align-items:center;background:var(--ls-ttf-slow-soft);color:var(--ls-ink)"><span style="font-weight:700">burst_acct_77 ⚠️</span><span><x-import component-from-global-scope="LittleScoutDesignSystem_caae7d.Badge" variant="error" hint-size="auto,22px">Limited</x-import></span><span>9</span><span>6</span><span style="color:var(--ls-sky-deep);font-weight:700">Review · Restore</span></div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note dv-note--wide"><b>Spec.</b> Route /admin/users (AdminUsersPage.tsx, contributorTrust.ts, test_admin_user_actions.py). Trust tiers get scout-themed names (New scout → Pathfinder → Trail Scout) matching the app's badge language; "Limited" row tinted with slow-soft, actions are audit-logged (migration 008).</div>
+      </sc-if>
+    </div>
+  </div>
+</section>
+
+<sc-if value="{{ showWireframes }}" hint-placeholder-val="{{ true }}">
+<section class="dv-turn" id="t6" data-screen-label="Admin wireframes">
+  <div class="dv-thd"><a class="dv-tid" href="#t6">6</a><span class="dv-tname">Admin — screens missing from the kit (wireframes)</span></div>
+  <p class="dv-tsub">These four routes ship on main with no design reference at all. Wireframed from the actual page code so the agent team can hi-fi them against <a class="dv-oid" href="#5a">5a</a>–<a class="dv-oid" href="#5d">5d</a> patterns.</p>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="6a" data-screen-label="WF — data & observations">
+      <div class="dv-olabel"><a class="dv-oid" href="#6a">6a</a>Data & observations — /admin/data</div>
+      <div class="wf" style="width:640px;display:grid;gap:10px;padding:14px 16px">
+        <div style="display:grid;gap:2px">
+          <span class="wf-h" style="font-size:16px">Data & observations</span>
+          <span class="wf-sub">Protect venue medians — flag outliers, exclude bad inputs</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <span class="wf-pill">User UID: ____</span>
+          <span class="wf-pill">Daypart: all ▾</span>
+          <span class="wf-pill wf-pill--on">Excluded: in median ▾</span>
+          <span class="wf-pill" style="margin-left:auto">⬇ export csv</span>
+        </div>
+        <div style="border:1.5px solid #bbb;border-radius:8px;overflow:hidden;font:600 11px var(--ls-font-body);color:#555">
+          <div style="display:grid;grid-template-columns:1.1fr 1.4fr .7fr .9fr .9fr 1.1fr;background:#F4F2EE;padding:7px 10px" class="wf-tag"><span>WHEN</span><span>RESTAURANT</span><span>SPEED</span><span>VS MEDIAN</span><span>USER</span><span>ACTIONS</span></div>
+          <div style="display:grid;grid-template-columns:1.1fr 1.4fr .7fr .9fr .9fr 1.1fr;padding:8px 10px;border-top:1px solid #ddd;align-items:center"><span>Jul 5, 6:12p</span><span>Nono's Kitchen</span><span><b>45 min</b> ⚠️</span><span>median 7 · <b style="color:#C0392B">+543%</b></span><span>a91f3c…</span><span class="wf-pill">Exclude… ▾</span></div>
+          <div style="display:grid;grid-template-columns:1.1fr 1.4fr .7fr .9fr .9fr 1.1fr;padding:8px 10px;border-top:1px solid #ddd;align-items:center"><span>Jul 5, 12:40p</span><span>Harbor Diner</span><span>11 min</span><span>median 11 · ok</span><span>bb02e1…</span><span class="wf-pill">Exclude… ▾</span></div>
+          <div style="display:grid;grid-template-columns:1.1fr 1.4fr .7fr .9fr .9fr 1.1fr;padding:8px 10px;border-top:1px solid #ddd;align-items:center;background:#FAF7F2;color:#999"><span>Jul 4, 5:05p</span><span>Maple & Main</span><span style="text-decoration:line-through">2 min</span><span>excluded: implausible</span><span>c8d1aa…</span><span class="wf-pill">Restore</span></div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="wf-sub">exclude reasons: mistaken entry · duplicate · implausible · other</span>
+          <span class="wf-pill" style="margin-left:auto">‹ 1–30 of 412 ›</span>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note" style="max-width:640px"><b>Spec.</b> Straight from AdminObservationsPage.tsx (filters, columns, exclude-reason enum, strikethrough on excluded, 30/page). Additions worth building: a "vs median %" computed column so outliers pop without mental math, row tint for excluded, csv export. Links from moderation outlier cards (<a class="dv-oid" href="#5b">5b</a>) should deep-link here filtered by uid.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="6b" data-screen-label="WF — catalog refresh">
+      <div class="dv-olabel"><a class="dv-oid" href="#6b">6b</a>Locations & seeding — /admin/tools/locations</div>
+      <div class="wf" style="width:640px;display:grid;gap:10px;padding:14px 16px">
+        <div style="display:grid;gap:2px">
+          <span class="wf-h" style="font-size:16px">Locations & catalog refresh</span>
+          <span class="wf-sub">Seed new areas from Places, keep existing ones fresh</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:10px">
+          <div style="border:1.5px dashed #a5a5a5;border-radius:10px;padding:12px;display:grid;gap:7px">
+            <span class="wf-tag">SEED A NEW AREA</span>
+            <div class="wf-box" style="height:56px">mini map — drop pin + radius drag</div>
+            <span class="wf-pill">radius: 2 km ▾</span>
+            <span class="wf-pill">est. ~120 venues · $ quota ok</span>
+            <div class="wf-btn wf-btn--primary">Queue seed job</div>
+          </div>
+          <div style="border:1.5px solid #bbb;border-radius:10px;overflow:hidden;font:600 11px var(--ls-font-body);color:#555">
+            <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;background:#F4F2EE;padding:7px 10px" class="wf-tag"><span>AREA</span><span>STATUS</span><span>VENUES</span><span>REFRESHED</span></div>
+            <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;padding:8px 10px;border-top:1px solid #ddd;align-items:center"><span>Alder Park</span><span class="wf-pill wf-pill--on">active</span><span>118</span><span>6d · refresh ↻</span></div>
+            <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;padding:8px 10px;border-top:1px solid #ddd;align-items:center"><span>Riverside</span><span class="wf-pill">running ▓▓▓░ 64%</span><span>74/…</span><span>—</span></div>
+            <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;padding:8px 10px;border-top:1px solid #ddd;align-items:center"><span>Old Town</span><span class="wf-pill" style="border-color:#C0392B;color:#C0392B">failed · retry</span><span>—</span><span>err: quota</span></div>
+          </div>
+        </div>
+        <div style="display:grid;gap:5px">
+          <span class="wf-tag">JOB LOG (EXPANDS)</span>
+          <div class="wf-line" style="width:88%"></div>
+          <div class="wf-line" style="width:70%"></div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note" style="max-width:640px"><b>Spec.</b> AdminCatalogRefreshPage.tsx (29KB — today it's forms + tables with no visual hierarchy), seed_jobs.py, migrations 005–007, MAP_SEARCH_AND_SEEDING.md. Wireframe splits intent (seed new) from state (job table), adds quota preflight before queueing — places API spend is the real constraint.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="6c" data-screen-label="WF — admin account">
+      <div class="dv-olabel"><a class="dv-oid" href="#6c">6c</a>Admin account — /admin/account</div>
+      <div class="wf" style="width:300px;display:grid;gap:10px;padding:14px 16px">
+        <span class="wf-h" style="font-size:16px">Your operator account</span>
+        <div style="border:1.5px solid #bbb;border-radius:10px;padding:11px;display:grid;gap:5px;font:600 11.5px var(--ls-font-body);color:#555">
+          <span><b>sam@littlescout.app</b></span>
+          <span>Role: admin (Firebase claim) ✓</span>
+          <span>MFA: on ✓ · IAP session: 11h left</span>
+        </div>
+        <div style="display:grid;gap:5px">
+          <span class="wf-tag">YOUR RECENT ADMIN ACTIONS</span>
+          <span class="wf-sub">· approved note — Harbor Diner · 2h</span>
+          <span class="wf-sub">· excluded observation — Nono's · 1d</span>
+          <span class="wf-sub">· tier change pathfinder → trail — 3d</span>
+          <span class="wf-pill" style="justify-self:start">full audit log →</span>
+        </div>
+        <div class="wf-btn">Sign out</div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note" style="max-width:300px"><b>Spec.</b> AdminAccountPage.tsx is 554 bytes — essentially empty. Cheap win: show claim/MFA/session state (ADMIN_AUTH.md) + the operator's own audit trail (admin_audit.py) for accountability.</div>
+      </sc-if>
+    </div>
+
+    <div class="dv-opt" id="6d" data-screen-label="WF — access denied">
+      <div class="dv-olabel"><a class="dv-oid" href="#6d">6d</a>Access denied — /access-denied</div>
+      <div class="wf" style="width:300px;display:grid;gap:10px;padding:18px 16px;text-align:center;justify-items:center">
+        <img src="assets/mascot.svg" alt="" style="width:64px;height:64px;filter:grayscale(1);opacity:.8">
+        <span class="wf-h" style="font-size:16px">This trail is operators-only</span>
+        <span class="wf-sub" style="max-width:220px">You're signed in as sam@gmail.com, which doesn't have the admin claim.</span>
+        <div class="wf-btn wf-btn--primary" style="width:80%">Switch account</div>
+        <div class="wf-btn" style="width:80%;border-style:dashed;color:#888">Request access (mailto ops)</div>
+        <span class="wf-sub">← back to the parent app</span>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <div class="dv-note" style="max-width:300px"><b>Spec.</b> AdminAccessDeniedPage.tsx. Keeps brand warmth (grayscale mascot = "not for you, no offense") while being unambiguous. Shows WHICH account failed — the #1 confusion in ADMIN_AUTH.md troubleshooting.</div>
+      </sc-if>
+    </div>
+  </div>
+  <p class="dv-next">Try next: "hi-fi <a class="dv-oid" href="#6a">6a</a> and <a class="dv-oid" href="#6b">6b</a> in the <a class="dv-oid" href="#5a">5a</a> shell" · "package everything for the agent handoff".</p>
+</section>
+</sc-if></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;},&quot;showWireframes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const showAnnotations = this.props.showAnnotations ?? true;
+    const showWireframes = this.props.showWireframes ?? true;
+    return {
+      showAnnotations,
+      showWireframes,
+      navExplore: [
+        { icon: "🧭", label: "Feed" },
+        { icon: "🗺️", label: "Explore", active: true },
+        { icon: "💛", label: "Saved" },
+        { icon: "🙂", label: "You" },
+      ],
+      navSaved: [
+        { icon: "🧭", label: "Feed" },
+        { icon: "🗺️", label: "Explore" },
+        { icon: "💛", label: "Saved", active: true },
+        { icon: "🙂", label: "You" },
+      ],
+      navYou: [
+        { icon: "🧭", label: "Feed" },
+        { icon: "🗺️", label: "Explore" },
+        { icon: "💛", label: "Saved" },
+        { icon: "🙂", label: "You", active: true },
+      ],
+      badgesKid: ["🪑 High chairs", "🚼 Changing table"],
+      badgesQuiet: ["🔇 Low noise"],
+    };
+  }
+}
+</script>
+</body>
+</html>
