@@ -187,7 +187,7 @@ Default center: `42.2418, -71.1662`. Catalog key: `dedham-ma` (opaque).
 
 1. **CLI** — `api/scripts/seed_restaurants.py`
 2. **Local bootstrap** — `scripts/start-local.sh` if count = 0
-3. **Admin UI** — `web/src/pages/admin/AdminLocationSeedingPage.tsx`
+3. **Admin UI** — `web/src/pages/admin/AdminCatalogRefreshPage.tsx`
 4. **Cloud Scheduler** — → `POST /v1/internal/scheduled-restaurant-refresh`
 5. **Web users** — `POST /v1/coverage/ensure` (near me, search this area, radius mode)
 
@@ -267,7 +267,7 @@ flowchart TB
 | API map/search | `api/ttf_api/routers/restaurants.py`, `map_query.py` |
 | HTTP cache | `api/ttf_api/http_cache.py` |
 | Seeding | `api/ttf_api/places_seed.py`, `seed_jobs.py`, `coverage.py` |
-| Admin UI | `web/src/pages/admin/AdminLocationSeedingPage.tsx` |
+| Admin UI | `web/src/pages/admin/AdminCatalogRefreshPage.tsx` |
 
 ---
 
