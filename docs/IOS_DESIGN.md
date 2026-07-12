@@ -389,6 +389,7 @@ Note the docker-compose stack runs on your Mac, not in the simulator — `localh
 
 - **Runtime colors:** generated from [`design/tokens.json`](../design/tokens.json) into `Resources/Colors.xcassets/` and `Utilities/Theme.swift` — use `Color.brand`, `Color.bg`, `Color.ttfFast`, etc. Do not hardcode hex in views.
 - **Regenerate:** from repo root, `cd web && npm run tokens:generate` (same script updates iOS asset catalog).
+- **2026-07 refresh:** the Bluebird canon moved to a "white surfaces, warm ink" light refresh (`bg` white, ink `#2C2722`, etc.) — see [MODERNIZATION.md](MODERNIZATION.md). No iOS-specific work is needed: running `scripts/generate-design-tokens.mjs` delivers the refreshed palette to the asset catalog / `Theme.swift` automatically once `design/tokens.json` is updated to match the DS canon.
 - **Typography:** web loads Quicksand + Nunito; iOS currently uses **system fonts** with semantic colors. Bundled custom fonts are a follow-up issue — see design kit [design-system/readme.md](design-system/readme.md).
 - **Map basemap:** teardrop tier pins match web; MapKit uses Apple default land/water with POIs off ([MAP_STYLE.md](MAP_STYLE.md)). Custom basemap colors are web-only (Google Map Style).
 

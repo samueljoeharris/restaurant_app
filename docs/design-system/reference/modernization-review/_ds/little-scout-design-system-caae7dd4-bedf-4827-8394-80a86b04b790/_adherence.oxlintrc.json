@@ -1,0 +1,333 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/core/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Quicksand|Nunito))/i]",
+        "message": "Font not provided by the design system. Available: Quicksand, Nunito."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='AttributeChip'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|icon|active|dashed|key|ref|className|style|children)$/]",
+        "message": "<AttributeChip> doesn't accept that prop. Declared props: label, icon, active, dashed."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|children|style|key|ref|className|style|children)$/]",
+        "message": "<Badge> doesn't accept that prop. Declared props: variant, children, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:neutral|brand|success|warning|error|accent)$/]",
+        "message": "<Badge> variant must be one of 'neutral' | 'brand' | 'success' | 'warning' | 'error' | 'accent'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='BottomNavItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:icon|label|active|onClick|key|ref|className|style|children)$/]",
+        "message": "<BottomNavItem> doesn't accept that prop. Declared props: icon, label, active, onClick."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|size|children|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, size, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:primary|secondary|soft|ghost)$/]",
+        "message": "<Button> variant must be one of 'primary' | 'secondary' | 'soft' | 'ghost'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md|lg)$/]",
+        "message": "<Button> size must be one of 'sm' | 'md' | 'lg'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Input'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|helper|error|style|inputStyle|key|ref|className|style|children)$/]",
+        "message": "<Input> doesn't accept that prop. Declared props: label, helper, error, style, inputStyle."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='RestaurantListCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:name|address|ttfMinutes|ttfTier|ttfLabel|badges|watched|active|density|onSelect|onWatch|style|key|ref|className|style|children)$/]",
+        "message": "<RestaurantListCard> doesn't accept that prop. Declared props: name, address, ttfMinutes, ttfTier, ttfLabel, badges, watched, active, density, onSelect, onWatch, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='RestaurantListCard'] > JSXAttribute[name.name='ttfTier'] > Literal[value!=/^(?:fast|ok|slow|none)$/]",
+        "message": "<RestaurantListCard> ttfTier must be one of 'fast' | 'ok' | 'slow' | 'none'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='RestaurantListCard'] > JSXAttribute[name.name='density'] > Literal[value!=/^(?:default|compact)$/]",
+        "message": "<RestaurantListCard> density must be one of 'default' | 'compact'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='SpeedBadge'] > JSXAttribute > JSXIdentifier[name!=/^(?:minutes|tier|caption|meta|style|key|ref|className|style|children)$/]",
+        "message": "<SpeedBadge> doesn't accept that prop. Declared props: minutes, tier, caption, meta, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='SpeedBadge'] > JSXAttribute[name.name='tier'] > Literal[value!=/^(?:fast|ok|slow|none)$/]",
+        "message": "<SpeedBadge> tier must be one of 'fast' | 'ok' | 'slow' | 'none'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Toggle'] > JSXAttribute > JSXIdentifier[name!=/^(?:checked|onChange|label|style|key|ref|className|style|children)$/]",
+        "message": "<Toggle> doesn't accept that prop. Declared props: checked, onChange, label, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='UpdateCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:name|tier|time|isNew|children|key|ref|className|style|children)$/]",
+        "message": "<UpdateCard> doesn't accept that prop. Declared props: name, tier, time, isNew, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='UpdateCard'] > JSXAttribute[name.name='tier'] > Literal[value!=/^(?:fast|ok|slow|none)$/]",
+        "message": "<UpdateCard> tier must be one of 'fast' | 'ok' | 'slow' | 'none'."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "AttributeChip": {
+        "replaces": []
+      },
+      "Badge": {
+        "replaces": []
+      },
+      "BottomNavItem": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "Input": {
+        "replaces": []
+      },
+      "RestaurantListCard": {
+        "replaces": []
+      },
+      "SpeedBadge": {
+        "replaces": []
+      },
+      "Toggle": {
+        "replaces": []
+      },
+      "UpdateCard": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--accent",
+      "--accent-soft",
+      "--border-default",
+      "--brand",
+      "--brand-hover",
+      "--brand-soft",
+      "--font-body",
+      "--font-display",
+      "--ls-border",
+      "--ls-border-strong",
+      "--ls-dur-fast",
+      "--ls-dur-normal",
+      "--ls-ease-out",
+      "--ls-error",
+      "--ls-font-body",
+      "--ls-font-display",
+      "--ls-ink",
+      "--ls-ink-muted",
+      "--ls-ink-slate",
+      "--ls-leading-body",
+      "--ls-leading-tight",
+      "--ls-mango",
+      "--ls-mango-deep",
+      "--ls-mango-soft",
+      "--ls-map-label",
+      "--ls-map-land",
+      "--ls-map-park",
+      "--ls-map-road-major",
+      "--ls-map-road-minor",
+      "--ls-map-water",
+      "--ls-page-max",
+      "--ls-page-narrow",
+      "--ls-paper",
+      "--ls-paper-dot",
+      "--ls-pop",
+      "--ls-pop-soft",
+      "--ls-radius-button",
+      "--ls-radius-full",
+      "--ls-radius-lg",
+      "--ls-radius-md",
+      "--ls-radius-sm",
+      "--ls-radius-xl",
+      "--ls-shadow-brand",
+      "--ls-shadow-lg",
+      "--ls-shadow-md",
+      "--ls-shadow-sm",
+      "--ls-sidebar-w",
+      "--ls-sky",
+      "--ls-sky-deep",
+      "--ls-sky-soft",
+      "--ls-space-1",
+      "--ls-space-10",
+      "--ls-space-2",
+      "--ls-space-3",
+      "--ls-space-4",
+      "--ls-space-5",
+      "--ls-space-6",
+      "--ls-space-8",
+      "--ls-success",
+      "--ls-surface",
+      "--ls-surface-muted",
+      "--ls-text-body",
+      "--ls-text-display",
+      "--ls-text-h1",
+      "--ls-text-h2",
+      "--ls-text-h3",
+      "--ls-text-label",
+      "--ls-text-number",
+      "--ls-text-sm",
+      "--ls-tracking-label",
+      "--ls-ttf-fast",
+      "--ls-ttf-fast-soft",
+      "--ls-ttf-none",
+      "--ls-ttf-none-soft",
+      "--ls-ttf-ok",
+      "--ls-ttf-ok-soft",
+      "--ls-ttf-slow",
+      "--ls-ttf-slow-soft",
+      "--ls-w-body",
+      "--ls-w-bold",
+      "--ls-w-heavy",
+      "--ls-w-medium",
+      "--ls-warning",
+      "--surface-card",
+      "--surface-muted",
+      "--surface-page",
+      "--text-body",
+      "--text-muted",
+      "--text-on-brand"
+    ],
+    "tokenKinds": {
+      "--ls-sky": "color",
+      "--ls-sky-deep": "color",
+      "--ls-sky-soft": "color",
+      "--ls-mango": "color",
+      "--ls-mango-deep": "color",
+      "--ls-mango-soft": "color",
+      "--ls-pop": "color",
+      "--ls-pop-soft": "color",
+      "--ls-paper": "color",
+      "--ls-surface": "color",
+      "--ls-surface-muted": "color",
+      "--ls-border": "color",
+      "--ls-border-strong": "color",
+      "--ls-ink": "color",
+      "--ls-ink-muted": "color",
+      "--ls-ink-slate": "color",
+      "--ls-ttf-fast": "color",
+      "--ls-ttf-fast-soft": "color",
+      "--ls-ttf-ok": "color",
+      "--ls-ttf-ok-soft": "color",
+      "--ls-ttf-slow": "color",
+      "--ls-ttf-slow-soft": "color",
+      "--ls-ttf-none": "color",
+      "--ls-ttf-none-soft": "color",
+      "--ls-success": "color",
+      "--ls-warning": "color",
+      "--ls-error": "color",
+      "--ls-map-land": "color",
+      "--ls-map-water": "color",
+      "--ls-map-park": "color",
+      "--ls-map-road-major": "color",
+      "--ls-map-road-minor": "color",
+      "--ls-map-label": "color",
+      "--brand": "color",
+      "--brand-hover": "color",
+      "--brand-soft": "color",
+      "--accent": "color",
+      "--accent-soft": "color",
+      "--surface-page": "color",
+      "--surface-card": "color",
+      "--surface-muted": "color",
+      "--border-default": "color",
+      "--text-body": "font",
+      "--text-muted": "font",
+      "--text-on-brand": "font",
+      "--ls-font-display": "font",
+      "--ls-font-body": "font",
+      "--font-display": "font",
+      "--font-body": "font",
+      "--ls-w-body": "other",
+      "--ls-w-medium": "other",
+      "--ls-w-bold": "other",
+      "--ls-w-heavy": "other",
+      "--ls-text-display": "font",
+      "--ls-text-h1": "font",
+      "--ls-text-h2": "font",
+      "--ls-text-h3": "font",
+      "--ls-text-number": "font",
+      "--ls-text-body": "font",
+      "--ls-text-sm": "font",
+      "--ls-text-label": "font",
+      "--ls-tracking-label": "font",
+      "--ls-leading-body": "font",
+      "--ls-leading-tight": "font",
+      "--ls-space-1": "spacing",
+      "--ls-space-2": "spacing",
+      "--ls-space-3": "spacing",
+      "--ls-space-4": "spacing",
+      "--ls-space-5": "spacing",
+      "--ls-space-6": "spacing",
+      "--ls-space-8": "spacing",
+      "--ls-space-10": "spacing",
+      "--ls-page-max": "spacing",
+      "--ls-page-narrow": "spacing",
+      "--ls-sidebar-w": "spacing",
+      "--ls-radius-sm": "radius",
+      "--ls-radius-md": "radius",
+      "--ls-radius-lg": "radius",
+      "--ls-radius-xl": "radius",
+      "--ls-radius-full": "radius",
+      "--ls-radius-button": "radius",
+      "--ls-shadow-sm": "shadow",
+      "--ls-shadow-md": "shadow",
+      "--ls-shadow-lg": "shadow",
+      "--ls-shadow-brand": "shadow",
+      "--ls-ease-out": "other",
+      "--ls-dur-fast": "other",
+      "--ls-dur-normal": "other",
+      "--ls-paper-dot": "color"
+    },
+    "fontFamilies": [
+      "Nunito",
+      "Quicksand"
+    ]
+  }
+}

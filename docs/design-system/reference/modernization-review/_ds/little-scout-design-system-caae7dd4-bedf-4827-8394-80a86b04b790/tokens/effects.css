@@ -16,11 +16,10 @@
   --ls-shadow-brand: 0 4px 12px rgba(63, 167, 214, 0.28); /* on sky-blue buttons */
 
   /* motion */
-  --ls-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ls-dur-fast: 150ms;
-  --ls-dur-normal: 250ms;
+  --ls-ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* @kind other */
+  --ls-dur-fast: 150ms; /* @kind other */
+  --ls-dur-normal: 250ms; /* @kind other */
 
-  /* paper texture (dot grid) — reserved for large empty areas only, never
-     the whole page body (MODERNIZATION.md: "Paper-dot texture on page body") */
+  /* paper texture (warm dot grid) */
   --ls-paper-dot: #EBEBEB;
 }

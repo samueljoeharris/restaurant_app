@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" fill="none" role="img" aria-label="Little Scout fox mascot">
+  <defs>
+    <linearGradient id="m-fur" x1="55" y1="70" x2="150" y2="230" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F08A4A"></stop>
+      <stop offset="1" stop-color="#D9692E"></stop>
+    </linearGradient>
+    <linearGradient id="m-fur-arm" x1="120" y1="60" x2="150" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E8804099"></stop>
+      <stop offset="0" stop-color="#F08A4A"></stop>
+      <stop offset="1" stop-color="#DC6E30"></stop>
+    </linearGradient>
+    <radialGradient id="m-star" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFE3A6"></stop>
+      <stop offset="1" stop-color="#FBA63C"></stop>
+    </radialGradient>
+  </defs>
+
+  
+  <ellipse cx="100" cy="240" rx="50" ry="8" fill="rgba(44,39,34,0.10)"></ellipse>
+
+  
+  <circle cx="166" cy="44" r="13" fill="#FBA63C" opacity="0.16"></circle>
+  <path d="M166 31 L169 41 L179 44 L169 47 L166 57 L163 47 L153 44 L163 41 Z" fill="url(#m-star)"></path>
+  <circle cx="150" cy="64" r="2.4" fill="#FBA63C" opacity="0.8"></circle>
+  <circle cx="178" cy="60" r="1.8" fill="#FBA63C" opacity="0.7"></circle>
+
+  
+  <path d="M64 184 C40 192 30 214 40 232 C48 240 60 234 64 222 C66 212 70 200 78 192 Z" fill="url(#m-fur)"></path>
+  <path d="M44 226 C36 222 33 212 38 204 C44 214 50 220 56 222 C52 228 48 228 44 226 Z" fill="#FBE9DA"></path>
+
+  
+  <rect x="52" y="150" width="40" height="52" rx="11" fill="#2B8CBC"></rect>
+  <rect x="58" y="156" width="28" height="8" rx="4" fill="#FBA63C"></rect>
+  <rect x="58" y="170" width="28" height="8" rx="4" fill="#FBA63C"></rect>
+  <circle cx="72" cy="190" r="6" fill="#1E6FA0"></circle>
+  <circle cx="72" cy="190" r="3" fill="#185D8F"></circle>
+
+  
+  <ellipse cx="82" cy="228" rx="22" ry="12" fill="#C95E28"></ellipse>
+  <ellipse cx="120" cy="228" rx="22" ry="12" fill="#C95E28"></ellipse>
+  <circle cx="73" cy="226" r="3.5" fill="#B5552A"></circle><circle cx="82" cy="231" r="3.5" fill="#B5552A"></circle><circle cx="91" cy="226" r="3.5" fill="#B5552A"></circle>
+  <circle cx="111" cy="226" r="3.5" fill="#B5552A"></circle><circle cx="120" cy="231" r="3.5" fill="#B5552A"></circle><circle cx="129" cy="226" r="3.5" fill="#B5552A"></circle>
+
+  
+  <path d="M70 222 C64 180 76 150 100 150 C124 150 136 180 130 222 Z" fill="url(#m-fur)"></path>
+  
+  <path d="M88 222 C84 188 92 168 102 168 C112 168 118 188 114 222 Z" fill="#F6B584" opacity="0.6"></path>
+
+  
+  <path d="M74 162 C62 168 56 184 60 200 C63 208 71 208 75 200 C77 190 78 176 84 168 Z" fill="url(#m-fur)"></path>
+  <ellipse cx="65" cy="202" rx="9" ry="6.5" fill="#C95E28" transform="rotate(12 65 202)"></ellipse>
+
+  
+  <path d="M118 160 C134 152 146 130 152 96" stroke="url(#m-fur-arm)" stroke-width="17" stroke-linecap="round" fill="none"></path>
+  
+  <circle cx="153" cy="92" r="9" fill="#E07B45"></circle>
+  <circle cx="156" cy="82" r="4" fill="#E07B45"></circle>
+
+  
+  <path d="M72 150 Q100 164 128 150 L124 140 Q100 152 76 140 Z" fill="#3FA7D6"></path>
+  <path d="M72 150 Q100 158 128 150 L126 145 Q100 154 74 145 Z" fill="#2B8CBC" opacity="0.5"></path>
+  <circle cx="100" cy="155" r="5" fill="#2B8CBC"></circle>
+  <circle cx="100" cy="155" r="2.5" fill="#237AAF"></circle>
+
+  
+  <path d="M62 96 L50 52 L92 80 Z" fill="url(#m-fur)"></path>
+  <path d="M66 90 L58 60 L86 80 Z" fill="#F6B584"></path>
+  <path d="M134 92 L146 54 L106 78 Z" fill="#D9692E"></path>
+  <path d="M130 88 L138 62 L110 78 Z" fill="#E89A6A"></path>
+
+  
+  <ellipse cx="98" cy="104" rx="42" ry="38" fill="url(#m-fur)"></ellipse>
+  
+  <ellipse cx="74" cy="110" rx="17" ry="18" fill="#C95E28" opacity="0.32"></ellipse>
+
+  
+  <ellipse cx="116" cy="116" rx="26" ry="21" fill="#FBE3CE"></ellipse>
+
+  
+  <ellipse cx="90" cy="96" rx="11" ry="12" fill="#fff"></ellipse>
+  <ellipse cx="118" cy="93" rx="10" ry="11" fill="#fff"></ellipse>
+  <circle cx="94" cy="92" r="6" fill="#2C2722"></circle>
+  <circle cx="121" cy="89" r="5.5" fill="#2C2722"></circle>
+  <circle cx="96.5" cy="89.5" r="2" fill="#fff"></circle>
+  <circle cx="123" cy="86.5" r="1.8" fill="#fff"></circle>
+
+  
+  <path d="M78 80 Q90 73 102 80" stroke="#C95E28" stroke-width="3" stroke-linecap="round" fill="none"></path>
+  <path d="M108 78 Q120 72 131 79" stroke="#C95E28" stroke-width="2.6" stroke-linecap="round" fill="none"></path>
+
+  
+  <ellipse cx="129" cy="110" rx="8" ry="6.5" fill="#2C2722"></ellipse>
+  <ellipse cx="126" cy="107" rx="2.6" ry="1.8" fill="rgba(255,255,255,0.4)"></ellipse>
+
+  
+  <path d="M112 122 Q121 131 131 122" stroke="#2C2722" stroke-width="2.6" stroke-linecap="round" fill="none"></path>
+
+  
+  <ellipse cx="78" cy="120" rx="11" ry="7" fill="#F08A2E" opacity="0.22"></ellipse>
+</svg>

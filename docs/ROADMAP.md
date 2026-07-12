@@ -15,6 +15,7 @@ One-screen north star for what we're building next. **GitHub Issues are the queu
 - **Area labels:** `area:ios`, `area:web`, `area:infra`, `area:api`.
 - **Type labels:** `type:launch-blocker`, `type:debt`.
 - **Research docs** (`AI_CONTRIBUTION_RESEARCH.md`, `MAP_SEARCH_AND_SEEDING.md`, etc.) are design notes — link from issues; they do not compete with this queue.
+- **Design decisions** from the 2026-07 modernization review live in [MODERNIZATION.md](MODERNIZATION.md); implementation issue drafts in [`backlog/modernization/`](backlog/modernization/).
 - Before starting new feature work: check this doc and issues; new work needs a `now` issue or an explicit bump of something out of `now`.
 
 Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones: [IOS_DESIGN.md §13](IOS_DESIGN.md#13-milestones).
@@ -25,7 +26,7 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 | Issue | Summary |
 |-------|---------|
-| [#100](https://github.com/samueljoeharris/restaurant_app/issues/100) | **Log a visit: agent-first entry** — review chat as primary `/submit` surface + draft sidebar; manual form is the DIY fallback |
+| [#100](https://github.com/samueljoeharris/restaurant_app/issues/100) | **Log a visit: agent-first entry** — review chat as primary `/submit` surface + draft sidebar; manual form is the DIY fallback. Direction picked: **live draft, no preview step**, phased — see [MODERNIZATION.md](MODERNIZATION.md) |
 | [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline (blocked on [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) secrets) |
 | [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | **App Store Connect secrets + iOS CI signing** — the one human-only blocker; see [TESTFLIGHT_EXECUTION_PLAN.md](TESTFLIGHT_EXECUTION_PLAN.md) §2 |
 
@@ -35,7 +36,7 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 | Issue | Summary |
 |-------|---------|
-| [#90](https://github.com/samueljoeharris/restaurant_app/issues/90) | **Epic:** Best for your family here — answer-first explore (minimal) |
+| [#90](https://github.com/samueljoeharris/restaurant_app/issues/90) | **Epic:** Best for your family here — answer-first explore (minimal). Direction picked: **answer card on the map** (canvas 4a); question-first home (4b) parked — see [MODERNIZATION.md](MODERNIZATION.md) |
 | [#91–#95](https://github.com/samueljoeharris/restaurant_app/issues/90) | Profile → ranker → answer card → explore simplify → smooth shell (#78 SWR/prefetch/transitions) |
 | [#84](https://github.com/samueljoeharris/restaurant_app/issues/84) | Visit logging v1 — one quick flow to log a whole visit |
 | [#85](https://github.com/samueljoeharris/restaurant_app/issues/85) | Family profile — **rescope to [#91](https://github.com/samueljoeharris/restaurant_app/issues/91)** (minimal constraints only) |
@@ -83,4 +84,4 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 ---
 
-*Last updated: 2026-07-06. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
+*Last updated: 2026-07-07. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*

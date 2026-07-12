@@ -2,12 +2,15 @@
 
 A warm, friendly design system for **Little Scout**, the social restaurant-rating app that helps **parents and caregivers** find kid-friendly places to eat. The flagship metric is **kid food speed** (time-to-food, "TTF" internally) — how fast kid-friendly food reaches the table — alongside crowd-sourced parent signals (high chairs, changing tables, noise, kids-menu quality).
 
-This is the **"Bluebird" whimsical theme**: subtle whimsy on a clean, trustworthy base — sky-blue brand, mango accent, warm-ivory paper, rounded everything, friendly rounded type. The kid-food-speed tiers stay green/amber/red because they carry data meaning.
+This is the **"Bluebird" whimsical theme**: subtle whimsy on a clean, trustworthy base — sky-blue brand, mango accent, crisp **white** surfaces with warm ink, rounded everything, friendly rounded type. The kid-food-speed tiers stay green/amber/red because they carry data meaning. A full **dark mode** ships alongside it (see Dark mode, below).
+
+> **2026-07 modernization review:** this DS was refreshed from a warm-ivory-paper theme to the "light refresh: white surfaces, warm ink" canon recorded here. See [`../MODERNIZATION.md`](../MODERNIZATION.md) for the full decision record.
 
 ## Sources
 
-- **App codebase:** `github.com/samueljoeharris/restaurant_app` — web pilot (Vite + React, `web/src`), API (Cloud Run), iOS (SwiftUI + MapKit). **Runtime tokens:** `design/tokens.json` (see [DESIGN_TOKENS.md](../DESIGN_TOKENS.md)); kit CSS here is reference mock only.
-- **Originating UX exploration:** the low-fi wireframe flows + admin console, preserved in `reference/` (open the `.dc.html` files). The hi-fi system here is their successor.
+- **This DS is canonical.** `docs/design-system/tokens/*.css` (starting with [`tokens/colors.css`](tokens/colors.css)) is the source-of-truth palette. `design/tokens.json` in the app codebase **mirrors** these values — it does not set them. CI (`scripts/verify-design-tokens.sh`) fails the build on any hex drift between the two; see [DESIGN_TOKENS.md](../DESIGN_TOKENS.md).
+- **App codebase:** `github.com/samueljoeharris/restaurant_app` — web pilot (Vite + React, `web/src`), API (Cloud Run), iOS (SwiftUI + MapKit). Token regeneration (`scripts/generate-design-tokens.mjs`) flows this DS's values into web CSS and the iOS asset catalog / `Theme.swift`.
+- **Originating UX exploration:** the low-fi wireframe flows + admin console, preserved in `reference/` (open the `.dc.html` files). The hi-fi system here is their successor; the 2026-07 modernization review canvas is also under `reference/modernization-review/`.
 - Don't assume the reader has access to the repo; key values are captured below.
 
 ---
@@ -28,23 +31,25 @@ This is the **"Bluebird" whimsical theme**: subtle whimsy on a clean, trustworth
 
 ## VISUAL FOUNDATIONS
 
-- **Color:** sky blue `#3FA7D6` (brand), mango `#FBA63C` (accent), pop `#F08A2E` (new/alert). Warm-ivory neutrals: paper `#FBF6EC`, surface white, ivory borders `#EADFC9`. Ink `#2C2722` (warm) / `#2F3A42` (cool slate, used in map/figure contexts). **TTF tiers are semantic and theme-constant:** fast `#2E8B57`, ok `#E0A52E`, slow `#D6543B`, none `#B4AA98`. See `tokens/colors.css`.
+- **Color:** sky blue `#3FA7D6` (brand, hover `#2B8CBC`), mango `#FBA63C` (accent), pop `#F08A2E` (new/alert). Clean neutrals: page/surface **white** `#FFFFFF`, muted surface `#F5F4F3`, borders `#EADFC9` / `#DCCDAE` (strong). Ink `#2C2722` (warm) / muted ink `#837766` / `#2F3A42` (cool slate, used in map/figure contexts). **TTF tiers are semantic and theme-constant** — and error/success/warning reuse the same hexes, one source of truth for semantic data color: fast `#2E8B57`, ok `#E0A52E`, slow `#D6543B`, none `#B4AA98`. See `tokens/colors.css`.
+- **Dark mode:** class-based — `.dark` on the root element (web toggles it via `useTheme()`) — with a `@media (prefers-color-scheme: dark)` fallback for consumers that haven't wired the toggle. Both blocks carry identical values (dark page bg `#151E27`). See `tokens/colors.css`.
 - **Type:** Quicksand (display, headings, big TTF numbers — rounded & optimistic) + Nunito (UI & body — exceptionally legible one-handed). 800-weight tracked uppercase for eyebrow labels. No third family. See `tokens/typography.css`.
-- **Shape:** generous rounding — cards 18px, buttons 14px, pills/avatars/toggles full. Nothing sharp.
+- **Shape:** generous rounding — cards 18px, buttons 14px, pills/avatars/toggles full. Nothing sharp. (`tokens.json radius.lg` is being aligned from 20 → 18 to match; tracked as a separate code issue.)
 - **Elevation:** warm-tinted soft shadows (brown/slate, never harsh gray): `--ls-shadow-sm/md/lg`; brand buttons carry a soft sky glow.
-- **Backgrounds:** warm-ivory paper, often with a subtle **dot-grid texture** (`radial-gradient(--ls-paper-dot 1.4px …) 26px`). No photographic or gradient-heavy backgrounds; gradients only as a quiet placeholder for imagery.
-- **Cards:** white, 1px ivory border, generous radius, soft `sm` shadow. Update/feed cards carry a leading tier dot.
+- **Backgrounds:** clean **white** surfaces. The **dot-grid texture** (`--ls-paper-dot`) is reserved for large empty areas only (e.g. empty states) — **never the whole page body**. Page bodies are plain `bg`. No photographic or gradient-heavy backgrounds; gradients only as a quiet placeholder for imagery.
+- **Cards:** white, 1px border (`--ls-border`), generous radius, soft `sm` shadow. Update/feed cards carry a leading tier dot.
 - **Imagery:** real photos drop into rounded slots; never hand-drawn SVG illustration. A geometric **scout-compass emblem** is the logo (sky badge + mango/pop needle); a richer mascot is a supply-the-art placeholder.
-- **Maps:** custom basemap in warm-ivory land / sky-blue water / sage parks with POIs & dense labels **off**; locations are teardrop pins in TTF-tier colors. Basemap layer hex in `tokens/colors.css` (`--ls-map-*`) and the `Map basemap palette` card.
+- **Maps:** custom basemap in warm land `#F6EFE1` / sky-blue water `#CDE7F4` / sage parks `#DCEAD2` with POIs & dense labels **off**; locations are teardrop pins in TTF-tier colors — the off-palette `pinRatings` (purple) and `pinNotes` tokens are **retired**; there is no purple in Bluebird. Basemap layer hex in `tokens/colors.css` (`--ls-map-*`) and the `Map basemap palette` card.
 - **Motion:** gentle — `--ls-ease-out` `cubic-bezier(.22,1,.36,1)`, 150/250ms. Toggles slide; cards lift subtly. No bounces or springy overshoot.
 - **States:** hover/press = slight lift or soft filter darken; active nav/tab in sky blue; one primary action per surface.
-- **Don'ts:** no all-over gradients, no cool-gray surfaces (warm only), don't stack accents (sky AND mango fighting on one card), no sharp corners, never let whimsy bury the data parents came for.
+- **Don'ts:** no all-over gradients, no cool-gray surfaces (warm only), don't stack accents (sky AND mango fighting on one card), no sharp corners, no off-palette pin colors, never let whimsy bury the data parents came for.
 
 ---
 
 ## ICONOGRAPHY
 
-- **Primary set:** emoji, used sparingly as wayfinding (🧭 🗺️ 💛 🙂 🪑 🚼 🔇 ⏱️ 🎉). This is intentional and brand-consistent — not a placeholder for a drawn icon set. If a stroke-icon set is later needed for denser UI, substitute **Lucide** (rounded, friendly stroke) and flag the change.
+- **Primary set:** emoji, used sparingly as wayfinding (🧭 🗺️ 💛 🙂 🪑 🚼 🔇 ⏱️ 🎉). This is intentional and brand-consistent — not a placeholder for a drawn icon set.
+- **Dense-UI set:** the web SVG sprite `web/public/icons.svg` (Lucide-derived rounded stroke icons) is the sanctioned set for dense UI — table rows, admin console controls, inline action buttons — where an emoji would be too loud or imprecise. Not hypothetical; already in use, not just a fallback to reach for later.
 - **Logo:** the scout-compass emblem is built from primitives (rounded square badge + two rotated-square "needle" diamonds + center dot) — reproducible at any size, including a 16px favicon and a map pin. See `guidelines/brand-logo.card.html`.
 - **No hand-drawn SVG illustration.** Supply real mascot art; don't auto-generate.
 
