@@ -62,3 +62,57 @@ def test_contributions_filter_by_restaurant(client, make_restaurant, make_truste
     # Unfiltered listing still sees both restaurants.
     res = client.get("/v1/me/contributions", headers=auth_header(uid))
     assert res.json()["total"] == 3
+
+
+def test_contributions_list_reflects_pending_review(client, make_restaurant, make_trusted_user):
+    """#129: the list endpoint's pending_review must mirror submit-time moderation
+    status (moderation_status == 'pending'), not always report published.
+    """
+    rid = make_restaurant("Pending Review Spot")
+
+    # A brand-new (untrusted) user's submissions are held for review — same
+    # "new_user_hold" path exercised by test_integration_moderation.py.
+    held_uid = "pending-review-new-user"
+    ttf_submit = client.post(
+        f"/v1/restaurants/{rid}/ttf", json=TTF_BODY, headers=auth_header(held_uid)
+    )
+    assert ttf_submit.status_code == 201
+    assert ttf_submit.json()["pending_review"] is True
+
+    note_submit = client.post(
+        f"/v1/restaurants/{rid}/notes",
+        json={"text": "Waiting on review"},
+        headers=auth_header(held_uid),
+    )
+    assert note_submit.status_code == 201
+    assert note_submit.json()["pending_review"] is True
+
+    attr_submit = client.post(
+        f"/v1/restaurants/{rid}/attributes",
+        json={"metric_key": "high_chair_availability", "value": True},
+        headers=auth_header(held_uid),
+    )
+    assert attr_submit.status_code == 201
+    assert attr_submit.json()["pending_review"] is True
+
+    held_list = client.get("/v1/me/contributions", headers=auth_header(held_uid))
+    assert held_list.status_code == 200
+    held_items = held_list.json()["items"]
+    assert len(held_items) == 3
+    assert {item["kind"]: item["pending_review"] for item in held_items} == {
+        "ttf": True,
+        "note": True,
+        "attribute": True,
+    }
+
+    # A trusted user auto-publishes, so the same list endpoint reports
+    # pending_review False.
+    trusted_uid = make_trusted_user("pending-review-trusted-user")
+    trusted_submit = client.post(
+        f"/v1/restaurants/{rid}/ttf", json=TTF_BODY, headers=auth_header(trusted_uid)
+    )
+    assert trusted_submit.status_code == 201
+    assert trusted_submit.json()["pending_review"] is False
+
+    trusted_list = client.get("/v1/me/contributions", headers=auth_header(trusted_uid))
+    assert trusted_list.json()["items"][0]["pending_review"] is False

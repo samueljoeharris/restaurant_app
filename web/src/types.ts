@@ -277,6 +277,7 @@ export interface UserTtfContribution {
   daypart: TtfSubmission["daypart"];
   party_size_kids: number;
   wait_context?: string | null;
+  pending_review?: boolean;
 }
 
 export interface UserAttributeContribution {
@@ -289,6 +290,7 @@ export interface UserAttributeContribution {
   metric_label: string;
   value: boolean | number | string;
   visit_context?: string | null;
+  pending_review?: boolean;
 }
 
 export interface UserNoteContribution {
@@ -299,6 +301,7 @@ export interface UserNoteContribution {
   submitted_at: string;
   text: string;
   tags: string[];
+  pending_review?: boolean;
 }
 
 export type UserContribution =

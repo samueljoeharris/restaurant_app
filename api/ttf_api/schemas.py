@@ -466,6 +466,7 @@ class UserTtfContribution(BaseModel):
     daypart: str
     party_size_kids: int
     wait_context: str | None = None
+    pending_review: bool = False
 
 
 class UserAttributeContribution(BaseModel):
@@ -478,6 +479,7 @@ class UserAttributeContribution(BaseModel):
     metric_label: str
     value: Any
     visit_context: str | None = None
+    pending_review: bool = False
 
 
 class UserNoteContribution(BaseModel):
@@ -488,6 +490,7 @@ class UserNoteContribution(BaseModel):
     submitted_at: datetime
     text: str
     tags: list[str] = Field(default_factory=list)
+    pending_review: bool = False
 
 
 UserContribution = UserTtfContribution | UserAttributeContribution | UserNoteContribution

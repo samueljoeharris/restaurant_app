@@ -49,7 +49,8 @@ _CONTRIBUTIONS_UNION = """
         NULL::jsonb AS value,
         NULL::text AS visit_context,
         NULL::text AS text,
-        NULL::text[] AS tags
+        NULL::text[] AS tags,
+        (t.moderation_status = 'pending') AS pending_review
     FROM ttf_observations t
     JOIN restaurants r ON r.id = t.restaurant_id
     WHERE t.firebase_uid = %(uid)s
@@ -74,7 +75,8 @@ _CONTRIBUTIONS_UNION = """
         a.value,
         a.visit_context,
         NULL::text,
-        NULL::text[]
+        NULL::text[],
+        (a.moderation_status = 'pending')
     FROM restaurant_attribute_ratings a
     JOIN restaurants r ON r.id = a.restaurant_id
     JOIN metric_definitions m ON m.key = a.metric_key
@@ -100,7 +102,8 @@ _CONTRIBUTIONS_UNION = """
         NULL::jsonb,
         NULL::text,
         n.text,
-        n.tags
+        n.tags,
+        (n.moderation_status = 'pending')
     FROM restaurant_notes n
     JOIN restaurants r ON r.id = n.restaurant_id
     WHERE n.firebase_uid = %(uid)s
@@ -136,6 +139,7 @@ def _row_to_contribution(row) -> UserTtfContribution | UserAttributeContribution
             daypart=row["daypart"],
             party_size_kids=row["party_size_kids"],
             wait_context=row["wait_context"],
+            pending_review=row["pending_review"],
         )
     if kind == "attribute":
         return UserAttributeContribution(
@@ -147,6 +151,7 @@ def _row_to_contribution(row) -> UserTtfContribution | UserAttributeContribution
             metric_label=row["metric_label"],
             value=row["value"],
             visit_context=row["visit_context"],
+            pending_review=row["pending_review"],
         )
     return UserNoteContribution(
         id=row["id"],
@@ -155,6 +160,7 @@ def _row_to_contribution(row) -> UserTtfContribution | UserAttributeContribution
         submitted_at=row["submitted_at"],
         text=row["text"],
         tags=row["tags"] or [],
+        pending_review=row["pending_review"],
     )
 
 
@@ -262,7 +268,8 @@ def get_my_ttf(
                 t.portion_size,
                 t.daypart,
                 t.party_size_kids,
-                t.wait_context
+                t.wait_context,
+                (t.moderation_status = 'pending') AS pending_review
             FROM ttf_observations t
             JOIN restaurants r ON r.id = t.restaurant_id
             WHERE t.id = %s AND t.firebase_uid = %s
