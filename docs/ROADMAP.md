@@ -25,9 +25,10 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 
 | Issue | Summary |
 |-------|---------|
-| [#100](https://github.com/samueljoeharris/restaurant_app/issues/100) | **Log a visit: agent-first entry** — review chat as primary `/submit` surface + draft sidebar; manual form is the DIY fallback |
-| [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline (blocked on [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) secrets) |
+| [#36](https://github.com/samueljoeharris/restaurant_app/issues/36) | **iOS M6:** TestFlight pipeline + pilot testers group |
 | [#46](https://github.com/samueljoeharris/restaurant_app/issues/46) | **App Store Connect secrets + iOS CI signing** — the one human-only blocker; see [TESTFLIGHT_EXECUTION_PLAN.md](TESTFLIGHT_EXECUTION_PLAN.md) §2 |
+| [#117](https://github.com/samueljoeharris/restaurant_app/issues/117) | **Regenerate design/tokens.json to DS canon + CI hex guard** |
+| [#121](https://github.com/samueljoeharris/restaurant_app/issues/121) | **#100 phase 1: re-skin log-a-visit chat to DS tokens** |
 
 ---
 
@@ -45,6 +46,7 @@ Full checklist context: [GETTING_STARTED.md](GETTING_STARTED.md). iOS milestones
 | [#61](https://github.com/samueljoeharris/restaurant_app/issues/61) | Watchlist v1 remaining (push, iOS parity) — notification channel map |
 | [#62](https://github.com/samueljoeharris/restaurant_app/issues/62) | Admin moderation QA — see [TEST_FLOWS.md](TEST_FLOWS.md) ADM-* |
 | [#99](https://github.com/samueljoeharris/restaurant_app/issues/99) | DRY + route/API alignment audit — P0 web cleanup merged; API/iOS parity follow-ups remain |
+| [#122](https://github.com/samueljoeharris/restaurant_app/issues/122) | #100 phase 2: live draft extraction, remove the preview step |
 | [#38](https://github.com/samueljoeharris/restaurant_app/issues/38) | Pre-launch hardening — write guards merged; prod smoke + App Check key deferred |
 | [#40](https://github.com/samueljoeharris/restaurant_app/issues/40) | Phase 4 pilot: invite testers and gather feedback (after TestFlight) |
 | [#39](https://github.com/samueljoeharris/restaurant_app/issues/39) | Prod GCP cutover — scaffold merged; apply pending billing/credentials |
@@ -74,6 +76,7 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 | Issue | Summary |
 |-------|---------|
+| [#100](https://github.com/samueljoeharris/restaurant_app/issues/100) | Log a visit: agent-first entry ✅ |
 | [#64](https://github.com/samueljoeharris/restaurant_app/issues/64) | Whimsical Bluebird rebrand — design kit (web + iOS, Google Map Style) ✅ |
 | [#50](https://github.com/samueljoeharris/restaurant_app/issues/50) | Recency histogram on restaurant detail ✅ |
 | [#37](https://github.com/samueljoeharris/restaurant_app/issues/37) | Public web auth — Google sign-in on `app.dev` ✅ |
@@ -83,4 +86,4 @@ Parked — not scheduled. Link issues or design docs when picking one up.
 
 ---
 
-*Last updated: 2026-07-06. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
+*Last updated: 2026-07-12. Bump items by changing issue labels (`now` / `next` / `later`) and refreshing this file.*
