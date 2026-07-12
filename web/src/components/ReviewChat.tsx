@@ -197,10 +197,10 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
         <div
           key={`${message.role}-${index}`}
           className={cn(
-            "max-w-[92%] rounded-md px-3 py-2 text-sm leading-normal whitespace-pre-wrap",
+            "max-w-[92%] rounded-tl-md rounded-tr-md px-3 py-2 text-sm leading-normal whitespace-pre-wrap",
             message.role === "assistant"
-              ? "self-start border border-border bg-surface"
-              : "self-end border border-brand/25 bg-brand-soft",
+              ? "self-start rounded-br-md rounded-bl-[4px] border border-border bg-surface"
+              : "self-end rounded-bl-md rounded-br-[4px] border border-brand/25 bg-brand-soft",
           )}
         >
           {message.text}
