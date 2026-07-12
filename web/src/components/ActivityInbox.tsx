@@ -6,6 +6,7 @@ import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import type { ActivityEventItem } from "../types";
 import { useActivityBadge } from "../hooks/useActivityBadge";
+import { useDialogFocus } from "../hooks/useDialogFocus";
 import { useFixedOverlayPosition } from "../hooks/useFixedOverlayPosition";
 import { cn } from "../lib/cn";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
@@ -43,6 +44,8 @@ export function ActivityInbox() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
+  useDialogFocus(open, panelRef, () => setOpen(false));
+
   if (!idToken) return null;
 
   const panel = open
@@ -52,6 +55,7 @@ export function ActivityInbox() {
           className="fixed overflow-hidden rounded-lg border border-border bg-surface shadow-lg"
           style={{ ...panelStyle, zIndex: Z.dropdown }}
           role="dialog"
+          aria-modal="true"
           aria-label="Activity updates"
         >
           <header className="flex items-center justify-between border-b border-border px-4 py-3">

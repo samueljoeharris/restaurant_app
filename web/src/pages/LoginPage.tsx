@@ -10,6 +10,7 @@ import { ScoutLogo } from "../components/ScoutLogo";
 import { ScoutMascot } from "../components/ScoutMascot";
 import { Button, ButtonAnchor } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { FormField } from "../components/ui/FormField";
 import { Skeleton } from "../components/ui/Skeleton";
 import { cn } from "../lib/cn";
 
@@ -201,8 +202,7 @@ export function LoginPage() {
         )}
 
         <form className="grid gap-4" onSubmit={handleSubmit}>
-          <label>
-            Email
+          <FormField label="Email">
             <input
               type="email"
               value={email}
@@ -210,9 +210,8 @@ export function LoginPage() {
               required
               autoComplete="email"
             />
-          </label>
-          <label>
-            Password
+          </FormField>
+          <FormField label="Password">
             <input
               type="password"
               value={password}
@@ -223,7 +222,7 @@ export function LoginPage() {
                 mode === "signin" ? "current-password" : "new-password"
               }
             />
-          </label>
+          </FormField>
           {(error || redirectError) && (
             <p className="text-sm font-semibold text-error">{error ?? redirectError}</p>
           )}

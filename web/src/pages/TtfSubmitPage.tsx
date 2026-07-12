@@ -9,6 +9,7 @@ import { BackLink } from "../components/ui/BackLink";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { ChoiceChip, ChoiceChipGroup } from "../components/ui/ChoiceChip";
+import { FormField } from "../components/ui/FormField";
 import { Page } from "../components/ui/Page";
 import { StarRating } from "../components/ui/StarRating";
 import { useToast } from "../components/ui/useToast";
@@ -371,8 +372,7 @@ export function TtfSubmitPage() {
           </div>
 
           {!timerRunning && timerStart === null && (
-            <label>
-              Or enter elapsed minutes
+            <FormField label="Or enter elapsed minutes">
               <input
                 type="number"
                 min={1}
@@ -380,7 +380,7 @@ export function TtfSubmitPage() {
                 value={elapsed}
                 onChange={(e) => setElapsed(Number(e.target.value))}
               />
-            </label>
+            </FormField>
           )}
 
           <fieldset className="field-group grid gap-2">
@@ -433,8 +433,7 @@ export function TtfSubmitPage() {
             </ChoiceChipGroup>
           </fieldset>
 
-          <label>
-            Kids in party
+          <FormField label="Kids in party">
             <input
               type="number"
               min={1}
@@ -442,17 +441,16 @@ export function TtfSubmitPage() {
               value={kids}
               onChange={(e) => setKids(Number(e.target.value))}
             />
-          </label>
+          </FormField>
 
-          <label>
-            Context (optional)
+          <FormField label="Context (optional)">
             <textarea
               value={context}
               onChange={(e) => setContext(e.target.value)}
               rows={2}
               placeholder="Busy Saturday lunch, high chair requested…"
             />
-          </label>
+          </FormField>
 
           <CollapsibleSection
             title="Rate attributes"

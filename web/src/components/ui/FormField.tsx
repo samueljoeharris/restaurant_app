@@ -1,3 +1,4 @@
+import { cloneElement, isValidElement, useId } from "react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
@@ -9,6 +10,10 @@ import { cn } from "../../lib/cn";
  * the global stacked layout from globals.css (`label { grid gap-2 }` plus
  * `w-full` control sizing). Checkbox/radio rows must NOT use this — use
  * `CheckboxField` (flex row) instead, or the control stacks under the label.
+ *
+ * Wires `aria-describedby` (hint/error) and `aria-invalid` onto the single
+ * child control (issue #60). `children` must be a single input/select/
+ * textarea-like element — anything else is rendered as-is, unmodified.
  */
 export function FormField({
   label,
@@ -25,12 +30,32 @@ export function FormField({
   className?: string;
   children: ReactNode;
 }) {
+  const rawHintId = useId();
+  const rawErrorId = useId();
+  const hintId = hint ? rawHintId : undefined;
+  const errorId = error ? rawErrorId : undefined;
+
+  const control = isValidElement<Record<string, unknown>>(children)
+    ? cloneElement(children, {
+        "aria-describedby": [hintId, errorId].filter(Boolean).join(" ") || undefined,
+        "aria-invalid": !!error,
+      })
+    : children;
+
   return (
     <label className={className}>
       {label}
-      {children}
-      {hint ? <span className="text-xs font-normal text-text-muted">{hint}</span> : null}
-      {error ? <span className="text-xs font-semibold text-error">{error}</span> : null}
+      {control}
+      {hint ? (
+        <span id={hintId} className="text-xs font-normal text-text-muted">
+          {hint}
+        </span>
+      ) : null}
+      {error ? (
+        <span id={errorId} role="alert" className="text-xs font-semibold text-error">
+          {error}
+        </span>
+      ) : null}
     </label>
   );
 }
