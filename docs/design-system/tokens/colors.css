@@ -1,6 +1,16 @@
 /* Little Scout — color tokens (Bluebird theme).
    REFERENCE MOCK for HTML UI kits — runtime source of truth is design/tokens.json.
-   Values below mirror tokens.json; regenerate comments after token changes. */
+   Values below mirror tokens.json; regenerate comments after token changes.
+
+   THEME STRATEGY (web):
+   - PRIMARY: .dark class toggle via useTheme() hook in web/src/hooks/useTheme.ts
+     Persisted to localStorage; takes precedence over OS theme.
+   - FALLBACK: @media (prefers-color-scheme: dark) on first load only (no stored preference).
+     See: web/index.html inline script and web/src/styles/globals.css @custom-variant.
+   The generated CSS (web/src/styles/tokens.generated.css) defines:
+   - @theme { ... } with light values (applied by default).
+   - .dark { ... } with dark overrides (applied when .dark class is on root).
+*/
 :root {
   /* ---- Brand: sky blue ---- (tokens.json brand) */
   --ls-sky: #3FA7D6;

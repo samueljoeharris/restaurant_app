@@ -55,6 +55,38 @@ node scripts/generate-design-tokens.mjs
 
 **Z-index:** `zIndex.sidebar` 30, `dropdown` 100, `toast` 150, `modal` 200 (also in `overlayStack.ts`).
 
+## Web theme strategy — class-based toggle + media-query fallback
+
+The web app uses a **class-based theme toggle** as the primary mechanism, with OS theme preference as a first-load-only fallback.
+
+### How it works
+
+1. **Inline script (first paint):** `index.html` reads `localStorage` for the user's stored theme preference (`ls-theme`). If found and set to `"dark"`, the `.dark` class is added to `<html>` before the page renders. If no stored preference exists, the script checks `prefers-color-scheme: dark` as an initial guess.
+
+2. **`useTheme()` hook (runtime):** The React component `web/src/hooks/useTheme.ts` manages three modes:
+   - `"dark"` — explicitly dark (user chose dark)
+   - `"light"` — explicitly light (user chose light)
+   - `"system"` — follow OS preference (no explicit choice stored)
+   
+   When a mode is set, it persists to `localStorage` (except `"system"`, which clears the key) and applies the `.dark` class to `document.documentElement` accordingly.
+
+3. **CSS resolution (at render):**
+   - `web/src/styles/tokens.generated.css` defines two blocks:
+     - `@theme { ... }` — light color tokens (applied by default)
+     - `.dark { ... }` — dark color tokens (applied when `.dark` class is present)
+   - `web/src/styles/globals.css` registers the custom variant: `@custom-variant dark (&:where(.dark, .dark *))`
+   - This makes Tailwind's `dark:` class modifier use the `.dark` selector, not a media query.
+
+### Precedence
+
+1. **Stored preference wins:** If the user has explicitly set a theme (via the app's toggle), `localStorage` is non-empty, and `.dark` is applied or removed to match.
+2. **OS preference as fallback:** On first load (no stored preference), the `.dark` class is applied based on `prefers-color-scheme: dark`.
+3. **Media query listener:** If mode is `"system"` and the OS theme changes, `useTheme()` re-applies the class automatically.
+
+### Result
+
+The `.dark` class on the root element is the single source of truth for theme state at render time. CSS token variables (`--color-*`) respond to its presence, while the media query serves only as an initial guess before user interaction.
+
 ## Platform usage
 
 ### iOS (SwiftUI)
