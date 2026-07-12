@@ -10,30 +10,30 @@
   /* ---- Accent: mango ---- (tokens.json accent) */
   --ls-mango: #FBA63C;
   --ls-mango-deep: #E08A1E;
-  --ls-mango-soft: #FCE6C8;     /* accentSoft */
+  --ls-mango-soft: #FFF0DC;     /* accentSoft */
   --ls-pop: #F08A2E;            /* "new / alert" pop */
   --ls-pop-soft: #FCE6C8;
 
   /* ---- Warm-ivory neutrals ---- */
-  --ls-paper: #FBF6EC;          /* bg */
+  --ls-paper: #FFFFFF;          /* bg */
   --ls-surface: #FFFFFF;        /* surface */
-  --ls-surface-muted: #F3EAD8;  /* surfaceMuted */
-  --ls-border: #E8DFD0;         /* border */
-  --ls-border-strong: #D4C8B8;  /* borderStrong */
+  --ls-surface-muted: #F5F4F3;  /* surfaceMuted */
+  --ls-border: #EADFC9;         /* border */
+  --ls-border-strong: #DCCDAE;  /* borderStrong */
 
   /* ---- Ink ---- */
-  --ls-ink: #2F3A42;            /* text */
-  --ls-ink-muted: #6B7A85;      /* textMuted */
-  --ls-ink-slate: #2F3A42;      /* cool ink for map/figure contexts */
+  --ls-ink: #2C2722;            /* text */
+  --ls-ink-muted: #837766;      /* textMuted */
+  --ls-ink-slate: #2C2722;      /* cool ink for map/figure contexts */
 
   /* ---- Kid-food-speed (TTF) tiers — semantic, stay constant across themes ---- */
-  --ls-ttf-fast: #2D8F4E;       /* ttfFast */
+  --ls-ttf-fast: #2E8B57;       /* ttfFast */
   --ls-ttf-fast-soft: #DCEFE2;
-  --ls-ttf-ok: #D4A017;         /* ttfOk */
+  --ls-ttf-ok: #E0A52E;         /* ttfOk */
   --ls-ttf-ok-soft: #FBE5C5;
-  --ls-ttf-slow: #C0392B;       /* ttfSlow */
+  --ls-ttf-slow: #D6543B;       /* ttfSlow */
   --ls-ttf-slow-soft: #F7DDD6;
-  --ls-ttf-none: #9CA3AF;       /* ttfUnknown */
+  --ls-ttf-none: #B4AA98;       /* ttfUnknown */
   --ls-ttf-none-soft: #EFEAE0;
 
   /* ---- Semantic status ---- */
