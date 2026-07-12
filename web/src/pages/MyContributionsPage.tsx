@@ -262,14 +262,19 @@ export function MyContributionsPage() {
         {visibleVisits.map((visit) => (
           <li key={visit.key}>
             <Card>
-              <div className="mb-3 flex items-start justify-between gap-4">
+              <div className="-mx-5 -mt-4 mb-3 flex items-start justify-between gap-4 rounded-t-lg border-b border-border bg-surface-muted px-5 py-3">
                 <div className="min-w-0 flex-1">
-                  <Link
-                    to={restaurantDetailPath({ id: visit.restaurantId })}
-                    className="mb-1 inline-block font-semibold text-brand"
-                  >
-                    {visit.restaurantName}
-                  </Link>
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <Link
+                      to={restaurantDetailPath({ id: visit.restaurantId })}
+                      className="inline-block font-semibold text-brand"
+                    >
+                      {visit.restaurantName}
+                    </Link>
+                    <Badge variant={visit.pendingReview ? "warning" : "success"}>
+                      {visit.pendingReview ? "In review" : "Live"}
+                    </Badge>
+                  </div>
                   <p className="m-0 text-sm text-text-muted">
                     <time>{fmtDate(visit.latestAt)}</time>
                     {visit.items.length > 1

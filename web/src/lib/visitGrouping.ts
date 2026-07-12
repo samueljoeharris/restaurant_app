@@ -8,6 +8,16 @@ import type { UserContribution } from "../types";
  */
 export const VISIT_WINDOW_MS = 90 * 60 * 1000; // 90 minutes
 
+// ponytail(#129): `pending_review` isn't declared on UserContribution's member
+// types yet — the /v1/me/contributions API doesn't return it either, only
+// submit-response payloads do (web/src/types.ts ContributionSubmitResponse /
+// RestaurantNote). Reading it structurally here means the badge below lights
+// up correctly the moment the API/types add it, with no grouping-logic
+// changes required. Ceiling: once the list endpoint returns it, promote this
+// to a real field on UserTtfContribution/UserAttributeContribution/
+// UserNoteContribution and drop the cast.
+type ContributionWithModeration = UserContribution & { pending_review?: boolean };
+
 export interface ContributionVisit {
   /** Stable across re-fetches: restaurant id + the oldest item in the group. */
   key: string;
@@ -16,6 +26,8 @@ export interface ContributionVisit {
   /** Most recent contribution's timestamp — used for sorting and display. */
   latestAt: string;
   items: UserContribution[];
+  /** True if any contribution in this visit is awaiting moderation. */
+  pendingReview: boolean;
 }
 
 /**
@@ -63,5 +75,8 @@ function toVisit(restaurantId: string, items: UserContribution[]): ContributionV
     restaurantName: items[0].restaurant_name,
     latestAt: items[0].submitted_at,
     items,
+    pendingReview: items.some(
+      (item) => (item as ContributionWithModeration).pending_review === true,
+    ),
   };
 }

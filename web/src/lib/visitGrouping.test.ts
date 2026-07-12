@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 import { groupContributionsIntoVisits } from "./visitGrouping";
 import type { UserContribution } from "../types";
 
-function ttf(id: string, restaurantId: string, submittedAt: string): UserContribution {
+function ttf(
+  id: string,
+  restaurantId: string,
+  submittedAt: string,
+  pendingReview = false,
+): UserContribution {
   return {
     kind: "ttf",
     id,
@@ -16,10 +21,18 @@ function ttf(id: string, restaurantId: string, submittedAt: string): UserContrib
     portion_size: "kid",
     daypart: "lunch",
     party_size_kids: 2,
-  };
+    // pending_review isn't on UserContribution's member types yet (#129) —
+    // cast mirrors the structural read in visitGrouping.ts.
+    ...(pendingReview ? { pending_review: true } : {}),
+  } as UserContribution;
 }
 
-function note(id: string, restaurantId: string, submittedAt: string): UserContribution {
+function note(
+  id: string,
+  restaurantId: string,
+  submittedAt: string,
+  pendingReview = false,
+): UserContribution {
   return {
     kind: "note",
     id,
@@ -28,7 +41,8 @@ function note(id: string, restaurantId: string, submittedAt: string): UserContri
     submitted_at: submittedAt,
     text: "Great high chairs",
     tags: [],
-  };
+    ...(pendingReview ? { pending_review: true } : {}),
+  } as UserContribution;
 }
 
 describe("groupContributionsIntoVisits", () => {
@@ -67,5 +81,21 @@ describe("groupContributionsIntoVisits", () => {
 
   it("returns an empty list for no contributions", () => {
     expect(groupContributionsIntoVisits([])).toEqual([]);
+  });
+
+  it("marks a visit pendingReview when every item is live (#129)", () => {
+    const visits = groupContributionsIntoVisits([
+      ttf("t1", "r1", "2026-06-01T12:00:00Z"),
+      note("n1", "r1", "2026-06-01T12:20:00Z"),
+    ]);
+    expect(visits[0].pendingReview).toBe(false);
+  });
+
+  it("marks a visit pendingReview when any one item is pending review (#129)", () => {
+    const visits = groupContributionsIntoVisits([
+      ttf("t1", "r1", "2026-06-01T12:00:00Z"),
+      note("n1", "r1", "2026-06-01T12:20:00Z", true),
+    ]);
+    expect(visits[0].pendingReview).toBe(true);
   });
 });
