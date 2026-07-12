@@ -198,10 +198,6 @@ def list_seed_locations() -> list[dict]:
         ).fetchall()
 
 
-def enabled_seed_locations() -> list[dict]:
-    return [row for row in list_seed_locations() if row["enabled"]]
-
-
 def add_seed_location(
     location: str,
     *,
@@ -248,15 +244,6 @@ def delete_seed_location(location_id: UUID) -> bool:
             (location_id, settings.pilot_city),
         ).fetchone()
     return row is not None
-
-
-def _location_area(row: dict) -> SeedArea:
-    return SeedArea(
-        lat=float(row["lat"]),
-        lng=float(row["lng"]),
-        radius_m=int(row["radius_m"]),
-        label=row["label"],
-    )
 
 
 def run_seed_job(job_id: UUID) -> None:
@@ -315,23 +302,8 @@ def run_seed_job(job_id: UUID) -> None:
                         job["requested_by"], refresh=refresh
                     ),
                 )
-                if refresh:
-                    conn.execute(
-                        """
-                        UPDATE seed_locations
-                        SET last_refreshed_at = now(), updated_at = now()
-                        WHERE pilot_city = %s AND area_key = %s
-                        """,
-                        (settings.pilot_city, job["area_key"]),
-                    )
-                else:
-                    # Every successful area seed becomes a requested location.
-                    ensure_seed_location(
-                        conn,
-                        area,
-                        query=job["query"],
-                        created_by=job["requested_by"],
-                    )
+                # Area seeds no longer self-register in seed_locations (#111) —
+                # scheduled refresh runs a single catalog-wide pass instead.
             conn.execute(
                 """
                 UPDATE restaurant_seed_jobs
@@ -455,51 +427,27 @@ def update_refresh_config(
     return row
 
 
-def create_scheduled_refresh_jobs(
+def create_catalog_refresh_job(
     requested_by: str = "scheduled-refresh",
-) -> list[dict]:
-    """Create refresh jobs for every enabled requested location plus a
-    catalog-wide Place Details pass. Returns [] when auto-refresh is disabled."""
+) -> dict | None:
+    """Enqueue a single catalog-wide Place Details refresh.
+
+    Returns None when auto-refresh is disabled. Both the Cloud Scheduler entry
+    point and admin "Run refresh now" call this — no more per-location area
+    re-search (#111); catalog hygiene is independent of seed_locations.
+    """
     config = get_refresh_config()
     if not config.get("enabled"):
-        return []
+        return None
 
-    locations = enabled_seed_locations()
-    if locations:
-        areas = [(_location_area(row), row["label"]) for row in locations]
-    else:
-        # No requested locations yet — fall back to the configured default area.
-        area = SeedArea(
-            lat=float(config["default_lat"] or settings.restaurant_seed_default_lat),
-            lng=float(config["default_lng"] or settings.restaurant_seed_default_lng),
-            radius_m=int(
-                config["default_radius_m"] or settings.restaurant_seed_default_radius_m
-            ),
-            label=config["default_location"] or settings.pilot_display_name,
-        )
-        areas = [(area, area.label)]
-
-    jobs: list[dict] = []
-    for area, label in areas:
-        job, _reused = create_seed_job(
-            area,
-            query=label,
-            requested_by=requested_by,
-            refresh=True,
-            force=True,
-        )
-        jobs.append(job)
-
-    # Catalog pass keeps every found restaurant fresh, regardless of zone.
-    catalog_job, _reused = create_seed_job(
-        default_seed_area(),
+    job, _reused = create_seed_job(
+        default_seed_area(),  # coords unused for kind=catalog; satisfies job schema
         query="catalog refresh",
         requested_by=requested_by,
         refresh=True,
         force=True,
         kind="catalog",
     )
-    jobs.append(catalog_job)
 
     with get_conn() as conn:
         conn.execute(
@@ -510,20 +458,25 @@ def create_scheduled_refresh_jobs(
             """,
             (settings.pilot_city,),
         )
-    return jobs
+    return job
 
 
-def run_default_refresh(force: bool = True) -> dict:
+def run_default_area_seed(force: bool = True) -> dict:
+    """CLI bootstrap: seed the default area.
+
+    refresh=False — a first-time bootstrap should not run the
+    tombstone_not_seen pass; that belongs to the catalog refresh job.
+    """
     area = default_seed_area()
     job, _reused = create_seed_job(
         area,
         query=settings.pilot_display_name,
         requested_by="scheduled-refresh",
-        refresh=True,
+        refresh=False,
         force=force,
     )
     run_seed_job(job["id"])
-    refreshed = get_seed_job(job["id"])
-    if not refreshed:
-        raise PlacesSeedError("Refresh job disappeared before completion")
-    return refreshed
+    completed = get_seed_job(job["id"])
+    if not completed:
+        raise PlacesSeedError("Seed job disappeared before completion")
+    return completed

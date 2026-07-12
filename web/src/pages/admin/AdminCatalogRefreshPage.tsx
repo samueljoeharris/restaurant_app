@@ -13,7 +13,6 @@ import type {
   LocationRefreshConfig,
   RestaurantChangelogRow,
   RestaurantSeedJob,
-  SeedLocation,
 } from "../../types";
 
 const PAGE_SIZE = 20;
@@ -24,10 +23,6 @@ const MAX_RADIUS_MI = 15.5; // ~25000 m API cap
 
 function milesToMeters(mi: number) {
   return Math.round(mi * METERS_PER_MILE);
-}
-
-function metersToMiles(m: number) {
-  return Math.round((m / METERS_PER_MILE) * 10) / 10;
 }
 
 function fmtRadiusMi(radiusM: number) {
@@ -142,12 +137,6 @@ function auditSummary(row: AdminAuditLogRow) {
   return "Refresh settings saved";
 }
 
-const SOURCE_LABELS: Record<SeedLocation["source"], string> = {
-  seed: "Coverage request",
-  admin: "Admin seed",
-  migration: "Migration",
-};
-
 export function AdminCatalogRefreshPage() {
   const { idToken } = useAuth();
   const { toast } = useToast();
@@ -159,7 +148,6 @@ export function AdminCatalogRefreshPage() {
   const [changelogOffset, setChangelogOffset] = useState(0);
   const [changelogAction, setChangelogAction] = useState("");
   const [config, setConfig] = useState<LocationRefreshConfig | null>(null);
-  const [locations, setLocations] = useState<SeedLocation[]>([]);
   const [bootLoading, setBootLoading] = useState(true);
   const [runsLoading, setRunsLoading] = useState(false);
   const [changelogLoading, setChangelogLoading] = useState(false);
@@ -227,14 +215,11 @@ export function AdminCatalogRefreshPage() {
       setBootLoading(true);
       setError(null);
     });
-    Promise.all([
-      api.adminRefreshConfig(idToken),
-      api.adminSeedLocations(idToken),
-    ])
-      .then(([configData, locationsData]) => {
+    api
+      .adminRefreshConfig(idToken)
+      .then((configData) => {
         if (!cancelled) {
           setConfig(configData);
-          setLocations(locationsData.items);
         }
       })
       .catch((err) => {
@@ -312,52 +297,16 @@ export function AdminCatalogRefreshPage() {
     setError(null);
     try {
       const res = await api.adminTriggerRefreshRuns(idToken);
+      const job = res.jobs[0];
       setMessage(
-        `Started ${res.jobs.length} refresh runs (${res.jobs.length - 1} locations + full catalog)`,
+        job
+          ? `Started catalog refresh run ${job.id.slice(0, 8)}…`
+          : "Started catalog refresh run",
       );
       setRunsOffset(0);
       await Promise.all([loadRuns(0), loadChangelog(0)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Refresh failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function toggleLocation(loc: SeedLocation) {
-    if (!idToken) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const updated = await api.adminUpdateSeedLocation(idToken, loc.id, {
-        enabled: !loc.enabled,
-      });
-      setLocations((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
-      setAuditOffset(0);
-      await loadAuditLog(0);
-      toast(updated.enabled ? "Location enabled" : "Location disabled", "success");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Update failed";
-      setError(message);
-      toast(message, "error");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function removeLocation(loc: SeedLocation) {
-    if (!idToken) return;
-    if (!window.confirm(`Remove "${loc.label}" from refresh locations?`)) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await api.adminDeleteSeedLocation(idToken, loc.id);
-      setLocations((prev) => prev.filter((l) => l.id !== loc.id));
-      toast("Location removed", "success");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Delete failed";
-      setError(message);
-      toast(message, "error");
     } finally {
       setBusy(false);
     }
@@ -372,8 +321,6 @@ export function AdminCatalogRefreshPage() {
         enabled: config.enabled,
         schedule_cron: config.schedule_cron,
         schedule_timezone: config.schedule_timezone,
-        default_location: config.default_location ?? undefined,
-        default_radius_m: config.default_radius_m,
       });
       setConfig(res.config);
       const syncNote =
@@ -382,8 +329,8 @@ export function AdminCatalogRefreshPage() {
           : res.scheduler_sync.status === "skipped"
             ? "Scheduler sync skipped (not configured in this environment)."
             : `Scheduler sync failed: ${res.scheduler_sync.detail ?? "unknown error"}`;
-      setMessage(`Auto-refresh settings saved. ${syncNote}`);
-      toast("Auto-refresh settings saved", "success");
+      setMessage(`Scheduled catalog refresh settings saved. ${syncNote}`);
+      toast("Scheduled catalog refresh settings saved", "success");
       setAuditOffset(0);
       await loadAuditLog(0);
     } catch (err) {
@@ -401,8 +348,9 @@ export function AdminCatalogRefreshPage() {
         <div>
           <h1 className="text-2xl">Catalog &amp; refresh</h1>
           <p className="text-text-muted">
-            Curate refresh locations, manage the scheduled catalog refresh, and review changes.
-            Coverage normally grows from user activity — pre-seeding is only for cold starts.
+            The scheduled job runs Place Details on every known restaurant to keep it fresh.
+            Catalog growth comes from user coverage requests — pre-seeding is only for cold
+            starts.
           </p>
         </div>
       </header>
@@ -413,78 +361,9 @@ export function AdminCatalogRefreshPage() {
 
       {!bootLoading && config && (
         <>
-          <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
-            <h2 className="mb-3 text-lg">Refresh locations</h2>
-            <p className="text-sm text-text-muted">
-              Entries register automatically whenever a seed succeeds — including user coverage
-              requests — and every enabled location is re-searched by the scheduled refresh,
-              driving recurring Google Places spend. Disable or remove anything that should not
-              keep refreshing.
-            </p>
-            <DataTable
-              columns={[
-                { key: "label", label: "Location" },
-                { key: "radius", label: "Radius", align: "right" },
-                { key: "source", label: "Source" },
-                { key: "refreshed", label: "Last refreshed" },
-                { key: "enabled", label: "Enabled" },
-                { key: "actions", label: "" },
-              ]}
-              rows={locations.map((loc) => ({
-                key: loc.id,
-                cells: {
-                  label: (
-                    <div>
-                      <div>{loc.label}</div>
-                      {loc.query && loc.query !== loc.label && (
-                        <div className="text-sm text-text-muted">{loc.query}</div>
-                      )}
-                    </div>
-                  ),
-                  radius: fmtRadiusMi(loc.radius_m),
-                  source: (
-                    <div>
-                      <div>{SOURCE_LABELS[loc.source] ?? loc.source}</div>
-                      {loc.created_by && (
-                        <div className="text-sm text-text-muted">{loc.created_by}</div>
-                      )}
-                    </div>
-                  ),
-                  refreshed: fmtTime(loc.last_refreshed_at),
-                  enabled: (
-                    <input
-                      type="checkbox"
-                      checked={loc.enabled}
-                      disabled={busy}
-                      aria-label={`Include ${loc.label} in scheduled refresh`}
-                      onChange={() => toggleLocation(loc)}
-                    />
-                  ),
-                  actions: (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => removeLocation(loc)}
-                    >
-                      Remove
-                    </Button>
-                  ),
-                },
-              }))}
-            />
-            {locations.length === 0 && (
-              <p className="text-sm text-text-muted">
-                No locations yet — they appear when a user coverage request or a pre-seed run
-                succeeds.
-              </p>
-            )}
-          </section>
-
           <details className="rounded-lg border border-border bg-surface p-5 shadow-sm">
             <summary className="cursor-pointer text-lg font-semibold">
-              Pre-seed an area (cold start)
+              Bootstrap an area (cold start)
             </summary>
             <p className="mt-3 text-sm text-text-muted">
               Coverage normally grows on its own: signed-in users trigger background seeding of
@@ -528,17 +407,13 @@ export function AdminCatalogRefreshPage() {
 
           <section className="grid gap-6 rounded-lg border border-border bg-surface p-5 shadow-sm [grid-template-columns:repeat(auto-fit,minmax(10rem,1fr))]">
             <div>
-              <h2 className="mb-3 text-lg">Auto-refresh</h2>
+              <h2 className="mb-3 text-lg">Scheduled catalog refresh</h2>
               <p className="text-sm text-text-muted">
-                Scheduled refresh re-seeds all enabled locations and the full catalog,
-                tombstoning venues missing from Places and updating closed status.
-                Saving updates the Cloud Scheduler job schedule and pause state in GCP.
-              </p>
-              <p className="text-sm text-text-muted">
-                <strong>Default area</strong> is only used when no refresh locations are
-                enabled — it geocodes the label below and searches Google Places within the
-                radius (default ~5 mi). Once you seed areas above,
-                those replace this fallback.
+                The scheduled job runs Google Place Details on every restaurant already in the
+                catalog — tombstoning venues Google no longer serves and updating closed status.
+                It does not search for new areas; catalog growth comes from user coverage
+                requests and the bootstrap form above. Saving updates the Cloud Scheduler job
+                schedule and pause state in GCP.
               </p>
               <div className="flex max-w-md flex-col items-stretch gap-3">
                 <CheckboxField
@@ -556,28 +431,6 @@ export function AdminCatalogRefreshPage() {
                   <input
                     value={config.schedule_timezone}
                     onChange={(e) => setConfig({ ...config, schedule_timezone: e.target.value })}
-                  />
-                </FormField>
-                <FormField label="Default area" className="gap-1">
-                  <input
-                    placeholder="e.g. a city or ZIP code"
-                    value={config.default_location ?? ""}
-                    onChange={(e) => setConfig({ ...config, default_location: e.target.value })}
-                  />
-                </FormField>
-                <FormField label="Default radius (mi)" className="gap-1">
-                  <input
-                    type="number"
-                    min={MIN_RADIUS_MI}
-                    max={MAX_RADIUS_MI}
-                    step={0.5}
-                    value={metersToMiles(config.default_radius_m)}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        default_radius_m: milesToMeters(Number(e.target.value)),
-                      })
-                    }
                   />
                 </FormField>
                 <p className="text-sm text-text-muted">
@@ -603,8 +456,8 @@ export function AdminCatalogRefreshPage() {
           <section className="rounded-lg border border-border bg-surface p-5 shadow-sm">
             <h2 className="mb-3 text-lg">Refresh audit log</h2>
             <p className="text-sm text-text-muted">
-              Who enabled or disabled auto-refresh, changed the schedule, or toggled refresh
-              locations — plus Cloud Scheduler sync results.
+              Who enabled or disabled the scheduled catalog refresh or changed its schedule —
+              plus Cloud Scheduler sync results.
             </p>
             <DataTable
               columns={[

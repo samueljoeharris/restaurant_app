@@ -8,7 +8,7 @@ import sys
 from ttf_api.config import settings
 from ttf_api.db import run_migrations
 from ttf_api.places_seed import PlacesSeedError
-from ttf_api.seed_jobs import run_default_refresh
+from ttf_api.seed_jobs import run_default_area_seed
 
 
 def main() -> int:
@@ -18,7 +18,7 @@ def main() -> int:
 
     run_migrations()
     try:
-        job = run_default_refresh(force=True)
+        job = run_default_area_seed(force=True)
     except PlacesSeedError as exc:
         print(exc, file=sys.stderr)
         return 1

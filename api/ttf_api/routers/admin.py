@@ -50,7 +50,7 @@ from ttf_api.schemas import (
 from ttf_api.seed_jobs import (
     add_seed_location,
     create_seed_job,
-    create_scheduled_refresh_jobs,
+    create_catalog_refresh_job,
     delete_seed_location,
     get_refresh_config,
     get_seed_job,
@@ -610,18 +610,18 @@ def admin_trigger_seed_job(
 def admin_trigger_refresh_runs(
     admin: Annotated[AuthUser, Depends(require_admin)],
 ) -> AdminRefreshRunResponse:
-    """Refresh every enabled requested location plus the full catalog."""
-    jobs = create_scheduled_refresh_jobs(requested_by=admin.firebase_uid)
-    if not jobs:
+    """Enqueue the single scheduled catalog refresh job (Place Details on every
+    known restaurant). Area growth stays on user coverage + admin pre-seed."""
+    job = create_catalog_refresh_job(requested_by=admin.firebase_uid)
+    if not job:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Auto-refresh is disabled in location refresh config",
         )
-    for job in jobs:
-        if job["status"] == "pending":
-            enqueue_seed_job(job["id"])
+    if job["status"] == "pending":
+        enqueue_seed_job(job["id"])
     return AdminRefreshRunResponse(
-        jobs=_enrich_seed_jobs([RestaurantSeedJob(**job) for job in jobs])
+        jobs=_enrich_seed_jobs([RestaurantSeedJob(**job)])
     )
 
 

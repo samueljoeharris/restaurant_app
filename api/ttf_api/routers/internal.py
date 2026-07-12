@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from ttf_api.config import settings
 from ttf_api.gcp_console import seed_job_log_marker
 from ttf_api.pubsub_seed import enqueue_seed_job
-from ttf_api.seed_jobs import create_scheduled_refresh_jobs, run_seed_job
+from ttf_api.seed_jobs import create_catalog_refresh_job, run_seed_job
 
 router = APIRouter(prefix="/v1/internal", tags=["internal"])
 logger = logging.getLogger(__name__)
@@ -89,13 +89,12 @@ def scheduled_push_dispatch(
 def scheduled_restaurant_refresh(
     _auth: Annotated[None, Depends(_verify_internal_caller)],
 ) -> dict:
-    """Cloud Scheduler entry point — refresh every requested location + catalog."""
-    jobs = create_scheduled_refresh_jobs()
-    if not jobs:
+    """Cloud Scheduler entry point — enqueue the single catalog refresh job."""
+    job = create_catalog_refresh_job()
+    if not job:
         return {"status": "skipped", "reason": "auto_refresh_disabled"}
 
-    for job in jobs:
-        if job["status"] == "pending":
-            enqueue_seed_job(job["id"])
+    if job["status"] == "pending":
+        enqueue_seed_job(job["id"])
 
-    return {"status": "accepted", "job_ids": [str(job["id"]) for job in jobs]}
+    return {"status": "accepted", "job_id": str(job["id"])}
