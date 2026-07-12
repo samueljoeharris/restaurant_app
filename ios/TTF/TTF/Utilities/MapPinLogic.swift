@@ -3,8 +3,6 @@ import SwiftUI
 enum MapPinKind: String {
     case confirmedTtf = "confirmed_ttf"
     case earlyTtf = "early_ttf"
-    case ratings
-    case notes
     case empty
 }
 
@@ -12,8 +10,6 @@ enum MapPinLogic {
     static func kind(for entry: RestaurantMapEntry) -> MapPinKind {
         if entry.ttf.sampleSize >= 3 { return .confirmedTtf }
         if entry.ttf.sampleSize > 0 { return .earlyTtf }
-        if entry.attributeRatingCount > 0 { return .ratings }
-        if entry.noteCount > 0 { return .notes }
         return .empty
     }
 
@@ -34,10 +30,6 @@ enum MapPinLogic {
             return TtfTierLogic.tier(for: entry.ttf).color
         case .earlyTtf:
             return previewTtfTier(for: entry).color
-        case .ratings:
-            return .pinRatings
-        case .notes:
-            return .pinNotes
         case .empty:
             return .ttfUnknown
         }
@@ -82,10 +74,22 @@ enum MapPinLogic {
         return lines.joined(separator: "\n")
     }
 
+    /// Which supplementary badges to render alongside the pin label. A badge is
+    /// suppressed when `label(for:)` already conveys that same signal (e.g. the
+    /// ★ label on a pin with no TTF data yet), so parents don't see the same icon
+    /// twice. Mirrors `label(for:)`'s priority: TTF minutes > ratings > notes.
+    static func badges(for entry: RestaurantMapEntry) -> (ratings: Bool, notes: Bool) {
+        let labelIsTtf = entry.ttf.sampleSize > 0 && entry.ttf.medianMinutes != nil
+        let labelIsRatings = !labelIsTtf && entry.attributeRatingCount > 0
+        let labelIsNotes = !labelIsTtf && !labelIsRatings && entry.noteCount > 0
+        return (
+            ratings: entry.attributeRatingCount > 0 && !labelIsRatings,
+            notes: entry.noteCount > 0 && !labelIsNotes
+        )
+    }
+
     static func hasBadges(for entry: RestaurantMapEntry) -> Bool {
-        let pinKind = kind(for: entry)
-        let showRatings = entry.attributeRatingCount > 0 && pinKind != .ratings
-        let showNotes = entry.noteCount > 0 && pinKind != .notes
-        return showRatings || showNotes
+        let (ratings, notes) = badges(for: entry)
+        return ratings || notes
     }
 }

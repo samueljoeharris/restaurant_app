@@ -203,7 +203,7 @@ Custom **teardrop tier pins** match web; land/water tones remain Apple defaults 
 
 ## Pin colors
 
-Semantic tiers (`ttfFast`, `ttfOk`, …) and pin kinds (`pinRatings`, `pinNotes`) come from `[design/tokens.json](../design/tokens.json)`. They are **app overlays**, not part of the Google basemap style.
+Semantic tiers (`ttfFast`, `ttfOk`, …) and the search-focus pin (`pinSearchFocus`) come from `[design/tokens.json](../design/tokens.json)`. Pins with ratings/notes but no TTF data render the `ttfUnknown` tier color rather than a distinct off-palette color (issue #120). These are **app overlays**, not part of the Google basemap style.
 
 ---
 

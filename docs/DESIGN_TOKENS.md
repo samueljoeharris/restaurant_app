@@ -51,7 +51,7 @@ node scripts/generate-design-tokens.mjs
 
 **TTF tiers** (`ttfFast`, `ttfOk`, `ttfSlow`, `ttfUnknown`) stay semantic across themes.
 
-**Map pins:** `pinRatings`, `pinNotes`, `pinSearchFocus`; basemap reference colors `mapLand`, `mapWater`, `mapPark` — see [MAP_STYLE.md](./MAP_STYLE.md).
+**Map pins:** `pinSearchFocus`; TTF-tier colors render all other pin states (no off-palette pin colors — issue #120). Basemap reference colors `mapLand`, `mapWater`, `mapPark` — see [MAP_STYLE.md](./MAP_STYLE.md).
 
 **Z-index:** `zIndex.sidebar` 30, `dropdown` 100, `toast` 150, `modal` 200 (also in `overlayStack.ts`).
 

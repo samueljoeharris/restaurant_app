@@ -2,6 +2,7 @@ import { AdvancedMarker } from "@vis.gl/react-google-maps";
 
 import { cn } from "../lib/cn";
 import {
+  mapPinBadges,
   mapPinFill,
   mapPinHasBadges,
   mapPinKind,
@@ -31,6 +32,7 @@ export function MapPin({
   const label = mapPinLabel(restaurant);
   const tooltip = mapPinTooltip(restaurant);
   const showBadges = mapPinHasBadges(restaurant);
+  const badges = mapPinBadges(restaurant);
 
   return (
     <AdvancedMarker
@@ -84,12 +86,12 @@ export function MapPin({
           </div>
           {showBadges && (
             <div className="map-pin-badges">
-              {restaurant.attribute_rating_count > 0 && kind !== "ratings" && (
+              {badges.ratings && (
                 <span className="map-pin-badge" title="Parent ratings">
                   ★
                 </span>
               )}
-              {restaurant.note_count > 0 && kind !== "notes" && (
+              {badges.notes && (
                 <span className="map-pin-badge" title="Parent notes">
                   💬
                 </span>

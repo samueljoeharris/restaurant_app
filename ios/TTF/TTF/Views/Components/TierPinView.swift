@@ -43,12 +43,13 @@ struct TierPinView: View {
                     }
                 }
 
-            if MapPinLogic.hasBadges(for: entry) {
+            let badges = MapPinLogic.badges(for: entry)
+            if badges.ratings || badges.notes {
                 HStack(spacing: 2) {
-                    if entry.attributeRatingCount > 0, pinKind != .ratings {
+                    if badges.ratings {
                         pinBadge("★", title: "Parent ratings")
                     }
-                    if entry.noteCount > 0, pinKind != .notes {
+                    if badges.notes {
                         pinBadge("💬", title: "Parent notes")
                     }
                 }
