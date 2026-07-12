@@ -1,4 +1,5 @@
 import { getAppCheckToken } from "../appCheck";
+import { invalidateProfile } from "../lib/pageDataCache";
 import type {
   AdminActivityDay,
   AdminAttentionStats,
@@ -204,7 +205,12 @@ export const api = {
     request<ExtendedUserProfile>("/v1/me/profile", {
       method: "PATCH",
       body: JSON.stringify(body),
-    }, token),
+    }, token).then((profile) => {
+      // Shared profile:me cache (#136) — every write path invalidates here,
+      // regardless of caller (AccountPage save handlers, OnboardingModal).
+      invalidateProfile();
+      return profile;
+    }),
 
   getFamilyMatches: (restaurantIds: string[], token: string) =>
     request<FamilyMatchResponse>("/v1/me/family-matches", {
@@ -253,7 +259,12 @@ export const api = {
     request<NotificationPreferences>("/v1/me/notification-preferences", {
       method: "PATCH",
       body: JSON.stringify(body),
-    }, token),
+    }, token).then((prefs) => {
+      // notification_preferences is embedded in ExtendedUserProfile, so this
+      // write also invalidates the shared profile:me cache (#136).
+      invalidateProfile();
+      return prefs;
+    }),
 
   registerPushToken: (token: string, platform: "web" | "ios", pushToken: string) =>
     request<{ id: string }>("/v1/me/push-tokens", {

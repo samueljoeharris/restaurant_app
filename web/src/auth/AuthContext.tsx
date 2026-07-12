@@ -20,6 +20,7 @@ import type { ReactNode } from "react";
 
 import { auth } from "../firebase";
 import { isAdminSite } from "../buildTarget";
+import { syncProfileIdentity } from "../lib/pageDataCache";
 import { AuthContext, type AuthContextValue } from "./context";
 import { consumeHandoffToken, signInFromHandoffToken } from "./handoff";
 import { bootstrapFirebaseFromIapSession } from "./iapSession";
@@ -72,6 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authListenerReady, setAuthListenerReady] = useState(false);
 
   const syncUser = useCallback(async (next: User | null, forceRefresh = false) => {
+    // Shared profile:me cache (#136): drop it the moment the signed-in
+    // identity changes (logout or a different uid), regardless of which page
+    // is mounted. Token refresh keeps the same uid and is a no-op here.
+    syncProfileIdentity(next?.uid ?? null);
     setUser(next);
     if (next) {
       const tokenResult = await next.getIdTokenResult(forceRefresh);

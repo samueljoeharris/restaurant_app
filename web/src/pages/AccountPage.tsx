@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { authErrorMessage } from "../auth/errors";
 import { useAuth } from "../auth/useAuth";
@@ -17,6 +17,7 @@ import { CheckboxField, FormField } from "../components/ui/FormField";
 import { Page } from "../components/ui/Page";
 import { TagInput } from "../components/ui/TagInput";
 import { useToast } from "../components/ui/useToast";
+import { useCachedResource } from "../hooks/useCachedResource";
 import { useTheme, type ThemeMode } from "../hooks/useTheme";
 import { cn } from "../lib/cn";
 import {
@@ -26,6 +27,7 @@ import {
   toggleKey,
   type FamilyProfileOption,
 } from "../lib/familyProfile";
+import { profileCacheKey, syncProfileIdentity } from "../lib/pageDataCache";
 import { scoutingSubtitle, trailScoutBadge } from "../lib/scoutProfile";
 import { userStorage } from "../lib/userStorage";
 import type { ExtendedUserProfile, NotificationPreferences } from "../types";
@@ -119,7 +121,6 @@ function CheckboxGroup({
 export function AccountPage() {
   const { user, idToken, isAdmin, logout } = useAuth();
   const { mode, setMode } = useTheme();
-  const [profile, setProfile] = useState<ExtendedUserProfile | null>(null);
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [kidsInput, setKidsInput] = useState("");
   const [family, setFamily] = useState<FamilyForm>(EMPTY_FAMILY_FORM);
@@ -127,12 +128,15 @@ export function AccountPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!idToken) return;
-    api
-      .getProfile(idToken)
-      .then((p) => {
-        setProfile(p);
+  // Shared profile:me cache (#136) — was a private getProfile fetch; other
+  // pages (Saved, Explore, restaurant detail) read through the same cache,
+  // so this paints instantly whenever one of them fetched first.
+  syncProfileIdentity(user?.uid ?? null);
+  const { data: profile, refresh: refreshProfile } = useCachedResource<ExtendedUserProfile>(
+    idToken ? profileCacheKey() : null,
+    () => api.getProfile(idToken!),
+    {
+      onData: (p) => {
         setPrefs(p.notification_preferences);
         setKidsInput(p.kids_ages.join(", "));
         setFamily(familyFormFromProfile(p));
@@ -152,9 +156,9 @@ export function AccountPage() {
           alertEveryReview: p.notification_preferences.alert_every_review,
           pushEnabled: p.notification_preferences.push_enabled,
         });
-      })
-      .catch(() => {});
-  }, [idToken]);
+      },
+    },
+  );
 
   async function saveFamilyProfile() {
     if (!idToken) return;
@@ -165,7 +169,10 @@ export function AccountPage() {
       .map((s) => parseInt(s.trim(), 10))
       .filter((n) => !Number.isNaN(n));
     try {
-      const updated = await api.patchProfile(idToken, {
+      // api.patchProfile invalidates the shared profile:me cache on success
+      // (see api/client.ts); pull the fresh value back through it here so
+      // this page's form state and every other cached reader stay in sync.
+      await api.patchProfile(idToken, {
         kids_ages: kidsAges,
         allergies: family.allergies,
         allergy_notes: family.allergyNotes.trim(),
@@ -176,9 +183,7 @@ export function AccountPage() {
         preference_notes: family.preferenceNotes.trim(),
         complete_onboarding: true,
       });
-      setProfile(updated);
-      setKidsInput(updated.kids_ages.join(", "));
-      setFamily(familyFormFromProfile(updated));
+      await refreshProfile();
       toast("Family profile saved.", "success");
     } catch (err) {
       setSaveError(authErrorMessage(err));

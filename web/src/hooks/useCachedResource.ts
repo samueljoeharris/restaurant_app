@@ -27,6 +27,19 @@ export function prefetchCachedResource<T>(key: string, fetcher: () => Promise<T>
   });
 }
 
+/**
+ * Read through the shared cache from non-component code (#136), e.g. a
+ * resource bundler like restaurantDetailResource.ts that isn't itself a hook.
+ * Returns the cached value if present; otherwise fetches, caches, and
+ * returns it. Errors propagate to the caller (unlike prefetchCachedResource,
+ * which is fire-and-forget).
+ */
+export function getCachedResource<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  const cached = cache.get(key);
+  if (cached) return Promise.resolve(cached.data as T);
+  return fetchDeduped(key, fetcher);
+}
+
 function fetchDeduped<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
   const existing = inflight.get(key);
   if (existing) return existing as Promise<T>;

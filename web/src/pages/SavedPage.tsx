@@ -15,6 +15,7 @@ import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
+import { profileCacheKey, syncProfileIdentity } from "../lib/pageDataCache";
 import { formatTtfMedian } from "../lib/ttfTier";
 import type { ExtendedUserProfile, WatchedRestaurantEntry } from "../types";
 import { userStorage } from "../lib/userStorage";
@@ -45,38 +46,46 @@ function SavedRow({ entry }: { entry: WatchedRestaurantEntry }) {
   );
 }
 
-interface SavedPageData {
+interface SavedWatchesData {
   items: WatchedRestaurantEntry[];
-  profile: ExtendedUserProfile;
 }
 
 export function SavedPage() {
-  const { idToken } = useAuth();
+  const { user, idToken } = useAuth();
   const { unreadCount } = useActivityBadge();
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  // Decide from the localStorage profile cache first (#136) — it's already
+  // synchronously available — then confirm/correct once the network fetch
+  // below resolves, instead of waiting on the network for the first paint.
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => userStorage.getProfileCache()?.onboardingCompleted === false,
+  );
   const [showPushPrime, setShowPushPrime] = useState(false);
   const [stripDismissed, setStripDismissed] = useState(false);
 
-  const { data, loading, error, refresh } = useCachedResource<SavedPageData>(
-    idToken ? "saved:watches-profile" : null,
-    async () => {
-      const [watches, profile] = await Promise.all([
-        api.listWatches(idToken!),
-        api.getProfile(idToken!),
-      ]);
-      return { items: watches.items, profile };
-    },
+  syncProfileIdentity(user?.uid ?? null);
+  useCachedResource<ExtendedUserProfile>(
+    idToken ? profileCacheKey() : null,
+    () => api.getProfile(idToken!),
     {
-      onData: ({ items, profile }) => {
-        if (!profile.onboarding_completed) setShowOnboarding(true);
-        const prime = userStorage.getPushPrimeState();
-        setShowPushPrime(items.length > 0 && !prime.firstSavePromptShown);
+      onData: (profile) => {
+        setShowOnboarding(!profile.onboarding_completed);
         userStorage.setProfileCache({
           kidsAges: profile.kids_ages,
           homeLabel: profile.home_label,
           onboardingCompleted: profile.onboarding_completed,
           inboxReadThrough: profile.inbox_read_through,
         });
+      },
+    },
+  );
+
+  const { data, loading, error, refresh } = useCachedResource<SavedWatchesData>(
+    idToken ? "saved:watches" : null,
+    async () => ({ items: (await api.listWatches(idToken!)).items }),
+    {
+      onData: ({ items }) => {
+        const prime = userStorage.getPushPrimeState();
+        setShowPushPrime(items.length > 0 && !prime.firstSavePromptShown);
       },
     },
   );

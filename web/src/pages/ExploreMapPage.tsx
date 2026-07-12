@@ -18,6 +18,7 @@ import {
   mergeRestaurantMapEntries,
   useRestaurantMapEntries,
 } from "../hooks/useRestaurantMapCatalog";
+import { useCachedResource } from "../hooks/useCachedResource";
 import { useMapViewportRestaurants } from "../hooks/useMapViewportRestaurants";
 import { useIsMobile } from "../hooks/useBreakpoint";
 import { geolocationErrorMessage, getCurrentPosition } from "../lib/geolocation";
@@ -26,6 +27,7 @@ import { runBackgroundCoverage } from "../lib/backgroundCoverage";
 import { bboxAround } from "../lib/mapViewport";
 import { schedulePopInClear } from "../lib/mapSearchPopIn";
 import { searchZoomModeForEntry } from "../lib/mapSearchView";
+import { profileCacheKey, syncProfileIdentity } from "../lib/pageDataCache";
 import {
   ensureFullRestaurantCatalog,
   ensureNearbyAt,
@@ -99,7 +101,7 @@ function formatPlaceCount(count: number) {
 export function ExploreMapPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { idToken } = useAuth();
+  const { user, idToken } = useAuth();
   const isMobile = useIsMobile();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -161,23 +163,15 @@ export function ExploreMapPage() {
   }, [restaurants]);
 
   // "Fits my family" (#88): profile-derived filter chip + match reasons.
-  const [familyProfile, setFamilyProfile] = useState<ExtendedUserProfile | null>(null);
+  // Reads through the shared profile:me cache (#136) so it paints in the
+  // first frame on any warm session instead of popping in after its own
+  // private fetch resolves.
+  syncProfileIdentity(user?.uid ?? null);
+  const { data: familyProfile } = useCachedResource<ExtendedUserProfile>(
+    idToken ? profileCacheKey() : null,
+    () => api.getProfile(idToken!),
+  );
   const [familyMatches, setFamilyMatches] = useState<Map<string, FamilyMatchResult> | null>(null);
-
-  // Load the account's profile once signed in (mirrors AccountPage's fetch).
-  useEffect(() => {
-    if (!idToken) return;
-    let cancelled = false;
-    api
-      .getProfile(idToken)
-      .then((p) => {
-        if (!cancelled) setFamilyProfile(p);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [idToken]);
 
   const familyFilterUsable = Boolean(
     idToken && familyProfile && hasMatchablePreferences(familyProfile),
