@@ -11,10 +11,13 @@ import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { useToast } from "./ui/useToast";
 import {
+  draftReadinessLabel,
+  draftReadinessTier,
   extractContributionDraft,
   reviewChatAvailable,
   sendReviewChatMessage,
   type ChatMessage,
+  type DraftReadinessTier,
 } from "../lib/reviewChat";
 import type { ContributionDraft, ContributionPreviewResponse, ContributionSchema } from "../types";
 
@@ -55,10 +58,18 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [preview, setPreview] = useState<ContributionPreviewResponse | null>(null);
   const [extractSummary, setExtractSummary] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Live extraction (#122) runs after every assistant turn. These refs make sure
+  // rapid turns don't fire overlapping requests: while one is in flight, the next
+  // turn's messages are stashed and re-run trailing-edge once it settles, and a
+  // sequence number guards against a stale response clobbering a newer draft.
+  const extractInFlightRef = useRef(false);
+  const extractSeqRef = useRef(0);
+  const pendingExtractRef = useRef<ChatMessage[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +94,54 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, preview]);
 
+  // Runs extraction + preview for a completed assistant turn. Serialized via
+  // extractInFlightRef so overlapping turns never fire concurrent requests: a
+  // turn that arrives mid-flight is stashed in pendingExtractRef and picked up
+  // by the loop below (trailing-edge, with the latest messages) once the
+  // in-flight call settles — no recursive self-call, so React Compiler can
+  // still memoize this callback.
+  const runExtraction = useCallback(
+    async (msgs: ChatMessage[]) => {
+      if (!schema || !idToken || msgs.length < 2 || (!restaurantId && !placeId)) return;
+      if (extractInFlightRef.current) {
+        pendingExtractRef.current = msgs;
+        return;
+      }
+      extractInFlightRef.current = true;
+      setExtracting(true);
+      let next: ChatMessage[] | null = msgs;
+      try {
+        while (next) {
+          const current = next;
+          next = null;
+          const seq = ++extractSeqRef.current;
+          try {
+            const extracted = await extractContributionDraft(current, idToken);
+            const result = placeId
+              ? await api.previewPlaceContributions(placeId, extracted.draft, idToken)
+              : await api.previewContributions(restaurantId!, extracted.draft, idToken);
+            if (seq === extractSeqRef.current) {
+              setExtractSummary(extracted.summary);
+              setPreview(result);
+            }
+          } catch (err) {
+            if (seq === extractSeqRef.current) {
+              setError(err instanceof Error ? err.message : "Draft extraction failed.");
+            }
+          }
+          if (pendingExtractRef.current) {
+            next = pendingExtractRef.current;
+            pendingExtractRef.current = null;
+          }
+        }
+      } finally {
+        extractInFlightRef.current = false;
+        setExtracting(false);
+      }
+    },
+    [schema, idToken, restaurantId, placeId],
+  );
+
   const sendMessage = useCallback(async () => {
     const text = input.trim();
     if (!text || busy || !idToken || !schema) return;
@@ -91,36 +150,21 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
     setInput("");
     setBusy(true);
     setError(null);
-    setPreview(null);
-    setExtractSummary(null);
     setMessages(nextMessages);
     try {
       const reply = await sendReviewChatMessage(restaurantName, nextMessages, idToken);
-      setMessages((prev) => [...prev, { role: "assistant", text: reply }]);
+      const updatedMessages: ChatMessage[] = [...nextMessages, { role: "assistant", text: reply }];
+      setMessages(updatedMessages);
+      // Live extraction (#122): runs automatically after every assistant turn
+      // instead of waiting for a manual "Preview submission" tap. Runs in the
+      // background (its own `extracting` flag) so the composer stays usable.
+      void runExtraction(updatedMessages);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chat failed.");
     } finally {
       setBusy(false);
     }
-  }, [input, busy, idToken, schema, messages, restaurantName]);
-
-  async function handlePreview() {
-    if (!schema || !idToken || messages.length < 2 || (!restaurantId && !placeId)) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const extracted = await extractContributionDraft(messages, idToken);
-      setExtractSummary(extracted.summary);
-      const result = placeId
-        ? await api.previewPlaceContributions(placeId, extracted.draft, idToken)
-        : await api.previewContributions(restaurantId!, extracted.draft, idToken);
-      setPreview(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Preview failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
+  }, [input, busy, idToken, schema, messages, restaurantName, runExtraction]);
 
   async function handleSubmit() {
     if (!preview?.ready_to_submit || !idToken || (!restaurantId && !placeId)) return;
@@ -206,7 +250,7 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
           {message.text}
         </div>
       ))}
-      {busy && !preview && (
+      {busy && (
         <div className="max-w-[92%] self-start rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-muted">
           Thinking…
         </div>
@@ -231,9 +275,6 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
         }}
       />
       <div className="mt-2 flex justify-end gap-2">
-        <Button type="button" variant="secondary" onClick={handlePreview} disabled={busy || messages.length < 2}>
-          Preview submission
-        </Button>
         <Button type="button" onClick={() => void sendMessage()} disabled={busy || !input.trim() || !schema}>
           Send
         </Button>
@@ -244,14 +285,26 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
   const errorLine = error ? <p className="text-sm font-semibold text-error">{error}</p> : null;
 
   // Extracted draft — rendered inline below the chat, or in the sidebar rail.
+  // Live extraction (#122) fills this in automatically as the conversation
+  // progresses; the card's tone/header track draftReadinessTier so it visibly
+  // moves through empty -> amber ("N to add") -> green ("Ready").
+  const tier = draftReadinessTier(preview);
+  const headerLabel = draftReadinessLabel(preview);
+  const tierClassName: Record<DraftReadinessTier, string> = {
+    empty: "border-border bg-surface",
+    pending: "border-warning/30 bg-warning-soft",
+    ready: "border-success/30 bg-success-soft",
+  };
+
   const draftPanel = (
-    <div className="flex flex-col gap-3 text-sm">
-      {extractSummary && <p className="rounded-md bg-surface-muted p-3">{extractSummary}</p>}
+    <div className={cn("flex flex-col gap-3 rounded-md border p-3 text-sm", tierClassName[tier])}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-semibold">{headerLabel}</p>
+        {extracting && <span className="text-xs font-medium text-text-muted">Updating…</span>}
+      </div>
       {preview ? (
-        <div className="rounded-md bg-surface-muted p-3">
-          <p className="mb-2 font-semibold">
-            {preview.ready_to_submit ? "Ready to submit" : "Needs a bit more detail"}
-          </p>
+        <>
+          {extractSummary && <p className="rounded-md bg-surface/60 p-3">{extractSummary}</p>}
           <DraftSummary draft={preview.draft} />
           {preview.missing_required.length > 0 && (
             <div className="mb-2">
@@ -280,11 +333,9 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
               {busy ? "Submitting…" : "Submit review"}
             </Button>
           )}
-        </div>
+        </>
       ) : (
-        <p className="rounded-md border border-dashed border-border p-3 text-text-muted">
-          Fields appear here as you chat — tap <span className="font-semibold">Preview submission</span> to update.
-        </p>
+        <p className="text-text-muted">Fields appear here as you chat — no need to tap anything.</p>
       )}
     </div>
   );
@@ -302,14 +353,11 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
     );
   }
 
-  const pendingCount = preview ? preview.missing_required.length + preview.errors.length : 0;
-  const draftBadge = !preview
-    ? null
-    : preview.ready_to_submit
-      ? "Ready"
-      : pendingCount > 0
-        ? `${pendingCount} to add`
-        : "In progress";
+  const badgeToneClassName: Record<DraftReadinessTier, string> = {
+    empty: "text-text-muted",
+    pending: "text-warning",
+    ready: "text-success",
+  };
 
   return (
     <div className="grid items-start gap-4 md:grid-cols-[1fr_20rem]">
@@ -321,16 +369,16 @@ export function ReviewChat({ restaurantId, placeId, restaurantName, layout = "in
         </div>
       </Card>
 
-      {/* Desktop rail (md+) */}
-      <aside className="hidden md:sticky md:top-4 md:block">
-        <Card title="Your draft">{draftPanel}</Card>
-      </aside>
+      {/* Desktop rail (md+) — draftPanel is itself the card, so its readiness tone/border is the rail. */}
+      <aside className="hidden md:sticky md:top-4 md:block">{draftPanel}</aside>
 
       {/* Mobile disclosure — stacks under the chat, opens once a draft exists */}
       <details className="rounded-lg border border-border bg-surface md:hidden" open={Boolean(preview)}>
         <summary className="min-h-11 cursor-pointer px-4 py-2.5 text-sm font-semibold">
           Your draft
-          {draftBadge && <span className="ml-2 font-medium text-brand">{draftBadge}</span>}
+          {preview && (
+            <span className={cn("ml-2 font-medium", badgeToneClassName[tier])}>{headerLabel}</span>
+          )}
         </summary>
         <div className="border-t border-border p-4">{draftPanel}</div>
       </details>
