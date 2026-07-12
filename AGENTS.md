@@ -155,24 +155,34 @@ Bug fix = root cause: grep every caller of the function you touch; fix the share
 
 Not lazy about: understanding the problem, trust-boundary validation, data-loss prevention, security, accessibility, anything explicitly requested.
 
-### Cursor agent orchestration
+### Agent orchestration (Claude Code + Cursor)
 
-When using Cursor's Agent tool for complex tasks, delegate rather than doing everything in one context:
+Both harnesses expose an Agent tool with per-invocation model overrides. For complex tasks, delegate rather than doing everything in one context.
+
+**Model-tier policy — the coordinator is the most expensive model in the room.** When the main session runs on an Opus- or Fable-tier model, delegate aggressively to `haiku` and `sonnet` sub-agents: the coordinator plans, delegates, and synthesizes; cheaper models do the reading, searching, and mechanical legwork. Frontier models under-delegate by default — Anthropic's own guidance is to instruct them explicitly, so treat this section as that instruction. When the main session already runs on Sonnet or Haiku, delegation is for context isolation, not cost — `inherit` is fine.
 
 | Task type | Sub-agent model | When to spawn |
 |-----------|----------------|---------------|
-| Codebase research (find files, trace call chains, audit for a pattern) | `sonnet` | When a question spans >3 files or requires multiple greps |
-| Quick single-file lookup | `haiku` | Symbol definition, line count, a specific value |
+| Quick lookup (symbol definition, line count, a specific value) | `haiku` | Single-file or single-grep questions the coordinator doesn't need to see raw |
+| Codebase research (find files, trace call chains, audit for a pattern) | `haiku`; `sonnet` if results need interpretation | When a question spans >3 files or requires multiple greps |
+| High-volume output isolation (test runs, log processing, docs fetching) | `haiku` | Whenever raw output would flood the coordinator's context — only the summary returns |
+| Implementation in a scoped area | `sonnet` | Writing or refactoring code the coordinator has already scoped |
 | Parallel independent work | `sonnet` (×N) | When two areas of the codebase need separate changes with no shared state |
 | Design / plan review | `sonnet` | Reviewing a doc or architecture decision before committing |
+| Judgment-heavy synthesis, cross-cutting decisions | coordinator itself | Delegate the legwork, never the thinking |
 
-**Sub-agent prompting rules:**
-- Sub-agents have no conversation history — brief them completely: file paths, what was already tried, the goal
+**Scale sub-agent count to task complexity** (per [Anthropic's multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system)): **0** when one read or grep answers it — delegation overhead exceeds the work, do it directly; **1** for a scoped question; **2–4 in parallel** for comparisons or multi-area changes; more only for genuinely decomposable research. Never spawn a fleet for a one-line question.
+
+**Sub-agent briefing rules** (sub-agents start with zero conversation history):
+- Brief completely: objective, file paths, what was already tried, expected output format, and boundaries (what *not* to touch)
 - Tell each sub-agent whether to **research only** (read, grep, report back) or **write code** (edit files, report what changed)
-- After a sub-agent returns, the orchestrator synthesizes results and decides next steps — never blindly forward sub-agent output to the user without review
-- Use `isolation: "worktree"` in the Agent tool for sub-agents that make file changes, so failures don't dirty the working tree
+- Parallelize only independent workstreams; dependent steps stay sequential in the coordinator
+- After a sub-agent returns, the coordinator synthesizes results and decides next steps — never blindly forward sub-agent output to the user without review
+- Use `isolation: "worktree"` for sub-agents that make file changes, so failures don't dirty the working tree
 
-**Model override:** Pass `model: "sonnet"` or `model: "haiku"` in the Agent tool call. Example: research and code sub-agents both use `"sonnet"`; fast single-lookup agents use `"haiku"`.
+**Claude Code:** prefer the built-in `Explore` agent for read-only search (pass a thoroughness level: quick / medium / very thorough). Per-invocation model override: pass `model: "haiku"` / `"sonnet"` in the Agent tool call; custom agents in `.claude/agents/` pin a model via `model:` frontmatter (`haiku`, `sonnet`, `opus`, `fable`, or `inherit`).
+
+**Cursor:** same table applies; pass `model: "sonnet"` or `model: "haiku"` in the Agent tool call.
 
 ### Claude Code bootstrap
 
