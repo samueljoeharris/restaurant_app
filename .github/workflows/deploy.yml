@@ -64,7 +64,9 @@ jobs:
       - name: Web install
         if: needs.changes.outputs.web == 'true'
         working-directory: web
-        run: npm ci
+        run: |
+          npm ci
+          npm audit
 
       - name: Web typecheck
         if: needs.changes.outputs.web == 'true'
@@ -96,6 +98,13 @@ jobs:
           python -m compileall -q ttf_api
           python -c "from ttf_api.main import app; print('app imports ok')"
           python -m unittest tests.test_security_config -q
+
+      - name: API dependency audit
+        if: needs.changes.outputs.api == 'true'
+        working-directory: api
+        run: |
+          pip install --quiet pip-audit
+          pip-audit -r requirements.txt
 
       - name: Secret scan (gitleaks)
         run: bash scripts/secret-scan.sh detect
