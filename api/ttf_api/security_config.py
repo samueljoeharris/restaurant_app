@@ -7,6 +7,15 @@ import os
 from ttf_api.config import Settings
 
 
+def assert_safe_cors_config(settings: Settings) -> None:
+    """CORS with credentials cannot include wildcard origins."""
+    if settings.cors_origins and "*" in settings.cors_origins:
+        raise RuntimeError(
+            "Wildcard CORS origin '*' is not allowed when allow_credentials=True. "
+            "List explicit origins instead."
+        )
+
+
 def is_deployed_environment(settings: Settings) -> bool:
     """True when the API is configured for Cloud Run / Cloud SQL (not local compose)."""
     if os.environ.get("K_SERVICE"):

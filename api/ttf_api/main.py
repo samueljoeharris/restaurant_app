@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ttf_api.config import settings
 from ttf_api.db import run_migrations
-from ttf_api.security_config import assert_safe_auth_config
+from ttf_api.security_config import assert_safe_auth_config, assert_safe_cors_config
 from ttf_api.http_cache import ETagMiddleware
 from ttf_api.routers import (
     admin,
@@ -45,12 +45,16 @@ app = FastAPI(
 # keep CORS as the outermost layer.
 app.add_middleware(ETagMiddleware)
 
+# Fail fast on a wildcard CORS origin with credentials; this is a foot-gun that
+# would let arbitrary sites make authenticated requests.
+assert_safe_cors_config(settings)
+
 if settings.cors_origins:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type", "X-Firebase-AppCheck"],
     )
 

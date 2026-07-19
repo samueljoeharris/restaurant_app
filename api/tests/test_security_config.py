@@ -51,6 +51,13 @@ class SecurityConfigTests(unittest.TestCase):
             os.environ.pop("TTF_DEPLOYED", None)
             self.assertFalse(is_deployed_environment(local))
 
+    def test_wildcard_cors_origin_is_rejected(self) -> None:
+        from ttf_api.security_config import assert_safe_cors_config
+
+        bad = Settings(cors_origins=["*"])
+        with self.assertRaisesRegex(RuntimeError, "Wildcard CORS origin"):
+            assert_safe_cors_config(bad)
+
 
 if __name__ == "__main__":
     unittest.main()
