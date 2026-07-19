@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="pointer-events-none fixed bottom-5 left-1/2 grid w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 gap-2"
+        className="pointer-events-none fixed bottom-[4.25rem] left-1/2 grid w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 gap-2 md:bottom-5"
         style={{ zIndex: Z.toast }}
         aria-live="polite"
       >
