@@ -14,6 +14,16 @@ export function placeEntryCacheKey(placeId: string): string {
   return `place-entry:${placeId}`;
 }
 
+/** Shared profile cache (#136). Keyed on Firebase uid, not the rotating idToken. */
+export function profileCacheKey(userUid: string): string {
+  return `profile:me:${userUid}`;
+}
+
+/** Call after any profile or notification-prefs write so other pages revalidate. */
+export function invalidateProfile() {
+  invalidateCachedResource("profile:me:");
+}
+
 /**
  * After any contribution write (TTF, attribute, note — create, edit, or
  * delete): the restaurant's detail aggregates and the user's contributions

@@ -2,31 +2,29 @@ import { api } from "../api/client";
 import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
 
 /**
- * Everything the restaurant detail page needs, fetched as one cacheable
- * bundle (#78). Shared with intent prefetch (#80) so a hover warms exactly
- * the data the page will read.
+ * Core restaurant detail data fetched as one cacheable bundle (#78).
+ * The caller provides the signed-in user's `kidsAges` separately from the shared
+ * `profile:me` cache (#136) so this bundle stays user-agnostic and can be warmed
+ * by intent prefetch (#80) without duplicating profile GETs.
  */
 export interface RestaurantDetailBundle {
   detail: RestaurantDetailResponse;
   attributes: AttributeEntry[];
   notes: RestaurantNote[];
-  kidsAges: number[];
 }
 
 export async function fetchRestaurantDetailBundle(
   id: string,
   idToken: string | null,
 ): Promise<RestaurantDetailBundle> {
-  const [detail, attrs, notesRes, profile] = await Promise.all([
+  const [detail, attrs, notesRes] = await Promise.all([
     api.getRestaurant(id, idToken),
     api.getAttributes(id),
     api.listNotes(id),
-    idToken ? api.getProfile(idToken).catch(() => null) : Promise.resolve(null),
   ]);
   return {
     detail,
     attributes: Object.values(attrs.attributes),
     notes: notesRes.notes,
-    kidsAges: profile?.kids_ages ?? [],
   };
 }

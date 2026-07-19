@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { useCachedResource } from "../hooks/useCachedResource";
 import { ExploreFilterBar } from "../components/ExploreFilterBar";
 import { AppBottomNav } from "../components/AppBottomNav";
 import { MapLocateFab } from "../components/MapLocateFab";
@@ -56,6 +57,8 @@ import {
   type ScoutFilter,
 } from "../lib/exploreFacets";
 import { hasMatchablePreferences, matchReasonsFor } from "../lib/familyMatch";
+import { profileCacheKey } from "../lib/pageDataCache";
+import { userStorage, type ProfileCache } from "../lib/userStorage";
 import {
   buildResultRows,
   shouldVirtualizeResults,
@@ -100,7 +103,7 @@ function formatPlaceCount(count: number) {
 export function ExploreMapPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { idToken } = useAuth();
+  const { user, idToken } = useAuth();
   const isMobile = useIsMobile();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -162,23 +165,25 @@ export function ExploreMapPage() {
   }, [restaurants]);
 
   // "Fits my family" (#88): profile-derived filter chip + match reasons.
-  const [familyProfile, setFamilyProfile] = useState<ExtendedUserProfile | null>(null);
+  const { data: familyProfile } = useCachedResource<ExtendedUserProfile>(
+    user?.uid ? profileCacheKey(user.uid) : null,
+    () => api.getProfile(idToken!),
+    {
+      onData: (p) => {
+        const cache: Omit<ProfileCache, "version"> = {
+          kidsAges: p.kids_ages,
+          homeLabel: p.home_label,
+          onboardingCompleted: p.onboarding_completed,
+          inboxReadThrough: p.inbox_read_through,
+          displayName: p.display_name,
+          contributionCount: p.contribution_count,
+          watchCount: p.watch_count,
+        };
+        userStorage.setProfileCache(cache);
+      },
+    },
+  );
   const [familyMatches, setFamilyMatches] = useState<Map<string, FamilyMatchResult> | null>(null);
-
-  // Load the account's profile once signed in (mirrors AccountPage's fetch).
-  useEffect(() => {
-    if (!idToken) return;
-    let cancelled = false;
-    api
-      .getProfile(idToken)
-      .then((p) => {
-        if (!cancelled) setFamilyProfile(p);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [idToken]);
 
   const familyFilterUsable = Boolean(
     idToken && familyProfile && hasMatchablePreferences(familyProfile),

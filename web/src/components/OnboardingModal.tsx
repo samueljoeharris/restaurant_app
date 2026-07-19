@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { useDialogFocus } from "../hooks/useDialogFocus";
 import { useRegisterBlockingModal } from "../hooks/useModalPresence";
+import { invalidateProfile } from "../lib/pageDataCache";
 import { Z } from "../lib/overlayStack";
 import { userStorage } from "../lib/userStorage";
 import { parseKidsAges } from "../lib/scoutProfile";
@@ -51,6 +52,7 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
         kids_ages: kidsAges,
         complete_onboarding: true,
       });
+      invalidateProfile();
       userStorage.setProfileCache({
         kidsAges,
         homeLabel: null,
