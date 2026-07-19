@@ -36,15 +36,14 @@ const THEME_OPTIONS: { mode: ThemeMode; label: string }[] = [
   { mode: "dark", label: "Dark" },
 ];
 
-const ALERT_TOGGLES: { key: keyof Pick<
+const ACTIVITY_ALERTS: { key: keyof Pick<
   NotificationPreferences,
-  "alert_new_ttf" | "alert_new_rating" | "alert_new_note" | "alert_every_review" | "push_enabled"
+  "alert_new_ttf" | "alert_new_rating" | "alert_new_note" | "alert_every_review"
 >; label: string }[] = [
-  { key: "alert_new_ttf", label: "New speed visits" },
-  { key: "alert_new_rating", label: "New parent ratings" },
-  { key: "alert_new_note", label: "New notes" },
-  { key: "alert_every_review", label: "Every new review (noisy)" },
-  { key: "push_enabled", label: "Push notifications" },
+  { key: "alert_new_ttf", label: "a saved spot gets a new speed visit" },
+  { key: "alert_new_rating", label: "a saved spot gets a new parent rating" },
+  { key: "alert_new_note", label: "a saved spot gets a new note" },
+  { key: "alert_every_review", label: "any new review is logged (noisy)" },
 ];
 
 interface FamilyForm {
@@ -202,7 +201,6 @@ export function AccountPage() {
   const contributions = profile?.contribution_count ?? 0;
   const savedCount = profile?.watch_count ?? 0;
   const badge = trailScoutBadge(contributions);
-  const weeklyDigestOn = prefs?.cadence === "weekly";
 
   return (
     <Page narrow className="grid max-w-[var(--page-narrow)] gap-3.5 pb-6">
@@ -236,39 +234,73 @@ export function AccountPage() {
       <Eyebrow>Settings</Eyebrow>
 
       {prefs && (
-        <>
-          <SettingsToggleRow
-            label="Weekly digest"
-            checked={weeklyDigestOn}
-            onChange={(on) =>
-              void savePrefs({ cadence: on ? "weekly" : "realtime_bundle" })
-            }
-          />
-          {ALERT_TOGGLES.map(({ key, label }) => (
-            <SettingsToggleRow
-              key={key}
-              label={label}
-              checked={prefs[key]}
-              onChange={(checked) => void savePrefs({ [key]: checked })}
-            />
-          ))}
-          <SettingsPanel title="Alert cadence" subtitle="How often we bundle updates">
-            <FormField label="Delivery">
-              <select
-                value={prefs.cadence}
-                onChange={(e) =>
-                  void savePrefs({
-                    cadence: e.target.value as NotificationPreferences["cadence"],
-                  })
-                }
-              >
-                <option value="weekly">Weekly digest</option>
-                <option value="daily">Daily digest</option>
-                <option value="realtime_bundle">Realtime (bundled)</option>
-              </select>
-            </FormField>
-          </SettingsPanel>
-        </>
+        <SettingsPanel
+          title="Notifications"
+          subtitle="Choose what updates you get and how often"
+        >
+          <div className="grid gap-5">
+            <section className="grid gap-2">
+              <h3 className="text-sm font-bold text-text">Activity alerts</h3>
+              <p className="text-xs text-text-muted">Let me know when…</p>
+              {ACTIVITY_ALERTS.map(({ key, label }) => (
+                <SettingsToggleRow
+                  key={key}
+                  label={label}
+                  checked={prefs[key]}
+                  onChange={(checked) => void savePrefs({ [key]: checked })}
+                />
+              ))}
+            </section>
+
+            <section className="grid gap-2">
+              <h3 className="text-sm font-bold text-text">Delivery</h3>
+              <SettingsToggleRow
+                label="Push notifications"
+                checked={prefs.push_enabled}
+                onChange={(checked) => void savePrefs({ push_enabled: checked })}
+              />
+              <FormField label="Digest cadence" hint="How often we bundle email updates">
+                <select
+                  value={prefs.cadence}
+                  onChange={(e) =>
+                    void savePrefs({
+                      cadence: e.target.value as NotificationPreferences["cadence"],
+                    })
+                  }
+                >
+                  <option value="weekly">Weekly digest</option>
+                  <option value="daily">Daily digest</option>
+                  <option value="realtime_bundle">Realtime (bundled)</option>
+                </select>
+              </FormField>
+            </section>
+
+            <section className="grid gap-2">
+              <h3 className="text-sm font-bold text-text">Quiet hours</h3>
+              <p className="text-xs text-text-muted">Pause push notifications during this window.</p>
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label="Start">
+                  <input
+                    type="time"
+                    value={prefs.quiet_hours_start}
+                    onChange={(e) =>
+                      void savePrefs({ quiet_hours_start: e.target.value })
+                    }
+                  />
+                </FormField>
+                <FormField label="End">
+                  <input
+                    type="time"
+                    value={prefs.quiet_hours_end}
+                    onChange={(e) =>
+                      void savePrefs({ quiet_hours_end: e.target.value })
+                    }
+                  />
+                </FormField>
+              </div>
+            </section>
+          </div>
+        </SettingsPanel>
       )}
 
       <SettingsLinkRow to="/account/contributions" label="My contributions" />
