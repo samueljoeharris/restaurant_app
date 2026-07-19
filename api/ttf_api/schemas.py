@@ -1,8 +1,11 @@
+import re
 from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
+
+from ttf_api.place_id import validate_and_quote_place_id
 
 
 class HealthResponse(BaseModel):
@@ -511,8 +514,37 @@ class CreateRestaurantRequest(BaseModel):
     lat: float
     lng: float
     google_place_id: str | None = None
-    google_maps_url: str | None = None
+    google_maps_url: HttpUrl | None = None
     cuisine_tags: list[str] = Field(default_factory=list)
+
+    @field_validator("google_place_id")
+    @classmethod
+    def _validate_google_place_id(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        try:
+            return validate_and_quote_place_id(v)
+        except ValueError as exc:
+            raise ValueError(f"invalid google_place_id: {exc}") from exc
+
+    @field_validator("cuisine_tags", mode="before")
+    @classmethod
+    def _validate_cuisine_tags(cls, v: list[str] | None) -> list[str]:
+        if v is None:
+            return []
+        if not isinstance(v, list):
+            raise ValueError("cuisine_tags must be a list")
+        if len(v) > 50:
+            raise ValueError("too many cuisine_tags")
+        normalized: list[str] = []
+        for raw in v:
+            if not isinstance(raw, str) or not raw.strip():
+                raise ValueError("cuisine_tags must be non-empty strings")
+            tag = raw.strip().lower()
+            if len(tag) > 50 or not re.match(r"^[a-z0-9\-]+$", tag):
+                raise ValueError(f"invalid cuisine_tag: {raw}")
+            normalized.append(tag)
+        return normalized
 
 
 class TtfSubmissionRequest(BaseModel):

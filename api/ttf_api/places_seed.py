@@ -12,6 +12,7 @@ from psycopg import Connection
 
 from ttf_api.config import settings
 from ttf_api.family_match import notify_profile_matches_for_restaurant
+from ttf_api.place_id import validate_and_quote_place_id
 from ttf_api.restaurant_changelog import log_change
 
 GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -554,8 +555,12 @@ def fetch_place_details(
     field_mask: str = DETAILS_FIELD_MASK,
 ) -> dict | None:
     """Fetch Place Details for one place id. Returns None when the place is gone."""
+    try:
+        safe_place_id = validate_and_quote_place_id(place_id)
+    except ValueError as exc:
+        raise PlacesSeedError(f"invalid place_id: {exc}") from exc
     resp = client.get(
-        f"{PLACE_DETAILS_URL}/{place_id}",
+        f"{PLACE_DETAILS_URL}/{safe_place_id}",
         headers={
             "X-Goog-Api-Key": api_key,
             "X-Goog-FieldMask": field_mask,

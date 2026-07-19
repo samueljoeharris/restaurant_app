@@ -97,7 +97,7 @@ jobs:
         run: |
           python -m compileall -q ttf_api
           python -c "from ttf_api.main import app; print('app imports ok')"
-          python -m unittest tests.test_security_config -q
+          python -m unittest tests.test_security_config tests.test_place_id -q
 
       - name: API dependency audit
         if: needs.changes.outputs.api == 'true'

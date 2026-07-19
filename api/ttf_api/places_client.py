@@ -10,6 +10,7 @@ import logging
 
 import httpx
 
+from ttf_api.place_id import validate_and_quote_place_id
 from ttf_api.places_seed import PlacesSeedError
 
 logger = logging.getLogger(__name__)
@@ -76,13 +77,17 @@ def place_details(
     distinguish missing-place from other errors by checking status_code via
     exception message).
     """
+    try:
+        safe_place_id = validate_and_quote_place_id(place_id)
+    except ValueError as exc:
+        raise PlacesSeedError(f"invalid place_id: {exc}") from exc
     headers = {
         "X-Goog-Api-Key": api_key,
         "X-Goog-FieldMask": RESOLVE_FIELD_MASK,
     }
     with httpx.Client(timeout=20.0) as client:
         resp = client.get(
-            f"{PLACE_DETAILS_BASE}/{place_id}",
+            f"{PLACE_DETAILS_BASE}/{safe_place_id}",
             headers=headers,
             params={"sessionToken": session_token},
         )

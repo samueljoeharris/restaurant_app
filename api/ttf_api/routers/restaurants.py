@@ -7,7 +7,7 @@ from ttf_api.ugc_write import insert_attribute_rating, insert_note, insert_ttf_o
 
 from ttf_api.aggregates import build_attribute_aggregates
 from ttf_api.auth import AuthUser, get_optional_user
-from ttf_api.security import require_write_access
+from ttf_api.security import require_trusted_or_admin, require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.map_query import build_bbox_filter
@@ -261,7 +261,7 @@ def get_restaurant(
 @router.post("", response_model=RestaurantDetail, status_code=status.HTTP_201_CREATED)
 def create_restaurant(
     body: CreateRestaurantRequest,
-    user: Annotated[AuthUser, Depends(require_write_access)],
+    user: Annotated[AuthUser, Depends(require_trusted_or_admin)],
 ) -> RestaurantDetail:
     with get_conn() as conn:
         row = conn.execute(
@@ -278,7 +278,7 @@ def create_restaurant(
                 body.lat,
                 body.lng,
                 body.google_place_id,
-                body.google_maps_url,
+                str(body.google_maps_url) if body.google_maps_url else None,
                 body.cuisine_tags,
                 settings.pilot_city,
             ),
