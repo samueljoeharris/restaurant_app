@@ -26,11 +26,11 @@ CREATE INDEX idx_watches_restaurant ON restaurant_watches (restaurant_id);
 
 CREATE TABLE user_notification_preferences (
     firebase_uid TEXT PRIMARY KEY REFERENCES user_profiles(firebase_uid) ON DELETE CASCADE,
-    cadence TEXT NOT NULL DEFAULT 'weekly'
+    cadence TEXT NOT NULL DEFAULT 'realtime_bundle'
         CHECK (cadence IN ('weekly', 'daily', 'realtime_bundle')),
     quiet_hours_start TIME NOT NULL DEFAULT '20:00',
     quiet_hours_end TIME NOT NULL DEFAULT '08:00',
-    alert_new_ttf BOOLEAN NOT NULL DEFAULT TRUE,
+    alert_new_ttf BOOLEAN NOT NULL DEFAULT FALSE,
     alert_new_rating BOOLEAN NOT NULL DEFAULT FALSE,
     alert_new_note BOOLEAN NOT NULL DEFAULT FALSE,
     alert_every_review BOOLEAN NOT NULL DEFAULT FALSE,
