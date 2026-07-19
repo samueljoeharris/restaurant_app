@@ -17,7 +17,7 @@ export function EmptyState({
   actionTo?: string;
 }) {
   return (
-    <div className="px-5 py-10 text-center">
+    <div className="paper-dot-bg px-5 py-10 text-center">
       {mascot ? (
         <ScoutMascot className="mx-auto mb-3 h-32 w-32 object-contain" size={128} />
       ) : (

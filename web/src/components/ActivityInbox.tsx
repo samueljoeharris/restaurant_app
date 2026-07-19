@@ -92,7 +92,7 @@ export function ActivityInbox() {
       <div ref={rootRef} className="relative shrink-0">
         <button
           type="button"
-          className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-border bg-surface text-lg"
+          className="relative flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-md border border-border bg-surface text-lg md:min-h-9 md:min-w-9"
           aria-label="Activity inbox"
           aria-expanded={open}
           onClick={() => {

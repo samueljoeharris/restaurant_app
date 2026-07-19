@@ -374,8 +374,6 @@ async function main() {
   const c = tokens.color;
   const mapPin = await readFile(WEB_MAP_PIN_PATH, "utf8");
   const pinColorsBlock = `/** Map pin colors — generated from design tokens (light values). */
-export const PIN_RATINGS_COLOR = "${c.pinRatings.light}";
-export const PIN_NOTES_COLOR = "${c.pinNotes.light}";
 export const SEARCH_FOCUS_PIN_COLOR = "${c.pinSearchFocus.light}";
 `;
   if (!mapPin.includes("SEARCH_FOCUS_PIN_COLOR")) {

@@ -8,8 +8,6 @@ import {
 } from "./ttfTier";
 
 /** Map pin colors — generated from design tokens (light values). */
-export const PIN_RATINGS_COLOR = "#9B6FD9";
-export const PIN_NOTES_COLOR = "#5BA8D6";
 export const SEARCH_FOCUS_PIN_COLOR = "#3FA7D6";
 
 export type MapPinKind = "confirmed_ttf" | "early_ttf" | "ratings" | "notes" | "empty";
@@ -40,8 +38,6 @@ export function mapPinFill(entry: RestaurantMapEntry, opts?: { searchFocus?: boo
   if (kind === "early_ttf") {
     return TTF_TIER_COLORS[previewTtfTier(entry)];
   }
-  if (kind === "ratings") return PIN_RATINGS_COLOR;
-  if (kind === "notes") return PIN_NOTES_COLOR;
   return TTF_TIER_COLORS.unknown;
 }
 
