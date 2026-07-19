@@ -8,7 +8,7 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from pydantic import BaseModel
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def _verify_internal_caller(
+    request: Request,
     authorization: Annotated[str | None, Header()] = None,
     x_internal_job_token: Annotated[str | None, Header()] = None,
 ) -> None:
@@ -30,12 +31,22 @@ def _verify_internal_caller(
     if secret and x_internal_job_token == secret:
         return
 
-    if authorization and authorization.startswith("Bearer "):
+    allowed_emails = {
+        settings.cloud_scheduler_service_account_email,
+        settings.pubsub_service_account_email,
+    }
+    allowed_emails.discard("")
+
+    if allowed_emails and authorization and authorization.startswith("Bearer "):
         token = authorization.removeprefix("Bearer ")
         try:
-            claims = id_token.verify_oauth2_token(token, google_requests.Request())
+            claims = id_token.verify_oauth2_token(
+                token,
+                google_requests.Request(),
+                audience=str(request.url),
+            )
             email = claims.get("email", "")
-            if email.endswith(".iam.gserviceaccount.com"):
+            if email in allowed_emails:
                 return
         except Exception as exc:
             logger.debug("OIDC verification failed: %s", exc)

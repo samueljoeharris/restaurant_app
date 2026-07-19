@@ -45,14 +45,16 @@ locals {
   } : {})
 
   api_container_env = merge({
-    PILOT_CITY                = "dedham-ma"
-    PILOT_DISPLAY_NAME        = "Dedham, Massachusetts"
-    FIREBASE_PROJECT_ID       = var.project_id
-    AUTH_DEV_MODE             = "false"
-    TTF_DEPLOYED              = "true"
-    APP_CHECK_ENFORCE         = var.app_check_recaptcha_site_key != "" ? "true" : "false"
-    RATE_LIMIT_MAX_WRITES     = "60"
-    RATE_LIMIT_WINDOW_MINUTES = "60"
+    PILOT_CITY                            = "dedham-ma"
+    PILOT_DISPLAY_NAME                    = "Dedham, Massachusetts"
+    FIREBASE_PROJECT_ID                   = var.project_id
+    AUTH_DEV_MODE                         = "false"
+    TTF_DEPLOYED                          = "true"
+    APP_CHECK_ENFORCE                     = var.app_check_recaptcha_site_key != "" ? "true" : "false"
+    CLOUD_SCHEDULER_SERVICE_ACCOUNT_EMAIL = "${var.project_id}@appspot.gserviceaccount.com"
+    PUBSUB_SERVICE_ACCOUNT_EMAIL          = module.iam.api_runtime_email
+    RATE_LIMIT_MAX_WRITES                 = "60"
+    RATE_LIMIT_WINDOW_MINUTES             = "60"
     CORS_ORIGINS = jsonencode(compact(concat(
       var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],
       var.enable_custom_domains ? [local.web_origin, local.admin_origin] : [],

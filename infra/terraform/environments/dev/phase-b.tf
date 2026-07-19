@@ -55,17 +55,19 @@ locals {
   } : {})
 
   api_container_env = merge({
-    PILOT_CITY                = "dedham-ma"
-    PILOT_DISPLAY_NAME        = "Dedham, Massachusetts"
-    FIREBASE_PROJECT_ID       = var.project_id
-    AUTH_DEV_MODE             = "false"
-    TTF_DEPLOYED              = "true"
-    APP_CHECK_ENFORCE         = var.app_check_recaptcha_site_key != "" ? "true" : "false"
-    RATE_LIMIT_MAX_WRITES     = "60"
-    RATE_LIMIT_WINDOW_MINUTES = "60"
-    UPLOADS_BUCKET_NAME       = var.uploads_bucket_name
-    GEMINI_CHAT_MODEL         = "gemini-2.5-flash-lite"
-    GEMINI_EXTRACT_MODEL      = "gemini-2.5-flash"
+    PILOT_CITY                            = "dedham-ma"
+    PILOT_DISPLAY_NAME                    = "Dedham, Massachusetts"
+    FIREBASE_PROJECT_ID                   = var.project_id
+    AUTH_DEV_MODE                         = "false"
+    TTF_DEPLOYED                          = "true"
+    APP_CHECK_ENFORCE                     = var.app_check_recaptcha_site_key != "" ? "true" : "false"
+    CLOUD_SCHEDULER_SERVICE_ACCOUNT_EMAIL = "${var.project_id}@appspot.gserviceaccount.com"
+    PUBSUB_SERVICE_ACCOUNT_EMAIL          = module.iam.api_runtime_email
+    RATE_LIMIT_MAX_WRITES                 = "60"
+    RATE_LIMIT_WINDOW_MINUTES             = "60"
+    UPLOADS_BUCKET_NAME                   = var.uploads_bucket_name
+    GEMINI_CHAT_MODEL                     = "gemini-2.5-flash-lite"
+    GEMINI_EXTRACT_MODEL                  = "gemini-2.5-flash"
     CORS_ORIGINS = jsonencode(compact(concat(
       ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
       var.enable_web_cloud_run ? [module.cloud_run_web[0].service_uri] : [],

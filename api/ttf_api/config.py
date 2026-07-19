@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     gcp_project_number: str = ""
     restaurant_seed_pubsub_topic: str = ""
     internal_job_secret: str = ""
+    cloud_scheduler_service_account_email: str = ""
+    pubsub_service_account_email: str = ""
     gcp_region: str = "us-central1"
     restaurant_refresh_scheduler_job: str = ""
     cloud_run_api_service: str = "ttf-api"
