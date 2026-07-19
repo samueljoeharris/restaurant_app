@@ -5,10 +5,10 @@ import type { TtfAggregate } from "../types";
 export type TtfTier = "fast" | "ok" | "slow" | "unknown";
 
 export const TTF_TIER_COLORS: Record<TtfTier, string> = {
-  fast: "#2D8F4E",
-  ok: "#D4A017",
-  slow: "#C0392B",
-  unknown: "#9CA3AF",
+  fast: "#2E8B57",
+  ok: "#E0A52E",
+  slow: "#D6543B",
+  unknown: "#B4AA98",
 };
 
 export const TTF_TIER_LABELS: Record<TtfTier, string> = {
