@@ -11,6 +11,7 @@ maintenance:
       python3 -m venv .venv
       .venv/bin/pip install --quiet --upgrade pip
       .venv/bin/pip install --quiet -r api/requirements.txt
+      .venv/bin/pip install --quiet pytest
 
 # Knowledge surfaced to Devin sessions in this repo.
 knowledge:
@@ -20,11 +21,11 @@ knowledge:
   - name: lint
     contents: |
       (cd web && npm run lint)
-      (cd api && .venv/bin/python -m compileall -q ttf_api)
+      (cd api && ../.venv/bin/python -m compileall -q ttf_api)
   - name: test
     contents: |
       (cd web && npm test)
-      (cd api && .venv/bin/python -m pytest)
+      (cd api && ../.venv/bin/python -m pytest)
   - name: build
     contents: |
       (cd web && npm run build)
