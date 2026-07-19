@@ -7,6 +7,7 @@ describe("isContributionRoute", () => {
     expect(isContributionRoute("/restaurants/abc/submit")).toBe(true);
     expect(isContributionRoute("/restaurants/abc/rate")).toBe(true);
     expect(isContributionRoute("/restaurants/place/xyz/review")).toBe(true);
+    expect(isContributionRoute("/account/contributions/ttf/abc/edit")).toBe(true);
   });
 
   it("does not flag plain browse/detail routes", () => {

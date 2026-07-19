@@ -4,7 +4,8 @@ export function isContributionRoute(pathname: string): boolean {
   return (
     pathname.includes("/submit") ||
     pathname.includes("/rate") ||
-    pathname.includes("/review")
+    pathname.includes("/review") ||
+    pathname.includes("/edit")
   );
 }
 

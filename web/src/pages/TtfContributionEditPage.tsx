@@ -116,7 +116,7 @@ export function TtfContributionEditPage() {
         </BackLink>
       }
     >
-      <Card>
+      <Card className="pb-0 md:pb-[var(--spacing-6)]">
         <form className="grid gap-3" onSubmit={handleSubmit}>
           <label>
             Elapsed minutes
@@ -200,10 +200,12 @@ export function TtfContributionEditPage() {
             />
           </label>
 
-          {error && <p className="text-sm font-semibold text-error">{error}</p>}
-          <Button type="submit" fullWidth disabled={busy || elapsed < 1}>
-            {busy ? "Saving…" : "Save changes"}
-          </Button>
+          <div className="sticky bottom-0 -mx-5 grid gap-2 border-t border-border bg-surface px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
+            {error && <p className="text-sm font-semibold text-error">{error}</p>}
+            <Button type="submit" fullWidth disabled={busy || elapsed < 1}>
+              {busy ? "Saving…" : "Save changes"}
+            </Button>
+          </div>
         </form>
       </Card>
     </Page>

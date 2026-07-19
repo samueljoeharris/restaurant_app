@@ -129,7 +129,10 @@ export function RateAttributesPage() {
         </BackLink>
       }
     >
-      <Card subtitle="Tap an option for each attribute — selected items highlight in orange.">
+      <Card
+        subtitle="Tap an option for each attribute — selected items highlight in orange."
+        className="pb-0 md:pb-[var(--spacing-6)]"
+      >
         {[...grouped.entries()].map(([category, items]) => (
           <section key={category} className="mb-4 grid gap-3">
             <h2 className="mt-2 text-sm font-semibold capitalize text-text-muted first:mt-0">
@@ -158,7 +161,7 @@ export function RateAttributesPage() {
             })}
           </section>
         ))}
-        <div className="mt-4 grid gap-2 border-t border-border pt-4">
+        <div className="sticky bottom-0 -mx-5 grid gap-2 border-t border-border bg-surface px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
           {changedKeys.length === 0 ? (
             <p className="m-0 text-xs text-text-muted">Select at least one attribute to save.</p>
           ) : (
