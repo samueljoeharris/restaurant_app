@@ -12,7 +12,7 @@ export function MapLocateFab({ busy, active, onClick }: MapLocateFabProps) {
     <button
       type="button"
       className={cn(
-        "absolute right-4 bottom-4 z-[9] grid h-12 w-12 place-items-center rounded-full border border-border bg-surface p-0 text-text shadow-md transition-[background,color,box-shadow] duration-fast ease-out hover:enabled:shadow-lg disabled:cursor-wait disabled:opacity-70",
+        "absolute right-4 bottom-4 z-map-fab grid h-12 w-12 place-items-center rounded-full border border-border bg-surface p-0 text-text shadow-md transition-[background,color,box-shadow] duration-fast ease-out hover:enabled:shadow-lg disabled:cursor-wait disabled:opacity-70",
         active && "border-2 border-brand text-brand",
       )}
       onClick={onClick}

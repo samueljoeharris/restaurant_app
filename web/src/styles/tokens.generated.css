@@ -82,10 +82,10 @@
   --z-map-panel: 3;
   --z-map-sidebar: 4;
   --z-map-status: 6;
-  --z-map-fab: 9;
+  --z-map-sheet: 50;
+  --z-map-fab: 60;
   --z-sidebar: 30;
   --z-bottom-nav: 40;
-  --z-map-sheet: 50;
   --z-dropdown: 100;
   --z-toast: 150;
   --z-modal: 200;

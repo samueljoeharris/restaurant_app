@@ -7,6 +7,7 @@ import { useDialogFocus } from "../hooks/useDialogFocus";
 import { useRegisterBlockingModal } from "../hooks/useModalPresence";
 import { Z } from "../lib/overlayStack";
 import { userStorage } from "../lib/userStorage";
+import { parseKidsAges } from "../lib/scoutProfile";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { FormField } from "./ui/FormField";
@@ -39,10 +40,12 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const kidsAges = agesInput
-      .split(/[,\s]+/)
-      .map((s) => parseInt(s.trim(), 10))
-      .filter((n) => !Number.isNaN(n));
+    const { ages: kidsAges, error: parseError } = parseKidsAges(agesInput);
+    if (parseError || kidsAges.length === 0) {
+      setError(parseError ?? "Please enter at least one kid's age.");
+      setBusy(false);
+      return;
+    }
     try {
       await api.patchProfile(idToken, {
         kids_ages: kidsAges,
@@ -82,8 +85,7 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
               type="text"
               value={agesInput}
               onChange={(e) => setAgesInput(e.target.value)}
-              placeholder="e.g. 2, 5"
-              required
+              placeholder="e.g. 2, 5, 2.5"
             />
           </FormField>
           {error && <p className="text-sm font-semibold text-error">{error}</p>}

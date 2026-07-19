@@ -49,7 +49,7 @@ export function ActivityToast() {
   return (
     <div
       className={cn(
-        "fixed right-4 bottom-4 max-w-sm rounded-lg border border-border bg-surface p-4 shadow-lg",
+        "fixed right-4 bottom-[4.25rem] max-w-sm rounded-lg border border-border bg-surface p-4 shadow-lg md:bottom-4",
         "animate-in slide-in-from-bottom-2",
       )}
       style={{ zIndex: Z.toast }}
