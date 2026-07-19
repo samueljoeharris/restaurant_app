@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
@@ -14,10 +14,11 @@ import { SkeletonList } from "../components/ui/Skeleton";
 import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
+import { profileCacheKey } from "../lib/pageDataCache";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { formatTtfMedian } from "../lib/ttfTier";
+import { userStorage, type ProfileCache } from "../lib/userStorage";
 import type { ExtendedUserProfile, WatchedRestaurantEntry } from "../types";
-import { userStorage } from "../lib/userStorage";
 import { WATCHLIST_CHANGED_EVENT } from "../lib/watchlist";
 import { useWatch } from "../hooks/useWatch";
 
@@ -45,57 +46,78 @@ function SavedRow({ entry }: { entry: WatchedRestaurantEntry }) {
   );
 }
 
-interface SavedPageData {
-  items: WatchedRestaurantEntry[];
-  profile: ExtendedUserProfile;
+function profileToCache(p: ExtendedUserProfile): Omit<ProfileCache, "version"> {
+  return {
+    kidsAges: p.kids_ages,
+    homeLabel: p.home_label,
+    onboardingCompleted: p.onboarding_completed,
+    inboxReadThrough: p.inbox_read_through,
+    displayName: p.display_name,
+    contributionCount: p.contribution_count,
+    watchCount: p.watch_count,
+  };
 }
 
 export function SavedPage() {
-  const { idToken } = useAuth();
+  const { user, idToken } = useAuth();
   const { unreadCount } = useActivityBadge();
-  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  const cachedProfile = useMemo(() => userStorage.getProfileCache(), []);
+  const onboardingDismissedRef = useRef(false);
+  const [showOnboarding, setShowOnboarding] = useState(
+    cachedProfile ? !cachedProfile.onboardingCompleted : false,
+  );
   const [showPushPrime, setShowPushPrime] = useState(false);
   const [stripDismissed, setStripDismissed] = useState(false);
 
-  const { data, loading, error, refresh } = useCachedResource<SavedPageData>(
-    idToken ? "saved:watches-profile" : null,
-    async () => {
-      const [watches, profile] = await Promise.all([
-        api.listWatches(idToken!),
-        api.getProfile(idToken!),
-      ]);
-      return { items: watches.items, profile };
-    },
+  const {
+    refresh: refreshProfile,
+  } = useCachedResource<ExtendedUserProfile>(
+    user?.uid ? profileCacheKey(user.uid) : null,
+    () => api.getProfile(idToken!),
     {
-      onData: ({ items, profile }) => {
-        if (!profile.onboarding_completed) setShowOnboarding(true);
-        const prime = userStorage.getPushPrimeState();
-        setShowPushPrime(items.length > 0 && !prime.firstSavePromptShown);
-        userStorage.setProfileCache({
-          kidsAges: profile.kids_ages,
-          homeLabel: profile.home_label,
-          onboardingCompleted: profile.onboarding_completed,
-          inboxReadThrough: profile.inbox_read_through,
-          displayName: profile.display_name,
-          contributionCount: profile.contribution_count,
-          watchCount: profile.watch_count,
-        });
+      onData: (p) => {
+        userStorage.setProfileCache(profileToCache(p));
+        if (onboardingDismissedRef.current) return;
+        setShowOnboarding(!p.onboarding_completed);
       },
     },
   );
-  const items = data?.items ?? [];
 
-  useRefreshOnNavigate(() => {
-    void refresh();
-  }, [refresh]);
+  const {
+    data: watches,
+    loading,
+    error,
+    refresh: refreshWatches,
+  } = useCachedResource<{ items: WatchedRestaurantEntry[] }>(
+    user?.uid ? `saved:watches:${user.uid}` : null,
+    async () => {
+      const res = await api.listWatches(idToken!);
+      return { items: res.items };
+    },
+    {
+      onData: ({ items }) => {
+        const prime = userStorage.getPushPrimeState();
+        setShowPushPrime(items.length > 0 && !prime.firstSavePromptShown);
+      },
+    },
+  );
+  const items = watches?.items ?? [];
+
+  const refreshAll = () => {
+    void refreshProfile();
+    void refreshWatches();
+  };
+
+  useRefreshOnNavigate(refreshAll, [refreshProfile, refreshWatches]);
 
   useEffect(() => {
     const onWatchlistChanged = () => {
-      void refresh();
+      void refreshWatches();
     };
     window.addEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
     return () => window.removeEventListener(WATCHLIST_CHANGED_EVENT, onWatchlistChanged);
-  }, [refresh]);
+  }, [refreshWatches]);
 
   const stripVisible =
     unreadCount > 0 &&
@@ -109,8 +131,9 @@ export function SavedPage() {
           open={showOnboarding}
           idToken={idToken}
           onComplete={() => {
+            onboardingDismissedRef.current = true;
             setShowOnboarding(false);
-            void refresh();
+            refreshAll();
           }}
         />
       )}

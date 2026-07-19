@@ -1,7 +1,11 @@
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 
+import { useAuth } from "./auth/useAuth";
 import { AuthProvider } from "./auth/AuthContext";
+import { api } from "./api/client";
+import { prefetchCachedResource } from "./hooks/useCachedResource";
+import { profileCacheKey } from "./lib/pageDataCache";
 import { restaurantSubmitPath } from "./lib/mapEntryKey";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
 import { Layout } from "./components/Layout";
@@ -29,6 +33,15 @@ function suspend(node: ReactNode) {
   return <Suspense fallback={<RouteFallback />}>{node}</Suspense>;
 }
 
+function ProfilePrefetch() {
+  const { user, idToken } = useAuth();
+  useEffect(() => {
+    if (!user?.uid || !idToken) return;
+    prefetchCachedResource(profileCacheKey(user.uid), () => api.getProfile(idToken));
+  }, [user?.uid, idToken]);
+  return null;
+}
+
 function CanonicalMapRedirect() {
   const location = useLocation();
   return <Navigate to={{ pathname: "/map", search: location.search }} replace />;
@@ -49,6 +62,7 @@ function ReviewChatRedirect() {
 export default function App() {
   return (
     <AuthProvider>
+      <ProfilePrefetch />
       <BrowserRouter>
         <ScrollToTop />
         <Routes>

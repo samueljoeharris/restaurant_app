@@ -21,6 +21,7 @@ import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
 import { fetchLogAgainPrefill, type TtfLogAgainPrefill } from "../lib/logItAgain";
 import {
   invalidateContributionData,
+  profileCacheKey,
   restaurantDetailCacheKey,
 } from "../lib/pageDataCache";
 import {
@@ -29,18 +30,17 @@ import {
 } from "../lib/restaurantDetailResource";
 import { restaurantManualSubmitPath, restaurantRatePath, restaurantSubmitPath } from "../lib/mapEntryKey";
 import { WATCHLIST_CHANGED_EVENT, type WatchlistChangedDetail } from "../lib/watchlist";
-import type { AttributeEntry, RestaurantDetailResponse, RestaurantNote } from "../types";
+import type { AttributeEntry, ExtendedUserProfile, RestaurantDetailResponse, RestaurantNote } from "../types";
 
 export function RestaurantDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { idToken } = useAuth();
+  const { user, idToken } = useAuth();
   const { toast } = useToast();
   // Local copies of the cached bundle so optimistic updates (note prepend,
   // watch toggle) can adjust the view without touching the cache.
   const [data, setData] = useState<RestaurantDetailResponse | null>(null);
   const [attributes, setAttributes] = useState<AttributeEntry[]>([]);
   const [notes, setNotes] = useState<RestaurantNote[]>([]);
-  const [kidsAges, setKidsAges] = useState<number[]>([]);
   const [noteText, setNoteText] = useState("");
   const [noteError, setNoteError] = useState<string | null>(null);
   const [noteBusy, setNoteBusy] = useState(false);
@@ -60,10 +60,15 @@ export function RestaurantDetailPage() {
         setData(bundle.detail);
         setAttributes(bundle.attributes);
         setNotes(bundle.notes);
-        setKidsAges(bundle.kidsAges);
       },
     },
   );
+
+  const { data: profile } = useCachedResource<ExtendedUserProfile>(
+    user?.uid ? profileCacheKey(user.uid) : null,
+    () => api.getProfile(idToken!),
+  );
+  const kidsAges = profile?.kids_ages ?? [];
 
   useRefreshOnNavigate(() => {
     void refresh();

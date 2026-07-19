@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { authErrorMessage } from "../auth/errors";
 import { useAuth } from "../auth/useAuth";
 import { ADMIN_APP_URL } from "../buildTarget";
+import { api } from "../api/client";
 import { AccountStatPill } from "../components/account/AccountStatPill";
 import {
   SettingsLinkRow,
@@ -11,13 +12,13 @@ import {
 } from "../components/account/SettingsRow";
 import { DeleteAccountSettings } from "../components/DeleteAccountSettings";
 import { MfaSettings } from "../components/MfaSettings";
-import { api } from "../api/client";
 import { Button } from "../components/ui/Button";
 import { CheckboxField, FormField } from "../components/ui/FormField";
 import { Page } from "../components/ui/Page";
 import { Skeleton } from "../components/ui/Skeleton";
 import { TagInput } from "../components/ui/TagInput";
 import { useToast } from "../components/ui/useToast";
+import { useCachedResource } from "../hooks/useCachedResource";
 import { useTheme, type ThemeMode } from "../hooks/useTheme";
 import { cn } from "../lib/cn";
 import {
@@ -27,6 +28,7 @@ import {
   toggleKey,
   type FamilyProfileOption,
 } from "../lib/familyProfile";
+import { profileCacheKey, invalidateProfile } from "../lib/pageDataCache";
 import { parseKidsAges, scoutingSubtitle, trailScoutBadge } from "../lib/scoutProfile";
 import { userStorage, type PrefsCache, type ProfileCache } from "../lib/userStorage";
 import type { ExtendedUserProfile, NotificationPreferences } from "../types";
@@ -163,7 +165,18 @@ export function AccountPage() {
   const cachedProfile = useMemo(() => userStorage.getProfileCache(), []);
   const cachedPrefs = useMemo(() => userStorage.getPrefsCache(), []);
 
-  const [profile, setProfile] = useState<ExtendedUserProfile | null>(null);
+  const profileResource = useCachedResource<ExtendedUserProfile>(
+    user?.uid ? profileCacheKey(user.uid) : null,
+    () => api.getProfile(idToken!),
+    {
+      onData: (p) => {
+        userStorage.setProfileCache(profileToCache(p));
+        userStorage.setPrefsCache(prefsToCache(p.notification_preferences));
+      },
+    },
+  );
+  const profile = profileResource.data;
+
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(() =>
     prefsFromCache(cachedPrefs),
   );
@@ -172,45 +185,24 @@ export function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const idTokenRef = useRef(idToken);
+  const hasSeededRef = useRef(false);
   const kidsTouchedRef = useRef(false);
   const familyTouchedRef = useRef(false);
   const prefsTouchedRef = useRef(false);
 
   useEffect(() => {
-    idTokenRef.current = idToken;
-  }, [idToken]);
+    hasSeededRef.current = false;
+  }, [user?.uid]);
 
   useEffect(() => {
-    if (!user?.uid) return;
-    const token = idTokenRef.current;
-    if (!token) return;
-
-    let cancelled = false;
-    api
-      .getProfile(token)
-      .then((p) => {
-        if (cancelled) return;
-        setProfile(p);
-        userStorage.setProfileCache(profileToCache(p));
-        userStorage.setPrefsCache(prefsToCache(p.notification_preferences));
-
-        if (!kidsTouchedRef.current) {
-          setKidsInput(p.kids_ages.join(", "));
-        }
-        if (!familyTouchedRef.current) {
-          setFamily(familyFormFromProfile(p));
-        }
-        if (!prefsTouchedRef.current) {
-          setPrefs(p.notification_preferences);
-        }
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.uid]);
+    if (!profile) return;
+    if (!hasSeededRef.current) {
+      if (!kidsTouchedRef.current) setKidsInput(profile.kids_ages.join(", "));
+      if (!familyTouchedRef.current) setFamily(familyFormFromProfile(profile));
+      if (!prefsTouchedRef.current) setPrefs(profile.notification_preferences);
+      hasSeededRef.current = true;
+    }
+  }, [profile]);
 
   const updateFamily = (updater: (prev: FamilyForm) => FamilyForm) => {
     familyTouchedRef.current = true;
@@ -239,11 +231,13 @@ export function AccountPage() {
         preference_notes: family.preferenceNotes.trim(),
         complete_onboarding: true,
       });
-      setProfile(updated);
+      invalidateProfile();
       userStorage.setProfileCache(profileToCache(updated));
+      userStorage.setPrefsCache(prefsToCache(updated.notification_preferences));
       setKidsInput(updated.kids_ages.join(", "));
       setFamily(familyFormFromProfile(updated));
       toast("Family profile saved.", "success");
+      void profileResource.refresh();
     } catch (err) {
       setSaveError(authErrorMessage(err));
     } finally {
@@ -257,6 +251,8 @@ export function AccountPage() {
     const updated = await api.patchNotificationPreferences(idToken, patch);
     setPrefs(updated);
     userStorage.setPrefsCache(prefsToCache(updated));
+    invalidateProfile();
+    void profileResource.refresh();
   }
 
   if (!user) return null;
