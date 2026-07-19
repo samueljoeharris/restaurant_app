@@ -272,6 +272,29 @@ Manual test flows for Little Scout. Use after deploy to **app.dev** (and locally
 
 ---
 
+### WEB-MAP-07 — Explore filter bar tap targets
+
+|| Field | Value |
+||-------|-------|
+|| **ID** | WEB-MAP-07 |
+|| **Surface** | web-pilot |
+|| **Route(s)** | `/map` |
+|| **Priority** | P1 |
+
+**Steps**
+1. Open Explore on a viewport ≤767px.
+2. Tap the scout filter segments, the town `<select>`, and the **Filters** button.
+3. Open **Filters** and tap a ZIP code and a tag chip.
+4. With a city, ZIP, or tag applied, tap the browse-chip dismiss controls.
+
+**Expected (functional)** — Each control responds to a comfortable thumb press; no missed taps on segment links, select, or chips.
+
+**Expected (theme / Bluebird)** — Controls are at least 44px tall on mobile; desktop density stays compact (`md:min-h-9`).
+
+**Audit** | app.dev | ☐ | ☐ | | | |
+
+---
+
 ### WEB-MAP-08 — Locate FAB
 
 | Field | Value |

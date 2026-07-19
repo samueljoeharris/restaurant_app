@@ -62,7 +62,7 @@ export function ExploreFilterBar({
                 tag: browseTag,
               })}
               className={cn(
-                "px-3 py-2 text-xs font-bold text-text-muted transition-colors",
+                "inline-flex min-h-11 items-center px-3 text-xs font-bold text-text-muted transition-colors md:min-h-9",
                 activeFilter === filter && "bg-brand-soft text-brand",
               )}
             >
@@ -75,7 +75,7 @@ export function ExploreFilterBar({
         </label>
         <select
           id="explore-town-select"
-          className="w-auto max-w-[14rem] min-w-[8rem] rounded-md border border-border bg-surface px-2 py-2 text-xs font-semibold"
+          className="w-auto max-w-[14rem] min-w-[8rem] min-h-11 rounded-md border border-border bg-surface px-2 py-2 text-xs font-semibold md:min-h-9"
           value={browseCity ?? ""}
           onChange={(e) => {
             const city = e.target.value || null;
@@ -99,7 +99,7 @@ export function ExploreFilterBar({
         </select>
         <button
           type="button"
-          className="rounded-md border border-border bg-surface px-3 py-2 text-xs font-bold text-text-muted"
+          className="inline-flex min-h-11 items-center rounded-md border border-border bg-surface px-3 text-xs font-bold text-text-muted md:min-h-9"
           aria-expanded={filtersOpen}
           onClick={onToggleFilters}
         >
@@ -121,7 +121,7 @@ export function ExploreFilterBar({
                     tag: browseTag,
                   })}
                   className={cn(
-                    "rounded-full border px-2 py-1 text-xs font-semibold",
+                    "inline-flex min-h-11 items-center rounded-full border px-2 py-1 text-xs font-semibold md:min-h-9",
                     browseZip === facet.key
                       ? "border-brand bg-brand-soft text-brand"
                       : "border-border text-text-muted",
@@ -145,7 +145,7 @@ export function ExploreFilterBar({
                     tag: browseTag === facet.key ? null : facet.key,
                   })}
                   className={cn(
-                    "rounded-full border px-2 py-1 text-xs font-semibold",
+                    "inline-flex min-h-11 items-center rounded-full border px-2 py-1 text-xs font-semibold md:min-h-9",
                     browseTag === facet.key
                       ? "border-brand bg-brand-soft text-brand"
                       : "border-border text-text-muted",

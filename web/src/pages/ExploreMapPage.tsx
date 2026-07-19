@@ -831,7 +831,7 @@ export function ExploreMapPage() {
           )}
           <button
             type="button"
-            className="cursor-pointer rounded-full border border-brand px-[0.6rem] py-[0.2rem] font-[inherit] text-xs font-bold text-brand transition-[background,color] duration-fast hover:bg-brand hover:text-text-inverse"
+            className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-brand px-[0.6rem] font-[inherit] text-xs font-bold text-brand transition-[background,color] duration-fast hover:bg-brand hover:text-text-inverse md:min-h-9"
             onClick={clearRadiusMode}
           >
             Clear
@@ -866,7 +866,7 @@ export function ExploreMapPage() {
             {browseCity && (
               <button
                 type="button"
-                className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
+                className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-border-strong bg-surface px-[0.65rem] font-[inherit] text-sm text-text md:min-h-9"
                 onClick={() => clearBrowseParam("city")}
               >
                 {browseCity} ×
@@ -875,7 +875,7 @@ export function ExploreMapPage() {
             {browseZip && (
               <button
                 type="button"
-                className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
+                className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-border-strong bg-surface px-[0.65rem] font-[inherit] text-sm text-text md:min-h-9"
                 onClick={() => clearBrowseParam("zip")}
               >
                 ZIP {browseZip} ×
@@ -884,7 +884,7 @@ export function ExploreMapPage() {
             {browseTag && (
               <button
                 type="button"
-                className="cursor-pointer rounded-full border border-border-strong bg-surface px-[0.65rem] py-[0.35rem] font-[inherit] text-sm text-text"
+                className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-border-strong bg-surface px-[0.65rem] font-[inherit] text-sm text-text md:min-h-9"
                 onClick={() => clearBrowseParam("tag")}
               >
                 {browseTag} ×
