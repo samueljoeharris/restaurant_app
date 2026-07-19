@@ -57,6 +57,7 @@ variable "file_secret_mounts" {
     secret_name = string
     mount_path  = string
     file_name   = string
+    mode        = optional(string, "0444")
   }))
   description = "Mount Secret Manager payloads as files in the API container"
   default     = []
