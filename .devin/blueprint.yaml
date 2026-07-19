@@ -24,8 +24,9 @@ knowledge:
       (cd api && ../.venv/bin/python -m compileall -q ttf_api)
   - name: test
     contents: |
-      (cd web && npm test)
-      (cd api && ../.venv/bin/python -m pytest)
+      ./scripts/ci-e2e-local.sh                 # Docker: API integration + smoke + web unit tests
+      (cd web && npm test)                       # native web unit tests
+      (cd api && ../.venv/bin/python -m pytest)  # native API tests (needs TTF_TEST_DATABASE_URL)
   - name: build
     contents: |
       (cd web && npm run build)

@@ -19,6 +19,7 @@ RUN_INFRA=false
 RUN_IOS=false
 RUN_TOKENS=false
 RUN_SECRETS=false
+RUN_E2E=false
 MODE="smart"
 
 # Dummy Vite env for web Docker builds (same as GitHub CI).
@@ -34,10 +35,13 @@ VITE_CI_ARGS=(
 
 usage() {
   cat <<'EOF'
-Usage: ./scripts/ci-check.sh [--all | --pre-push]
+Usage: ./scripts/ci-check.sh [--all] [--e2e] [--pre-push]
 
   --all       Run web, API, and Terraform checks (ignores changed files)
+  --e2e       Run the full Docker end-to-end test (api integration, smoke, web tests)
   --pre-push  Infer changed files from refs passed on stdin (git pre-push hook)
+
+Use --all --e2e for the full pre-deploy gate.
 
 Default (smart): run checks only for paths changed vs upstream/main (or last commit).
 
@@ -66,6 +70,10 @@ while [[ $# -gt 0 ]]; do
       RUN_TOKENS=true
       RUN_SECRETS=true
       MODE="all"
+      shift
+      ;;
+    --e2e)
+      RUN_E2E=true
       shift
       ;;
     --pre-push)
@@ -177,6 +185,12 @@ fi
 
 if $RUN_IOS && ! $RUN_WEB; then
   echo "ℹ️  ios/** changed — token outputs verified; full Xcode build: Actions → iOS → Run workflow"
+fi
+
+if $RUN_E2E; then
+  echo "→ e2e: Docker integration + smoke tests"
+  bash "$ROOT/scripts/ci-e2e-local.sh"
+  echo "✓ e2e passed"
 fi
 
 echo "=== ci-check passed ==="

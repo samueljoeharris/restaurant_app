@@ -49,6 +49,11 @@ All checks use **Docker** — same images as Cloud Run (`web/Dockerfile`, `api/D
 # Full suite (web + api + terraform validate)
 ./scripts/ci-check.sh --all
 
+# Full Docker end-to-end test (API integration, runtime smoke, web unit tests)
+./scripts/ci-e2e-local.sh
+# or as part of ci-check:
+./scripts/ci-check.sh --e2e
+
 # Terraform plan against dev GCP (read-only; needs gcloud ADC)
 ./scripts/terraform-plan-local.sh
 

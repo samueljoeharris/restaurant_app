@@ -1,0 +1,84 @@
+name: ttf-test
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ttf_test
+      POSTGRES_USER: ttf_app
+      POSTGRES_PASSWORD: ttf_local
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ttf_app -d ttf_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api-test:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: ttf-api-ci
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    environment:
+      TTF_TEST_DATABASE_URL: postgresql://ttf_app:ttf_local@postgres-test:5432/ttf_test
+      AUTH_DEV_MODE: "false"
+      APP_CHECK_ENFORCE: "false"
+      FIREBASE_SERVICE_ACCOUNT_PATH: ""
+    user: root
+    command: >
+      sh -c "pip install --quiet pytest && python -m pytest tests -q"
+
+  api-smoke:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: ttf-api-ci
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://ttf_app:ttf_local@postgres-test:5432/ttf_test
+      AUTH_DEV_MODE: "true"
+      AUTH_DEV_ADMIN_UIDS: smoke-admin
+      APP_CHECK_ENFORCE: "false"
+      FIREBASE_SERVICE_ACCOUNT_PATH: ""
+    ports:
+      - "18080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health')\" || exit 1"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  smoke-test:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: ttf-api-ci
+    depends_on:
+      api-smoke:
+        condition: service_healthy
+    environment:
+      API_BASE: http://api-smoke:8080
+      ADMIN_UID: smoke-admin
+    volumes:
+      - ./scripts/docker-smoke-test.py:/smoke.py:ro
+    command: ["python3", "/smoke.py"]
+
+  web-test:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - ./web:/app
+      - web-node-modules:/app/node_modules
+    command: >
+      sh -c "npm ci --no-audit && npm run test"
+
+volumes:
+  postgres-test-data:
+  web-node-modules:
