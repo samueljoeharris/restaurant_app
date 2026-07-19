@@ -1,5 +1,4 @@
 import type { AdminActivityDay } from "../../types";
-import { PIN_NOTES_COLOR } from "../../lib/mapPin";
 
 export function ActivityChart({ days }: { days: AdminActivityDay[] }) {
   const max = Math.max(
@@ -19,10 +18,7 @@ export function ActivityChart({ days }: { days: AdminActivityDay[] }) {
           Attributes
         </span>
         <span>
-          <i
-            className="mr-1 inline-block h-[0.6rem] w-[0.6rem] rounded-full align-middle"
-            style={{ background: PIN_NOTES_COLOR }}
-          />{" "}
+          <i className="mr-1 inline-block h-[0.6rem] w-[0.6rem] rounded-full bg-text-muted align-middle" />{" "}
           Notes
         </span>
       </div>
@@ -39,8 +35,8 @@ export function ActivityChart({ days }: { days: AdminActivityDay[] }) {
                 style={{ height: `${(day.attribute_count / max) * 100}%` }}
               />
               <div
-                className="min-h-0.5 flex-1 rounded-t-sm"
-                style={{ height: `${(day.note_count / max) * 100}%`, background: PIN_NOTES_COLOR }}
+                className="min-h-0.5 flex-1 rounded-t-sm bg-text-muted"
+                style={{ height: `${(day.note_count / max) * 100}%` }}
               />
             </div>
             <span className="text-[0.65rem] text-text-muted">

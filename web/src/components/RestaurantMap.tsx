@@ -22,7 +22,7 @@ import {
   type TtfTier,
 } from "../lib/ttfTier";
 import { mapEntryKey, restaurantDetailPath, restaurantSubmitPath } from "../lib/mapEntryKey";
-import { mapPinFill, PIN_NOTES_COLOR, PIN_RATINGS_COLOR } from "../lib/mapPin";
+import { mapPinFill } from "../lib/mapPin";
 import { googleMapsUrlForEntry, isGoogleOnlyEntry } from "../lib/googleMapsUrl";
 import { useAuth } from "../auth/useAuth";
 import { useWatch } from "../hooks/useWatch";
@@ -312,14 +312,6 @@ function legendItems(): { swatch: ReactNode; label: string }[] {
     {
       swatch: <span className="map-legend-swatch map-legend-swatch--dashed" />,
       label: "1–2 visits",
-    },
-    {
-      swatch: <span className="map-legend-swatch" style={{ background: PIN_RATINGS_COLOR }} />,
-      label: "Ratings",
-    },
-    {
-      swatch: <span className="map-legend-swatch" style={{ background: PIN_NOTES_COLOR }} />,
-      label: "Notes",
     },
     {
       swatch: (

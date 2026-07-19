@@ -3,8 +3,6 @@ import SwiftUI
 enum MapPinKind: String {
     case confirmedTtf = "confirmed_ttf"
     case earlyTtf = "early_ttf"
-    case ratings
-    case notes
     case empty
 }
 
@@ -12,8 +10,6 @@ enum MapPinLogic {
     static func kind(for entry: RestaurantMapEntry) -> MapPinKind {
         if entry.ttf.sampleSize >= 3 { return .confirmedTtf }
         if entry.ttf.sampleSize > 0 { return .earlyTtf }
-        if entry.attributeRatingCount > 0 { return .ratings }
-        if entry.noteCount > 0 { return .notes }
         return .empty
     }
 
@@ -34,10 +30,6 @@ enum MapPinLogic {
             return TtfTierLogic.tier(for: entry.ttf).color
         case .earlyTtf:
             return previewTtfTier(for: entry).color
-        case .ratings:
-            return .pinRatings
-        case .notes:
-            return .pinNotes
         case .empty:
             return .ttfUnknown
         }
@@ -83,9 +75,9 @@ enum MapPinLogic {
     }
 
     static func hasBadges(for entry: RestaurantMapEntry) -> Bool {
-        let pinKind = kind(for: entry)
-        let showRatings = entry.attributeRatingCount > 0 && pinKind != .ratings
-        let showNotes = entry.noteCount > 0 && pinKind != .notes
+        let primaryLabel = label(for: entry)
+        let showRatings = entry.attributeRatingCount > 0 && primaryLabel != "★"
+        let showNotes = entry.noteCount > 0 && primaryLabel != "💬"
         return showRatings || showNotes
     }
 }
