@@ -159,6 +159,7 @@ jobs:
             --build-arg VITE_GOOGLE_MAPS_API_KEY="${{ steps.env.outputs.maps_api_key }}" \
             --build-arg VITE_GOOGLE_MAPS_MAP_ID="${{ steps.env.outputs.maps_map_id }}" \
             --build-arg VITE_ENABLE_REVIEW_CHAT=true \
+            --build-arg FIREBASE_AUTH_ORIGIN="${{ steps.env.outputs.firebase_auth_domain }}" \
             -t "${IMAGE_BASE}:${{ github.sha }}" \
             -t "${IMAGE_BASE}:latest" \
             ./web
