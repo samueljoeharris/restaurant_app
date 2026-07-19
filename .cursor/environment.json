@@ -1,9 +1,0 @@
-{
-  "name": "Little Scout Cloud Agent V1",
-  "user": "ubuntu",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
-  "start": "bash .cursor/scripts/bootstrap-cloud-env.sh && bash .cursor/scripts/start-docker.sh"
-}

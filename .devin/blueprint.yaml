@@ -1,0 +1,35 @@
+# Repo-level Devin blueprint for samueljoeharris/restaurant_app (Little Scout)
+# Shared tooling (Node, Python, Docker, gcloud, gh, Terraform) is provided by the org-level blueprint.
+
+# Install project dependencies (runs during builds, surfaced to agent at session start).
+maintenance:
+  - name: Install web dependencies
+    run: (cd web && npm install)
+
+  - name: Install API dependencies
+    run: |
+      python3 -m venv .venv
+      .venv/bin/pip install --quiet --upgrade pip
+      .venv/bin/pip install --quiet -r api/requirements.txt
+
+# Knowledge surfaced to Devin sessions in this repo.
+knowledge:
+  - name: ticket_workflow
+    contents: |
+      When assigned a GitHub issue in this repo: build/test locally, run ./scripts/ci-check.sh, fix CI/deployment failures, push to main when deployable, and watch the CI/CD pipeline. Attempt to complete the ticket up to 3 times; on success, close the issue and move to the next open issue (security/now, then next, then later). If blocked after 3 attempts, update the GitHub issue with status/blockers and notify the user. Do not ask for human approval at intermediate steps.
+  - name: lint
+    contents: |
+      (cd web && npm run lint)
+      (cd api && .venv/bin/python -m compileall -q ttf_api)
+  - name: test
+    contents: |
+      (cd web && npm test)
+      (cd api && .venv/bin/python -m pytest)
+  - name: build
+    contents: |
+      (cd web && npm run build)
+      docker build -t ttf-api-ci ./api
+  - name: ci
+    contents: ./scripts/ci-check.sh
+  - name: start
+    contents: ./scripts/start-local.sh

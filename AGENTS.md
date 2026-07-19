@@ -7,11 +7,10 @@ Guidance for AI coding agents working in this repository. **Canonical source** �
 | Tool | Entry file | What it adds |
 |------|------------|--------------|
 | **Any agent** | `AGENTS.md` (this file) | Stack, constraints, workflow, local dev, key docs |
-| **Claude Code** | [CLAUDE.md](CLAUDE.md) | `@AGENTS.md` import + session bootstrap notes |
-| **Cursor** | [.cursor/rules/](.cursor/rules/) | Always-on rules (ponytail, backlog, CI, issue orchestrator) — content mirrored here |
-| **Cursor skills** | [.cursor/skills/](.cursor/skills/) | Issue delivery, design kit, synthetic-user flows |
+| **Devin** | `.devin/blueprint.yaml` + this file | Primary development environment; repo-level setup and skills |
+| **Claude Code (backup)** | [CLAUDE.md](CLAUDE.md) | `@AGENTS.md` import + session bootstrap notes |
 
-Keep one source of truth here. Update AGENTS.md first; thin wrappers (`CLAUDE.md`, `.mdc` rules) should point here, not duplicate.
+Keep one source of truth here. Update AGENTS.md first; thin wrappers (`CLAUDE.md`, Devin skills) should point here, not duplicate.
 
 ## Project
 
@@ -41,11 +40,10 @@ Read [docs/DESIGN.md](docs/DESIGN.md) for full product and technical design.
 ```
 restaurant_app/
 ├── AGENTS.md          # this file — canonical agent guidance
-├── CLAUDE.md          # Claude Code entry (@AGENTS.md import)
+├── CLAUDE.md          # Claude Code backup entry (@AGENTS.md import)
 ├── .claude/           # Claude Code hooks (session-start)
-├── .cursor/rules/     # Cursor always-on rules (mirror AGENTS.md workflow)
-├── .cursor/mcp.json   # MCP config (env vars only, no secrets)
-├── docs/              # DESIGN, GETTING_STARTED, MCP_SETUP
+├── .devin/            # Devin environment blueprint and skills
+├── docs/              # DESIGN, GETTING_STARTED, DEVIN_SETUP
 ├── api/               # Phase 2
 ├── web/               # Phase 2.5 web pilot + admin build
 ├── firebase/          # Firebase emulator config/data
@@ -103,7 +101,7 @@ GCP project IDs are globally unique — append `-sjh` or a number if taken.
 3. Cross-cutting changes (API schema + iOS model + migration) belong in one commit/push to `main` in this monorepo
 4. **Solo dev CI:** push directly to `main` — workflows do not run on pull requests ([docs/CI.md](docs/CI.md))
 5. Use path-filtered CI awareness: `api/**`, `web/**`, `infra/**`, and future `ios/**` drive which pipeline jobs run
-6. MCP servers (Cursor): GitHub (Docker), gcloud (npx), postgres (local) — see [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
+6. Devin handles MCP integrations via its built-in tools and any configured servers in `.devin/`. For Claude Code backup, see [docs/MCP_SETUP.md](docs/MCP_SETUP.md).
 
 ### Backlog discipline
 
@@ -139,7 +137,7 @@ When the user assigns a GitHub issue ("work on #42", issue URL):
 4. Update the issue each attempt; close on success or post failure report after attempt 3
 5. One final chat message at each gate — no status pings mid-loop
 
-In **Cursor**, also follow [.cursor/skills/github-issue-orchestrator/SKILL.md](.cursor/skills/github-issue-orchestrator/SKILL.md) for sub-agent delegation and issue comments.
+In **Devin**, use the built-in GitHub and Devin MCP tools, or create repo-level skills under `.devin/skills/`. In **Claude Code (backup)**, use its native tooling.
 
 ### Coding discipline (ponytail)
 
@@ -155,9 +153,9 @@ Bug fix = root cause: grep every caller of the function you touch; fix the share
 
 Not lazy about: understanding the problem, trust-boundary validation, data-loss prevention, security, accessibility, anything explicitly requested.
 
-### Agent orchestration (Claude Code + Cursor)
+### Agent orchestration (Devin primary + Claude Code backup)
 
-Both harnesses expose an Agent tool with per-invocation model overrides. For complex tasks, delegate rather than doing everything in one context.
+Devin is the primary agent harness. Claude Code is a backup when explicitly invoked by the user. Devin provides built-in tools (GitHub, Slack, search, browser, shell, etc.) and child sessions; for complex tasks, delegate rather than doing everything in one context.
 
 **Model-tier policy — the coordinator is the most expensive model in the room.** When the main session runs on an Opus- or Fable-tier model, delegate aggressively to `haiku` and `sonnet` sub-agents: the coordinator plans, delegates, and synthesizes; cheaper models do the reading, searching, and mechanical legwork. Frontier models under-delegate by default — Anthropic's own guidance is to instruct them explicitly, so treat this section as that instruction. When the main session already runs on Sonnet or Haiku, delegation is for context isolation, not cost — `inherit` is fine.
 
@@ -180,11 +178,15 @@ Both harnesses expose an Agent tool with per-invocation model overrides. For com
 - After a sub-agent returns, the coordinator synthesizes results and decides next steps — never blindly forward sub-agent output to the user without review
 - Use `isolation: "worktree"` for sub-agents that make file changes, so failures don't dirty the working tree
 
-**Claude Code:** prefer the built-in `Explore` agent for read-only search (pass a thoroughness level: quick / medium / very thorough). Per-invocation model override: pass `model: "haiku"` / `"sonnet"` in the Agent tool call; custom agents in `.claude/agents/` pin a model via `model:` frontmatter (`haiku`, `sonnet`, `opus`, `fable`, or `inherit`).
+**Devin:** use the built-in `devin_mcp` child-session and tooling for parallel work; set per-session parameters as needed. For repository skills, place them in `.devin/skills/`.
 
-**Cursor:** same table applies; pass `model: "sonnet"` or `model: "haiku"` in the Agent tool call.
+**Claude Code (backup):** prefer the built-in `Explore` agent for read-only search (pass a thoroughness level: quick / medium / very thorough). Per-invocation model override: pass `model: "haiku"` / `"sonnet"` in the Agent tool call.
 
-### Claude Code bootstrap
+### Devin environment
+
+Devin uses the repo-level `.devin/blueprint.yaml` to install web/API deps, configure the local environment, and scaffold no-secret env files on session start. See `.devin/blueprint.yaml`.
+
+### Claude Code backup bootstrap
 
 Remote Claude Code sessions run [.claude/hooks/session-start.sh](.claude/hooks/session-start.sh): installs web/API deps and scaffolds emulator env files. iOS and Docker CI paths are skipped on Linux. See [CLAUDE.md](CLAUDE.md).
 
@@ -236,35 +238,31 @@ TTF display: median minutes + avg quality + sample size. Map pins colored by TTF
 | [docs/ADMIN_AUTH.md](docs/ADMIN_AUTH.md) | Operator console — IAP and admin claims |
 | [docs/AUTH.md](docs/AUTH.md) | Auth index |
 | [docs/LITTLESCOUT_DOMAIN.md](docs/LITTLESCOUT_DOMAIN.md) | `littlescout.app` DNS and deploy runbook |
-| [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Cursor MCP configuration |
-| [CLAUDE.md](CLAUDE.md) | Claude Code entry point (imports this file) |
+| [docs/MCP_SETUP.md](docs/MCP_SETUP.md) | Claude Code MCP configuration (backup) |
+| [CLAUDE.md](CLAUDE.md) | Claude Code backup entry (imports this file) |
+| [.devin/blueprint.yaml](.devin/blueprint.yaml) | Devin environment blueprint |
 
-## Cursor Cloud specific instructions
+## Devin Cloud environment
 
 ### Docker daemon
 
-Cloud agents install Docker through `.cursor/environment.json` + `.cursor/Dockerfile`. On startup the VM runs:
+Devin snapshots install Docker through the org-wide blueprint and repo `.devin/blueprint.yaml`. On startup the VM ensures Docker is running.
 
-1. `.cursor/scripts/bootstrap-cloud-env.sh` — runs `sync-secrets.sh` (GCP SM → `.secrets/`), writes `web/.env.local`
-2. `.cursor/scripts/start-docker.sh` — ensures Docker is running
+If Docker is unavailable, install Docker and write `/etc/docker/daemon.json` with `"storage-driver": "fuse-overlayfs"` and `"features": {"containerd-snapshotter": false}` before `docker compose` or `./scripts/ci-check.sh`.
 
-If Docker is unavailable, run `bash .cursor/scripts/start-docker.sh` before `docker compose` or `./scripts/ci-check.sh`.
+### Devin Cloud secrets (real Firebase)
 
-Docker 29+ defaults to the containerd image store, which ignores the `fuse-overlayfs` graphdriver these Firecracker VMs need. `.cursor/Dockerfile` therefore writes `/etc/docker/daemon.json` with `"features": {"containerd-snapshotter": false}` alongside `"storage-driver": "fuse-overlayfs"`. If you install Docker by hand in a session, replicate that daemon.json or containers will fail to start.
+Full runbook: [docs/CLOUD_AGENT.md](docs/CLOUD_AGENT.md). In Devin, use repository or org secrets via the secret manager — do not paste secrets into chat.
 
-### Cursor Cloud secrets (real Firebase)
-
-Full runbook: [docs/CLOUD_AGENT.md](docs/CLOUD_AGENT.md). Use **two** Cursor surfaces — do not paste secrets into visible env vars ([Cursor docs](https://cursor.com/docs/cloud-agent/security-network)):
-
-| Cursor type | What to add |
-|-------------|-------------|
+| Surface | What to add |
+|---------|-------------|
 | **Environment variables** (visible) | Copy [`.env.cloud.visible.example`](.env.cloud.visible.example) |
-| **Runtime Secrets** (redacted) | `GCP_DEV_SYNC_SA_JSON` only — sync pulls all other secrets from SM |
+| **Secrets** (redacted) | `GCP_DEV_SYNC_SA_JSON` only — `sync-secrets.sh` pulls all other secrets from SM |
 
-Mac: `./scripts/sync-secrets.sh` after `gcloud auth application-default login` (replaces `merge-env-for-cursor.sh`).
+Mac: `./scripts/sync-secrets.sh` after `gcloud auth application-default login`.
 
 ```bash
-bash .cursor/scripts/cloud-eval-up.sh   # postgres + native API (real Firebase JWT verify)
+./scripts/start-local.sh                # postgres + native API (real Firebase JWT verify)
 cd web && npm run dev
 ```
 
@@ -283,13 +281,13 @@ When validating web UI flows (issue delivery, [TEST_FLOWS.md](docs/TEST_FLOWS.md
 **Test steps (local or app.dev):**
 
 1. `./scripts/audit-env.sh` — confirm `DEV_TEST_EMAIL` and `DEV_TEST_PASSWORD` are set.
-2. Start stack: `bash .cursor/scripts/cloud-eval-up.sh` then `cd web && npm run dev` (local) or use `https://app.dev.littlescout.app`.
+2. Start stack: `./scripts/start-local.sh` then `cd web && npm run dev` (local) or use `https://app.dev.littlescout.app`.
 3. Open `/login` → email/password → expect redirect to `/map`.
 4. Run P0 flows from [TEST_FLOWS.md](docs/TEST_FLOWS.md) (WEB-AUTH-01, WEB-MAP-01, etc.).
 
 **Emulator fallback:** if `FIREBASE_AUTH_EMULATOR_HOST` is set, the same `DEV_TEST_*` vars seed the emulator user (`seed-emulator-user.sh`); default fallback is `pilot@ttf.test` / `pilotpass123`.
 
-**Do not:** paste test passwords into Cursor Runtime Secrets, commit them, or create ad-hoc test users per agent run.
+**Do not:** paste test passwords into chat, commit them, or create ad-hoc test users per agent run.
 
 ### Local full-stack — real Firebase (default)
 
