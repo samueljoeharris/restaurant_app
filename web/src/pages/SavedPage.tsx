@@ -76,6 +76,9 @@ export function SavedPage() {
           homeLabel: profile.home_label,
           onboardingCompleted: profile.onboarding_completed,
           inboxReadThrough: profile.inbox_read_through,
+          displayName: profile.display_name,
+          contributionCount: profile.contribution_count,
+          watchCount: profile.watch_count,
         });
       },
     },

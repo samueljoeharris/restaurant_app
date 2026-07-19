@@ -56,6 +56,9 @@ export function OnboardingModal({ open, onComplete, idToken }: OnboardingModalPr
         homeLabel: null,
         onboardingCompleted: true,
         inboxReadThrough: null,
+        displayName: null,
+        contributionCount: 0,
+        watchCount: 0,
       });
       userStorage.clearOnboardingDraft();
       onComplete();

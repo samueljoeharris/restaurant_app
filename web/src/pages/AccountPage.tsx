@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { authErrorMessage } from "../auth/errors";
 import { useAuth } from "../auth/useAuth";
@@ -15,6 +15,7 @@ import { api } from "../api/client";
 import { Button } from "../components/ui/Button";
 import { CheckboxField, FormField } from "../components/ui/FormField";
 import { Page } from "../components/ui/Page";
+import { Skeleton } from "../components/ui/Skeleton";
 import { TagInput } from "../components/ui/TagInput";
 import { useToast } from "../components/ui/useToast";
 import { useTheme, type ThemeMode } from "../hooks/useTheme";
@@ -27,7 +28,7 @@ import {
   type FamilyProfileOption,
 } from "../lib/familyProfile";
 import { parseKidsAges, scoutingSubtitle, trailScoutBadge } from "../lib/scoutProfile";
-import { userStorage } from "../lib/userStorage";
+import { userStorage, type PrefsCache, type ProfileCache } from "../lib/userStorage";
 import type { ExtendedUserProfile, NotificationPreferences } from "../types";
 
 const THEME_OPTIONS: { mode: ThemeMode; label: string }[] = [
@@ -79,6 +80,45 @@ function familyFormFromProfile(p: ExtendedUserProfile): FamilyForm {
   };
 }
 
+function profileToCache(p: ExtendedUserProfile): Omit<ProfileCache, "version"> {
+  return {
+    kidsAges: p.kids_ages,
+    homeLabel: p.home_label,
+    onboardingCompleted: p.onboarding_completed,
+    inboxReadThrough: p.inbox_read_through,
+    displayName: p.display_name,
+    contributionCount: p.contribution_count,
+    watchCount: p.watch_count,
+  };
+}
+
+function prefsFromCache(cache: PrefsCache | null): NotificationPreferences | null {
+  if (!cache) return null;
+  return {
+    cadence: cache.cadence,
+    quiet_hours_start: cache.quietHoursStart,
+    quiet_hours_end: cache.quietHoursEnd,
+    alert_new_ttf: cache.alertNewTtf,
+    alert_new_rating: cache.alertNewRating,
+    alert_new_note: cache.alertNewNote,
+    alert_every_review: cache.alertEveryReview,
+    push_enabled: cache.pushEnabled,
+  };
+}
+
+function prefsToCache(p: NotificationPreferences): Omit<PrefsCache, "version"> {
+  return {
+    cadence: p.cadence,
+    quietHoursStart: p.quiet_hours_start,
+    quietHoursEnd: p.quiet_hours_end,
+    alertNewTtf: p.alert_new_ttf,
+    alertNewRating: p.alert_new_rating,
+    alertNewNote: p.alert_new_note,
+    alertEveryReview: p.alert_every_review,
+    pushEnabled: p.push_enabled,
+  };
+}
+
 function Eyebrow({ children }: { children: string }) {
   return (
     <p className="mt-1 text-[length:var(--text-label)] font-extrabold uppercase tracking-[var(--text-tracking-label)] text-text-muted">
@@ -118,42 +158,64 @@ function CheckboxGroup({
 export function AccountPage() {
   const { user, idToken, isAdmin, logout } = useAuth();
   const { mode, setMode } = useTheme();
+  const { toast } = useToast();
+
+  const cachedProfile = useMemo(() => userStorage.getProfileCache(), []);
+  const cachedPrefs = useMemo(() => userStorage.getPrefsCache(), []);
+
   const [profile, setProfile] = useState<ExtendedUserProfile | null>(null);
-  const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
-  const [kidsInput, setKidsInput] = useState("");
+  const [prefs, setPrefs] = useState<NotificationPreferences | null>(() =>
+    prefsFromCache(cachedPrefs),
+  );
+  const [kidsInput, setKidsInput] = useState(() => cachedProfile?.kidsAges.join(", ") ?? "");
   const [family, setFamily] = useState<FamilyForm>(EMPTY_FAMILY_FORM);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const { toast } = useToast();
+
+  const idTokenRef = useRef(idToken);
+  const kidsTouchedRef = useRef(false);
+  const familyTouchedRef = useRef(false);
+  const prefsTouchedRef = useRef(false);
 
   useEffect(() => {
-    if (!idToken) return;
+    idTokenRef.current = idToken;
+  }, [idToken]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    const token = idTokenRef.current;
+    if (!token) return;
+
+    let cancelled = false;
     api
-      .getProfile(idToken)
+      .getProfile(token)
       .then((p) => {
+        if (cancelled) return;
         setProfile(p);
-        setPrefs(p.notification_preferences);
-        setKidsInput(p.kids_ages.join(", "));
-        setFamily(familyFormFromProfile(p));
-        userStorage.setProfileCache({
-          kidsAges: p.kids_ages,
-          homeLabel: p.home_label,
-          onboardingCompleted: p.onboarding_completed,
-          inboxReadThrough: p.inbox_read_through,
-        });
-        userStorage.setPrefsCache({
-          cadence: p.notification_preferences.cadence,
-          quietHoursStart: p.notification_preferences.quiet_hours_start,
-          quietHoursEnd: p.notification_preferences.quiet_hours_end,
-          alertNewTtf: p.notification_preferences.alert_new_ttf,
-          alertNewRating: p.notification_preferences.alert_new_rating,
-          alertNewNote: p.notification_preferences.alert_new_note,
-          alertEveryReview: p.notification_preferences.alert_every_review,
-          pushEnabled: p.notification_preferences.push_enabled,
-        });
+        userStorage.setProfileCache(profileToCache(p));
+        userStorage.setPrefsCache(prefsToCache(p.notification_preferences));
+
+        if (!kidsTouchedRef.current) {
+          setKidsInput(p.kids_ages.join(", "));
+        }
+        if (!familyTouchedRef.current) {
+          setFamily(familyFormFromProfile(p));
+        }
+        if (!prefsTouchedRef.current) {
+          setPrefs(p.notification_preferences);
+        }
       })
       .catch(() => {});
-  }, [idToken]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]);
+
+  const updateFamily = (updater: (prev: FamilyForm) => FamilyForm) => {
+    familyTouchedRef.current = true;
+    setFamily(updater);
+  };
 
   async function saveFamilyProfile() {
     if (!idToken) return;
@@ -178,6 +240,7 @@ export function AccountPage() {
         complete_onboarding: true,
       });
       setProfile(updated);
+      userStorage.setProfileCache(profileToCache(updated));
       setKidsInput(updated.kids_ages.join(", "));
       setFamily(familyFormFromProfile(updated));
       toast("Family profile saved.", "success");
@@ -190,17 +253,20 @@ export function AccountPage() {
 
   async function savePrefs(patch: Partial<NotificationPreferences>) {
     if (!idToken || !prefs) return;
+    prefsTouchedRef.current = true;
     const updated = await api.patchNotificationPreferences(idToken, patch);
     setPrefs(updated);
+    userStorage.setPrefsCache(prefsToCache(updated));
   }
 
   if (!user) return null;
 
-  const displayName = user.displayName ?? profile?.display_name ?? user.email ?? "Signed in";
-  const kidsAges = profile?.kids_ages ?? [];
-  const contributions = profile?.contribution_count ?? 0;
-  const savedCount = profile?.watch_count ?? 0;
-  const badge = trailScoutBadge(contributions);
+  const displayName =
+    user.displayName ?? profile?.display_name ?? cachedProfile?.displayName ?? user.email ?? "Signed in";
+  const kidsAgesData = profile?.kids_ages ?? cachedProfile?.kidsAges;
+  const contributionCount = profile?.contribution_count ?? cachedProfile?.contributionCount;
+  const watchCount = profile?.watch_count ?? cachedProfile?.watchCount;
+  const badge = contributionCount != null ? trailScoutBadge(contributionCount) : null;
 
   return (
     <Page narrow className="grid max-w-[var(--page-narrow)] gap-3.5 pb-6">
@@ -213,7 +279,13 @@ export function AccountPage() {
         </div>
         <div className="min-w-0">
           <h1 className="truncate text-[1.1875rem] leading-tight">{displayName}</h1>
-          <p className="mt-0.5 text-xs font-semibold text-text-muted">{scoutingSubtitle(kidsAges)}</p>
+          <p className="mt-0.5 text-xs font-semibold text-text-muted">
+            {kidsAgesData ? (
+              scoutingSubtitle(kidsAgesData)
+            ) : (
+              <Skeleton className="inline-block h-3.5 w-40" />
+            )}
+          </p>
           {(isAdmin || profile?.role === "admin") && (
             <p className="mt-1 text-xs font-semibold text-success">
               Operator ·{" "}
@@ -226,18 +298,39 @@ export function AccountPage() {
       </header>
 
       <div className="flex gap-2.5">
-        <AccountStatPill value={contributions} label="visits logged" tone="brand" />
-        <AccountStatPill value={savedCount} label="saved spots" tone="accent" />
-        <AccountStatPill value={badge.glyph} label={badge.label} tone="pop" />
+        <AccountStatPill
+          value={contributionCount ?? <Skeleton className="inline-block h-7 w-6" />}
+          label="visits logged"
+          tone="brand"
+        />
+        <AccountStatPill
+          value={watchCount ?? <Skeleton className="inline-block h-7 w-6" />}
+          label="saved spots"
+          tone="accent"
+        />
+        <AccountStatPill
+          value={badge ? badge.glyph : <Skeleton className="inline-block h-7 w-7" />}
+          label={badge ? badge.label : "Scout status"}
+          tone="pop"
+        />
       </div>
 
       <Eyebrow>Settings</Eyebrow>
 
-      {prefs && (
-        <SettingsPanel
-          title="Notifications"
-          subtitle="Choose what updates you get and how often"
-        >
+      <SettingsPanel
+        title="Notifications"
+        subtitle="Choose what updates you get and how often"
+      >
+        {!prefs ? (
+          <div className="grid gap-5">
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-9 w-full" />
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          </div>
+        ) : (
           <div className="grid gap-5">
             <section className="grid gap-2">
               <h3 className="text-sm font-bold text-text">Activity alerts</h3>
@@ -300,8 +393,8 @@ export function AccountPage() {
               </div>
             </section>
           </div>
-        </SettingsPanel>
-      )}
+        )}
+      </SettingsPanel>
 
       <SettingsLinkRow to="/account/contributions" label="My contributions" />
       <SettingsLinkRow href="/privacy" label="Privacy & data" />
@@ -313,7 +406,10 @@ export function AccountPage() {
         <FormField label="Kids' ages (comma-separated)">
           <input
             value={kidsInput}
-            onChange={(e) => setKidsInput(e.target.value)}
+            onChange={(e) => {
+              kidsTouchedRef.current = true;
+              setKidsInput(e.target.value);
+            }}
             placeholder="e.g. 2, 5, 2.5"
           />
         </FormField>
@@ -323,7 +419,7 @@ export function AccountPage() {
           options={ALLERGEN_OPTIONS}
           selected={family.allergies}
           onToggle={(key) =>
-            setFamily((f) => ({ ...f, allergies: toggleKey(f.allergies, key) }))
+            updateFamily((f) => ({ ...f, allergies: toggleKey(f.allergies, key) }))
           }
         />
         <FormField
@@ -332,7 +428,9 @@ export function AccountPage() {
         >
           <input
             value={family.allergyNotes}
-            onChange={(e) => setFamily((f) => ({ ...f, allergyNotes: e.target.value }))}
+            onChange={(e) =>
+              updateFamily((f) => ({ ...f, allergyNotes: e.target.value }))
+            }
             maxLength={500}
             placeholder="e.g. kiwi"
           />
@@ -343,7 +441,7 @@ export function AccountPage() {
           options={DIETARY_RESTRICTION_OPTIONS}
           selected={family.dietaryRestrictions}
           onToggle={(key) =>
-            setFamily((f) => ({
+            updateFamily((f) => ({
               ...f,
               dietaryRestrictions: toggleKey(f.dietaryRestrictions, key),
             }))
@@ -353,14 +451,14 @@ export function AccountPage() {
         <FormField label="Cuisines we love" hint="Press Enter or comma to add">
           <TagInput
             value={family.cuisineLikes}
-            onChange={(cuisineLikes) => setFamily((f) => ({ ...f, cuisineLikes }))}
+            onChange={(cuisineLikes) => updateFamily((f) => ({ ...f, cuisineLikes }))}
             placeholder="e.g. pizza, sushi"
           />
         </FormField>
         <FormField label="Cuisines to skip">
           <TagInput
             value={family.cuisineDislikes}
-            onChange={(cuisineDislikes) => setFamily((f) => ({ ...f, cuisineDislikes }))}
+            onChange={(cuisineDislikes) => updateFamily((f) => ({ ...f, cuisineDislikes }))}
             placeholder="e.g. seafood"
           />
         </FormField>
@@ -370,7 +468,7 @@ export function AccountPage() {
           options={ATMOSPHERE_OPTIONS}
           selected={family.atmospherePreferences}
           onToggle={(key) =>
-            setFamily((f) => ({
+            updateFamily((f) => ({
               ...f,
               atmospherePreferences: toggleKey(f.atmospherePreferences, key),
             }))
@@ -379,7 +477,9 @@ export function AccountPage() {
         <FormField label="Anything else">
           <input
             value={family.preferenceNotes}
-            onChange={(e) => setFamily((f) => ({ ...f, preferenceNotes: e.target.value }))}
+            onChange={(e) =>
+              updateFamily((f) => ({ ...f, preferenceNotes: e.target.value }))
+            }
             maxLength={500}
             placeholder="e.g. crayons and paper win every time"
           />
