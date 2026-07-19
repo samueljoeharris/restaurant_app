@@ -28,7 +28,8 @@ resource "google_cloud_run_v2_service" "api" {
           items {
             version = "latest"
             path    = volumes.value.file_name
-            mode    = volumes.value.mode
+            # Readable by the non-root container user (api/Dockerfile runs as app).
+            mode = volumes.value.mode
           }
         }
       }

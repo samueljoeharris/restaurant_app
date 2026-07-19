@@ -39,6 +39,8 @@ def _service_account_path() -> str | None:
     it (observed in some Cloud Run deployments), and resolves relative paths
     against the repo root.
     """
+    # Pydantic should map FIREBASE_SERVICE_ACCOUNT_PATH, but the explicit env
+    # fallback keeps the mount usable if the settings object loses the value.
     raw = settings.firebase_service_account_path or os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH", "")
     return raw.strip() or None
 
