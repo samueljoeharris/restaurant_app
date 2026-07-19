@@ -15,11 +15,16 @@ resource "google_sql_database_instance" "main" {
     tier = var.tier
 
     backup_configuration {
-      enabled = false
+      enabled                        = true
+      point_in_time_recovery_enabled = true
+      start_time                     = "04:00"
     }
 
     ip_configuration {
       ipv4_enabled = true
+      # ponytail: public IP is required until a VPC + Serverless VPC Access
+      # connector is added for Cloud Run private connectivity. Tracked in
+      # #142 — disable public IP once private networking is in place.
     }
   }
 }
