@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass
 from typing import Annotated
@@ -16,6 +17,8 @@ from ttf_api.firebase_init import init_firebase, using_emulator
 # Backward-compatible aliases for internal callers.
 _init_firebase = init_firebase
 _using_emulator = using_emulator
+
+logger = logging.getLogger(__name__)
 
 
 def dev_admin_uids() -> set[str]:
@@ -44,22 +47,23 @@ class AccountDeletionAuth:
     skip_firebase_delete: bool
 
 
-def _verify_firebase_token(token: str) -> dict:
+def _verify_firebase_token(token: str, *, check_revoked: bool = False) -> dict:
     _init_firebase()
     try:
         claims = firebase_auth.verify_id_token(
             token,
-            check_revoked=not _using_emulator(),
+            check_revoked=check_revoked,
         )
     except firebase_auth.ExpiredIdTokenError as exc:
         raise HTTPException(status_code=401, detail="Firebase token expired") from exc
     except firebase_auth.InvalidIdTokenError as exc:
         raise HTTPException(status_code=401, detail="Invalid Firebase token") from exc
+    except firebase_auth.CertificateFetchError as exc:
+        logger.exception("Firebase token verification failed: certificate fetch error")
+        raise HTTPException(status_code=401, detail="Firebase token verification failed") from exc
     except Exception as exc:
-        raise HTTPException(
-            status_code=401,
-            detail="Firebase token verification failed",
-        ) from exc
+        logger.exception("Firebase token verification failed")
+        raise HTTPException(status_code=401, detail="Firebase token verification failed") from exc
 
     return claims
 
@@ -81,7 +85,7 @@ def _user_from_claims(claims: dict) -> AuthUser:
     )
 
 
-def resolve_user_from_token(token: str) -> AuthUser:
+def resolve_user_from_token(token: str, *, check_revoked: bool = False) -> AuthUser:
     if settings.auth_dev_mode and token.startswith("dev:"):
         uid = token.removeprefix("dev:")
         if not uid:
@@ -94,7 +98,7 @@ def resolve_user_from_token(token: str) -> AuthUser:
             role=role,
         )
 
-    return _user_from_claims(_verify_firebase_token(token))
+    return _user_from_claims(_verify_firebase_token(token, check_revoked=check_revoked))
 
 
 async def get_optional_user(
@@ -120,8 +124,21 @@ async def get_current_user(
     return resolve_user_from_token(creds.credentials)
 
 
+async def get_current_user_strict(
+    creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> AuthUser:
+    """Authenticated user with revoked-token check — for admin/sensitive routes."""
+    if creds is None or creds.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization Bearer token required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return resolve_user_from_token(creds.credentials, check_revoked=True)
+
+
 async def require_admin(
-    user: Annotated[AuthUser, Depends(get_current_user)],
+    user: Annotated[AuthUser, Depends(get_current_user_strict)],
 ) -> AuthUser:
     if not user.is_admin:
         raise HTTPException(
@@ -136,7 +153,7 @@ def _is_dev_token(token: str) -> bool:
 
 
 def _require_recent_login(token: str) -> None:
-    claims = _verify_firebase_token(token)
+    claims = _verify_firebase_token(token, check_revoked=True)
     auth_time = claims.get("auth_time")
     if auth_time is None:
         raise HTTPException(
@@ -167,7 +184,7 @@ async def require_account_deletion(
         )
 
     token = creds.credentials
-    user = resolve_user_from_token(token)
+    user = resolve_user_from_token(token, check_revoked=True)
     skip_firebase = _is_dev_token(token)
 
     if not skip_firebase and not _using_emulator():
