@@ -315,10 +315,10 @@ class UserProfile(BaseModel):
 
 
 class NotificationPreferences(BaseModel):
-    cadence: Literal["weekly", "daily", "realtime_bundle"] = "weekly"
+    cadence: Literal["weekly", "daily", "realtime_bundle"] = "realtime_bundle"
     quiet_hours_start: str = "20:00"
     quiet_hours_end: str = "08:00"
-    alert_new_ttf: bool = True
+    alert_new_ttf: bool = False
     alert_new_rating: bool = False
     alert_new_note: bool = False
     alert_every_review: bool = False
