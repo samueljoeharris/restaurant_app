@@ -6,7 +6,7 @@ export function BackLink({ className, children, ...props }: LinkProps) {
   return (
     <Link
       className={cn(
-        "mb-4 inline-flex items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand",
+        "mb-4 inline-flex min-h-11 items-center gap-1 px-1 text-sm font-semibold text-text-muted transition-colors duration-fast hover:text-brand",
         className,
       )}
       {...props}

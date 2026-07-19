@@ -402,9 +402,9 @@ export function AccountPage() {
               key={option}
               type="button"
               className={cn(
-                "rounded-md px-3 py-1.5 text-sm font-semibold transition-colors duration-fast",
+                "min-h-11 rounded-md px-4 py-2 text-sm font-semibold transition-colors duration-fast",
                 mode === option
-                  ? "bg-surface text-text shadow-sm"
+                  ? "bg-brand-soft text-brand shadow-[0_0_0_1px_var(--color-brand)]"
                   : "bg-transparent text-text-muted hover:text-text",
               )}
               aria-pressed={mode === option}

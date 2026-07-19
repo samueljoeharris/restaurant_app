@@ -131,7 +131,7 @@ export function SavedPage() {
             </p>
             <button
               type="button"
-              className="text-sm font-semibold text-text-muted"
+              className="min-h-11 px-2 text-sm font-semibold text-text-muted"
               onClick={() => {
                 userStorage.setStripDismissedAt(new Date().toDateString());
                 setStripDismissed(true);

@@ -233,7 +233,7 @@ export function LoginPage() {
           {!isAdminSite && (
             <button
               type="button"
-              className="cursor-pointer border-0 bg-transparent p-0 text-left font-[inherit] text-sm font-semibold text-brand"
+              className="min-h-11 w-full cursor-pointer border-0 bg-transparent px-0 py-2.5 text-left font-[inherit] text-sm font-semibold text-brand"
               onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
             >
               {mode === "signin"
