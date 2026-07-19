@@ -1,4 +1,4 @@
-const STORAGE_VERSION = 1;
+const STORAGE_VERSION = 2;
 
 export type ProfileCache = {
   version: number;
@@ -6,6 +6,9 @@ export type ProfileCache = {
   homeLabel: string | null;
   onboardingCompleted: boolean;
   inboxReadThrough: string | null;
+  displayName: string | null;
+  contributionCount: number;
+  watchCount?: number;
 };
 
 export type PrefsCache = {
@@ -58,13 +61,17 @@ function writeJson(key: string, value: unknown) {
 
 export const userStorage = {
   getProfileCache(): ProfileCache | null {
-    return readJson<ProfileCache>(KEYS.profile);
+    const parsed = readJson<ProfileCache>(KEYS.profile);
+    if (!parsed || parsed.version !== STORAGE_VERSION) return null;
+    return parsed;
   },
   setProfileCache(cache: Omit<ProfileCache, "version">) {
     writeJson(KEYS.profile, { version: STORAGE_VERSION, ...cache });
   },
   getPrefsCache(): PrefsCache | null {
-    return readJson<PrefsCache>(KEYS.prefs);
+    const parsed = readJson<PrefsCache>(KEYS.prefs);
+    if (!parsed || parsed.version !== STORAGE_VERSION) return null;
+    return parsed;
   },
   setPrefsCache(cache: Omit<PrefsCache, "version">) {
     writeJson(KEYS.prefs, { version: STORAGE_VERSION, ...cache });
