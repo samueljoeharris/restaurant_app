@@ -26,7 +26,7 @@ import {
   toggleKey,
   type FamilyProfileOption,
 } from "../lib/familyProfile";
-import { scoutingSubtitle, trailScoutBadge } from "../lib/scoutProfile";
+import { parseKidsAges, scoutingSubtitle, trailScoutBadge } from "../lib/scoutProfile";
 import { userStorage } from "../lib/userStorage";
 import type { ExtendedUserProfile, NotificationPreferences } from "../types";
 
@@ -160,10 +160,12 @@ export function AccountPage() {
     if (!idToken) return;
     setSaving(true);
     setSaveError(null);
-    const kidsAges = kidsInput
-      .split(/[,\s]+/)
-      .map((s) => parseInt(s.trim(), 10))
-      .filter((n) => !Number.isNaN(n));
+    const { ages: kidsAges, error: kidsError } = parseKidsAges(kidsInput);
+    if (kidsError) {
+      setSaveError(kidsError);
+      setSaving(false);
+      return;
+    }
     try {
       const updated = await api.patchProfile(idToken, {
         kids_ages: kidsAges,
@@ -280,7 +282,7 @@ export function AccountPage() {
           <input
             value={kidsInput}
             onChange={(e) => setKidsInput(e.target.value)}
-            placeholder="e.g. 2, 5"
+            placeholder="e.g. 2, 5, 2.5"
           />
         </FormField>
 
