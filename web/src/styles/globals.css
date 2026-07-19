@@ -37,6 +37,9 @@
 
   body {
     @apply m-0 font-sans text-base leading-normal text-text bg-bg;
+  }
+
+  .paper-dot-bg {
     background-image: radial-gradient(
       color-mix(in srgb, var(--color-paper-dot) calc(var(--paper-dot-opacity) * 100%), transparent)
         var(--paper-dot-size),
