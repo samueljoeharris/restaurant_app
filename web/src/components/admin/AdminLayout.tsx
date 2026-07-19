@@ -59,7 +59,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           className="flex items-center gap-2 text-lg font-extrabold tracking-tight"
         >
           <span
-            className="grid h-8 w-8 place-items-center rounded-sm bg-brand-soft"
+            className="grid h-8 w-8 place-items-center rounded-md bg-brand-soft"
             aria-hidden
           >
             <ScoutLogo size={28} />
@@ -76,7 +76,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "flex shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-sm px-3 py-2 text-sm font-semibold text-text-muted transition-[color,background] duration-fast",
+                  "flex shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-text-muted transition-[color,background] duration-fast",
                   active
                     ? "bg-brand-soft text-text"
                     : "hover:bg-brand-soft hover:text-text",

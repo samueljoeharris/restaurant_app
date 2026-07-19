@@ -11,6 +11,7 @@ import { PlaceSearchBox } from "../components/PlaceSearchBox";
 import { RestaurantListCard } from "../components/RestaurantListCard";
 import { RestaurantMap } from "../components/RestaurantMap";
 import { VirtualizedResultRows } from "../components/VirtualizedResultRows";
+import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { SkeletonList } from "../components/ui/Skeleton";
 import { cn } from "../lib/cn";
@@ -829,13 +830,15 @@ export function ExploreMapPage() {
           {radiusLoading && (
             <span className="text-xs text-text-muted italic">loading nearby…</span>
           )}
-          <button
+          <Button
             type="button"
-            className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-brand px-[0.6rem] font-[inherit] text-xs font-bold text-brand transition-[background,color] duration-fast hover:bg-brand hover:text-text-inverse md:min-h-9"
+            size="sm"
+            variant="secondary"
+            className="rounded-full"
             onClick={clearRadiusMode}
           >
             Clear
-          </button>
+          </Button>
         </div>
       )}
 
@@ -864,31 +867,37 @@ export function ExploreMapPage() {
         (browseCity || browseZip || browseTag) && (
           <div className="mb-3 flex flex-wrap gap-2">
             {browseCity && (
-              <button
+              <Button
                 type="button"
-                className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-border-strong bg-surface px-[0.65rem] font-[inherit] text-sm text-text md:min-h-9"
+                size="sm"
+                variant="secondary"
+                className="rounded-full"
                 onClick={() => clearBrowseParam("city")}
               >
                 {browseCity} ×
-              </button>
+              </Button>
             )}
             {browseZip && (
-              <button
+              <Button
                 type="button"
-                className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-border-strong bg-surface px-[0.65rem] font-[inherit] text-sm text-text md:min-h-9"
+                size="sm"
+                variant="secondary"
+                className="rounded-full"
                 onClick={() => clearBrowseParam("zip")}
               >
                 ZIP {browseZip} ×
-              </button>
+              </Button>
             )}
             {browseTag && (
-              <button
+              <Button
                 type="button"
-                className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-border-strong bg-surface px-[0.65rem] font-[inherit] text-sm text-text md:min-h-9"
+                size="sm"
+                variant="secondary"
+                className="rounded-full"
                 onClick={() => clearBrowseParam("tag")}
               >
                 {browseTag} ×
-              </button>
+              </Button>
             )}
           </div>
         )}

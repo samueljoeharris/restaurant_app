@@ -63,7 +63,7 @@ export function AppSidebar({
         {!collapsed && <ActivityInbox />}
         <button
           type="button"
-          className="h-8 w-8 shrink-0 cursor-pointer rounded-sm border border-border bg-bg p-0 text-[1.1rem] leading-none text-text-muted transition-[color,border-color] duration-fast ease-out hover:border-border-strong hover:text-text"
+          className="h-8 w-8 shrink-0 cursor-pointer rounded-md border border-border bg-bg p-0 text-[1.1rem] leading-none text-text-muted transition-[color,border-color] duration-fast ease-out hover:border-border-strong hover:text-text"
           onClick={onToggleCollapsed}
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}

@@ -53,7 +53,7 @@ export function TagInput({
           {tag}
           <button
             type="button"
-            className="cursor-pointer rounded-sm px-0.5 leading-none text-text-muted hover:text-text"
+            className="cursor-pointer rounded-md px-0.5 leading-none text-text-muted hover:text-text"
             aria-label={`Remove ${tag}`}
             onClick={() => onChange(value.filter((t) => t !== tag))}
           >
