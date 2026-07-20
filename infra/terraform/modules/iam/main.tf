@@ -109,3 +109,12 @@ resource "google_project_iam_member" "github_deploy_logging_viewer" {
   role    = "roles/logging.viewer"
   member  = "serviceAccount:${google_service_account.github_deploy.email}"
 }
+
+# Firebase Admin SDK service agent (mounted into Cloud Run for revoke checks)
+# needs explicit Firebase Authentication user read permission; the default
+# firebase.sdkAdminServiceAgent role does not grant identitytoolkit users.get.
+resource "google_project_iam_member" "firebase_admin_sa_auth_admin" {
+  project = var.project_id
+  role    = "roles/firebaseauth.admin"
+  member  = "serviceAccount:firebase-adminsdk-fbsvc@${var.project_id}.iam.gserviceaccount.com"
+}
