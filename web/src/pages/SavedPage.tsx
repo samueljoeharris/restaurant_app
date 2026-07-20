@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth/useAuth";
-import { OnboardingModal } from "../components/OnboardingModal";
 import { PushPrimeBanner } from "../components/PushPrimeBanner";
 import { WatchButton } from "../components/WatchButton";
 import { Badge } from "../components/ui/Badge";
@@ -14,11 +13,10 @@ import { SkeletonList } from "../components/ui/Skeleton";
 import { useActivityBadge } from "../hooks/useActivityBadge";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useRefreshOnNavigate } from "../hooks/useRefreshOnNavigate";
-import { profileCacheKey } from "../lib/pageDataCache";
 import { restaurantDetailPath } from "../lib/mapEntryKey";
 import { formatTtfMedian } from "../lib/ttfTier";
-import { userStorage, type ProfileCache } from "../lib/userStorage";
-import type { ExtendedUserProfile, WatchedRestaurantEntry } from "../types";
+import { userStorage } from "../lib/userStorage";
+import type { WatchedRestaurantEntry } from "../types";
 import { WATCHLIST_CHANGED_EVENT } from "../lib/watchlist";
 import { useWatch } from "../hooks/useWatch";
 
@@ -46,43 +44,12 @@ function SavedRow({ entry }: { entry: WatchedRestaurantEntry }) {
   );
 }
 
-function profileToCache(p: ExtendedUserProfile): Omit<ProfileCache, "version"> {
-  return {
-    kidsAges: p.kids_ages,
-    homeLabel: p.home_label,
-    onboardingCompleted: p.onboarding_completed,
-    inboxReadThrough: p.inbox_read_through,
-    displayName: p.display_name,
-    contributionCount: p.contribution_count,
-    watchCount: p.watch_count,
-  };
-}
-
 export function SavedPage() {
   const { user, idToken } = useAuth();
   const { unreadCount } = useActivityBadge();
 
-  const cachedProfile = useMemo(() => userStorage.getProfileCache(), []);
-  const onboardingDismissedRef = useRef(false);
-  const [showOnboarding, setShowOnboarding] = useState(
-    cachedProfile ? !cachedProfile.onboardingCompleted : false,
-  );
   const [showPushPrime, setShowPushPrime] = useState(false);
   const [stripDismissed, setStripDismissed] = useState(false);
-
-  const {
-    refresh: refreshProfile,
-  } = useCachedResource<ExtendedUserProfile>(
-    user?.uid ? profileCacheKey(user.uid) : null,
-    () => api.getProfile(idToken!),
-    {
-      onData: (p) => {
-        userStorage.setProfileCache(profileToCache(p));
-        if (onboardingDismissedRef.current) return;
-        setShowOnboarding(!p.onboarding_completed);
-      },
-    },
-  );
 
   const {
     data: watches,
@@ -104,12 +71,9 @@ export function SavedPage() {
   );
   const items = watches?.items ?? [];
 
-  const refreshAll = () => {
-    void refreshProfile();
+  useRefreshOnNavigate(() => {
     void refreshWatches();
-  };
-
-  useRefreshOnNavigate(refreshAll, [refreshProfile, refreshWatches]);
+  }, [refreshWatches]);
 
   useEffect(() => {
     const onWatchlistChanged = () => {
@@ -126,17 +90,6 @@ export function SavedPage() {
 
   return (
     <Page title="Saved" subtitle="Spots you're watching for kid-friendly updates">
-      {showOnboarding && idToken && (
-        <OnboardingModal
-          open={showOnboarding}
-          idToken={idToken}
-          onComplete={() => {
-            onboardingDismissedRef.current = true;
-            setShowOnboarding(false);
-            refreshAll();
-          }}
-        />
-      )}
       <PushPrimeBanner
         visible={showPushPrime}
         onDismiss={() => setShowPushPrime(false)}
@@ -173,10 +126,7 @@ export function SavedPage() {
       {!loading && items.length === 0 && (
         <Card title="No saved spots yet">
           <div className="flex flex-col items-center py-4 text-center">
-            {/* Skip the page mascot while onboarding shows its own, so the fox doesn't double up. */}
-            {!showOnboarding && (
-              <ScoutMascot className="mb-4 h-28 w-28 object-contain" size={112} />
-            )}
+            <ScoutMascot className="mb-4 h-28 w-28 object-contain" size={112} />
             <p className="text-sm text-text-muted">
               Tap 💛 Watch on a restaurant to follow updates here.
             </p>

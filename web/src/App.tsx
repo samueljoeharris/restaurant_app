@@ -1,19 +1,23 @@
-import { lazy, Suspense, useEffect, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 
 import { useAuth } from "./auth/useAuth";
 import { AuthProvider } from "./auth/AuthContext";
 import { api } from "./api/client";
+import { useCachedResource } from "./hooks/useCachedResource";
 import { prefetchCachedResource } from "./hooks/useCachedResource";
-import { profileCacheKey } from "./lib/pageDataCache";
+import { profileCacheKey, invalidateProfile } from "./lib/pageDataCache";
 import { restaurantSubmitPath } from "./lib/mapEntryKey";
 import { AdminSiteRedirect } from "./components/AdminSiteRedirect";
 import { Layout } from "./components/Layout";
+import { OnboardingModal } from "./components/OnboardingModal";
 import { RouteFallback } from "./components/RouteFallback";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { ActivityToast } from "./components/ActivityToast";
 import { ExploreMapPage } from "./pages/ExploreMapPage";
 import { LoginPage } from "./pages/LoginPage";
+import { profileToCache, userStorage } from "./lib/userStorage";
+import type { ExtendedUserProfile } from "./types";
 
 // Explore and Login stay eager (landing + auth redirect target); everything
 // else loads on demand so /map doesn't pay for the whole app.
@@ -42,6 +46,34 @@ function ProfilePrefetch() {
   return null;
 }
 
+function OnboardingGate() {
+  const { user, idToken } = useAuth();
+  const [dismissed, setDismissed] = useState(false);
+  const { data, refresh } = useCachedResource<ExtendedUserProfile>(
+    user?.uid && idToken ? profileCacheKey(user.uid) : null,
+    () => api.getProfile(idToken!),
+    {
+      onData: (p) => {
+        userStorage.setProfileCache(profileToCache(p));
+      },
+    },
+  );
+
+  if (!idToken || !data || data.onboarding_completed || dismissed) return null;
+
+  return (
+    <OnboardingModal
+      open
+      idToken={idToken}
+      onComplete={() => {
+        setDismissed(true);
+        invalidateProfile();
+        void refresh();
+      }}
+    />
+  );
+}
+
 function CanonicalMapRedirect() {
   const location = useLocation();
   return <Navigate to={{ pathname: "/map", search: location.search }} replace />;
@@ -65,6 +97,7 @@ export default function App() {
       <ProfilePrefetch />
       <BrowserRouter>
         <ScrollToTop />
+        <OnboardingGate />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/privacy" element={suspend(<PrivacyPage />)} />
