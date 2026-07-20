@@ -83,6 +83,17 @@ class RestaurantDetailResponse(BaseModel):
     watched: bool = False
 
 
+class Recommendation(BaseModel):
+    restaurant: RestaurantMapEntry
+    score: float = Field(ge=0, le=1)
+    why: str
+
+
+class RecommendationResponse(BaseModel):
+    primary: Recommendation | None = None
+    alternates: list[Recommendation] = []
+
+
 class RestaurantSeedJobRequest(BaseModel):
     location: str | None = Field(None, min_length=2, max_length=200)
     lat: float | None = None
