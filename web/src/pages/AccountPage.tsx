@@ -16,21 +16,19 @@ import { Button } from "../components/ui/Button";
 import { CheckboxField, FormField } from "../components/ui/FormField";
 import { Page } from "../components/ui/Page";
 import { Skeleton } from "../components/ui/Skeleton";
-import { TagInput } from "../components/ui/TagInput";
 import { useToast } from "../components/ui/useToast";
 import { useCachedResource } from "../hooks/useCachedResource";
 import { useTheme, type ThemeMode } from "../hooks/useTheme";
 import { cn } from "../lib/cn";
 import {
   ALLERGEN_OPTIONS,
-  ATMOSPHERE_OPTIONS,
   DIETARY_RESTRICTION_OPTIONS,
   toggleKey,
   type FamilyProfileOption,
 } from "../lib/familyProfile";
 import { profileCacheKey, invalidateProfile } from "../lib/pageDataCache";
 import { parseKidsAges, scoutingSubtitle, trailScoutBadge } from "../lib/scoutProfile";
-import { userStorage, type PrefsCache, type ProfileCache } from "../lib/userStorage";
+import { profileToCache, userStorage, type PrefsCache } from "../lib/userStorage";
 import type { ExtendedUserProfile, NotificationPreferences } from "../types";
 
 const THEME_OPTIONS: { mode: ThemeMode; label: string }[] = [
@@ -53,20 +51,12 @@ interface FamilyForm {
   allergies: string[];
   allergyNotes: string;
   dietaryRestrictions: string[];
-  cuisineLikes: string[];
-  cuisineDislikes: string[];
-  atmospherePreferences: string[];
-  preferenceNotes: string;
 }
 
 const EMPTY_FAMILY_FORM: FamilyForm = {
   allergies: [],
   allergyNotes: "",
   dietaryRestrictions: [],
-  cuisineLikes: [],
-  cuisineDislikes: [],
-  atmospherePreferences: [],
-  preferenceNotes: "",
 };
 
 /** Build the form state from a profile response (API-normalized values). */
@@ -75,22 +65,6 @@ function familyFormFromProfile(p: ExtendedUserProfile): FamilyForm {
     allergies: p.allergies,
     allergyNotes: p.allergy_notes ?? "",
     dietaryRestrictions: p.dietary_restrictions,
-    cuisineLikes: p.cuisine_likes,
-    cuisineDislikes: p.cuisine_dislikes,
-    atmospherePreferences: p.atmosphere_preferences,
-    preferenceNotes: p.preference_notes ?? "",
-  };
-}
-
-function profileToCache(p: ExtendedUserProfile): Omit<ProfileCache, "version"> {
-  return {
-    kidsAges: p.kids_ages,
-    homeLabel: p.home_label,
-    onboardingCompleted: p.onboarding_completed,
-    inboxReadThrough: p.inbox_read_through,
-    displayName: p.display_name,
-    contributionCount: p.contribution_count,
-    watchCount: p.watch_count,
   };
 }
 
@@ -225,10 +199,6 @@ export function AccountPage() {
         allergies: family.allergies,
         allergy_notes: family.allergyNotes.trim(),
         dietary_restrictions: family.dietaryRestrictions,
-        cuisine_likes: family.cuisineLikes,
-        cuisine_dislikes: family.cuisineDislikes,
-        atmosphere_preferences: family.atmospherePreferences,
-        preference_notes: family.preferenceNotes.trim(),
         complete_onboarding: true,
       });
       invalidateProfile();
@@ -443,43 +413,6 @@ export function AccountPage() {
             }))
           }
         />
-
-        <FormField label="Cuisines we love" hint="Press Enter or comma to add">
-          <TagInput
-            value={family.cuisineLikes}
-            onChange={(cuisineLikes) => updateFamily((f) => ({ ...f, cuisineLikes }))}
-            placeholder="e.g. pizza, sushi"
-          />
-        </FormField>
-        <FormField label="Cuisines to skip">
-          <TagInput
-            value={family.cuisineDislikes}
-            onChange={(cuisineDislikes) => updateFamily((f) => ({ ...f, cuisineDislikes }))}
-            placeholder="e.g. seafood"
-          />
-        </FormField>
-
-        <CheckboxGroup
-          legend="Seating & atmosphere"
-          options={ATMOSPHERE_OPTIONS}
-          selected={family.atmospherePreferences}
-          onToggle={(key) =>
-            updateFamily((f) => ({
-              ...f,
-              atmospherePreferences: toggleKey(f.atmospherePreferences, key),
-            }))
-          }
-        />
-        <FormField label="Anything else">
-          <input
-            value={family.preferenceNotes}
-            onChange={(e) =>
-              updateFamily((f) => ({ ...f, preferenceNotes: e.target.value }))
-            }
-            maxLength={500}
-            placeholder="e.g. crayons and paper win every time"
-          />
-        </FormField>
 
         {saveError && <p className="text-sm font-semibold text-error">{saveError}</p>}
         <Button disabled={saving} onClick={() => void saveFamilyProfile()}>

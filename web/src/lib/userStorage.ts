@@ -1,3 +1,5 @@
+import type { ExtendedUserProfile } from "../types";
+
 const STORAGE_VERSION = 2;
 
 export type ProfileCache = {
@@ -33,6 +35,18 @@ export type LastVisitDefaults = {
   partySizeKids: number;
 };
 
+export function profileToCache(p: ExtendedUserProfile): Omit<ProfileCache, "version"> {
+  return {
+    kidsAges: p.kids_ages,
+    homeLabel: p.home_label ?? null,
+    onboardingCompleted: p.onboarding_completed,
+    inboxReadThrough: p.inbox_read_through,
+    displayName: p.display_name,
+    contributionCount: p.contribution_count,
+    watchCount: p.watch_count ?? 0,
+  };
+}
+
 const KEYS = {
   profile: "ls:profile:cache",
   prefs: "ls:prefs:cache",
@@ -40,7 +54,6 @@ const KEYS = {
   stripDismissed: "ls:activity:stripDismissedAt",
   watchOptimistic: "ls:watch:optimistic",
   pushPrime: "ls:push:primeState",
-  onboardingDraft: "ls:onboarding:draft",
   toastEvent: "ls:toast:lastEventId",
   lastVisit: "ls:ttf:lastVisitDefaults",
 } as const;
@@ -102,15 +115,6 @@ export const userStorage = {
   },
   setPushPrimeState(state: PushPrimeState) {
     writeJson(KEYS.pushPrime, state);
-  },
-  getOnboardingDraft(): { kidsAges: number[] } | null {
-    return readJson<{ kidsAges: number[] }>(KEYS.onboardingDraft);
-  },
-  setOnboardingDraft(draft: { kidsAges: number[] }) {
-    writeJson(KEYS.onboardingDraft, draft);
-  },
-  clearOnboardingDraft() {
-    localStorage.removeItem(KEYS.onboardingDraft);
   },
   getLastVisitDefaults(): LastVisitDefaults | null {
     return readJson<LastVisitDefaults>(KEYS.lastVisit);
