@@ -6,13 +6,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from ttf_api.ugc_write import insert_attribute_rating, insert_note, insert_ttf_observation
 
 from ttf_api.aggregates import build_attribute_aggregates
-from ttf_api.auth import AuthUser, get_optional_user
+from ttf_api.auth import AuthUser, get_current_user, get_optional_user
 from ttf_api.security import require_trusted_or_admin, require_write_access
 from ttf_api.config import settings
 from ttf_api.db import get_conn
 from ttf_api.map_query import build_bbox_filter
 from ttf_api.map_entries import MAP_SELECT, apply_watched_flags, row_to_map_entry
-from ttf_api.user_profiles import fetch_watched_ids
+from ttf_api.recommendations import recommendation_for_restaurant
+from ttf_api.user_profiles import ensure_user_profile, fetch_watched_ids
 from ttf_api.ugc_sql import PUBLIC_NOTE_FILTER, TTF_AGGREGATE_FILTER
 from ttf_api.schemas import (
     AttributeSubmissionRequest,
@@ -21,6 +22,8 @@ from ttf_api.schemas import (
     CreateRestaurantRequest,
     NoteSubmissionRequest,
     NoteSubmissionResponse,
+    Recommendation,
+    RecommendationResponse,
     RestaurantDetail,
     RestaurantDetailResponse,
     RestaurantMapEntry,
@@ -237,6 +240,53 @@ def search_restaurants(
         rows = conn.execute(sql, params).fetchall()
         watched_ids = fetch_watched_ids(conn, user.firebase_uid) if user else set()
     return _map_entries_from_rows(rows, watched_ids)
+
+
+@router.get("/recommendations", response_model=RecommendationResponse)
+def get_recommendations(
+    user: Annotated[AuthUser, Depends(get_current_user)],
+    lat: float = Query(..., ge=-90, le=90, description="Center latitude"),
+    lng: float = Query(..., ge=-180, le=180, description="Center longitude"),
+    radius_m: int = Query(default=8000, ge=500, le=25000, description="Search radius in metres"),
+    limit: int = Query(default=3, ge=1, le=10, description="Total results (primary + alternates)"),
+) -> RecommendationResponse:
+    """Family-fit ranker v1: top pick + alternates for a lat/lng + profile."""
+    radius_m = max(500, min(radius_m, 25000))
+    limit = max(1, min(limit, 10))
+    pilot = settings.pilot_city
+
+    where_clauses = [
+        "r.pilot_city = %(pilot)s",
+        "r.status = 'active'",
+        f"{_HAVERSINE_EXPR} <= %(radius_m)s",
+    ]
+    params: dict = {"pilot": pilot, "lat": lat, "lng": lng, "radius_m": radius_m}
+
+    where = " AND ".join(where_clauses)
+    sql = (
+        MAP_SELECT
+        + f"WHERE {where}\n"
+        + f"ORDER BY {_HAVERSINE_EXPR} ASC\n"
+        + "LIMIT 100"
+    )
+
+    with get_conn() as conn:
+        profile = ensure_user_profile(conn, user.firebase_uid)
+        rows = conn.execute(sql, params).fetchall()
+        watched_ids = fetch_watched_ids(conn, user.firebase_uid)
+
+        scored: list[Recommendation] = []
+        for row in rows:
+            score, _reasons, why = recommendation_for_restaurant(
+                conn, row, profile, lat, lng, float(radius_m)
+            )
+            entry = row_to_map_entry(row, watched=row["id"] in watched_ids)
+            scored.append(Recommendation(restaurant=entry, score=score, why=why))
+
+    scored.sort(key=lambda r: r.score, reverse=True)
+    primary = scored[0] if scored else None
+    alternates = scored[1:limit]
+    return RecommendationResponse(primary=primary, alternates=alternates)
 
 
 @router.get("/{restaurant_id}", response_model=RestaurantDetailResponse)

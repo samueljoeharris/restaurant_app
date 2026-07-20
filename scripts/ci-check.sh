@@ -168,7 +168,7 @@ if $RUN_API; then
   # Import the app: catches startup-time failures (route config, bad imports)
   # that compileall misses — same failure mode as a Cloud Run boot crash.
   docker run --rm ttf-api-ci python -c "from ttf_api.main import app"
-  docker run --rm ttf-api-ci python -m unittest tests.test_security_config tests.test_write_guards tests.test_place_id -q
+  docker run --rm ttf-api-ci python -m unittest tests.test_security_config tests.test_write_guards tests.test_place_id tests.test_recommendations -q
   echo "→ api: pip-audit dependency check"
   docker run --user root --rm ttf-api-ci /bin/sh -c "pip install --quiet pip-audit && pip-audit -r /app/requirements.txt"
   echo "✓ api build"
